@@ -11,11 +11,12 @@ A personal starting point for new Laravel projects. It is based on the official 
 - Tailwind CSS 4, Vite (via Vite+)
 - Pest, Larastan, and Pint
 - Debugbar and Ray for local debugging
+- Laravel Boost for AI-assisted development
 
 ## Differences From the Starter Kit
 
 - **Flux Pro** is installed from `composer.fluxui.dev`. You need a Flux Pro license.
-- **Debugbar** and **Ray** are installed as dev dependencies.
+- **Debugbar**, **Ray**, and **Laravel Boost** are installed as dev dependencies.
 - **Spatie Activitylog** is installed. Its migration creates the `activity_log` table.
 - **Redis** is the default driver for session, cache, and queue.
 - **Daily log files** replace the single log file (`LOG_STACK=daily`).
@@ -47,6 +48,12 @@ A personal starting point for new Laravel projects. It is based on the official 
 3. Make sure Redis runs on `127.0.0.1:6379`, or change the `REDIS_*` values in `.env`.
 
 4. If you serve the app from a different host, set `APP_DOMAIN` in `.env`.
+
+5. If you use an AI coding agent, generate the Boost guidelines, skills, and MCP config. git ignores the generated files:
+
+   ```bash
+   php artisan boost:install
+   ```
 
 ## Development
 

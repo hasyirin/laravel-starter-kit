@@ -8,6 +8,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - Livewire 4, Flux and Flux Pro, Blaze
 - Fortify for authentication, with passkey support
 - Spatie Activitylog to log model and user activity
+- Spatie Media Library to attach files to Eloquent models
 - Tailwind CSS 4, Vite (via Vite+)
 - Pest, Larastan, and Pint
 - Debugbar and Ray for local debugging
@@ -18,6 +19,8 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Flux Pro** is installed from `composer.fluxui.dev`. You need a Flux Pro license.
 - **Debugbar**, **Ray**, and **Laravel Boost** are installed as dev dependencies.
 - **Spatie Activitylog** is installed. Its migration creates the `activity_log` table.
+- **Spatie Media Library** is installed. Its migration creates the `media` table. It stores files on a new public `media` disk (`storage/app/media`, served at `/media`).
+- **Upload limit** is 1GB for the media library and for Livewire temporary uploads. PHP `upload_max_filesize` and `post_max_size` must also allow this size.
 - **Redis** is the default driver for session, cache, and queue.
 - **Daily log files** replace the single log file (`LOG_STACK=daily`).
 - **`APP_DOMAIN`** is a new setting. It is available as `config('app.domain')`, and `APP_URL` is built from it.
@@ -25,9 +28,10 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 ## Requirements
 
-- PHP 8.3+ with the `phpredis` extension
+- PHP 8.3+ with the `phpredis`, `exif`, and `gd` extensions
 - Composer 2
 - Node.js 22+
+- Bun
 - Redis
 - A Flux Pro license
 
@@ -39,7 +43,7 @@ A personal starting point for new Laravel projects. It is based on the official 
    composer config http-basic.composer.fluxui.dev "<your-email>" "<your-license-key>"
    ```
 
-2. Install dependencies, create `.env`, generate the app key, run migrations, and build assets:
+2. Install dependencies, create `.env`, generate the app key, run migrations, create the storage links, and build assets:
 
    ```bash
    composer setup
@@ -53,6 +57,13 @@ A personal starting point for new Laravel projects. It is based on the official 
 
    ```bash
    php artisan boost:install
+   ```
+
+6. Install the image optimizers. The media library uses them to make converted images smaller. On Debian or Ubuntu:
+
+   ```bash
+   sudo apt install jpegoptim optipng pngquant gifsicle libavif-bin webp
+   bun add -g svgo
    ```
 
 ## Development

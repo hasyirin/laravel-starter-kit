@@ -4,7 +4,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 ## Stack
 
-- PHP 8.3+, Laravel 13
+- PHP 8.5+, Laravel 13
 - Livewire 4, Flux and Flux Pro, Blaze
 - Fortify for authentication, with passkey support
 - Spatie Activitylog to log model and user activity
@@ -16,6 +16,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 ## Differences From the Starter Kit
 
+- **PHP 8.5** is the minimum version, instead of 8.3. The `bcmath` extension is required.
 - **Flux Pro** is installed from `composer.fluxui.dev`. You need a Flux Pro license.
 - **Debugbar**, **Ray**, and **Laravel Boost** are installed as dev dependencies.
 - **Spatie Activitylog** is installed. Its migration creates the `activity_log` table.
@@ -28,7 +29,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 ## Requirements
 
-- PHP 8.3+ with the `phpredis`, `exif`, and `gd` extensions
+- PHP 8.5+ with the `phpredis`, `exif`, `gd`, and `bcmath` extensions
 - Composer 2
 - Node.js 22+
 - Bun

@@ -4,7 +4,9 @@
     "type": "module",
     "scripts": {
         "build": "vp build",
-        "dev": "vp dev"
+        "dev": "vp dev",
+        "lint": "vp fmt resources/",
+        "test:lint": "vp fmt --check resources/"
     },
     "dependencies": {
         "@laravel/passkeys": "^0.2.0",

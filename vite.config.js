@@ -4,6 +4,21 @@ import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
+    fmt: {
+        printWidth: 80,
+        tabWidth: 4,
+        useTabs: false,
+        semi: true,
+        singleQuote: true,
+        sortTailwindcss: {
+            functions: ['clsx', 'cn'],
+            stylesheet: 'resources/css/app.css',
+        },
+        sortImports: {
+            groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+            newlinesBetween: false,
+        },
+    },
     plugins: lazyPlugins(() => [
         laravel({
             input: [

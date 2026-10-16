@@ -1,6 +1,7 @@
 includes:
     - vendor/larastan/larastan/extension.neon
     - vendor/nesbot/carbon/extension.neon
+    - ./vendor/calebdw/larastan-livewire/extension.neon
 
 parameters:
     paths:
@@ -11,3 +12,33 @@ parameters:
         - routes/
 
     level: 7
+
+    checkModelProperties: true
+
+    checkConfigTypes: true
+
+    checkOctaneCompatibility: true
+
+    checkBenevolentUnionTypes: true
+
+    checkMissingCallableSignature: true
+
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+
+    checkTooWideThrowTypesInProtectedAndPublicMethods: true
+
+    checkUninitializedProperties: true
+
+    reportAnyTypeWideningInVarTag: true
+
+    reportIgnoresWithoutComments: true
+
+    reportUnmatchedIgnoredErrors: true
+
+    tmpDir: storage/phpstan/
+
+    ignoreErrors:
+        - identifier: cast.string
+          reportUnmatched: false
+        - identifier: cast.int
+          reportUnmatched: false

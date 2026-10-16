@@ -27,6 +27,7 @@
         "spatie/laravel-medialibrary": "^11.23"
     },
     "require-dev": {
+        "calebdw/larastan-livewire": "^2.5",
         "driftingly/rector-laravel": "^2.6",
         "fakerphp/faker": "^1.24",
         "fruitcake/laravel-debugbar": "^4.4",

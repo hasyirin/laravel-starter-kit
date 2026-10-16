@@ -31,13 +31,13 @@ class Security extends Component
     public string $password_confirmation = '';
 
     #[Locked]
-    public bool $canManageTwoFactor;
+    public bool $canManageTwoFactor = false;
 
     #[Locked]
-    public bool $twoFactorEnabled;
+    public bool $twoFactorEnabled = false;
 
     #[Locked]
-    public bool $requiresConfirmation;
+    public bool $requiresConfirmation = false;
 
     #[Locked]
     public string $qrCodeSvg = '';
@@ -53,7 +53,7 @@ class Security extends Component
     public string $code = '';
 
     #[Locked]
-    public bool $canManagePasskeys;
+    public bool $canManagePasskeys = false;
 
     /**
      * @var array<int, array{id: int, name: string, authenticator: string|null, created_at_diff: string, last_used_at_diff: string|null}>
@@ -289,24 +289,24 @@ class Security extends Component
     {
         if ($this->twoFactorEnabled) {
             return [
-                'title' => __('Two-factor authentication enabled'),
-                'description' => __('Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.'),
-                'buttonText' => __('Close'),
+                'title' => (string) __('Two-factor authentication enabled'),
+                'description' => (string) __('Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.'),
+                'buttonText' => (string) __('Close'),
             ];
         }
 
         if ($this->showVerificationStep) {
             return [
-                'title' => __('Verify authentication code'),
-                'description' => __('Enter the 6-digit code from your authenticator app.'),
-                'buttonText' => __('Continue'),
+                'title' => (string) __('Verify authentication code'),
+                'description' => (string) __('Enter the 6-digit code from your authenticator app.'),
+                'buttonText' => (string) __('Continue'),
             ];
         }
 
         return [
-            'title' => __('Enable two-factor authentication'),
-            'description' => __('To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.'),
-            'buttonText' => __('Continue'),
+            'title' => (string) __('Enable two-factor authentication'),
+            'description' => (string) __('To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.'),
+            'buttonText' => (string) __('Continue'),
         ];
     }
 }

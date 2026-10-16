@@ -23,8 +23,13 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Figtree', 'Figtree fallback', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    --font-sans:
+        'Figtree', 'Figtree fallback', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+    --font-mono:
+        'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        'Liberation Mono', 'Courier New', monospace;
 }
 
 @theme {
@@ -78,19 +83,18 @@
 }
 
 [data-flux-label] {
-    @apply  mb-0! leading-tight!;
+    @apply mb-0! leading-tight!;
 }
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground outline-hidden;
 }
 
 [x-cloak] {
     display: none !important;
 }
-
 
 /* \[:where(&)\]:size-4 {
     @apply size-4;

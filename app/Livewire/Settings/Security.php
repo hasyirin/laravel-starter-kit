@@ -102,10 +102,10 @@ class Security extends Component
                 'current_password' => $this->currentPasswordRules(),
                 'password' => $this->passwordRules(),
             ]);
-        } catch (ValidationException $e) {
+        } catch (ValidationException $validationException) {
             $this->reset('current_password', 'password', 'password_confirmation');
 
-            throw $e;
+            throw $validationException;
         }
 
         Auth::user()->update([
@@ -126,7 +126,7 @@ class Security extends Component
             ->select(['id', 'name', 'credential', 'created_at', 'last_used_at'])
             ->latest()
             ->get()
-            ->map(fn ($passkey) => [
+            ->map(fn ($passkey): array => [
                 'id' => $passkey->id,
                 'name' => $passkey->name,
                 'authenticator' => $passkey->authenticator,

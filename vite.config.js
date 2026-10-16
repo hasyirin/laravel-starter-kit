@@ -13,8 +13,14 @@ export default defineConfig({
             ],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                bunny('Figtree', {
+                    weights: [300, 400, 500, 600, 700, 800, 900],
+                    preload: [{ weight: 400 }, { weight: 500 }, { weight: 600 }],
+                }),
+                bunny('JetBrains Mono', {
+                    weights: [100, 200, 300, 400, 500, 600, 700, 800],
+                    preload: false,
+                    optimizedFallbacks: false,
                 }),
             ],
         }),

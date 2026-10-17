@@ -29,6 +29,10 @@ parameters:
 
     checkUninitializedProperties: true
 
+    additionalConstructors:
+        - App\Domain\Shared\Common\Seeders\Seeder::run
+        - App\Domain\Shared\Common\Seeders\Seeder::before
+
     reportAnyTypeWideningInVarTag: true
 
     reportIgnoresWithoutComments: true

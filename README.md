@@ -31,8 +31,9 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **`APP_DOMAIN`** is a new setting. It is available as `config('app.domain')`, and `APP_URL` is built from it.
 - **Livewire config** is published to `config/livewire.php`.
 - **HTTPS** is forced for all generated URLs, in every environment. Serve the app over HTTPS locally too.
+- **Models and factories** live in domain folders. A model's factory sits in the sibling `Factories` folder, so `App\Domain\User\Models\User` uses `App\Domain\User\Factories\UserFactory`. `FactoryServiceProvider` maps the names both ways.
 - **Strict models** are on outside production. Lazy loading, reading a missing attribute, or mass-assigning an attribute that is not fillable throws an exception.
-- **Morph map** is enforced, and `user` maps to `App\Models\User`. Add each new polymorphic model to the map in `AppServiceProvider`.
+- **Morph map** is enforced, and `user` maps to `App\Domain\User\Models\User`. Add each new polymorphic model to the map in `AppServiceProvider`.
 - **Blaze** optimizes the Blade components in `resources/views/components`.
 - **Tests** use Pest syntax and run with test impact analysis.
 - **Code checks** are stricter. PHPStan runs at level 10 with extra Larastan checks and Livewire support. Rector runs with Laravel and Pest rules. Vite+ lints the JavaScript and formats the JavaScript and CSS in `resources/`. Prettier formats the Blade views and sorts their Tailwind classes.

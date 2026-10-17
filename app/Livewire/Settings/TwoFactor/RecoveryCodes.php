@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Settings\TwoFactor;
 
-use App\Models\User;
+use App\Domain\User\Models\User;
 use Exception;
 use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 use Livewire\Attributes\Locked;

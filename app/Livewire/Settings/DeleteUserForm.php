@@ -3,8 +3,8 @@
 namespace App\Livewire\Settings;
 
 use App\Concerns\PasswordValidationRules;
+use App\Domain\User\Models\User;
 use App\Livewire\Actions\Logout;
-use App\Models\User;
 use Livewire\Component;
 
 class DeleteUserForm extends Component

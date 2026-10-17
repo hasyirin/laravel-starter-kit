@@ -11,6 +11,12 @@ use Rector\CodingStyle\Rector\Closure\ClosureDelegatingCallToFirstClassCallableR
 use Rector\CodingStyle\Rector\Use_\SeparateMultiUseImportsRector;
 use Rector\Config\RectorConfig;
 use Rector\Php85\Rector\Property\AddOverrideAttributeToOverriddenPropertiesRector;
+use RectorLaravel\Rector\Class_\AppendsPropertyToAppendsAttributeRector;
+use RectorLaravel\Rector\Class_\EmptyGuardedPropertyToUnguardedAttributeRector;
+use RectorLaravel\Rector\Class_\FillablePropertyToFillableAttributeRector;
+use RectorLaravel\Rector\Class_\GuardedPropertyToGuardedAttributeRector;
+use RectorLaravel\Rector\Class_\HiddenPropertyToHiddenAttributeRector;
+use RectorLaravel\Rector\Class_\VisiblePropertyToVisibleAttributeRector;
 use RectorLaravel\Set\LaravelSetList;
 
 return RectorConfig::configure()
@@ -55,9 +61,15 @@ return RectorConfig::configure()
     ->withImportNames()
     ->withSkip([
         AddOverrideAttributeToOverriddenPropertiesRector::class,
+        AppendsPropertyToAppendsAttributeRector::class,
         ArrowFunctionDelegatingCallToFirstClassCallableRector::class,
         ChainExpectCallsRector::class,
         ClosureDelegatingCallToFirstClassCallableRector::class,
+        EmptyGuardedPropertyToUnguardedAttributeRector::class,
+        FillablePropertyToFillableAttributeRector::class,
+        GuardedPropertyToGuardedAttributeRector::class,
+        HiddenPropertyToHiddenAttributeRector::class,
         MakeInheritedMethodVisibilitySameAsParentRector::class,
         SeparateMultiUseImportsRector::class,
+        VisiblePropertyToVisibleAttributeRector::class,
     ]);

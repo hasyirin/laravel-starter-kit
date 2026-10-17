@@ -45,6 +45,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Editor
+    |--------------------------------------------------------------------------
+    |
+    | This value is the editor that opens file links on the exception page
+    | and in dump() output. Supported values include "phpstorm", "vscode",
+    | "cursor", "zed", and "sublime".
+    |
+    */
+
+    'editor' => env('APP_EDITOR', 'phpstorm'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |

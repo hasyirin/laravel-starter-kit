@@ -41,7 +41,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 - PHP 8.5+ with the `phpredis`, `exif`, `gd`, and `bcmath` extensions
 - Composer 2
-- Node.js 22+
+- Node.js 22.18+ or 24.11+
 - Bun
 - Redis
 - A Flux Pro license

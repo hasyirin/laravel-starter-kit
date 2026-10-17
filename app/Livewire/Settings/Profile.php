@@ -52,7 +52,7 @@ class Profile extends Component
 
         $user->save();
 
-        Flux::toast(variant: 'success', text: __('Profile updated.'));
+        Flux::toast(variant: 'success', text: __('user/settings.profile.updated'));
     }
 
     /**
@@ -71,7 +71,7 @@ class Profile extends Component
 
         $user->sendEmailVerificationNotification();
 
-        Flux::toast(text: __('A new verification link has been sent to your email address.'));
+        Flux::toast(text: __('user/settings.profile.verification_sent'));
     }
 
     #[Computed]

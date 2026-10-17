@@ -16,11 +16,11 @@
         </div>
         <flux:menu.separator />
         <flux:menu.radio.group>
-            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>{{ __('navigation.settings') }}</flux:menu.item>
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full cursor-pointer" data-test="logout-button">
-                    {{ __('Log out') }}
+                    {{ __('common/buttons.log_out') }}
                 </flux:menu.item>
             </form>
         </flux:menu.radio.group>

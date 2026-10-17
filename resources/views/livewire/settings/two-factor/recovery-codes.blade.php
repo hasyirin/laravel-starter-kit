@@ -2,11 +2,9 @@
     <div class="space-y-2 px-6">
         <div class="flex items-center gap-2">
             <flux:icon.lock-closed variant="outline" class="size-4" />
-            <flux:heading size="lg" level="3">{{ __('2FA recovery codes') }}</flux:heading>
+            <flux:heading size="lg" level="3">{{ __('user/settings.recovery_codes.heading') }}</flux:heading>
         </div>
-        <flux:text variant="subtle">
-            {{ __('Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.') }}
-        </flux:text>
+        <flux:text variant="subtle">{{ __('user/settings.recovery_codes.description') }}</flux:text>
     </div>
 
     <div class="px-6">
@@ -20,7 +18,7 @@
                 aria-expanded="false"
                 aria-controls="recovery-codes-section"
             >
-                {{ __('View recovery codes') }}
+                {{ __('user/settings.recovery_codes.show') }}
             </flux:button>
 
             <flux:button
@@ -32,12 +30,12 @@
                 aria-expanded="true"
                 aria-controls="recovery-codes-section"
             >
-                {{ __('Hide recovery codes') }}
+                {{ __('user/settings.recovery_codes.hide') }}
             </flux:button>
 
             @if(filled($recoveryCodes))
                 <flux:button x-show="showRecoveryCodes" icon="arrow-path" variant="filled" wire:click="regenerateRecoveryCodes">
-                    {{ __('Regenerate codes') }}
+                    {{ __('user/settings.recovery_codes.regenerate') }}
                 </flux:button>
             @endif
         </div>
@@ -49,14 +47,16 @@
                 @enderror
 
                 @if(filled($recoveryCodes))
-                    <div class="grid gap-1 rounded-lg bg-zinc-100 p-4 font-mono text-sm dark:bg-white/5" role="list" aria-label="{{ __('Recovery codes') }}">
+                    <div
+                        class="grid gap-1 rounded-lg bg-zinc-100 p-4 font-mono text-sm dark:bg-white/5"
+                        role="list"
+                        aria-label="{{ __('user/settings.recovery_codes.list') }}"
+                    >
                         @foreach($recoveryCodes as $code)
                             <div role="listitem" class="select-text" wire:loading.class="opacity-50 animate-pulse">{{ $code }}</div>
                         @endforeach
                     </div>
-                    <flux:text variant="subtle" class="text-xs">
-                        {{ __('Each recovery code can be used once to access your account and will be removed after use. If you need more, click Regenerate codes above.') }}
-                    </flux:text>
+                    <flux:text variant="subtle" class="text-xs">{{ __('user/settings.recovery_codes.help') }}</flux:text>
                 @endif
             </div>
         </div>

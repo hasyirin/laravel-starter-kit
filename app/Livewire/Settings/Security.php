@@ -121,7 +121,7 @@ class Security extends Component
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
-        Flux::toast(variant: 'success', text: __('Password updated.'));
+        Flux::toast(variant: 'success', text: __('user/settings.password.updated'));
     }
 
     /**
@@ -314,24 +314,24 @@ class Security extends Component
     {
         if ($this->twoFactorEnabled) {
             return [
-                'title' => (string) __('Two-factor authentication enabled'),
-                'description' => (string) __('Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.'),
-                'buttonText' => (string) __('Close'),
+                'title' => (string) __('user/settings.two_factor.modal.enabled.title'),
+                'description' => (string) __('user/settings.two_factor.modal.enabled.description'),
+                'buttonText' => (string) __('common/buttons.close'),
             ];
         }
 
         if ($this->showVerificationStep) {
             return [
-                'title' => (string) __('Verify authentication code'),
-                'description' => (string) __('Enter the 6-digit code from your authenticator app.'),
-                'buttonText' => (string) __('Continue'),
+                'title' => (string) __('user/settings.two_factor.modal.verify.title'),
+                'description' => (string) __('user/settings.two_factor.modal.verify.description'),
+                'buttonText' => (string) __('common/buttons.continue'),
             ];
         }
 
         return [
-            'title' => (string) __('Enable two-factor authentication'),
-            'description' => (string) __('To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.'),
-            'buttonText' => (string) __('Continue'),
+            'title' => (string) __('user/settings.two_factor.modal.setup.title'),
+            'description' => (string) __('user/settings.two_factor.modal.setup.description'),
+            'buttonText' => (string) __('common/buttons.continue'),
         ];
     }
 }

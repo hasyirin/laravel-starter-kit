@@ -1,11 +1,7 @@
-<div
-    class="py-6 space-y-6 border shadow-sm rounded-xl border-zinc-200 dark:border-white/10"
-    wire:cloak
-    x-data="{ showRecoveryCodes: false }"
->
-    <div class="px-6 space-y-2">
+<div class="space-y-6 rounded-xl border border-zinc-200 py-6 shadow-sm dark:border-white/10" wire:cloak x-data="{ showRecoveryCodes: false }">
+    <div class="space-y-2 px-6">
         <div class="flex items-center gap-2">
-            <flux:icon.lock-closed variant="outline" class="size-4"/>
+            <flux:icon.lock-closed variant="outline" class="size-4" />
             <flux:heading size="lg" level="3">{{ __('2FA recovery codes') }}</flux:heading>
         </div>
         <flux:text variant="subtle">
@@ -20,7 +16,7 @@
                 icon="eye"
                 icon:variant="outline"
                 variant="primary"
-                @click="showRecoveryCodes = true;"
+                @click="showRecoveryCodes = true"
                 aria-expanded="false"
                 aria-controls="recovery-codes-section"
             >
@@ -39,44 +35,23 @@
                 {{ __('Hide recovery codes') }}
             </flux:button>
 
-            @if (filled($recoveryCodes))
-                <flux:button
-                    x-show="showRecoveryCodes"
-                    icon="arrow-path"
-                    variant="filled"
-                    wire:click="regenerateRecoveryCodes"
-                >
+            @if(filled($recoveryCodes))
+                <flux:button x-show="showRecoveryCodes" icon="arrow-path" variant="filled" wire:click="regenerateRecoveryCodes">
                     {{ __('Regenerate codes') }}
                 </flux:button>
             @endif
         </div>
 
-        <div
-            x-show="showRecoveryCodes"
-            x-transition
-            id="recovery-codes-section"
-            class="relative overflow-hidden"
-            x-bind:aria-hidden="!showRecoveryCodes"
-        >
+        <div x-show="showRecoveryCodes" x-transition id="recovery-codes-section" class="relative overflow-hidden" x-bind:aria-hidden="!showRecoveryCodes">
             <div class="mt-3 space-y-3">
                 @error('recoveryCodes')
-                    <flux:callout variant="danger" icon="x-circle" heading="{{$message}}"/>
+                    <flux:callout variant="danger" icon="x-circle" heading="{{$message}}" />
                 @enderror
 
-                @if (filled($recoveryCodes))
-                    <div
-                        class="grid gap-1 p-4 font-mono text-sm rounded-lg bg-zinc-100 dark:bg-white/5"
-                        role="list"
-                        aria-label="{{ __('Recovery codes') }}"
-                    >
+                @if(filled($recoveryCodes))
+                    <div class="grid gap-1 rounded-lg bg-zinc-100 p-4 font-mono text-sm dark:bg-white/5" role="list" aria-label="{{ __('Recovery codes') }}">
                         @foreach($recoveryCodes as $code)
-                            <div
-                                role="listitem"
-                                class="select-text"
-                                wire:loading.class="opacity-50 animate-pulse"
-                            >
-                                {{ $code }}
-                            </div>
+                            <div role="listitem" class="select-text" wire:loading.class="opacity-50 animate-pulse">{{ $code }}</div>
                         @endforeach
                     </div>
                     <flux:text variant="subtle" class="text-xs">

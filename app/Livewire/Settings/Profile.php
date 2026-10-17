@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Settings;
 
-use App\Concerns\ProfileValidationRules;
+use App\Domain\User\Concerns\ProfileValidationRules;
 use App\Domain\User\Models\User;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;

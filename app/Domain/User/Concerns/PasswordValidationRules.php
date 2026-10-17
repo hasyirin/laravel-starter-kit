@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Concerns;
+namespace App\Domain\User\Concerns;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Password;

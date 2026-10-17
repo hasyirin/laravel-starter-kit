@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Settings;
 
-use App\Concerns\PasswordValidationRules;
+use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
 use Exception;
 use Flux\Flux;

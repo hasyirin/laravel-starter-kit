@@ -91,6 +91,7 @@
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",
+            "@putenv XDEBUG_MODE=coverage",
             "@php artisan test --tia"
         ],
         "post-autoload-dump": [

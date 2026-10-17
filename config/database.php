@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Str;
 use Pdo\Mysql;
 
 return [
@@ -151,7 +150,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
+            'prefix' => env('REDIS_PREFIX', str((string) env('APP_NAME', 'laravel'))->slug().'-database-'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 

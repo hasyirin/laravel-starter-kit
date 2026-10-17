@@ -3,9 +3,9 @@
 namespace App\Livewire\Settings;
 
 use App\Concerns\ProfileValidationRules;
+use App\Models\User;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -24,8 +24,11 @@ class Profile extends Component
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        /** @var User $user */
+        $user = auth()->user();
+
+        $this->name = $user->name;
+        $this->email = $user->email;
     }
 
     /**
@@ -33,11 +36,15 @@ class Profile extends Component
      */
     public function updateProfileInformation(): void
     {
-        $user = Auth::user();
+        /** @var User $user */
+        $user = auth()->user();
 
-        $validated = $this->validate($this->profileRules($user->id));
+        $this->validate($this->profileRules($user->id));
 
-        $user->fill($validated);
+        $user->fill([
+            'name' => $this->name,
+            'email' => $this->email,
+        ]);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -53,7 +60,8 @@ class Profile extends Component
      */
     public function resendVerificationNotification(): void
     {
-        $user = Auth::user();
+        /** @var User $user */
+        $user = auth()->user();
 
         if ($user->hasVerifiedEmail()) {
             $this->redirectIntended(default: route('dashboard', absolute: false));
@@ -69,7 +77,7 @@ class Profile extends Component
     #[Computed]
     public function hasUnverifiedEmail(): bool
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         return $user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail();
     }
@@ -77,7 +85,7 @@ class Profile extends Component
     #[Computed]
     public function showDeleteUser(): bool
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         return ! $user instanceof MustVerifyEmail || $user->hasVerifiedEmail();
     }

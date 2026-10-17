@@ -5,7 +5,7 @@ import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
     fmt: {
-        printWidth: 80,
+        printWidth: 160,
         tabWidth: 4,
         useTabs: false,
         semi: true,

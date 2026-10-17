@@ -19,6 +19,11 @@ export default defineConfig({
             newlinesBetween: false,
         },
     },
+    lint: {
+        rules: {
+            'unicorn/no-empty-file': 'off',
+        },
+    },
     plugins: lazyPlugins(() => [
         laravel({
             input: [

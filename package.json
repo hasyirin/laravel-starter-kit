@@ -5,8 +5,8 @@
     "scripts": {
         "build": "vp build",
         "dev": "vp dev",
-        "lint": "vp fmt resources/",
-        "test:lint": "vp fmt --check resources/"
+        "lint": "vp lint --fix && vp fmt resources/",
+        "test:lint": "vp lint --deny-warnings && vp fmt --check resources/"
     },
     "dependencies": {
         "@laravel/passkeys": "^0.2.0",

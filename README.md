@@ -12,7 +12,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - Spatie Media Library to attach files to Eloquent models
 - Tailwind CSS 4, Vite (via Vite+)
 - Pest 5 with test impact analysis
-- PHPStan (Larastan) at level 10, Rector, Pint, and the Vite+ formatter
+- PHPStan (Larastan) at level 10, Rector, Pint, and the Vite+ linter and formatter
 - Debugbar and Ray for local debugging
 - Laravel Boost for AI-assisted development
 
@@ -35,7 +35,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Morph map** is enforced, and `user` maps to `App\Models\User`. Add each new polymorphic model to the map in `AppServiceProvider`.
 - **Blaze** optimizes the Blade components in `resources/views/components`.
 - **Tests** use Pest syntax and run with test impact analysis.
-- **Code checks** are stricter. PHPStan runs at level 10 with extra Larastan checks and Livewire support. Rector runs with Laravel and Pest rules. Vite+ formats the JavaScript and CSS in `resources/`.
+- **Code checks** are stricter. PHPStan runs at level 10 with extra Larastan checks and Livewire support. Rector runs with Laravel and Pest rules. Vite+ lints the JavaScript and formats the JavaScript and CSS in `resources/`.
 
 ## Requirements
 
@@ -89,8 +89,8 @@ composer dev
 | Command                | Description                                                                         |
 |------------------------|-------------------------------------------------------------------------------------|
 | `composer test`        | Clear the config cache, run `lint:check` and `types:check`, then run the Pest tests |
-| `composer lint`        | Fix code with Rector, Pint, and the Vite+ formatter                                 |
-| `composer lint:check`  | Check Pint, Rector, and Vite+ formatting without changes                            |
+| `composer lint`        | Fix code with Rector, Pint, and the Vite+ linter and formatter                      |
+| `composer lint:check`  | Check Pint, Rector, and Vite+ linting and formatting without changes                |
 | `composer types:check` | Run PHPStan (Larastan) at level 10                                                  |
 | `composer ci:check`    | Run `composer test` with no process timeout, as CI does                             |
 

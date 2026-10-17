@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Pest\Rector\Rules\ChainExpectCallsRector;
+use Pest\Rector\Set\PestSetList;
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\CodingStyle\Rector\ArrowFunction\ArrowFunctionDelegatingCallToFirstClassCallableRector;
 use Rector\CodingStyle\Rector\ClassMethod\MakeInheritedMethodVisibilitySameAsParentRector;
@@ -48,11 +50,13 @@ return RectorConfig::configure()
         LaravelSetList::LARAVEL_LEGACY_FACTORIES_TO_CLASSES,
         LaravelSetList::LARAVEL_TESTING,
         LaravelSetList::LARAVEL_TYPE_DECLARATIONS,
+        PestSetList::CODING_STYLE,
     ])
     ->withImportNames()
     ->withSkip([
         AddOverrideAttributeToOverriddenPropertiesRector::class,
         ArrowFunctionDelegatingCallToFirstClassCallableRector::class,
+        ChainExpectCallsRector::class,
         ClosureDelegatingCallToFirstClassCallableRector::class,
         MakeInheritedMethodVisibilitySameAsParentRector::class,
         SeparateMultiUseImportsRector::class,

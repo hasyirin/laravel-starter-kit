@@ -2,6 +2,8 @@
 
 namespace App\Domain\User\Models;
 
+use App\Domain\Shared\Common\Concerns\InteractsWithActivityLogs;
+use App\Domain\Shared\Common\Concerns\InteractsWithTimestamps;
 use App\Domain\User\Factories\UserFactory;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -11,6 +13,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Activitylog\Models\Concerns\CausesActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int $id
@@ -25,10 +31,17 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements HasMedia, MustVerifyEmail, PasskeyUser
 {
+    use CausesActivity;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    use HasRoles;
+    use InteractsWithActivityLogs;
+    use InteractsWithMedia;
+    use InteractsWithTimestamps;
 
     protected $fillable = [
         'name',

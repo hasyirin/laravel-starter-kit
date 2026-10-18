@@ -25,6 +25,7 @@
         "livewire/livewire": "^4.1",
         "spatie/laravel-activitylog": "^5.1",
         "spatie/laravel-medialibrary": "^11.23",
+        "spatie/laravel-permission": "^8.3",
         "spatie/laravel-ray": "^1.43"
     },
     "require-dev": {

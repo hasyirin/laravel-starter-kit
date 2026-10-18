@@ -65,6 +65,11 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail, Passkey
         ];
     }
 
+    protected static function newFactory(): UserFactory
+    {
+        return UserFactory::new();
+    }
+
     public function initials(): string
     {
         $initials = str($this->name)->initials(true);

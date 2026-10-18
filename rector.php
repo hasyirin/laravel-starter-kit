@@ -11,6 +11,7 @@ use Rector\CodingStyle\Rector\Closure\ClosureDelegatingCallToFirstClassCallableR
 use Rector\CodingStyle\Rector\Use_\SeparateMultiUseImportsRector;
 use Rector\Config\RectorConfig;
 use Rector\Php85\Rector\Property\AddOverrideAttributeToOverriddenPropertiesRector;
+use RectorLaravel\Rector\Class_\AddHasFactoryToModelsRector;
 use RectorLaravel\Rector\Class_\AppendsPropertyToAppendsAttributeRector;
 use RectorLaravel\Rector\Class_\EmptyGuardedPropertyToUnguardedAttributeRector;
 use RectorLaravel\Rector\Class_\FillablePropertyToFillableAttributeRector;
@@ -60,6 +61,7 @@ return RectorConfig::configure()
     ])
     ->withImportNames()
     ->withSkip([
+        AddHasFactoryToModelsRector::class,
         AddOverrideAttributeToOverriddenPropertiesRector::class,
         AppendsPropertyToAppendsAttributeRector::class,
         ArrowFunctionDelegatingCallToFirstClassCallableRector::class,

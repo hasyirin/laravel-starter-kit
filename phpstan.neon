@@ -10,6 +10,7 @@ parameters:
         - config/
         - database/
         - routes/
+        - tests/Fixtures/
 
     level: 10
 
@@ -45,4 +46,7 @@ parameters:
         - identifier: cast.string
           reportUnmatched: false
         - identifier: cast.int
+          reportUnmatched: false
+        - identifier: trait.unused
+          path: app/Domain/Shared/*
           reportUnmatched: false

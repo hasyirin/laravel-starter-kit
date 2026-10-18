@@ -22,7 +22,8 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Flux Pro** is installed from `composer.fluxui.dev`. You need a Flux Pro license.
 - **Filament 5 components** are installed. `resources/css/app.css` imports their styles, and `php artisan filament:upgrade` runs after each Composer autoload dump.
 - **Fonts** are Figtree and JetBrains Mono. Vite downloads them from Bunny Fonts at build time. The accent color is blue.
-- **Debugbar**, **Ray**, and **Laravel Boost** are installed as dev dependencies.
+- **Debugbar** and **Laravel Boost** are installed as dev dependencies.
+- **Ray** is installed as a production dependency, so a `ray()` call left in the code does not break production. Ray is off in production.
 - **Spatie Activitylog** is installed. Its migration creates the `activity_log` table.
 - **Spatie Media Library** is installed. Its migration creates the `media` table. It stores files on a new public `media` disk (`storage/app/media`, served at `/media`).
 - **Upload limit** is 1GB for the media library and for Livewire temporary uploads. PHP `upload_max_filesize` and `post_max_size` must also allow this size.

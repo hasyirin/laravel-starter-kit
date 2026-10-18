@@ -44,6 +44,10 @@ test('string helpers transform the value', function (): void {
         ->and(Priority::High->headline())->toBe('2');
 });
 
+test('ray returns the case', function (): void {
+    expect(Status::Draft->ray())->toBe(Status::Draft);
+});
+
 test('dd does nothing in production', function (): void {
     app()->detectEnvironment(fn (): string => 'production');
 

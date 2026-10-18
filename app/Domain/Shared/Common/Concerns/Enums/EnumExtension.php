@@ -14,7 +14,7 @@ trait EnumExtension
 {
     use EnumStringExtension;
 
-    public function label(): string
+    public function label(): Htmlable|string
     {
         return $this->headline();
     }
@@ -47,7 +47,7 @@ trait EnumExtension
      */
     public static function options(): Collection
     {
-        return static::mapWithKeys(self::option(...));
+        return static::mapWithKeys(fn (self $case): array => [$case->value => $case->label()]);
     }
 
     /**
@@ -90,6 +90,13 @@ trait EnumExtension
         return ! $this->is($status);
     }
 
+    public function ray(): self
+    {
+        ray($this);
+
+        return $this;
+    }
+
     public function dd(): void
     {
         if (app()->isProduction()) {
@@ -97,13 +104,5 @@ trait EnumExtension
         }
 
         dd($this);
-    }
-
-    /**
-     * @return array<array-key, Htmlable|string>
-     */
-    private static function option(self $case): array
-    {
-        return [$case->value => $case->label()];
     }
 }

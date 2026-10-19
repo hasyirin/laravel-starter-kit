@@ -9,7 +9,7 @@ beforeEach(function (): void {
 
     $this->user = User::factory()->create();
     $this->role = Role::query()->create(['name' => 'editor']);
-    $this->internal = Role::query()->create(['name' => 'admin', 'is_internal' => true]);
+    $this->system = Role::query()->forceCreate(['name' => 'admin', 'guard_name' => 'web', 'is_system' => true]);
 });
 
 test('view any needs the view-any permission', function (): void {
@@ -32,7 +32,7 @@ test('a user can view a role they have', function (): void {
     $this->user->assignRole($this->role);
 
     expect($this->user->can('view', $this->role))->toBeTrue()
-        ->and($this->user->can('view', $this->internal))->toBeFalse();
+        ->and($this->user->can('view', $this->system))->toBeFalse();
 });
 
 test('create needs the create permission', function (): void {
@@ -51,11 +51,11 @@ test('update needs the update permission', function (): void {
     expect($this->user->can('update', $this->role))->toBeTrue();
 });
 
-test('the name of an internal role cannot be updated', function (): void {
+test('the name of a system role cannot be updated', function (): void {
     $this->user->givePermissionTo('admin.controls.roles.update');
 
     expect($this->user->can('update', [$this->role, 'name']))->toBeTrue()
-        ->and($this->user->can('update', [$this->internal, 'name']))->toBeFalse();
+        ->and($this->user->can('update', [$this->system, 'name']))->toBeFalse();
 });
 
 test('updating a type needs the update permission for that type', function (): void {
@@ -76,8 +76,8 @@ test('delete needs the delete permission', function (): void {
     expect($this->user->can('delete', $this->role))->toBeTrue();
 });
 
-test('an internal role cannot be deleted', function (): void {
+test('a system role cannot be deleted', function (): void {
     $this->user->givePermissionTo('admin.controls.roles.delete');
 
-    expect($this->user->can('delete', $this->internal))->toBeFalse();
+    expect($this->user->can('delete', $this->system))->toBeFalse();
 });

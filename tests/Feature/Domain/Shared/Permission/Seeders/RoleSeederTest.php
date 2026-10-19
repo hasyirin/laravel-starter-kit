@@ -14,7 +14,7 @@ test('seeding creates the admin role with every admin permission', function (): 
 
     $admin = Role::findByName('admin');
 
-    expect($admin->is_internal)->toBeTrue()
+    expect($admin->is_system)->toBeTrue()
         ->and($admin->permissions)->toHaveCount(14)
         ->and($admin->hasPermissionTo('bypass-authorization'))->toBeFalse();
 });
@@ -51,5 +51,6 @@ test('seeding reuses an existing role with the same name', function (): void {
     $this->seed(RoleSeeder::class);
 
     expect(Role::query()->where('name', 'admin')->count())->toBe(1)
+        ->and(Role::findByName('admin')->is_system)->toBeTrue()
         ->and(Role::findByName('admin')->permissions)->toHaveCount(14);
 });

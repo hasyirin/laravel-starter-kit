@@ -35,13 +35,13 @@ class RolePolicy extends Policy
 
         return match ($type) {
             null => true,
-            'name' => ! $role->is_internal,
+            'name' => ! $role->is_system,
             default => $this->hasPermission($user, "update-$type"),
         };
     }
 
     public function delete(User $user, Role $role): bool
     {
-        return ! $role->is_internal && $this->hasPermission($user, 'delete');
+        return ! $role->is_system && $this->hasPermission($user, 'delete');
     }
 }

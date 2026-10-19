@@ -31,7 +31,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('guard_name');
-            $table->boolean('is_internal')->default(false);
+            $table->boolean('is_system')->default(false);
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);

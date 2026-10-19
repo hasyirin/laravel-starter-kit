@@ -45,7 +45,7 @@ class InterceptMail
     private function address(): ?string
     {
         /** @var User|null $user */
-        $user = auth()->user() ?? User::query()->find(context()->get('user_id'));
+        $user = auth()->user() ?? User::withTrashed()->find(context()->get('user_id'));
 
         return $user->email ?? (config()->string('mail.intercept.address') ?: null);
     }

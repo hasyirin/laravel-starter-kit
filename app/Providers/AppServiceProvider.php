@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Domain\Shared\Common\Support\ContextCauserResolver;
 use App\Domain\Shared\Mail\Listeners\InterceptMail;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Listeners\AddUserToContext;
@@ -19,12 +20,13 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Blaze\Blaze;
+use Spatie\Activitylog\Support\CauserResolver;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->scoped(CauserResolver::class, ContextCauserResolver::class);
     }
 
     public function boot(): void

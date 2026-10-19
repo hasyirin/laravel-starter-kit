@@ -8,6 +8,7 @@ use App\Domain\User\Factories\UserFactory;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\Contracts\PasskeyUser;
@@ -30,6 +31,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail, PasskeyUser
 {
@@ -42,6 +44,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail, Passkey
     use InteractsWithActivityLogs;
     use InteractsWithMedia;
     use InteractsWithTimestamps;
+    use SoftDeletes;
 
     protected $fillable = [
         'name',

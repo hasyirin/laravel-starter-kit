@@ -69,6 +69,17 @@ test('emails go to the user who was logged in when they were queued', function (
         ->and(interceptAddresses(sentInterceptTestMails()->sole()->getTo()))->toBe([$user->email]);
 });
 
+test('queued emails go to the user who queued them even when that user is deleted', function (): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+    auth()->forgetGuards();
+    $user->delete();
+    sendInterceptTestMail();
+
+    expect(interceptAddresses(sentInterceptTestMails()->sole()->getTo()))->toBe([$user->email]);
+});
+
 test('emails go to the fallback address when there is no current user', function (): void {
     config(['mail.intercept.address' => 'fallback@example.com']);
 

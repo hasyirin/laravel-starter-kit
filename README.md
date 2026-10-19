@@ -10,6 +10,8 @@ A personal starting point for new Laravel projects. It is based on the official 
 - Fortify for authentication, with passkey support
 - Spatie Activitylog to log model and user activity
 - Spatie Media Library to attach files to Eloquent models
+- Spatie Permission for roles and permissions
+- PostgreSQL in production, SQLite for local work and tests
 - Tailwind CSS 4, Vite (via Vite+)
 - Pest 5 with test impact analysis
 - PHPStan (Larastan) at level 10, Rector, Pint, the Vite+ linter and formatter, and Prettier for Blade
@@ -27,8 +29,13 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Spatie Activitylog** is installed. Its migration creates the `activity_log` table.
 - **Spatie Media Library** is installed. Its migration creates the `media` table. It stores files on a new public `media` disk (`storage/app/media`, served at `/media`).
 - **Upload limit** is 1GB for the media library and for Livewire temporary uploads. PHP `upload_max_filesize` and `post_max_size` must also allow this size.
+- **PostgreSQL** is the production database. Local work and tests use SQLite. The migrations need PostgreSQL or SQLite, because the users table uses a partial unique index, which MySQL and MariaDB do not support.
+- **Users are soft deleted.** Deleting an account keeps the row. A deleted user cannot log in, and their email is free to register again: the unique index on `users.email` covers only users that are not deleted.
+- **Roles and permissions** use Spatie Permission. Permissions are defined in `config/system.php`. `PermissionSeeder` creates them and deletes the ones that are no longer in the config. `RoleSeeder` only adds permissions to roles, so changes made in production stay. A user with the `bypass-authorization` permission passes every Gate check. System roles (`is_system`) are created by the seeders and cannot be renamed or deleted.
+- **Policies** extend `App\Domain\Shared\Common\Policies\Policy`. It builds permission names from the policy's `$prefix` and class name. For example, `RolePolicy` has the prefix `admin.controls`, so it checks `admin.controls.roles.<action>`.
 - **Redis** is the default driver for session, cache, and queue.
 - **Mail intercept** sends every email to the current user when `MAIL_INTERCEPT=true`. Use it on local or staging copies with real data, so no email reaches a real recipient. If there is no current user, the email goes to `MAIL_INTERCEPT_ADDRESS`, or it is dropped when that is empty. Queued emails go to the user who was logged in when they were queued. The intercept is always off in production.
+- **Context** carries `trace_id` and `user_id` into every log line and queued job. Each request gets a trace ID, or reuses a valid incoming `X-Request-Id`, and the response returns it in `X-Request-Id`. Activity logged in queued jobs uses the `user_id` from Context as its causer.
 - **Daily log files** replace the single log file (`LOG_STACK=daily`).
 - **`APP_DOMAIN`** is a new setting. It is available as `config('app.domain')`, and `APP_URL` is built from it.
 - **Livewire config** is published to `config/livewire.php`.
@@ -43,7 +50,8 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 ## Requirements
 
-- PHP 8.5+ with the `phpredis`, `exif`, `gd`, and `bcmath` extensions
+- PHP 8.5+ with the `phpredis`, `exif`, `gd`, `bcmath`, and `pdo_pgsql` extensions
+- PostgreSQL in production
 - Composer 2
 - Node.js 22.18+ or 24.11+
 - Bun

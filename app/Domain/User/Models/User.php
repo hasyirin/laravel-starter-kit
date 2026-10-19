@@ -2,8 +2,8 @@
 
 namespace App\Domain\User\Models;
 
-use App\Domain\Shared\Common\Concerns\InteractsWithActivityLogs;
-use App\Domain\Shared\Common\Concerns\InteractsWithTimestamps;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\User\Factories\UserFactory;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;

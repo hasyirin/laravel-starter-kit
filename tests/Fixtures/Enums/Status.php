@@ -7,7 +7,7 @@ namespace Tests\Fixtures\Enums;
 use App\Domain\Shared\Common\Concerns\Enums\EnumExtension;
 use App\Domain\Shared\Common\Concerns\Enums\InteractsWithColor;
 use App\Domain\Shared\Common\Concerns\Enums\InteractsWithSequence;
-use App\Domain\Shared\Common\Contracts\HasColor;
+use App\Domain\Shared\Common\Contracts\Enums\HasColor;
 
 enum Status: string implements HasColor
 {

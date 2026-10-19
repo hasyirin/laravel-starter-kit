@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Common\Contracts;
+namespace App\Domain\Shared\Common\Contracts\Enums;
 
 use Illuminate\Contracts\Support\Htmlable;
 

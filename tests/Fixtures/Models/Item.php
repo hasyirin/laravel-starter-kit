@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Models;
 
-use App\Domain\Shared\Common\Concerns\InteractsWithSortOrder;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithSortOrder;
 use App\Domain\Shared\Common\Models\Model;
 use Illuminate\Database\Eloquent\Builder;
 

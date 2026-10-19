@@ -2,8 +2,8 @@
 
 namespace App\Domain\Shared\Permission\Models;
 
-use App\Domain\Shared\Common\Concerns\InteractsWithActivityLogs;
-use App\Domain\Shared\Common\Concerns\InteractsWithTimestamps;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**

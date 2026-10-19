@@ -6,7 +6,7 @@ namespace Tests\Fixtures\Enums;
 
 use App\Domain\Shared\Common\Concerns\Enums\EnumExtension;
 use App\Domain\Shared\Common\Concerns\Enums\InteractsWithColor;
-use App\Domain\Shared\Common\Contracts\HasColor;
+use App\Domain\Shared\Common\Contracts\Enums\HasColor;
 use Filament\Support\Colors\Color;
 
 enum Priority: int implements HasColor

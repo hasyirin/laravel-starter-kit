@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Shared\Common\Concerns;
+namespace App\Domain\Shared\Common\Concerns\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 

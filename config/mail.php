@@ -117,4 +117,20 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mail Intercept
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, every email goes to the current user instead of its real
+    | recipients. If there is no current user, it goes to the fallback
+    | address, or it is dropped. The intercept is always off in production.
+    |
+    */
+
+    'intercept' => [
+        'enabled' => env('MAIL_INTERCEPT', false),
+        'address' => (string) env('MAIL_INTERCEPT_ADDRESS'),
+    ],
+
 ];

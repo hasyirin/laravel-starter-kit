@@ -8,6 +8,12 @@ return [
         'date' => 'd/m/Y',
     ],
 
+    'owner' => [
+        'organization' => ['code' => 'OWNER', 'name' => 'Owner Organization'],
+        'department' => ['code' => 'MAIN', 'name' => 'Main Department'],
+        'branch' => ['code' => 'HQ', 'name' => 'Headquarters'],
+    ],
+
     'roles' => [
         'admin' => 'admin',
     ],

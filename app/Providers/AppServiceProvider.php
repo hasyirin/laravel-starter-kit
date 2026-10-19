@@ -4,6 +4,10 @@ namespace App\Providers;
 
 use App\Domain\Shared\Common\Support\ContextCauserResolver;
 use App\Domain\Shared\Mail\Listeners\InterceptMail;
+use App\Domain\Shared\Organization\Models\Branch;
+use App\Domain\Shared\Organization\Models\Department;
+use App\Domain\Shared\Organization\Models\Organization;
+use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Listeners\AddUserToContext;
 use App\Domain\User\Models\User;
@@ -41,6 +45,10 @@ class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! app()->isProduction());
 
         Relation::enforceMorphMap([
+            'branch' => Branch::class,
+            'department' => Department::class,
+            'organization' => Organization::class,
+            'position' => Position::class,
             'role' => Role::class,
             'user' => User::class,
         ]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Domain\Shared\Organization\Seeders\OrganizationSeeder;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\Shared\Permission\Seeders\RoleSeeder;
 use App\Domain\User\Seeders\UserSeeder;
@@ -17,6 +18,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            OrganizationSeeder::class,
             PermissionSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,

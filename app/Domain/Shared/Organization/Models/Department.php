@@ -35,16 +35,32 @@ class Department extends Model
         'is_owner' => false,
     ];
 
-    protected static function newFactory(): DepartmentFactory
-    {
-        return DepartmentFactory::new();
-    }
-
     protected function casts(): array
     {
         return [
             'is_owner' => 'boolean',
         ];
+    }
+
+    protected static function newFactory(): DepartmentFactory
+    {
+        return DepartmentFactory::new();
+    }
+
+    /**
+     * @return BelongsTo<Organization, $this>
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    /**
+     * @return HasMany<Position, $this>
+     */
+    public function positions(): HasMany
+    {
+        return $this->hasMany(Position::class);
     }
 
     public static function owner(): static
@@ -62,21 +78,5 @@ class Department extends Model
     public static function forgetOwner(): void
     {
         cache()->forget('system.owner.department');
-    }
-
-    /**
-     * @return BelongsTo<Organization, $this>
-     */
-    public function organization(): BelongsTo
-    {
-        return $this->belongsTo(Organization::class);
-    }
-
-    /**
-     * @return HasMany<Position, $this>
-     */
-    public function positions(): HasMany
-    {
-        return $this->hasMany(Position::class);
     }
 }

@@ -34,16 +34,24 @@ class Branch extends Model
         'is_owner' => false,
     ];
 
-    protected static function newFactory(): BranchFactory
-    {
-        return BranchFactory::new();
-    }
-
     protected function casts(): array
     {
         return [
             'is_owner' => 'boolean',
         ];
+    }
+
+    protected static function newFactory(): BranchFactory
+    {
+        return BranchFactory::new();
+    }
+
+    /**
+     * @return BelongsTo<Organization, $this>
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     public static function owner(): static
@@ -61,13 +69,5 @@ class Branch extends Model
     public static function forgetOwner(): void
     {
         cache()->forget('system.owner.branch');
-    }
-
-    /**
-     * @return BelongsTo<Organization, $this>
-     */
-    public function organization(): BelongsTo
-    {
-        return $this->belongsTo(Organization::class);
     }
 }

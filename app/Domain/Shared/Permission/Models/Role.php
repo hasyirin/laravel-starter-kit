@@ -29,19 +29,19 @@ class Role extends \Spatie\Permission\Models\Role
         'is_system' => false,
     ];
 
-    public function delete(): ?bool
-    {
-        throw_if($this->is_system, LogicException::class, 'System roles cannot be deleted.');
-
-        return parent::delete();
-    }
-
     protected function casts(): array
     {
         return [
             'is_system' => 'boolean',
             ...parent::casts(),
         ];
+    }
+
+    public function delete(): ?bool
+    {
+        throw_if($this->is_system, LogicException::class, 'System roles cannot be deleted.');
+
+        return parent::delete();
     }
 
     /**

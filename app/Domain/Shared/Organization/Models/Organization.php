@@ -32,11 +32,6 @@ class Organization extends Model
         'is_owner' => false,
     ];
 
-    protected static function newFactory(): OrganizationFactory
-    {
-        return OrganizationFactory::new();
-    }
-
     protected function casts(): array
     {
         return [
@@ -44,20 +39,9 @@ class Organization extends Model
         ];
     }
 
-    public static function owner(): static
+    protected static function newFactory(): OrganizationFactory
     {
-        /** @var array<string, mixed> $attributes */
-        $attributes = cache()->rememberForever('system.owner.organization', fn (): array => static::unguarded(fn (): static => static::query()->firstOrCreate(['is_owner' => true], [
-            'code' => config()->string('system.owner.organization.code'),
-            'name' => config()->string('system.owner.organization.name'),
-        ])->refresh())->getAttributes());
-
-        return static::query()->getModel()->newFromBuilder($attributes);
-    }
-
-    public static function forgetOwner(): void
-    {
-        cache()->forget('system.owner.organization');
+        return OrganizationFactory::new();
     }
 
     /**
@@ -82,5 +66,21 @@ class Organization extends Model
     public function positions(): HasMany
     {
         return $this->hasMany(Position::class);
+    }
+
+    public static function owner(): static
+    {
+        /** @var array<string, mixed> $attributes */
+        $attributes = cache()->rememberForever('system.owner.organization', fn (): array => static::unguarded(fn (): static => static::query()->firstOrCreate(['is_owner' => true], [
+            'code' => config()->string('system.owner.organization.code'),
+            'name' => config()->string('system.owner.organization.name'),
+        ])->refresh())->getAttributes());
+
+        return static::query()->getModel()->newFromBuilder($attributes);
+    }
+
+    public static function forgetOwner(): void
+    {
+        cache()->forget('system.owner.organization');
     }
 }

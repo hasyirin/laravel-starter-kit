@@ -22,7 +22,7 @@ return new class extends Migration
 
         Schema::create('departments', function (Blueprint $table): void {
             $table->id();
-            $table->foreignIdFor(Organization::class)->index()->constrained();
+            $table->foreignIdFor(Organization::class)->index()->constrained(new Organization()->getTable());
             $table->string('code', 10);
             $table->string('name');
             $table->boolean('is_owner')->default(false);
@@ -32,7 +32,7 @@ return new class extends Migration
 
         Schema::create('branches', function (Blueprint $table): void {
             $table->id();
-            $table->foreignIdFor(Organization::class)->index()->constrained();
+            $table->foreignIdFor(Organization::class)->index()->constrained(new Organization()->getTable());
             $table->string('code', 10);
             $table->string('name');
             $table->boolean('is_owner')->default(false);
@@ -42,8 +42,8 @@ return new class extends Migration
 
         Schema::create('positions', function (Blueprint $table): void {
             $table->id();
-            $table->foreignIdFor(Organization::class)->index()->constrained();
-            $table->foreignIdFor(Department::class)->nullable()->index()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Organization::class)->index()->constrained(new Organization()->getTable());
+            $table->foreignIdFor(Department::class)->nullable()->index()->constrained(new Department()->getTable())->nullOnDelete();
             $table->string('name');
             $table->timestamps();
             $table->softDeletes();

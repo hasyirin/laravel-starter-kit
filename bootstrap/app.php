@@ -8,7 +8,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\LazyCollection;
-use Symfony\Component\Finder\Finder;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,8 +17,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     // LazyCollection keeps the scan off cached requests and lets event:cache iterate the paths again.
     ->withEvents(discover: LazyCollection::make(function (): Generator {
-        foreach (Finder::create()->directories()->name('Listeners')->in(__DIR__.'/../app/Domain') as $directory) {
-            yield $directory->getPathname();
+        $directories = [__DIR__.'/../app/Domain'];
+
+        while ($directories !== []) {
+            foreach (glob(array_pop($directories).'/*', GLOB_ONLYDIR) ?: [] as $directory) {
+                if (basename($directory) === 'Listeners') {
+                    yield $directory;
+                } else {
+                    $directories[] = $directory;
+                }
+            }
         }
     }))
     ->withMiddleware(function (Middleware $middleware): void {

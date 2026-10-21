@@ -153,8 +153,8 @@ return [
 
     'metrics' => [
         'trim_snapshots' => [
-            'job' => 24,
-            'queue' => 24,
+            'job' => 288,
+            'queue' => 288,
         ],
     ],
 
@@ -171,7 +171,7 @@ return [
     |
     */
 
-    'fast_termination' => false,
+    'fast_termination' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -204,10 +204,11 @@ return [
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
+            'maxTime' => 3600,
+            'maxJobs' => 1000,
             'memory' => 128,
-            'tries' => 1,
+            'tries' => 3,
+            'backoff' => [10, 60],
             'timeout' => 60,
             'nice' => 0,
         ],
@@ -217,12 +218,12 @@ return [
             'queue' => ['media'],
             'balance' => 'simple',
             'processes' => 1,
-            'maxTime' => 0,
+            'maxTime' => 3600,
             'maxJobs' => 0,
             'memory' => 512,
             'tries' => 1,
             'timeout' => 600,
-            'nice' => 0,
+            'nice' => 10,
         ],
     ],
 
@@ -240,6 +241,16 @@ return [
         ],
 
         'local' => [
+            'supervisor-default' => [
+                'maxProcesses' => 3,
+            ],
+
+            'supervisor-media' => [
+                'processes' => 1,
+            ],
+        ],
+
+        '*' => [
             'supervisor-default' => [
                 'maxProcesses' => 3,
             ],

@@ -11,6 +11,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - Spatie Activitylog to log model and user activity
 - Spatie Media Library to attach files to Eloquent models
 - Spatie Permission for roles and permissions
+- Laravel Horizon for Redis queues
 - PostgreSQL in production, SQLite for local work and tests
 - Tailwind CSS 4, Vite (via Vite+)
 - Pest 5 with test impact analysis
@@ -33,7 +34,8 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Users are soft deleted.** Deleting an account keeps the row. A deleted user cannot log in, and their email is free to register again: the unique index on `users.email` covers only users that are not deleted.
 - **Roles and permissions** use Spatie Permission. Permissions are defined in `config/system.php`. `PermissionSeeder` creates them and deletes the ones that are no longer in the config. `RoleSeeder` only adds permissions to roles, so changes made in production stay. A user with the `bypass-authorization` permission passes every Gate check. System roles (`is_system`) are created by the seeders and cannot be renamed or deleted.
 - **Policies** extend `App\Domain\Shared\Common\Policies\Policy`. It builds permission names from the policy's `$prefix` and class name. For example, `RolePolicy` has the prefix `admin.controls`, so it checks `admin.controls.roles.<action>`.
-- **Redis** is the default driver for session, cache, and queue.
+- **Redis** is the default driver for session, cache, and queue. They share one Redis instance, so set its `maxmemory-policy` to `noeviction` or a `volatile-*` policy. Otherwise Redis can evict queued jobs when memory is full.
+- **Horizon** runs the queues. The `supervisor-default` supervisor works the `default` queue with 1 to 10 processes and a 60-second timeout. Media library conversions go to their own `redis-media` connection (`MEDIA_QUEUE_CONNECTION`), where the `supervisor-media` supervisor runs 2 processes with a 600-second timeout and 512 MB each. Keep each supervisor's `timeout` below its connection's `retry_after`, or a job can run twice. A test checks this. The dashboard at `/horizon` needs the `admin.horizon.view` permission. `composer dev` runs Horizon instead of `queue:listen`, so restart its tab after you change job code.
 - **Mail intercept** sends every email to the current user when `MAIL_INTERCEPT=true`. Use it on local or staging copies with real data, so no email reaches a real recipient. If there is no current user, the email goes to `MAIL_INTERCEPT_ADDRESS`, or it is dropped when that is empty. Queued emails go to the user who was logged in when they were queued. The intercept is always off in production.
 - **Context** carries `trace_id` and `user_id` into every log line and queued job. Each request gets a trace ID, or reuses a valid incoming `X-Request-Id`, and the response returns it in `X-Request-Id`. Activity logged in queued jobs uses the `user_id` from Context as its causer.
 - **Daily log files** replace the single log file (`LOG_STACK=daily`).
@@ -50,7 +52,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 ## Requirements
 
-- PHP 8.5+ with the `phpredis`, `exif`, `gd`, `bcmath`, and `pdo_pgsql` extensions
+- PHP 8.5+ with the `phpredis`, `exif`, `gd`, `bcmath`, `pdo_pgsql`, `pcntl`, and `posix` extensions
 - PostgreSQL in production
 - Composer 2
 - Node.js 22.18+ or 24.11+
@@ -124,6 +126,18 @@ gh secret set FLUX_LICENSE_KEY --app dependabot
 ```
 
 Pull requests from forks do not get these secrets, so their CI fails when Composer installs Flux Pro.
+
+## Deployment
+
+Keep these processes running on the server:
+
+- `php artisan horizon`, under a process monitor such as Supervisor or systemd. On Laravel Cloud or Forge, add it as a background process. Set the monitor's stop timeout (Supervisor's `stopwaitsecs`) above the longest job timeout, which is 600 seconds for media conversions.
+- The scheduler, every minute: `* * * * * php artisan schedule:run`. It takes the Horizon metric snapshots.
+
+After each deploy:
+
+1. Run `php artisan optimize`. It caches the config, events, routes, and views, so the app does not search `app/Domain` for listeners on each request.
+2. Run `php artisan horizon:terminate`. Horizon finishes its current jobs and stops, and the process monitor starts it again with the new code.
 
 ## License
 

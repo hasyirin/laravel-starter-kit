@@ -3,15 +3,10 @@
 namespace App\Providers;
 
 use App\Domain\Shared\Common\Support\ContextCauserResolver;
-use App\Domain\Shared\Mail\Listeners\InterceptMail;
-use App\Domain\User\Listeners\AddUserToContext;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Events\Authenticated;
-use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -40,9 +35,6 @@ class AppServiceProvider extends ServiceProvider
         DB::prohibitDestructiveCommands(app()->isProduction());
 
         Blaze::optimize()->in(resource_path('views/components'));
-
-        Event::listen(Authenticated::class, AddUserToContext::class);
-        Event::listen(MessageSending::class, InterceptMail::class);
 
         Gate::before(fn (?User $user): ?true => $user?->checkPermissionTo(config('system.permissions.bypass-authorization')) ? true : null);
 

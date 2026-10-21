@@ -131,7 +131,7 @@ Pull requests from forks do not get these secrets, so their CI fails when Compos
 
 Keep these processes running on the server:
 
-- `php artisan horizon`, under a process monitor such as Supervisor or systemd. On Laravel Cloud or Forge, add it as a background process. Set the monitor's stop timeout (Supervisor's `stopwaitsecs`) above the longest job timeout, which is 600 seconds for media conversions.
+- `php artisan horizon`, under a process monitor. For Supervisor, copy `deploy/supervisor/horizon.conf` to `/etc/supervisor/conf.d/`, replace its app path and user, and run `sudo supervisorctl reread`, `sudo supervisorctl update`, and `sudo supervisorctl start horizon`. On Laravel Cloud or Forge, add it as a background process instead. Keep the stop timeout (`stopwaitsecs`) above the longest job timeout, which is 600 seconds for media conversions.
 - The scheduler, every minute: `* * * * * php artisan schedule:run`. It takes the Horizon metric snapshots.
 
 After each deploy:

@@ -98,6 +98,7 @@ return [
 
     'waits' => [
         'redis:default' => 60,
+        'redis-media:media' => 300,
     ],
 
     /*
@@ -197,7 +198,7 @@ return [
     */
 
     'defaults' => [
-        'supervisor-1' => [
+        'supervisor-default' => [
             'connection' => 'redis',
             'queue' => ['default'],
             'balance' => 'auto',
@@ -210,20 +211,41 @@ return [
             'timeout' => 60,
             'nice' => 0,
         ],
+
+        'supervisor-media' => [
+            'connection' => 'redis-media',
+            'queue' => ['media'],
+            'balance' => 'simple',
+            'processes' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 600,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
+            'supervisor-default' => [
                 'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+
+            'supervisor-media' => [
+                'processes' => 2,
+            ],
         ],
 
         'local' => [
-            'supervisor-1' => [
+            'supervisor-default' => [
                 'maxProcesses' => 3,
+            ],
+
+            'supervisor-media' => [
+                'processes' => 1,
             ],
         ],
     ],

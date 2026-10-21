@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Domain\Shared\Common\Policies\Policy;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Policies\RolePolicy;

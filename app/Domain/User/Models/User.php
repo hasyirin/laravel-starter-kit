@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\User\Models;
 
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'heading' => 'Settings',
     'description' => 'Manage your profile and account settings',

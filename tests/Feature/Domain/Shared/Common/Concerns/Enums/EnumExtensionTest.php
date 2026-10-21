@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Collection;
 use Tests\Fixtures\Enums\Priority;
 use Tests\Fixtures\Enums\Status;

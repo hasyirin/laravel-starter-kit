@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;

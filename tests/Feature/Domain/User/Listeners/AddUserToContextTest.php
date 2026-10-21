@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Domain\User\Models\User;
 
 test('the authenticated user id is added to the context', function (): void {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Domain\User\Models\User;
 use App\Livewire\Settings\Security;
 use Illuminate\Support\Facades\Hash;

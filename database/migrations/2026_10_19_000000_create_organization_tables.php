@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use Illuminate\Database\Migrations\Migration;

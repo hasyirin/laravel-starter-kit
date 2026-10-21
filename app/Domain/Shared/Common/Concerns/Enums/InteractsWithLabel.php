@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Shared\Common\Concerns\Enums;
 
 use Illuminate\Contracts\Support\Htmlable;

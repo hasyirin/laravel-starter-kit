@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'heading' => 'Passkeys',
     'description' => 'Manage your passkeys for passwordless sign-in',

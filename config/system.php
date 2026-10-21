@@ -22,6 +22,9 @@ return [
         'bypass-authorization' => 'bypass-authorization',
         'admin' => [
             'access' => 'admin.access',
+            'horizon' => [
+                'view' => 'admin.horizon.view',
+            ],
             'controls' => [
                 'roles' => [
                     'view-any' => 'admin.controls.roles.view-any',

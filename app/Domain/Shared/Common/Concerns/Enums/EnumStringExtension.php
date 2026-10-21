@@ -2,7 +2,6 @@
 
 namespace App\Domain\Shared\Common\Concerns\Enums;
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
 
 trait EnumStringExtension
@@ -14,26 +13,26 @@ trait EnumStringExtension
 
     public function camel(): string
     {
-        return Str::camel((string) $this->value);
+        return $this->str()->camel()->value();
     }
 
     public function studly(): string
     {
-        return Str::studly((string) $this->value);
+        return $this->str()->studly()->value();
     }
 
     public function headline(): string
     {
-        return Str::headline((string) $this->value);
+        return $this->str()->headline()->value();
     }
 
     public function plural(int $count = 2): string
     {
-        return Str::plural((string) $this->value, $count);
+        return $this->str()->plural($count)->value();
     }
 
     public function snake(): string
     {
-        return Str::snake($this->camel());
+        return $this->str()->camel()->snake()->value();
     }
 }

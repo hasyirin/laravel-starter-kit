@@ -9,6 +9,7 @@ use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Role;
+use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -25,6 +26,7 @@ class EloquentServiceProvider extends ServiceProvider
             'department' => Department::class,
             'organization' => Organization::class,
             'position' => Position::class,
+            'profile' => Profile::class,
             'role' => Role::class,
             'user' => User::class,
         ]);

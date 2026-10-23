@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 
@@ -45,3 +46,11 @@ test('a deleted user cannot be restored while another user has the same email', 
 
     $deleted->restore();
 })->throws(UniqueConstraintViolationException::class);
+
+test('force deleting a user deletes their profiles', function (): void {
+    $profile = Profile::factory()->create();
+
+    $profile->user->forceDelete();
+
+    $this->assertModelMissing($profile);
+});

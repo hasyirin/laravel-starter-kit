@@ -6,6 +6,8 @@ namespace App\Domain\User\Models;
 
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
+use App\Domain\Shared\Permission\Concerns\HasRoles;
+use App\Domain\User\Concerns\HasProfile;
 use App\Domain\User\Factories\UserFactory;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -19,7 +21,6 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Activitylog\Models\Concerns\CausesActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int $id
@@ -42,6 +43,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail, Passkey
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
+    use HasProfile;
     use HasRoles;
     use InteractsWithActivityLogs;
     use InteractsWithMedia;

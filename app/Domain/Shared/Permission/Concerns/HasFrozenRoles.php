@@ -14,10 +14,41 @@ use Spatie\Permission\Traits\HasRoles;
 trait HasFrozenRoles
 {
     use HasRoles {
-        assignRole as protected assignRoleBeforeSave;
-        syncRoles as protected syncRolesBeforeSave;
-        givePermissionTo as protected givePermissionToBeforeSave;
-        syncPermissions as protected syncPermissionsBeforeSave;
+        assignRole as private attachRoles;
+        givePermissionTo as private attachPermissions;
+    }
+
+    /**
+     * @var list<array<array-key, mixed>>
+     */
+    private array $rolesToAttach = [];
+
+    /**
+     * @var list<array<array-key, mixed>>
+     */
+    private array $permissionsToAttach = [];
+
+    /**
+     * @param  array{touch?: bool|null}  $options
+     */
+    public function save(array $options = []): bool
+    {
+        if ($this->rolesToAttach === [] && $this->permissionsToAttach === []) {
+            return parent::save($options);
+        }
+
+        return $this->getConnection()->transaction(function () use ($options): bool {
+            if (! parent::save($options)) {
+                return false;
+            }
+
+            $this->attachRoles($this->rolesToAttach);
+            $this->attachPermissions($this->permissionsToAttach);
+            $this->rolesToAttach = [];
+            $this->permissionsToAttach = [];
+
+            return true;
+        });
     }
 
     /**
@@ -27,7 +58,9 @@ trait HasFrozenRoles
     {
         throw_if($this->exists, $this->frozenRolesException());
 
-        return $this->assignRoleBeforeSave(...$roles);
+        $this->rolesToAttach[] = $roles;
+
+        return $this;
     }
 
     /**
@@ -37,7 +70,9 @@ trait HasFrozenRoles
     {
         throw_if($this->exists, $this->frozenRolesException());
 
-        return $this->syncRolesBeforeSave(...$roles);
+        $this->rolesToAttach = [$roles];
+
+        return $this;
     }
 
     /**
@@ -55,7 +90,9 @@ trait HasFrozenRoles
     {
         throw_if($this->exists, $this->frozenRolesException());
 
-        return $this->givePermissionToBeforeSave(...$permissions);
+        $this->permissionsToAttach[] = $permissions;
+
+        return $this;
     }
 
     /**
@@ -65,7 +102,9 @@ trait HasFrozenRoles
     {
         throw_if($this->exists, $this->frozenRolesException());
 
-        return $this->syncPermissionsBeforeSave(...$permissions);
+        $this->permissionsToAttach = [$permissions];
+
+        return $this;
     }
 
     /**

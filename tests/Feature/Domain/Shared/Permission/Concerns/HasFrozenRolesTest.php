@@ -7,6 +7,7 @@ use App\Domain\Shared\Permission\Models\Role;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Tests\Fixtures\Models\Snapshot;
 
 beforeEach(function (): void {
@@ -29,21 +30,67 @@ function savedSnapshot(): Snapshot
     return $snapshot;
 }
 
-test('a model keeps the roles and permissions that it gets before its first save', function (string $roleMethod, string $permissionMethod): void {
+test('a model keeps the roles and permissions that it gets before its first save', function (string $roleMethod, string $permissionMethod, string $saveMethod): void {
     $role = Role::query()->create(['name' => 'editor']);
     $permission = Permission::query()->create(['name' => 'admin.access']);
     $snapshot = new Snapshot;
 
     $snapshot->{$roleMethod}($role);
     $snapshot->{$permissionMethod}($permission);
-    $snapshot->save();
+    $snapshot->{$saveMethod}();
 
     expect($snapshot->fresh()?->getRoleNames()->all())->toBe(['editor'])
         ->and($snapshot->fresh()?->getPermissionNames()->all())->toBe(['admin.access']);
 })->with([
     'assign' => ['assignRole', 'givePermissionTo'],
     'sync' => ['syncRoles', 'syncPermissions'],
+])->with([
+    'with model events' => 'save',
+    'without model events' => 'saveQuietly',
 ]);
+
+test('a model keeps the roles and permissions from every call before its first save', function (): void {
+    $snapshot = new Snapshot;
+
+    $snapshot->assignRole(Role::query()->create(['name' => 'editor']));
+    $snapshot->assignRole(Role::query()->create(['name' => 'author']));
+    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'admin.access']));
+    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'admin.horizon.view']));
+    $snapshot->save();
+
+    expect($snapshot->fresh()?->getRoleNames()->sort()->values()->all())->toBe(['author', 'editor'])
+        ->and($snapshot->fresh()?->getPermissionNames()->sort()->values()->all())->toBe(['admin.access', 'admin.horizon.view']);
+});
+
+test('syncing before the first save replaces the roles and permissions given before', function (): void {
+    $snapshot = new Snapshot;
+    $snapshot->assignRole(Role::query()->create(['name' => 'editor']));
+    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'admin.access']));
+
+    $snapshot->syncRoles(Role::query()->create(['name' => 'author']));
+    $snapshot->syncPermissions(Permission::query()->create(['name' => 'admin.horizon.view']));
+    $snapshot->save();
+
+    expect($snapshot->fresh()?->getRoleNames()->all())->toBe(['author'])
+        ->and($snapshot->fresh()?->getPermissionNames()->all())->toBe(['admin.horizon.view']);
+});
+
+test('saving a model with roles returns false when a listener stops the save', function (): void {
+    Snapshot::saving(fn (): bool => false);
+    $snapshot = new Snapshot;
+    $snapshot->assignRole(Role::query()->create(['name' => 'editor']));
+
+    expect($snapshot->save())->toBeFalse()
+        ->and(Snapshot::query()->exists())->toBeFalse();
+});
+
+test('a model is not saved when one of its roles does not exist', function (): void {
+    $snapshot = new Snapshot;
+    $snapshot->assignRole('editor');
+
+    expect(fn (): bool => $snapshot->save())->toThrow(RoleDoesNotExist::class)
+        ->and(Snapshot::query()->exists())->toBeFalse();
+});
 
 test('the roles and permissions of a model cannot change after its first save', function (string $method, Role|Permission|string $change): void {
     $snapshot = savedSnapshot();

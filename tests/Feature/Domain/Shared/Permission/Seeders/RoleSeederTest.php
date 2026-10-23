@@ -11,14 +11,12 @@ beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
 });
 
-test('seeding creates the admin role with every admin permission', function (): void {
+test('seeding creates only the super admin role, with the bypass-authorization permission', function (): void {
     $this->seed(RoleSeeder::class);
 
-    $admin = Role::findByName('admin');
-
-    expect($admin->is_system)->toBeTrue()
-        ->and($admin->permissions)->toHaveCount(15)
-        ->and($admin->hasPermissionTo('bypass-authorization'))->toBeFalse();
+    expect(Role::query()->pluck('name')->all())->toBe(['super-admin'])
+        ->and(Role::findByName('super-admin')->is_system)->toBeTrue()
+        ->and(Role::findByName('super-admin')->permissions->pluck('name')->all())->toBe(['bypass-authorization']);
 });
 
 test('seeding leaves out permissions that match an except pattern', function (): void {
@@ -40,19 +38,19 @@ test('seeding leaves out permissions that match an except pattern', function ():
 
 test('seeding keeps permissions that were given to a role later', function (): void {
     $this->seed(RoleSeeder::class);
-    Role::findByName('admin')->givePermissionTo('bypass-authorization');
+    Role::findByName('super-admin')->givePermissionTo('admin.access');
 
     $this->seed(RoleSeeder::class);
 
-    expect(Role::findByName('admin')->hasPermissionTo('bypass-authorization'))->toBeTrue();
+    expect(Role::findByName('super-admin')->hasPermissionTo('admin.access'))->toBeTrue();
 });
 
 test('seeding reuses an existing role with the same name', function (): void {
-    Role::query()->create(['name' => 'admin']);
+    Role::query()->create(['name' => 'super-admin']);
 
     $this->seed(RoleSeeder::class);
 
-    expect(Role::query()->where('name', 'admin')->count())->toBe(1)
-        ->and(Role::findByName('admin')->is_system)->toBeTrue()
-        ->and(Role::findByName('admin')->permissions)->toHaveCount(15);
+    expect(Role::query()->where('name', 'super-admin')->count())->toBe(1)
+        ->and(Role::findByName('super-admin')->is_system)->toBeTrue()
+        ->and(Role::findByName('super-admin')->permissions)->toHaveCount(1);
 });

@@ -8,7 +8,7 @@ use App\Domain\Shared\Common\Seeders\Seeder;
 use App\Domain\User\Models\User;
 
 /**
- * @extends Seeder<int, array{name: string, email: string}>
+ * @extends Seeder<int, array{name: string, email: string, roles?: list<string>, permissions?: list<string>}>
  */
 class UserSeeder extends Seeder
 {
@@ -18,7 +18,12 @@ class UserSeeder extends Seeder
             return;
         }
 
-        User::factory()->create($data);
+        $user = User::factory()->create(['name' => $data['name'], 'email' => $data['email']]);
+
+        $user->profiles()->make()
+            ->assignRole(...($data['roles'] ?? []))
+            ->givePermissionTo(...($data['permissions'] ?? []))
+            ->save();
     }
 
     public function data(): array
@@ -27,6 +32,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Super Admin',
                 'email' => 'admin@example.com',
+                'roles' => [config('system.roles.super-admin')],
             ],
             [
                 'name' => 'Admin',

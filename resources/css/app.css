@@ -20,7 +20,6 @@
 @source '../views';
 
 @custom-variant dark (&:where(.dark, .dark *));
-@variant dark (&:where(.dark, .dark *));
 
 @theme {
     --font-sans:

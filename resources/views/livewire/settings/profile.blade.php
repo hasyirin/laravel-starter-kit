@@ -1,4 +1,4 @@
-<section class="w-full">
+<flux:main>
     @include('partials.settings-heading')
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.profile.title') }}</flux:heading>
@@ -32,4 +32,4 @@
             <livewire:settings.delete-user-form />
         @endif
     </x-settings.layout>
-</section>
+</flux:main>

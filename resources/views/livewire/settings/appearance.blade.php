@@ -1,4 +1,4 @@
-<section class="w-full">
+<flux:main>
     @include('partials.settings-heading')
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.appearance.title') }}</flux:heading>
@@ -10,4 +10,4 @@
             <flux:radio value="system" icon="computer-desktop">{{ __('user/settings.appearance.system') }}</flux:radio>
         </flux:radio.group>
     </x-settings.layout>
-</section>
+</flux:main>

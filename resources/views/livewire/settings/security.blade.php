@@ -1,4 +1,4 @@
-<section class="w-full">
+<flux:main class="w-full">
     @include('partials.settings-heading')
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.security.title') }}</flux:heading>
@@ -267,4 +267,4 @@
             </div>
         </div>
     </flux:modal>
-</section>
+</flux:main>

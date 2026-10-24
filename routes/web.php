@@ -10,4 +10,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 });
 
+Route::get('settings', fn (): string => '')->name('settings');
+
 require __DIR__.'/settings.php';

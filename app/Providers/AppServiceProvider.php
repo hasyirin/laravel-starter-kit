@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Blaze\Blaze;
+use RuntimeException;
 use Spatie\Activitylog\Support\CauserResolver;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,7 +26,19 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->preventDebugModeInProduction();
+
         $this->configureDefaults();
+    }
+
+    protected function preventDebugModeInProduction(): void
+    {
+        if (app()->isProduction() && app()->hasDebugModeEnabled()) {
+            // Turn debug mode off first, or this exception renders the debug error page with the stack trace.
+            config(['app.debug' => false]);
+
+            throw new RuntimeException('Debug mode must be off in production. Set APP_DEBUG=false.');
+        }
     }
 
     protected function configureDefaults(): void

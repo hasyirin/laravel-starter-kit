@@ -1,4 +1,4 @@
-<flux:main class="w-full">
+<flux:main>
     @include('partials.settings-heading')
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.security.title') }}</flux:heading>

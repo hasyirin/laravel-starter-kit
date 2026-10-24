@@ -1,14 +1,14 @@
 @php
     use App\Domain\Shared\Organization\Models\Organization;
 
-    $org = Organization::owner();
+    $organization = Organization::owner();
 @endphp
 
 <!DOCTYPE html>
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
-        @include('layouts.partials.auth.head')
+        @include('layouts.partials.head')
     </head>
 
     <body class="min-h-screen bg-white antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
@@ -24,11 +24,7 @@
                 </a>
 
                 <div class="relative z-20 mt-auto">
-                    <blockquote class="space-y-2">
-                        <footer>
-                            <flux:heading class="text-white">{{ $org->name }} &copy; {{ now()->year }}</flux:heading>
-                        </footer>
-                    </blockquote>
+                    <flux:heading class="text-white">{{ $organization->name }} &copy; {{ now()->year }}</flux:heading>
                 </div>
             </div>
             <div class="w-full py-6 md:py-10 lg:p-8">

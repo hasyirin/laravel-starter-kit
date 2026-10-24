@@ -78,6 +78,8 @@ A personal starting point for new Laravel projects. It is based on the official 
    composer setup
    ```
 
+   Log in as `admin@example.com` (super admin) or `it@example.com` (no roles). Both have the password `password`.
+
 4. If you serve the app from a different host, set `APP_DOMAIN` in `.env`.
 
 5. If you use an AI coding agent, generate the Boost guidelines, skills, and MCP config. git ignores the generated files. After this, `composer update` also runs `php artisan boost:update` to keep them current:

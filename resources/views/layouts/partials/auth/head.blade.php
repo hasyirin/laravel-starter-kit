@@ -12,4 +12,5 @@
 @fonts
 
 @vite('resources/css/app.css')
+@filamentStyles
 @fluxAppearance

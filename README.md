@@ -70,13 +70,13 @@ A personal starting point for new Laravel projects. It is based on the official 
    composer config http-basic.composer.fluxui.dev "<your-email>" "<your-license-key>"
    ```
 
-2. Install dependencies, create `.env`, generate the app key, run migrations, create the storage links, and build assets:
+2. Make sure Redis runs on `127.0.0.1:6379`, because the seeders in the next step use the cache. If Redis runs elsewhere, copy `.env.example` to `.env` and change the `REDIS_*` values first.
+
+3. Install dependencies, create `.env`, generate the app key, run migrations, seed the database, create the storage links, and build assets:
 
    ```bash
    composer setup
    ```
-
-3. Make sure Redis runs on `127.0.0.1:6379`, or change the `REDIS_*` values in `.env`.
 
 4. If you serve the app from a different host, set `APP_DOMAIN` in `.env`.
 

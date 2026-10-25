@@ -11,4 +11,5 @@ return [
     'current_password' => 'Current password',
     'new_password' => 'New password',
     'confirm_password' => 'Confirm password',
+    'use_default' => 'Use the default: :value',
 ];

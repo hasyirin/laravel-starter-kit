@@ -15,3 +15,4 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Domain/**/Seeders/*.php | .ai/rules/seeders.md |
 | tests/** | .ai/rules/tests.md |
 | resources/views/** | .ai/rules/views.md |
+| resources/views/**, resources/js/** | .ai/rules/ui.md |

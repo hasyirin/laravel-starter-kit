@@ -18,6 +18,7 @@
 @source '../**/*.vue';
 @source '../**/*.js';
 @source '../views';
+@source '../../docs';
 
 @custom-variant dark (&:where(.dark, .dark *));
 

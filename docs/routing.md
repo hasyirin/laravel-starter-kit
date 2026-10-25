@@ -1,13 +1,14 @@
 # Routes and Access Areas
 
-The app has four areas, and each area has its own route file. `routes/web.php` loads the four files and gives each one its middleware, URL prefix, and route name prefix. All four also get the `web` middleware group.
+The app has four areas, and each area has its own route file. A fifth file holds tools for developers. `routes/web.php` loads the five files and gives each one its middleware, URL prefix, and route name prefix. All five also get the `web` middleware group.
 
-| Area     | File                  | Who can open it              | URL prefix  | Name prefix | Middleware                                |
-|----------|-----------------------|------------------------------|-------------|-------------|-------------------------------------------|
-| Guest    | `routes/guest.php`    | Everyone                     | None        | None        | None                                      |
-| App      | `routes/app.php`      | Signed-in users              | None        | None        | `auth`                                    |
-| Internal | `routes/internal.php` | Users with `internal.access` | `/internal` | `internal.` | `auth`, `verified`, `can:internal.access` |
-| Admin    | `routes/admin.php`    | Users with `admin.access`    | `/admin`    | `admin.`    | `auth`, `verified`, `can:admin.access`    |
+| Area     | File                  | Who can open it                    | URL prefix  | Name prefix | Middleware                                |
+|----------|-----------------------|------------------------------------|-------------|-------------|-------------------------------------------|
+| Guest    | `routes/guest.php`    | Everyone                           | None        | None        | None                                      |
+| App      | `routes/app.php`      | Signed-in users                    | None        | None        | `auth`                                    |
+| Internal | `routes/internal.php` | Users with `internal.access`       | `/internal` | `internal.` | `auth`, `verified`, `can:internal.access` |
+| Admin    | `routes/admin.php`    | Users with `admin.access`          | `/admin`    | `admin.`    | `auth`, `verified`, `can:admin.access`    |
+| Local    | `routes/local.php`    | Everyone, in the local environment | None        | None        | `EnsureLocalEnvironment`                  |
 
 Fortify registers the routes for login, registration, password reset, email verification, two-factor authentication, and passkeys. Do not add them to `guest.php`.
 
@@ -17,6 +18,7 @@ Fortify registers the routes for login, registration, password reset, email veri
 - **App**: pages for every signed-in user, such as the dashboard and the settings pages. Add the `verified` middleware to a route that needs a verified email address.
 - **Internal**: the daily work of the staff, for example orders and reports.
 - **Admin**: the administration of the system: users, roles, permissions, and Horizon.
+- **Local**: tools for developers, such as the live component docs at `/docs/components`. `EnsureLocalEnvironment` answers 404 in every other environment, so these routes stay registered but never open in production.
 
 ## Add a Route
 

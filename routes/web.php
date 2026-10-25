@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsureLocalEnvironment;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/guest.php';
+
+Route::middleware(EnsureLocalEnvironment::class)->group(__DIR__.'/local.php');
 
 Route::middleware(['auth'])->group(__DIR__.'/app.php');
 

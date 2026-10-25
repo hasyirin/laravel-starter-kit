@@ -85,7 +85,6 @@
                 x-ref="passkeyNameInput"
                 x-init="$nextTick(() => $refs.passkeyNameInput?.focus())"
             />
-            <flux:text class="!mt-1">{{ __('user/passkeys.add.name_help') }}</flux:text>
 
             <p x-show="error" x-text="error" x-cloak class="text-sm text-red-600 dark:text-red-400"></p>
 

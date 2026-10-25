@@ -3,7 +3,7 @@
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.security.title') }}</flux:heading>
 
-    <x-settings.layout :heading="__('user/settings.password.heading')" :subheading="__('user/settings.password.description')">
+    <x-settings.layout :heading="__('user/settings.password.heading')">
         <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
             <flux:input
                 wire:model="current_password"
@@ -40,9 +40,8 @@
         @if($canManageTwoFactor)
             <section class="mt-12">
                 <flux:heading>{{ __('user/settings.two_factor.heading') }}</flux:heading>
-                <flux:subheading>{{ __('user/settings.two_factor.description') }}</flux:subheading>
 
-                <div class="mx-auto flex w-full flex-col space-y-6 text-sm" wire:cloak>
+                <div class="mx-auto mt-2 flex w-full flex-col space-y-6 text-sm" wire:cloak>
                     @if($twoFactorEnabled)
                         <div class="space-y-4">
                             <flux:text>{{ __('user/settings.two_factor.enabled_description') }}</flux:text>
@@ -243,7 +242,6 @@
                                     <flux:icon.key class="size-7 text-zinc-400 dark:text-zinc-500" />
                                 </div>
                                 <p class="font-medium">{{ __('user/passkeys.empty.heading') }}</p>
-                                <flux:text class="mt-1">{{ __('user/passkeys.empty.description') }}</flux:text>
                             </div>
                         @endforelse
                     </div>

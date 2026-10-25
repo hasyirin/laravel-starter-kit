@@ -3,7 +3,7 @@
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.profile.title') }}</flux:heading>
 
-    <x-settings.layout :heading="__('user/settings.profile.heading')" :subheading="__('user/settings.profile.description')">
+    <x-settings.layout :heading="__('user/settings.profile.heading')">
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
             <flux:input wire:model="name" :label="__('common/inputs.name')" type="text" required autofocus autocomplete="name" />
 

@@ -52,6 +52,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Blaze** optimizes the Blade components in `resources/views/components`.
 - **Tests** use Pest syntax and run with test impact analysis.
 - **Code checks** are stricter. PHPStan runs at level 10 with extra Larastan checks and Livewire support. Rector runs with Laravel and Pest rules. Vite+ lints the JavaScript and formats the JavaScript and CSS in `resources/`. Prettier formats the Blade views and sorts their Tailwind classes.
+- **Docs** in `docs/` follow the code. `php artisan docs:generate` fills each section between `<!-- generated:name -->` and `<!-- /generated:name -->` from the code, for example the permission matrix and the rules that the test names state. It runs the migrations and seeders on an in-memory SQLite database, so the matrix shows the roles that the seeders create. `composer test` fails when a section is out of date, or when a doc names a file, class, permission, route, config key, table column, or environment variable in backticks that does not exist. See [Permissions](docs/modules/permission.md).
 
 ## Requirements
 
@@ -105,13 +106,15 @@ composer dev
 
 ## Quality Checks
 
-| Command                | Description                                                                         |
-|------------------------|-------------------------------------------------------------------------------------|
-| `composer test`        | Clear the config cache, run `lint:check` and `types:check`, then run the Pest tests |
-| `composer lint`        | Fix code with Rector, Pint, the Vite+ linter and formatter, and Prettier            |
-| `composer lint:check`  | Check Pint, Rector, Vite+ linting and formatting, and Prettier without changes      |
-| `composer types:check` | Run PHPStan (Larastan) at level 10                                                  |
-| `composer ci:check`    | Run `composer test` with no process timeout, as CI does                             |
+| Command                | Description                                                                                        |
+|------------------------|----------------------------------------------------------------------------------------------------|
+| `composer test`        | Clear the config cache, run `lint:check`, `types:check`, and `docs:check`, then run the Pest tests |
+| `composer lint`        | Fix code with Rector, Pint, the Vite+ linter and formatter, and Prettier                           |
+| `composer lint:check`  | Check Pint, Rector, Vite+ linting and formatting, and Prettier without changes                     |
+| `composer types:check` | Run PHPStan (Larastan) at level 10                                                                 |
+| `composer docs`        | Fill the generated sections of the docs from the code                                              |
+| `composer docs:check`  | Fail when a generated section is out of date or a doc names code that does not exist               |
+| `composer ci:check`    | Run `composer test` with no process timeout, as CI does                                            |
 
 `composer test` runs the tests with test impact analysis (`--tia`). With Xdebug installed, Pest runs only the tests that your changes affect. Without it, Pest runs all tests.
 

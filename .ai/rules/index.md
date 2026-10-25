@@ -5,6 +5,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | Applies to | Rule file |
 | --- | --- |
 | app/** | .ai/rules/app.md |
+| docs/** | .ai/rules/docs.md |
 | app/Domain/**/Factories/*.php | .ai/rules/factories.md |
 | lang/** | .ai/rules/lang.md |
 | app/Livewire/** | .ai/rules/livewire.md |

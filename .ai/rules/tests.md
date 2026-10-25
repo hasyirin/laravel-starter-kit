@@ -13,3 +13,6 @@ Test shared base classes, traits, and enum concerns through fixture classes in `
 
 ## Use helpers instead of facades
 Call the `auth()`, `config()`, `cache()`, `context()`, and `logger()` helpers instead of their facades. Use a facade only when no helper covers the call, such as `Gate::before()` or `Log::spy()`.
+
+## Name each test as a rule
+A module doc can list the test names of the module as its rules. Write each name as one rule in plain words, for example `a system role cannot be deleted`.

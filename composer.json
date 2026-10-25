@@ -90,10 +90,17 @@
         "types:check": [
             "phpstan analyse"
         ],
+        "docs": [
+            "@php artisan docs:generate --ansi"
+        ],
+        "docs:check": [
+            "@php artisan docs:generate --check --ansi"
+        ],
         "test": [
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",
+            "@docs:check",
             "@putenv XDEBUG_MODE=coverage",
             "@php artisan test --tia"
         ],

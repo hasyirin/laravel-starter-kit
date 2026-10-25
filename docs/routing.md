@@ -62,9 +62,27 @@ If the user tried to open a page before they logged in, the app sends them to th
 
 The three login responses are in `app/Http/Responses`, and `FortifyServiceProvider` binds them. `LoginResponse::highestAreaUrl()` sets the order.
 
+## Pages and Layouts
+
+Full-page Livewire components extend `App\Livewire\Pages\Shared\Page`. It gives each page the layout of the area that its route is in:
+
+| Route                                   | Layout             |
+|-----------------------------------------|--------------------|
+| `admin.*`                               | `layouts.admin`    |
+| `internal.*`                            | `layouts.internal` |
+| Other routes with the `auth` middleware | `layouts.app`      |
+| All other routes                        | `layouts.guest`    |
+
+A guest page keeps the guest layout for signed-in users too. A page that more than one area uses gets the layout of each area.
+
 ## Navigation
 
-- The sidebar (`app/Livewire/Layouts/App/Sidebar.php`) shows the Internal and Admin links only to users who have the matching permission.
+- The app, internal, and admin areas each have a sidebar: `app/Livewire/Layouts/<Area>/Sidebar.php`. Below the spacer, each sidebar links to the other areas:
+  - The app sidebar links to Internal and Admin.
+  - The internal sidebar links to App and Admin.
+  - The admin sidebar links to App and Internal.
+- A sidebar shows the Internal or Admin link only to users who have the matching permission. The App link goes back to the app dashboard, and it always shows.
+- The logo at the top of each sidebar opens the dashboard of its own area.
 - Each area has a settings route: `settings`, `internal.settings`, and `admin.settings`. The user menu links to the settings route of the current area. For now, all three open the shared settings pages.
 
 ## Horizon

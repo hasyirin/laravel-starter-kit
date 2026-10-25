@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Pages\App\Dashboard;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\Security;
@@ -12,7 +13,7 @@ Route::redirect('settings', '/settings/profile')->name('settings');
 Route::livewire('settings/profile', Profile::class)->name('profile.edit');
 
 Route::middleware(['verified'])->group(function (): void {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::livewire('dashboard', Dashboard::class)->name('dashboard');
 
     Route::livewire('settings/appearance', Appearance::class)->name('appearance.edit');
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
+use App\Livewire\Pages\Internal\Dashboard;
 
 test('guests are redirected to the login page', function (): void {
     $response = $this->get(route('internal.dashboard'));
@@ -28,5 +29,7 @@ test('users with the internal access permission can visit the internal dashboard
 
     $response = $this->get(route('internal.dashboard'));
 
-    $response->assertOk();
+    $response->assertOk()
+        ->assertSeeLivewire(Dashboard::class)
+        ->assertSee('<title>'.__('navigation.dashboard').' - '.config('app.name').'</title>', false);
 });

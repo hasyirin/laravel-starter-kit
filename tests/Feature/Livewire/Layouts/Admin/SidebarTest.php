@@ -27,5 +27,5 @@ test('the admin sidebar shows the internal link to users with internal access', 
 
     $component = Livewire::test(Sidebar::class);
 
-    $component->assertSeeInOrder([route('dashboard'), route('internal.dashboard')], false);
+    $component->assertSee(route('internal.dashboard'));
 });

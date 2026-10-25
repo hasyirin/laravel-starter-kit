@@ -6,6 +6,7 @@ use App\Domain\Shared\Common\Events\StateChanged;
 use App\Domain\Shared\Common\Exceptions\StaleState;
 use App\Domain\Shared\Common\Exceptions\StateNotSaved;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Events\TransactionBeginning;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -87,6 +88,29 @@ test('a step whose save a listener stops throws and sends no event', function ()
     expect(fn (): mixed => $ticket->state->transitionTo(InReview::class))->toThrow(StateNotSaved::class)
         ->and(DB::table('tickets')->value('state'))->toBe('open')
         ->and($events)->toBe(0);
+});
+
+test('a step runs its transaction on the connection of its model', function (): void {
+    config(['database.connections.secondary' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '', 'foreign_key_constraints' => true]]);
+    Schema::connection('secondary')->create('tickets', function (Blueprint $table): void {
+        $table->id();
+        $table->string('title');
+        $table->string('state');
+        $table->boolean('approvable')->default(false);
+        $table->timestamp('approved_at')->nullable();
+        $table->timestamps();
+        $table->softDeletes();
+    });
+    $ticket = Ticket::on('secondary')->create(['title' => 'Leak']);
+    $connections = [];
+    Event::listen(TransactionBeginning::class, function (TransactionBeginning $event) use (&$connections): void {
+        $connections[] = $event->connectionName;
+    });
+
+    $ticket->state->transitionTo(InReview::class);
+
+    expect($connections)->toBe(['secondary'])
+        ->and(DB::connection('secondary')->table('tickets')->value('state'))->toBe('in_review');
 });
 
 test('the state changed event waits for the transaction to commit', function (): void {

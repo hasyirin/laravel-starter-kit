@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Documentation\Support\ReferenceChecker;
 use App\Domain\User\Models\User;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 test('code names that exist pass the check', function (string $reference): void {
     expect(new ReferenceChecker()->problem($reference))->toBeNull();
@@ -43,6 +45,18 @@ test('code names that do not exist fail the check', function (string $reference,
     'a dotted name' => ['admin.missing', 'is not a permission, route name, config key, or table column'],
     'an environment variable' => ['MISSING_VARIABLE', 'is not read by a config file or listed in .env.example'],
 ]);
+
+test('class names resolve when the project path is a symlink', function (): void {
+    $link = sys_get_temp_dir().'/project-'.Str::random(8);
+    symlink(base_path(), $link);
+    app()->setBasePath($link);
+
+    try {
+        expect(new ReferenceChecker()->problem('PermissionSeeder'))->toBeNull();
+    } finally {
+        File::delete($link);
+    }
+});
 
 test('words that are not code names are not checked', function (string $reference): void {
     expect(new ReferenceChecker()->problem($reference))->toBeNull();

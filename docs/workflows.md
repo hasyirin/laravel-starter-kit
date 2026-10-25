@@ -56,7 +56,7 @@ class Pay extends Transition
 
 - `reason()` returns why the step must not run, or null. The step runs only when it returns null.
 - `apply()` changes other attributes. They save together with the new state.
-- Do not override `handle()`. It saves in a database transaction, and it throws `StaleState` when another request changed the state after the model was loaded.
+- Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state after the model was loaded, and `StateNotSaved` when a listener stopped the save.
 
 ## Run a Step
 
@@ -72,6 +72,7 @@ $invoice->state->transitionTo(Paid::class);
 - `allowedFor()` on a state returns the states that a user can move to now, after the checks and the permissions. Use it for the buttons.
 - `reasonFor()` on a state returns why a step is blocked.
 - When `reason()` blocks a step, `transitionTo()` throws `Spatie\ModelStates\Exceptions\TransitionNotAllowed`.
+- `StaleState`, `StateNotSaved`, and the Spatie exception above all extend `Spatie\ModelStates\Exceptions\CouldNotPerformTransition`, so one catch handles any step that fails.
 
 ## Listen for Changes
 

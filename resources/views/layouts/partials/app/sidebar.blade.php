@@ -1,26 +1,8 @@
-<flux:sidebar sticky collapsible="mobile" class="dark border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+<flux:sidebar sticky collapsible class="dark border-e dark:border-zinc-700 dark:bg-zinc-950">
     <flux:sidebar.header>
-        <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-        <flux:sidebar.collapse class="lg:hidden" />
+        <x-app-logo sidebar href="{{ route('dashboard') }}" wire:navigate />
+        <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
     </flux:sidebar.header>
 
-    <flux:sidebar.nav>
-        <flux:sidebar.group :heading="__('navigation.platform')" class="grid">
-            <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                {{ __('navigation.dashboard') }}
-            </flux:sidebar.item>
-        </flux:sidebar.group>
-    </flux:sidebar.nav>
-
-    <flux:spacer />
-
-    <flux:sidebar.nav>
-        <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-            {{ __('navigation.repository') }}
-        </flux:sidebar.item>
-
-        <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-            {{ __('navigation.documentation') }}
-        </flux:sidebar.item>
-    </flux:sidebar.nav>
+    <livewire:layouts.app.sidebar />
 </flux:sidebar>

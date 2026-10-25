@@ -8,6 +8,7 @@ Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::get('admin', fn (): string => '')->can(config()->string('system.permissions.admin.access'))->name('admin.dashboard');
 });
 
 Route::get('settings', fn (): string => '')->name('settings');

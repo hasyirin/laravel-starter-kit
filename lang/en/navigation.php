@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 return [
     'welcome' => 'Welcome',
-    'platform' => 'Platform',
     'dashboard' => 'Dashboard',
-    'repository' => 'Repository',
-    'documentation' => 'Documentation',
+    'admin' => 'Admin',
     'search' => 'Search',
     'settings' => 'Settings',
 ];

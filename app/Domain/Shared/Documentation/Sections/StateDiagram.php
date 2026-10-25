@@ -13,16 +13,17 @@ class StateDiagram implements Section
     {
         $graph = StateGraph::fromOptions($options);
         $states = $graph->states();
-        $transitions = $graph->transitions();
+        $steps = $graph->steps();
         $default = $graph->default();
 
         return implode("\n", [
             '```mermaid',
             'stateDiagram-v2',
-            ...array_map(fn (string $name, string $label): string => '    state "'.str_replace('"', '#quot;', $label)."\" as {$name}", array_keys($states), $states),
+            ...array_map(fn (string $name, string $label): string => '    state "'.StateGraph::quote($label)."\" as {$name}", array_keys($states), $states),
+            ...(in_array(null, array_column($steps, 'from'), true) ? ['    state "Any state" as '.StateGraph::ANY] : []),
             ...($default === null ? [] : ["    [*] --> {$default}"]),
-            ...array_map(fn (array $transition): string => "    {$transition['from']} --> {$transition['to']}: {$transition['step']}", $transitions),
-            ...array_map(fn (string $name): string => "    {$name} --> [*]", array_values(array_diff(array_keys($states), array_column($transitions, 'from')))),
+            ...array_map(fn (array $step): string => '    '.($step['from'] ?? StateGraph::ANY)." --> {$step['to']}: {$step['step']}", $steps),
+            ...array_map(fn (string $name): string => "    {$name} --> [*]", array_values(array_diff(array_keys($states), array_column($graph->transitions(), 'from')))),
             '```',
         ]);
     }

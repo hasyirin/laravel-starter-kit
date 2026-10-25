@@ -48,13 +48,15 @@ class Document
         $fenced = false;
 
         foreach (explode("\n", $this->contents) as $index => $line) {
-            if (str_starts_with($line, '<!-- generated:')) {
+            if (str_starts_with(ltrim($line), '```')) {
+                $fenced = ! $fenced;
+            } elseif ($fenced) {
+                continue;
+            } elseif (str_starts_with($line, '<!-- generated:')) {
                 $generated = true;
             } elseif (str_starts_with($line, '<!-- /generated:')) {
                 $generated = false;
-            } elseif (str_starts_with(ltrim($line), '```')) {
-                $fenced = ! $fenced;
-            } elseif (! $generated && ! $fenced) {
+            } elseif (! $generated) {
                 preg_match_all('/`([^`]+)`/', $line, $matches);
 
                 foreach ($matches[1] as $reference) {

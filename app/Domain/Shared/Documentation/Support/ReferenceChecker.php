@@ -44,6 +44,11 @@ class ReferenceChecker
     /**
      * @var Collection<int, string>
      */
+    private readonly Collection $paths;
+
+    /**
+     * @var Collection<int, string>
+     */
     private readonly Collection $variables;
 
     /**
@@ -57,10 +62,10 @@ class ReferenceChecker
         $this->routes = collect(resolve(Router::class)->getRoutes()->getRoutesByName())->keys();
         $this->indexClasses();
 
-        $this->files = collect(iterator_to_array(Finder::create()->files()->in(base_path())->exclude(['vendor', 'node_modules', 'storage', 'public', 'bootstrap/cache'])))
-            ->map(fn (SplFileInfo $file): string => $file->getFilename())
-            ->unique()
-            ->values();
+        $files = collect(iterator_to_array(Finder::create()->files()->in(base_path())->exclude(['vendor', 'node_modules', 'storage', 'public', 'bootstrap/cache'])));
+        $this->files = $files->map(fn (SplFileInfo $file): string => $file->getFilename())->unique()->values();
+
+        $this->paths = $files->map(fn (SplFileInfo $file): string => $file->getRelativePathname())->values();
 
         $example = base_path('.env.example');
 
@@ -80,16 +85,18 @@ class ReferenceChecker
     {
         $reference = str($reference)->chopStart('can:')->value();
 
-        if (preg_match('/\s|^[\/$]|\.$|^[\d.]+$/', $reference) === 1) {
+        if (preg_match('/\s|^[\/$]|\.$|^[\d.]+$|:\/\//', $reference) === 1) {
             return null;
         }
 
         if (str_contains($reference, '/')) {
-            return file_exists(base_path($reference)) ? null : 'is not a file or folder';
+            return $this->pathProblem((string) preg_replace('/:\d+(?:-\d+)?$/', '', $reference));
         }
 
         if (preg_match('/^\\\\?([A-Z]\w*(?:\\\\[A-Z]\w*)*)::(\w+)(?:\(\))?$/', $reference, $member) === 1) {
-            return $this->memberProblem($member[1], $member[2]);
+            return $member[2] === 'class'
+                ? ($this->classes($member[1]) === [] ? 'is not a class' : null)
+                : $this->memberProblem($member[1], $member[2]);
         }
 
         if (preg_match('/^\\\\?[A-Z][a-z]\w*(?:\\\\[A-Z]\w*)*$/', $reference) === 1) {
@@ -111,14 +118,36 @@ class ReferenceChecker
         return null;
     }
 
+    private function pathProblem(string $path): ?string
+    {
+        if (str_contains($path, '*')) {
+            return $this->matchesFiles($path) ? null : 'matches no file';
+        }
+
+        return file_exists(base_path($path)) || trans()->has($path) ? null : 'is not a file, folder, or translation key';
+    }
+
+    private function matchesFiles(string $pattern): bool
+    {
+        if (! str_contains($pattern, '**')) {
+            return (glob(base_path($pattern)) ?: []) !== [];
+        }
+
+        $regex = '#^'.strtr(preg_quote($pattern, '#'), ['\*\*/' => '(?:.*/)?', '\*\*' => '.*', '\*' => '[^/]*', '\?' => '[^/]']).'$#';
+
+        return $this->paths->contains(fn (string $path): bool => preg_match($regex, $path) === 1);
+    }
+
     private function indexClasses(): void
     {
+        $root = realpath(base_path()) ?: base_path();
+
         foreach (ClassLoader::getRegisteredLoaders() as $loader) {
             foreach ($loader->getPrefixesPsr4() as $namespace => $directories) {
                 foreach ($directories as $directory) {
                     $directory = realpath($directory);
 
-                    if ($directory === false || ! str_starts_with($directory, base_path()) || str_starts_with($directory, base_path('vendor'))) {
+                    if ($directory === false || ! str_starts_with($directory, $root) || str_starts_with($directory, $root.DIRECTORY_SEPARATOR.'vendor')) {
                         continue;
                     }
 

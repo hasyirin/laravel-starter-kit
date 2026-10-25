@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Common\Transitions;
 
 use App\Domain\Shared\Common\Exceptions\StaleState;
+use App\Domain\Shared\Common\Exceptions\StateNotSaved;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Spatie\ModelStates\DefaultTransition;
 
 /**
@@ -39,16 +39,21 @@ class Transition extends DefaultTransition
      */
     public function handle(): Model
     {
-        return DB::transaction(function (): Model {
-            $current = $this->model->newQueryWithoutScopes()->lockForUpdate()->whereKey($this->model->getKey())->firstOrFail();
+        return $this->model->getConnection()->transaction(function (): Model {
+            if ($this->model->exists) {
+                $current = $this->model->newQueryWithoutScopes()->lockForUpdate()->whereKey($this->model->getKey())->firstOrFail();
 
-            if ($current->getRawOriginal($this->field) !== $this->model->getRawOriginal($this->field)) {
-                throw StaleState::make($this->model, $this->field);
+                if ($current->getRawOriginal($this->field) !== $this->model->getRawOriginal($this->field)) {
+                    throw StaleState::make($this->model, $this->field);
+                }
             }
 
             $this->model->setAttribute($this->field, $this->newState);
             $this->apply();
-            $this->model->save();
+
+            if (! $this->model->save()) {
+                throw StateNotSaved::make($this->model, $this->field);
+            }
 
             return $this->model;
         });

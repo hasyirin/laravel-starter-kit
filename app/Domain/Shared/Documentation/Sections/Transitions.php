@@ -15,17 +15,21 @@ class Transitions implements Section
         $graph = StateGraph::fromOptions($options);
         $states = $graph->states();
 
-        $rows = array_map(function (array $transition) use ($graph, $states): array {
-            $permission = $graph->permission($transition['step']);
+        $rows = array_map(function (array $step) use ($graph, $states): array {
+            $permission = $graph->permission($step['step']);
 
             return [
-                $states[$transition['from']] ?? $transition['from'],
-                $states[$transition['to']] ?? $transition['to'],
-                $transition['step'],
-                $permission === null ? 'Not in config/system.php' : "`{$permission}`",
+                $step['from'] === null ? 'Any state' : $states[$step['from']] ?? $step['from'],
+                $states[$step['to']] ?? $step['to'],
+                $step['step'],
+                match (true) {
+                    $permission !== null => "`{$permission}`",
+                    $graph->hasPolicy() => 'Not in config/system.php',
+                    default => 'No policy',
+                },
                 $permission === null ? '' : implode(', ', $graph->roles($permission)),
             ];
-        }, $graph->transitions());
+        }, $graph->steps());
 
         $table = MarkdownTable::render(['From', 'To', 'Step', 'Permission', 'Roles'], $rows);
 

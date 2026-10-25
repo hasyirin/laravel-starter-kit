@@ -14,32 +14,33 @@ class Swimlanes implements Section
     public function render(array $options): string
     {
         $graph = StateGraph::fromOptions($options);
-        $transitions = $graph->transitions();
+        $steps = $graph->steps();
         $lanes = [];
 
-        foreach ($transitions as $transition) {
-            $permission = $graph->permission($transition['step']);
+        foreach ($steps as $step) {
+            $permission = $graph->permission($step['step']);
             $roles = $permission === null ? [] : $graph->roles($permission);
-            $lanes[$roles === [] ? self::NO_ROLE : implode(', ', $roles)][] = $transition;
+            $lanes[$roles === [] ? self::NO_ROLE : implode(', ', $roles)][] = $step;
         }
 
         uksort($lanes, fn (string $a, string $b): int => [$a === self::NO_ROLE, $a] <=> [$b === self::NO_ROLE, $b]);
 
         $lines = ['```mermaid', 'flowchart LR'];
 
-        foreach (array_values($lanes) as $index => $steps) {
-            $lines[] = '    subgraph lane_'.($index + 1).'["'.array_keys($lanes)[$index].'"]';
+        foreach (array_values($lanes) as $index => $laneSteps) {
+            $lines[] = '    subgraph lane_'.($index + 1).'["'.StateGraph::quote(array_keys($lanes)[$index]).'"]';
 
-            foreach ($steps as $step) {
-                $lines[] = '        '.$this->id($step).'["'.str($step['step'])->headline().'"]';
+            foreach ($laneSteps as $step) {
+                $label = str($step['step'])->headline()->value().($step['from'] === null ? ' (from any state)' : '');
+                $lines[] = '        '.$this->id($step).'["'.StateGraph::quote($label).'"]';
             }
 
             $lines[] = '    end';
         }
 
-        foreach ($transitions as $from) {
-            foreach ($transitions as $to) {
-                if ($from['to'] === $to['from']) {
+        foreach ($steps as $from) {
+            foreach ($steps as $to) {
+                if ($to['from'] !== null && $from['to'] === $to['from']) {
                     $lines[] = '    '.$this->id($from).' --> '.$this->id($to);
                 }
             }
@@ -51,10 +52,10 @@ class Swimlanes implements Section
     }
 
     /**
-     * @param  array{from: string, to: string, step: string}  $transition
+     * @param  array{from: string|null, to: string, step: string}  $step
      */
-    private function id(array $transition): string
+    private function id(array $step): string
     {
-        return "{$transition['from']}__{$transition['to']}";
+        return ($step['from'] ?? StateGraph::ANY)."__{$step['to']}";
     }
 }

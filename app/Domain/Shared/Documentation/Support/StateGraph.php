@@ -15,6 +15,8 @@ use InvalidArgumentException;
 
 class StateGraph
 {
+    public const string ANY = 'any_state';
+
     /**
      * @var Collection<int, Role>|null
      */
@@ -42,6 +44,11 @@ class StateGraph
         throw new InvalidArgumentException("A state section needs a model and its state field, but [{$model}] and [{$field}] are not.");
     }
 
+    public static function quote(string $text): string
+    {
+        return str_replace('"', '#quot;', $text);
+    }
+
     /**
      * @return array<string, string>
      */
@@ -64,11 +71,47 @@ class StateGraph
         ], array_keys($this->state::config()->allowedTransitions));
     }
 
+    /**
+     * @return list<array{from: string|null, to: string, step: string}>
+     */
+    public function steps(): array
+    {
+        $transitions = $this->transitions();
+        $others = count($this->states()) - 1;
+        $open = [];
+
+        foreach (array_unique(array_column($transitions, 'to')) as $to) {
+            $into = array_filter($transitions, fn (array $transition): bool => $transition['to'] === $to);
+            $sources = array_unique(array_column(array_filter($into, fn (array $transition): bool => $transition['from'] !== $to), 'from'));
+
+            $open[$to] = $others >= 3 && count($sources) === $others && count(array_unique(array_column($into, 'step'))) === 1;
+        }
+
+        $steps = [];
+
+        foreach ($transitions as $transition) {
+            $collapsed = ['from' => null, 'to' => $transition['to'], 'step' => $transition['step']];
+
+            if (! $open[$transition['to']]) {
+                $steps[] = $transition;
+            } elseif (! in_array($collapsed, $steps, true)) {
+                $steps[] = $collapsed;
+            }
+        }
+
+        return $steps;
+    }
+
     public function default(): ?string
     {
         $default = $this->state::config()->defaultStateClass;
 
         return $default === null ? null : $default::getMorphClass();
+    }
+
+    public function hasPolicy(): bool
+    {
+        return Gate::getPolicyFor($this->model) instanceof Policy;
     }
 
     public function permission(string $step): ?string

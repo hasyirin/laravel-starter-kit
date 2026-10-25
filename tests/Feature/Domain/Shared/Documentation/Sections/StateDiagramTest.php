@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Documentation\Sections\StateDiagram;
 use App\Domain\Shared\Documentation\Support\StateGraph;
+use Tests\Fixtures\Models\Memo;
 use Tests\Fixtures\Models\Ticket;
 
 test('the diagram shows the states, the default state, the steps, and the final states', function (): void {
@@ -23,6 +24,24 @@ test('the diagram shows the states, the default state, the steps, and the final 
             in_review --> rejected: rejected
             approved --> [*]
             rejected --> [*]
+        ```
+        MD);
+});
+
+test('the steps that every other state can take collapse into one arrow from any state', function (): void {
+    expect(new StateDiagram()->render(['model' => Memo::class, 'field' => 'state']))->toBe(<<<'MD'
+        ```mermaid
+        stateDiagram-v2
+            state "Approved" as approved
+            state "Draft" as draft
+            state "On Hold" as on_hold
+            state "Review" as review
+            state "Any state" as any_state
+            [*] --> draft
+            draft --> review: review
+            review --> approved: approved
+            any_state --> on_hold: on-hold
+            on_hold --> draft: draft
         ```
         MD);
 });

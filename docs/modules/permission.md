@@ -5,12 +5,12 @@ The app checks access with permissions, and roles group permissions. A user gets
 ## Add a Permission
 
 1. Add the permission to `permissions` in `config/system.php`. Give it a key path that matches its name, for example `admin.controls.roles.view`.
-2. Run `php artisan db:seed`. `PermissionSeeder` creates the new permission and deletes the permissions that are no longer in the config.
+2. Run `php artisan db:seed --class="App\Domain\Shared\Permission\Seeders\PermissionSeeder"`. It creates the new permission and deletes the permissions that are no longer in the config. Do not run all the seeders in production, because `UserSeeder` creates the default users.
 3. Check the permission in a policy that extends `Policy`. `Policy::path()` builds the config key of a permission from the root, the policy prefix, the plural model name, and the action. For example, `RolePolicy` checks `admin.controls.roles.view` for the `view` action.
 
 ## Add a Role
 
-Add the role to `RoleSeeder::data()`, or to the `data()` method of a seeder that extends `RoleSeeder`. Each role lists permission patterns and exceptions, and `*` matches any text. `RoleSeeder` only adds permissions to a role, so changes made in production stay.
+Add the role to `RoleSeeder::data()`, or to the `data()` method of a seeder that extends `RoleSeeder`. Call a new role seeder from `DatabaseSeeder`, so that the seeding and the permission matrix include it. Each role lists permission patterns and exceptions, and `*` matches any text. `RoleSeeder` only adds permissions to a role, so changes made in production stay.
 
 The seeders create system roles. A system role cannot be renamed or deleted.
 

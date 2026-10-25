@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Common\Events\StateChanged;
 use App\Domain\Shared\Common\Exceptions\StaleState;
+use App\Domain\Shared\Common\Exceptions\StateNotSaved;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,28 @@ test('a step fails when another request changed the state first', function (): v
 
     expect(fn (): mixed => $stale->state->transitionTo(InReview::class))->toThrow(StaleState::class)
         ->and($ticket->fresh()?->state)->toBeInstanceOf(InReview::class);
+});
+
+test('a step on a new model saves the model', function (): void {
+    $ticket = new Ticket(['title' => 'Leak']);
+
+    $ticket->state->transitionTo(InReview::class);
+
+    expect($ticket->exists)->toBeTrue()
+        ->and(DB::table('tickets')->value('state'))->toBe('in_review');
+});
+
+test('a step whose save a listener stops throws and sends no event', function (): void {
+    $ticket = Ticket::query()->create(['title' => 'Leak']);
+    $events = 0;
+    Event::listen(StateChanged::class, function () use (&$events): void {
+        $events++;
+    });
+    Ticket::saving(fn (): bool => false);
+
+    expect(fn (): mixed => $ticket->state->transitionTo(InReview::class))->toThrow(StateNotSaved::class)
+        ->and(DB::table('tickets')->value('state'))->toBe('open')
+        ->and($events)->toBe(0);
 });
 
 test('the state changed event waits for the transaction to commit', function (): void {

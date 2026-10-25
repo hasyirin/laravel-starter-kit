@@ -9,10 +9,15 @@ test('code names that exist pass the check', function (string $reference): void 
     expect(new ReferenceChecker()->problem($reference))->toBeNull();
 })->with([
     'a file' => 'routes/web.php',
+    'a file and a line' => 'routes/web.php:12',
     'a folder' => 'app/Domain/',
+    'a glob' => 'routes/*.php',
+    'a glob with any depth' => 'app/Domain/**/Models/*.php',
+    'a translation key' => 'user/settings.heading',
     'a file name' => 'guest.php',
     'a class' => 'PermissionSeeder',
     'a full class name' => User::class,
+    'a class constant' => 'User::class',
     'a method' => 'LoginResponse::highestAreaUrl()',
     'a facade method' => 'Gate::before',
     'a permission' => 'admin.horizon.view',
@@ -27,9 +32,12 @@ test('code names that exist pass the check', function (string $reference): void 
 test('code names that do not exist fail the check', function (string $reference, string $problem): void {
     expect(new ReferenceChecker()->problem($reference))->toBe($problem);
 })->with([
-    'a file' => ['routes/missing.php', 'is not a file or folder'],
+    'a file' => ['routes/missing.php', 'is not a file, folder, or translation key'],
+    'a translation key' => ['user/settings.missing', 'is not a file, folder, or translation key'],
+    'a glob' => ['app/Missing/**/*.php', 'matches no file'],
     'a file name' => ['missing.php', 'is not a file'],
     'a class' => ['MissingSeeder', 'is not a class'],
+    'a class constant' => ['MissingSeeder::class', 'is not a class'],
     'a method' => ['LoginResponse::missing()', 'names a member that LoginResponse does not have'],
     'a method of a missing class' => ['Missing::method()', 'names a class that does not exist'],
     'a dotted name' => ['admin.missing', 'is not a permission, route name, config key, or table column'],
@@ -40,7 +48,8 @@ test('words that are not code names are not checked', function (string $referenc
     expect(new ReferenceChecker()->problem($reference))->toBeNull();
 })->with([
     'a command' => 'php artisan optimize',
-    'a URL' => '/admin/horizon',
+    'a path in the app' => '/admin/horizon',
+    'a link' => 'https://laravel.com/docs',
     'a name prefix' => 'internal.',
     'a version' => '1.2.3',
     'a single word' => 'verified',

@@ -31,7 +31,9 @@ A model can have more than one state column, for example a decision and a stage.
 
 ## Labels and Colors
 
-A state's label is the headline of its class name, for example "Site Visit", and its color is gray. To change them, override `label()` or `color()` in the state. The base state uses the kit's label and color contracts, so Filament shows states like enums. The base state's `options()` returns each label by state name, for a select field.
+A state's label is the headline of its class name, for example "Site Visit", and its color is gray. To change them, override `label()` or `color()` in the state. Do not read the model in them, because `options()` and the docs make states without a model. The base state's `options()` returns each label by state name, for a select field.
+
+The base state uses the kit's label and color contracts, so Filament text and badge columns show its label, as they do for enums. An `->html()` column shows the stored name instead, because Spatie states are `Stringable`.
 
 ## Add a Transition Class
 
@@ -87,3 +89,5 @@ Three sections of `php artisan docs:generate` read a state column. Each takes th
 - `state-diagram`: a Mermaid state diagram. Each arrow shows its step.
 - `transitions`: a table of the steps, with the permission and the roles of each step.
 - `swimlanes`: a Mermaid flowchart with one lane for each group of roles that can do steps.
+
+When every other state can move to a state by the same step, the sections show that step once, from "Any state". So a flow where officers can send a record to a state from anywhere, or a flow with `allowAllTransitions()`, stays readable. This needs at least four states, so a small flow keeps all its arrows.

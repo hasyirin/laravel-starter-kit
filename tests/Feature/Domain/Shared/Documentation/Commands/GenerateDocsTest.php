@@ -47,8 +47,16 @@ test('it reports code names that do not exist, outside code blocks', function ()
     ]));
 
     $this->artisan('docs:generate', ['--path' => $this->docs])
-        ->expectsOutputToContain('guide.md:1 `routes/missing.php` is not a file or folder')
+        ->expectsOutputToContain('guide.md:1 `routes/missing.php` is not a file, folder, or translation key')
         ->doesntExpectOutputToContain('routes/ignored.php')
+        ->assertFailed();
+});
+
+test('it checks the code names after a marker in a code block', function (): void {
+    File::put("{$this->docs}/guide.md", "```markdown\n<!-- generated:permission-matrix -->\n```\n\nRead `routes/missing.php`.\n");
+
+    $this->artisan('docs:generate', ['--path' => $this->docs])
+        ->expectsOutputToContain('guide.md:5 `routes/missing.php` is not a file, folder, or translation key')
         ->assertFailed();
 });
 
@@ -56,7 +64,7 @@ test('the check reports the line of a code name in the file as it is', function 
     File::put("{$this->docs}/guide.md", "<!-- generated:permission-matrix -->\n<!-- /generated:permission-matrix -->\nRead `routes/missing.php`.\n");
 
     $this->artisan('docs:generate', ['--path' => $this->docs, '--check' => true])
-        ->expectsOutputToContain('guide.md:3 `routes/missing.php` is not a file or folder')
+        ->expectsOutputToContain('guide.md:3 `routes/missing.php` is not a file, folder, or translation key')
         ->assertFailed();
 });
 

@@ -11,6 +11,7 @@ parameters:
         - database/
         - routes/
         - tests/Fixtures/
+        - tests/PHPStan/
 
     level: 10
 
@@ -50,3 +51,9 @@ parameters:
         - identifier: trait.unused
           path: app/Domain/Shared/*
           reportUnmatched: false
+
+services:
+    -
+        class: Tests\PHPStan\LivewireFormPropertiesExtension
+        tags:
+            - phpstan.properties.readWriteExtension

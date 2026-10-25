@@ -1,6 +1,6 @@
 <x-layouts::auth :title="__('auth/reset-password.title')">
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('auth/reset-password.heading')" :description="__('auth/reset-password.description')" />
+        <x-auth-header :title="__('auth/reset-password.heading')" />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />

@@ -11,14 +11,12 @@ return [
 
     'empty' => [
         'heading' => 'No passkeys yet',
-        'description' => 'Add a passkey to sign in without a password',
     ],
 
     'add' => [
         'button' => 'Add passkey',
         'name' => 'Passkey name',
         'name_placeholder' => 'e.g., MacBook Pro, iPhone',
-        'name_help' => 'Give this passkey a name to help you identify it later.',
         'submit' => 'Register passkey',
         'loading' => 'Registering...',
     ],

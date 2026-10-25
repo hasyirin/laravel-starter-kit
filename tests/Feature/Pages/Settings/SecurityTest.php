@@ -55,7 +55,7 @@ test('security settings page renders without two factor when feature is disabled
         ->assertOk()
         ->assertSee('Update password')
         ->assertDontSee('Manage your passkeys for passwordless sign-in')
-        ->assertDontSee('Add a passkey to sign in without a password')
+        ->assertDontSee('No passkeys yet')
         ->assertDontSee('Two-factor authentication');
 });
 

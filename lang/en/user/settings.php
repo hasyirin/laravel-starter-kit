@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 return [
     'heading' => 'Settings',
-    'description' => 'Manage your profile and account settings',
 
     'nav' => [
         'profile' => 'Profile',
@@ -15,7 +14,6 @@ return [
     'profile' => [
         'title' => 'Profile settings',
         'heading' => 'Profile',
-        'description' => 'Update your name and email address',
         'unverified' => 'Your email address is unverified.',
         'resend_verification' => 'Click here to re-send the verification email.',
         'verification_sent' => 'A new verification link has been sent to your email address.',
@@ -28,13 +26,11 @@ return [
 
     'password' => [
         'heading' => 'Update password',
-        'description' => 'Ensure your account is using a long, random password to stay secure',
         'updated' => 'Password updated.',
     ],
 
     'two_factor' => [
         'heading' => 'Two-factor authentication',
-        'description' => 'Manage your two-factor authentication settings',
         'enabled_description' => 'You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.',
         'disabled_description' => 'When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.',
         'enable' => 'Enable 2FA',
@@ -69,7 +65,6 @@ return [
     'appearance' => [
         'title' => 'Appearance settings',
         'heading' => 'Appearance',
-        'description' => 'Update the appearance settings for your account',
         'light' => 'Light',
         'dark' => 'Dark',
         'system' => 'System',
@@ -77,7 +72,6 @@ return [
 
     'delete_account' => [
         'heading' => 'Delete account',
-        'description' => 'Delete your account and all of its resources',
         'button' => 'Delete account',
         'confirm' => [
             'heading' => 'Are you sure you want to delete your account?',

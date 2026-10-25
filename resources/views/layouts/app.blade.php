@@ -4,7 +4,7 @@
         @include('layouts.partials.head')
     </head>
 
-    <body class="min-h-screen bg-white antialiased dark:bg-zinc-800">
+    <body class="min-h-screen bg-zinc-100 antialiased dark:bg-zinc-900">
         @include('layouts.partials.app.sidebar')
         @include('layouts.partials.app.header')
 

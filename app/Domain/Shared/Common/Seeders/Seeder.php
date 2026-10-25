@@ -34,7 +34,9 @@ abstract class Seeder extends \Illuminate\Database\Seeder
 
         $this->before();
 
-        foreach ($this->command->getOutput()->progressIterate($this->collection()) as $key => $data) {
+        $items = $this->command?->getOutput()->progressIterate($this->collection()) ?? $this->collection();
+
+        foreach ($items as $key => $data) {
             $this->each($key, $data);
         }
 

@@ -1,3 +1,11 @@
+@php
+    $settingsRoute = match (true) {
+        request()->routeIs('internal.*') => 'internal.settings',
+        request()->routeIs('admin.*') => 'admin.settings',
+        default => 'settings',
+    };
+@endphp
+
 <flux:dropdown position="bottom" align="start">
     <flux:sidebar.profile
         :name="auth()->user()->name"
@@ -17,9 +25,7 @@
         </div>
         <flux:menu.separator />
         <flux:menu.radio.group>
-            <flux:menu.item :href="route(request()->routeIs('admin*') ? 'admin.settings' : 'settings')" icon="cog" wire:navigate>
-                {{ __('navigation.settings') }}
-            </flux:menu.item>
+            <flux:menu.item :href="route($settingsRoute)" icon="cog" wire:navigate>{{ __('navigation.settings') }}</flux:menu.item>
 
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf

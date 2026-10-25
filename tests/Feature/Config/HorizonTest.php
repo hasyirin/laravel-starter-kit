@@ -36,3 +36,7 @@ test('an environment without its own entry still starts every supervisor', funct
 
     expect($commands->supervisors)->toBe(['test:supervisor-default', 'test:supervisor-media']);
 });
+
+test('the dashboard is in the admin area', function (): void {
+    expect(route('horizon.index'))->toBe(url('admin/horizon'));
+});

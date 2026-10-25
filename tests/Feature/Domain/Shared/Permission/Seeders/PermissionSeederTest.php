@@ -9,15 +9,15 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 test('seeding creates every permission in the config', function (): void {
     $this->seed(PermissionSeeder::class);
 
-    expect(Permission::query()->count())->toBe(16)
-        ->and(Permission::query()->whereIn('name', ['bypass-authorization', 'admin.access', 'admin.controls.users.delete'])->count())->toBe(3);
+    expect(Permission::query()->count())->toBe(17)
+        ->and(Permission::query()->whereIn('name', ['bypass-authorization', 'internal.access', 'admin.access', 'admin.controls.users.delete'])->count())->toBe(4);
 });
 
 test('seeding twice does not duplicate permissions', function (): void {
     $this->seed(PermissionSeeder::class);
     $this->seed(PermissionSeeder::class);
 
-    expect(Permission::query()->count())->toBe(16);
+    expect(Permission::query()->count())->toBe(17);
 });
 
 test('seeding removes permissions that are no longer in the config', function (): void {

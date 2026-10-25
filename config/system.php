@@ -20,6 +20,9 @@ return [
 
     'permissions' => [
         'bypass-authorization' => 'bypass-authorization',
+        'internal' => [
+            'access' => 'internal.access',
+        ],
         'admin' => [
             'access' => 'admin.access',
             'horizon' => [

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Common\Policies;
 
+use App\Domain\Shared\Common\States\State;
 use App\Domain\User\Models\User;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 abstract class Policy
@@ -28,6 +30,13 @@ abstract class Policy
             $action,
         ])->filter()
             ->join('.');
+    }
+
+    public function transition(User $user, Model $model, string $field, string $state): bool
+    {
+        $current = $model->getAttribute($field);
+
+        return $current instanceof State && $this->hasPermission($user, $current::abilityTo($current::getMorphClass(), $state));
     }
 
     protected function hasPermission(User $user, string $action): bool

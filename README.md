@@ -26,7 +26,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Flux Pro** is installed from `composer.fluxui.dev`. You need a Flux Pro license.
 - **Filament 5 components** are installed. `resources/css/app.css` imports their styles, and `php artisan filament:upgrade` runs after each Composer autoload dump.
 - **Fonts** are Figtree and JetBrains Mono. Vite downloads them from Bunny Fonts at build time. The accent color is blue.
-- **Debugbar** and **Laravel Boost** are installed as dev dependencies. The Boost guidelines, skills, and MCP config are committed, and `composer update` keeps them current with `php artisan boost:update`.
+- **Debugbar** and **Laravel Boost** are installed as dev dependencies. The Boost guidelines, skills, and MCP config are committed, and `composer update` keeps the guidelines and skills current with `php artisan boost:update`.
 - **Ray** is installed as a production dependency, so a `ray()` call left in the code does not break production. Ray is off in production.
 - **Debug mode** is not allowed in production. If `APP_DEBUG=true` there, the app throws an exception at boot, so every request and Artisan command fails until you set `APP_DEBUG=false`. Requests get a plain 500 page, and the exception goes to the log.
 - **Spatie Activitylog** is installed. Its migration creates the `activity_log` table.

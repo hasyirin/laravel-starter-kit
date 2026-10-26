@@ -64,6 +64,15 @@ class Pay extends Transition
 - `apply()` changes other attributes. They save together with the new state.
 - Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state or deleted the record after the model was loaded, and `StateNotSaved` when a listener stopped the save. When a step fails, it puts the old attributes back on the model, so the model matches the database again.
 
+To give a step input, such as a payment reference, add a constructor parameter after the model, the field, and the new state. Then pass the value after the target state, as in `$invoice->state->transitionTo(Paid::class, $reference)`. Give the parameter a default, and make `reason()` work without it, because `allowedFor()` builds each transition without input:
+
+```php
+public function __construct(Invoice $model, string $field, State $newState, private readonly ?string $reference = null)
+{
+    parent::__construct($model, $field, $newState);
+}
+```
+
 ## Run a Step
 
 Check the permission first, then run the step:
@@ -97,6 +106,7 @@ public function pay(): void
 
 - It holds no business work. The step's work stays in its transition class, which takes the place of an [Action](actions.md) for a step.
 - It returns true when the step ran.
+- It passes extra arguments to the transition class, as in `$this->transitionTo($this->invoice->state, Paid::class, $reference)`.
 - When the record changed after the page loaded, so the step no longer exists or another request saved first, it shows a toast and reloads the page with `wire:navigate`.
 - When `reason()` blocks the step, it shows the reason in a toast and keeps the page, so the user keeps what they typed.
 - When a listener stopped the save, it shows a toast.

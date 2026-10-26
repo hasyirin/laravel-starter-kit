@@ -15,4 +15,4 @@ Inject the Action where the caller supports it, such as a component method or a 
 An Action takes models and plain values, not the request. It never shows a toast, flashes the session, or redirects. Its caller validates the input and authorizes the user first, so components, jobs, and commands can share the Action.
 
 ## Let the transition class hold a state step's work
-A state step needs no Action: its transition class holds the work, with the checks in `reason()` and the changes in `apply()`. Pass input to the step as transition arguments. An Action calls `$model->state->transitionTo()` only when the step is one part of a bigger operation.
+A state step needs no Action: its transition class holds the work, with the checks in `reason()` and the changes in `apply()`. Pass input to the step as transition arguments, and give each extra constructor parameter a default, because `allowedFor()` builds the transition without input. An Action calls `$model->state->transitionTo()` only when the step is one part of a bigger operation.

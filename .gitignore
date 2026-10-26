@@ -32,6 +32,7 @@ yarn-error.log
 /.ai/mcp
 /.amp
 /.claude/settings.local.json
+/.claude/worktrees
 /.cursor
 /.factory
 /.grok

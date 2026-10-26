@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Common\Events\StateChanged;
 use App\Domain\Shared\Common\Exceptions\StaleState;
 use App\Domain\Shared\Common\Exceptions\StateNotSaved;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\TransactionBeginning;
 use Illuminate\Database\Schema\Blueprint;
@@ -83,6 +84,15 @@ test('a failed step leaves the model as it was', function (): void {
     expect(fn (): mixed => $ticket->state->transitionTo(Approved::class))->toThrow(StateNotSaved::class)
         ->and($ticket->state)->toBeInstanceOf(InReview::class)
         ->and($ticket->isDirty())->toBeFalse();
+});
+
+test('a step passes its arguments to the transition class', function (): void {
+    $ticket = Ticket::query()->create(['title' => 'Leak', 'approvable' => true]);
+    $ticket->state->transitionTo(InReview::class);
+
+    $ticket->state->transitionTo(Approved::class, CarbonImmutable::parse('2026-01-02 03:04:05'));
+
+    expect($ticket->fresh()?->approved_at?->toDateTimeString())->toBe('2026-01-02 03:04:05');
 });
 
 test('a step on a new model saves the model', function (): void {

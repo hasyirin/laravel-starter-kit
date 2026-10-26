@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Livewire;
 
 use App\Livewire\Component;
+use Carbon\CarbonImmutable;
 use Tests\Fixtures\Models\Ticket;
+use Tests\Fixtures\States\Ticket\Approved;
 
 class TicketSteps extends Component
 {
@@ -16,6 +18,11 @@ class TicketSteps extends Component
     public function move(string $state): void
     {
         $this->ran = $this->transitionTo(Ticket::query()->findOrFail($this->ticketId)->state, $state);
+    }
+
+    public function approveOn(string $date): void
+    {
+        $this->ran = $this->transitionTo(Ticket::query()->findOrFail($this->ticketId)->state, Approved::class, CarbonImmutable::parse($date));
     }
 
     public function render(): string

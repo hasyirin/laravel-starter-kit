@@ -119,6 +119,16 @@ test('a step whose save a listener stops shows a toast', function (): void {
         ->assertNoRedirect();
 });
 
+test('a step passes its arguments to the transition class', function (): void {
+    $this->ticket->update(['approvable' => true]);
+
+    Livewire::test(TicketSteps::class, ['ticketId' => $this->ticket->id])
+        ->call('approveOn', '2026-01-02 03:04:05')
+        ->assertSet('ran', true);
+
+    expect($this->ticket->fresh()?->approved_at?->toDateTimeString())->toBe('2026-01-02 03:04:05');
+});
+
 test('a step without the permission is forbidden', function (): void {
     $this->actingAs(User::factory()->create());
 

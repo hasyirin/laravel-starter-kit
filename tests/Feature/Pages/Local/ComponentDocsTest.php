@@ -5,6 +5,7 @@ declare(strict_types=1);
 $pages = collect(glob(dirname(__DIR__, 4).'/docs/components/*.md') ?: [])
     ->map(fn (string $path): string => basename($path, '.md'))
     ->reject(fn (string $page): bool => $page === 'README')
+    ->sort()
     ->values()
     ->all();
 

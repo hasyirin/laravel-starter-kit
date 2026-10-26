@@ -6,7 +6,7 @@ paths:
 # Tests
 
 ## Place tests by code path or by page
-Put a test for code in `app/` at the matching path under `tests/Feature/`, for example `tests/Feature/Domain/Shared/Organization/Models/OwnerTest.php`. Put page-flow tests under `tests/Feature/Pages/`, for example `tests/Feature/Pages/Auth/`. Put a test for a Blade component in `resources/views/components` under `tests/Feature/Views/Components/`, for example `InputTest.php` for `<x-input>`.
+Put a test for code in `app/` at the matching path under `tests/Feature/`, for example `tests/Feature/Domain/Shared/Organization/Models/OwnerTest.php`. Put page-flow tests under `tests/Feature/Pages/`, for example `tests/Feature/Pages/Auth/`. Put a test for a Blade component in `resources/views/components` under `tests/Feature/Views/Components/`, for example `InputTest.php` for `<x-input>` and `Input/NumberTest.php` for `<x-input.number>`.
 
 ## Test shared code through fixture classes
 Test shared base classes, traits, and enum concerns through fixture classes in `tests/Fixtures/<Kind>/` (namespace `Tests\Fixtures`). A fixture model needs its table created in `beforeEach()` and a morph alias from `Relation::morphMap()`.

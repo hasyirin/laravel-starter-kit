@@ -5,10 +5,11 @@ declare(strict_types=1);
 use Dom\HTMLDocument;
 use Illuminate\View\ViewException;
 
-test('a required input shows an asterisk that screen readers skip, and marks the input required', function (): void {
+test('a required input shows an asterisk outside the label that names the input, and marks the input required', function (): void {
     $document = HTMLDocument::createFromString((string) $this->blade('<x-input label="Product code" wire:model="code" required />'), LIBXML_NOERROR);
 
-    expect($document->querySelector('[data-flux-label] span[aria-hidden="true"]')?->textContent)->toBe('*')
+    expect($document->querySelector('[data-input-label] > span[aria-hidden="true"]')?->textContent)->toBe('*')
+        ->and($document->querySelector('[data-flux-label] span[aria-hidden="true"]'))->toBeNull()
         ->and($document->querySelector('input[data-input-control]')?->hasAttribute('required'))->toBeTrue();
 });
 

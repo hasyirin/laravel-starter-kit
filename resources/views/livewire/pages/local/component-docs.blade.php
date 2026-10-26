@@ -41,7 +41,7 @@
 
                         <div class="flex items-start border-t border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950" x-data>
                             <pre
-                                class="min-w-0 flex-1 overflow-x-auto p-4 font-mono text-xs leading-relaxed text-zinc-800 dark:text-zinc-200"
+                                class="min-w-0 flex-1 overflow-x-auto p-4 font-mono text-xs leading-relaxed text-zinc-800 [font-variant-ligatures:none] dark:text-zinc-200"
                             ><code x-ref="code">{{ $part['code'] }}</code></pre>
                             <div class="shrink-0 p-2">
                                 <flux:button
@@ -56,7 +56,7 @@
                     </div>
                 @else
                     <div
-                        class="[&_a]:font-medium [&_a]:text-(--color-accent-content) [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded [&_code]:bg-zinc-200/60 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.8125em] [&_code]:text-zinc-800 dark:[&_code]:bg-white/10 dark:[&_code]:text-zinc-200 [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-zinc-900 dark:[&_h1]:text-white [&_h2]:mt-12 [&_h2]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-zinc-900 dark:[&_h2]:text-white [&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:font-semibold [&_h3]:text-zinc-900 dark:[&_h3]:text-white [&_li]:my-1 [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-zinc-50 [&_pre]:p-4 [&_pre]:text-xs dark:[&_pre]:bg-zinc-950 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_table]:my-4 [&_table]:w-full [&_td]:border-b [&_td]:border-zinc-200 [&_td]:py-2 [&_td]:pe-4 [&_td]:align-top dark:[&_td]:border-zinc-800 [&_th]:border-b [&_th]:border-zinc-300 [&_th]:py-2 [&_th]:pe-4 [&_th]:text-start [&_th]:font-medium [&_th]:text-zinc-900 dark:[&_th]:border-zinc-700 dark:[&_th]:text-white [&_ul]:my-3 [&_ul]:list-disc [&_ul]:ps-5 overflow-x-auto text-sm leading-6 text-zinc-600 dark:text-zinc-300"
+                        class="[&_a]:font-medium [&_a]:text-(--color-accent-content) [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded [&_code]:bg-zinc-200/60 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:[font-variant-ligatures:none] [&_code]:text-[0.8125em] [&_code]:text-zinc-800 dark:[&_code]:bg-white/10 dark:[&_code]:text-zinc-200 [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-zinc-900 dark:[&_h1]:text-white [&_h2]:mt-12 [&_h2]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-zinc-900 dark:[&_h2]:text-white [&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:font-semibold [&_h3]:text-zinc-900 dark:[&_h3]:text-white [&_li]:my-1 [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-zinc-50 [&_pre]:p-4 [&_pre]:text-xs dark:[&_pre]:bg-zinc-950 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_table]:my-4 [&_table]:w-full [&_td]:border-b [&_td]:border-zinc-200 [&_td]:py-2 [&_td]:pe-4 [&_td]:align-top dark:[&_td]:border-zinc-800 [&_th]:border-b [&_th]:border-zinc-300 [&_th]:py-2 [&_th]:pe-4 [&_th]:text-start [&_th]:font-medium [&_th]:text-zinc-900 dark:[&_th]:border-zinc-700 dark:[&_th]:text-white [&_ul]:my-3 [&_ul]:list-disc [&_ul]:ps-5 overflow-x-auto text-sm leading-6 text-zinc-600 dark:text-zinc-300"
                     >
                         {{ $part['html'] }}
                     </div>

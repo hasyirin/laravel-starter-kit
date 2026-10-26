@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 return [
+    'locale' => 'en-MY',
+
+    'country' => 'MY',
+
     'formats' => [
         'datetime' => 'd/m/Y, h:i A',
         'date' => 'd/m/Y',

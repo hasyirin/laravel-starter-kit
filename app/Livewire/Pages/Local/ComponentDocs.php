@@ -49,7 +49,8 @@ class ComponentDocs extends Page
     {
         return collect(glob(base_path('docs/components/*.md')) ?: [])
             ->reject(fn (string $path): bool => basename($path) === 'README.md')
-            ->mapWithKeys(fn (string $path): array => [basename($path, '.md') => str((string) file_get_contents($path))->match('/^# (.+)$/m')->value()]);
+            ->mapWithKeys(fn (string $path): array => [basename($path, '.md') => str((string) file_get_contents($path))->match('/^# (.+)$/m')->value()])
+            ->sortKeys();
     }
 
     /**
@@ -58,7 +59,7 @@ class ComponentDocs extends Page
     private function parts(string $markdown): array
     {
         $html = str($markdown)->markdown()->replaceMatches(
-            '/href="([\w-]+)\.md"/',
+            '/href="([\w.-]+)\.md"/',
             fn (array $match): string => 'href="'.route('docs.components', $match[1] === 'README' ? [] : [$match[1]]).'"',
         );
 

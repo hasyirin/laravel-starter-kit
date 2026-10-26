@@ -36,49 +36,22 @@
     };
 @endphp
 
-<flux:field
+<x-field
+    :$label
+    :$description
+    :$descriptionTrailing
+    :$hint
+    :$actions
+    :$badge
+    :$required
+    :$name
+    :$noErrorMessage
     :x-data="$case !== null || $hasDefault ? 'inputField' : null"
     :data-input-case="$case"
     :data-input-default="$hasDefault ? (string) $default : null"
     :data-input-model="$hasDefault ? $model : null"
-    {{ $attributes->only('class')->class([
-        'content-start',
-        '[&>[data-input-label-row]+[data-flux-description]]:-mt-1!',
-        '[&>[data-input-label-row]+[data-flux-description]]:mb-1!',
-        '[&>[data-flux-error]]:mt-0!',
-        '[&>*:not([data-input-label-row])+[data-flux-description]]:mt-0!',
-        '[&:has([data-input-control][disabled])>[data-input-label-row]>[data-flux-label]]:opacity-50',
-    ]) }}
+    {{ $attributes->only('class') }}
 >
-    @if(filled($label) || filled($hint) || filled($actions))
-        <div class="flex items-center gap-x-3" data-input-label-row>
-            @if(filled($label))
-                <flux:label :$badge>
-                    {{ $label }}
-                    @if($required)
-                        <span class="ms-0.5 text-red-500 dark:text-red-400" aria-hidden="true">*</span>
-                    @endif
-                </flux:label>
-            @endif
-
-            @if(filled($hint) || filled($actions))
-                <div class="-my-1 ms-auto flex items-center gap-x-2">
-                    @if(filled($hint))
-                        <span class="text-sm text-zinc-500 dark:text-white/60" data-input-hint>{{ $hint }}</span>
-                    @endif
-
-                    @if(filled($actions))
-                        <div class="flex items-center gap-x-1" data-input-actions>{{ $actions }}</div>
-                    @endif
-                </div>
-            @endif
-        </div>
-    @endif
-
-    @if(filled($description))
-        <flux:description>{{ $description }}</flux:description>
-    @endif
-
     @if($hasAddons)
         <flux:input.group>
             @if(is_string($prefix))
@@ -109,12 +82,4 @@
             <flux:label class="font-normal">{{ $defaultLabel ?? __('common/inputs.use_default', ['value' => $default]) }}</flux:label>
         </flux:field>
     @endif
-
-    @unless($noErrorMessage)
-        <flux:error :$name />
-    @endunless
-
-    @if(filled($descriptionTrailing))
-        <flux:description>{{ $descriptionTrailing }}</flux:description>
-    @endif
-</flux:field>
+</x-field>

@@ -29,7 +29,7 @@ export default function inputField() {
                 return;
             }
 
-            this.defaultValue = toCase ? toCase(inputDefault) : inputDefault;
+            this.defaultValue = this.display(toCase ? toCase(inputDefault) : inputDefault);
 
             this.$el.addEventListener('input', (event) => {
                 if (event.target === this.control()) {
@@ -40,12 +40,16 @@ export default function inputField() {
             this.$nextTick(() => (this.value = this.control()?.value ?? ''));
 
             if (inputModel) {
-                this.$wire.$watch(inputModel, (value) => (this.value = value === null || value === undefined ? '' : String(value)));
+                this.$wire.$watch(inputModel, (value) => (this.value = this.display(value)));
             }
         },
 
         control() {
             return this.$root.querySelector('[data-input-control]');
+        },
+
+        display(value) {
+            return value === null || value === undefined ? '' : String(value);
         },
 
         changeCase(event, toCase) {

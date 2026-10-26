@@ -50,7 +50,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Strict models** are on outside production. Lazy loading, reading a missing attribute, or mass-assigning an attribute that is not fillable throws an exception.
 - **Morph map** is enforced, and `user` maps to `App\Domain\User\Models\User`. Add each new polymorphic model to the map in `EloquentServiceProvider`.
 - **Blaze** optimizes the Blade components in `resources/views/components`.
-- **UI components** in `resources/views/components` wrap Flux for forms, starting with `<x-input>`. Views use them before Flux components. See [Components](docs/components/README.md), or open `/docs/components` in the local environment for live examples.
+- **UI components** in `resources/views/components` wrap Flux for forms: `<x-field>`, `<x-input>`, and `<x-input.number>`, `.password`, `.date`, `.time`, `.datetime`, and `.phone`. Views use them before Flux components. The date and time inputs use the locale `system.locale` from `config/system.php`, and the phone input starts at the country `system.country`. See [Components](docs/components/README.md), or open `/docs/components` in the local environment for live examples.
 - **Tests** use Pest syntax and run with test impact analysis.
 - **Code checks** are stricter. PHPStan runs at level 10 with extra Larastan checks and Livewire support. Rector runs with Laravel and Pest rules. Vite+ lints the JavaScript and formats the JavaScript and CSS in `resources/`. Prettier formats the Blade views and sorts their Tailwind classes.
 

@@ -36,7 +36,7 @@ abstract class Policy
     {
         $current = $model->getAttribute($field);
 
-        return $current instanceof State && $this->hasPermission($user, $current::abilityTo($current::getMorphClass(), $state));
+        return $current instanceof State && $current->hasStepTo($state) && $this->hasPermission($user, $current::abilityTo($current::getMorphClass(), $state));
     }
 
     protected function hasPermission(User $user, string $action): bool

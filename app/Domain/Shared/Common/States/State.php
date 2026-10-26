@@ -15,6 +15,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use ReflectionClass;
 use Spatie\ModelStates\DefaultTransition;
 use Spatie\ModelStates\Exceptions\CouldNotPerformTransition;
 use Spatie\ModelStates\StateConfig;
@@ -29,9 +30,19 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
     use InteractsWithColor;
     use InteractsWithLabel;
 
-    public static function config(): StateConfig
+    /**
+     * @var array<string, StateConfig>
+     */
+    private static array $configs = [];
+
+    final public static function config(): StateConfig
     {
-        return parent::config()->stateChangedEvent(StateChanged::class);
+        return clone (self::$configs[static::class] ??= self::$configs[self::baseClass()] ??= static::configure(parent::config()->stateChangedEvent(StateChanged::class)));
+    }
+
+    protected static function configure(StateConfig $config): StateConfig
+    {
+        return $config;
     }
 
     /**
@@ -46,7 +57,7 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
     public static function abilityTo(string $from, string $to): string
     {
         $to = static::stateClass($to);
-        $transition = static::config()->resolveTransitionClass(static::stateClass($from)::getMorphClass(), $to::getMorphClass());
+        $transition = self::config()->resolveTransitionClass(static::stateClass($from)::getMorphClass(), $to::getMorphClass());
 
         return $transition !== null && is_subclass_of($transition, Transition::class)
             ? $transition::ability()
@@ -59,12 +70,24 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
     protected static function stateClass(string $state): string
     {
         $class = static::resolveStateClass($state);
+        $base = self::config()->baseStateClass;
 
-        if ($class !== null && is_subclass_of($class, self::class)) {
+        if ($class !== null && is_subclass_of($class, self::class) && is_subclass_of($class, $base)) {
             return $class;
         }
 
-        throw new InvalidArgumentException("[{$state}] is not a state of ".static::class.'.');
+        throw new InvalidArgumentException("[{$state}] is not a state of {$base}.");
+    }
+
+    private static function baseClass(): string
+    {
+        $reflection = new ReflectionClass(static::class);
+
+        while (! $reflection->isAbstract() && ($parent = $reflection->getParentClass()) instanceof ReflectionClass) {
+            $reflection = $parent;
+        }
+
+        return $reflection->getName();
     }
 
     public function label(): string
@@ -93,6 +116,11 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
         return ! $this->equals(...$states);
     }
 
+    public function hasStepTo(string $state): bool
+    {
+        return self::config()->isTransitionAllowed(static::getMorphClass(), static::stateClass($state)::getMorphClass());
+    }
+
     /**
      * @return list<\Spatie\ModelStates\State<Model>>
      */
@@ -109,11 +137,11 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
         $from = static::getMorphClass();
         $to = static::stateClass($state);
 
-        if (! static::config()->isTransitionAllowed($from, $to::getMorphClass())) {
+        if (! self::config()->isTransitionAllowed($from, $to::getMorphClass())) {
             throw CouldNotPerformTransition::notFound($from, $to::getMorphClass(), $this->getModel());
         }
 
-        $class = static::config()->resolveTransitionClass($from, $to::getMorphClass()) ?? config()->string('model-states.default_transition');
+        $class = self::config()->resolveTransitionClass($from, $to::getMorphClass()) ?? config()->string('model-states.default_transition');
 
         $transition = is_a($class, DefaultTransition::class, true)
             ? new $class($this->getModel(), $this->getField(), new $to($this->getModel()), ...$arguments)

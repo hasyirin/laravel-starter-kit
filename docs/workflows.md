@@ -6,15 +6,15 @@ A workflow moves a record through states, for example an application from review
 
 1. Add a string column for the state to the table.
 2. Make a folder for the column, for example app/Domain/Billing/States/InvoiceState. Put the abstract base state and all its states in this one folder, because Spatie finds the states by their folder.
-3. Make the base state extend `App\Domain\Shared\Common\States\State`. Set its default state with the `#[DefaultState]` attribute, and list its transitions in `config()`:
+3. Make the base state extend `App\Domain\Shared\Common\States\State`. Set its default state with the `#[DefaultState]` attribute, and list its transitions in `configure()`:
 
 ```php
 #[DefaultState(Draft::class)]
 abstract class InvoiceState extends State
 {
-    public static function config(): StateConfig
+    protected static function configure(StateConfig $config): StateConfig
     {
-        return parent::config()
+        return $config
             ->allowTransition(Draft::class, Sent::class)
             ->allowTransition(Sent::class, Overdue::class)
             ->allowTransition([Sent::class, Overdue::class], Paid::class, Pay::class);
@@ -26,6 +26,12 @@ abstract class InvoiceState extends State
 5. In the model, use `Spatie\ModelStates\HasStates` and cast the column to the base state.
 
 Write each transition as one `allowTransition()` call, and put all the states that a step can start from in one array. A loop is a step back to an earlier state. Do not use the `#[AllowTransition]` attribute.
+
+The kit builds the config of a state column once and keeps it for the life of the PHP process. That is one request on PHP-FPM, but many requests or jobs in an Octane worker or a queue worker. Spatie would otherwise build the config again for every record and every check, which is slow for a flow with many states. So:
+
+- List fixed rules only in `configure()`. Do not read the user, the request, the config, or the database in it. Put a check that depends on the record or the user in a transition's `reason()` or in the policy.
+- Override `configure()` only in the base state. The kit builds one config for the whole column, from the first state that asks for it.
+- Do not override `config()`. It is final, and it returns a copy, so a change to its result does not last.
 
 A model can have more than one state column, for example a decision and a stage. Each column has its own base state. A transition can check the other column in `reason()`.
 
@@ -56,7 +62,7 @@ class Pay extends Transition
 
 - `reason()` returns why the step must not run, or null. The step runs only when it returns null.
 - `apply()` changes other attributes. They save together with the new state.
-- Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state after the model was loaded, and `StateNotSaved` when a listener stopped the save.
+- Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state or deleted the record after the model was loaded, and `StateNotSaved` when a listener stopped the save. When a step fails, it puts the old attributes back on the model, so the model matches the database again.
 
 ## Run a Step
 
@@ -69,6 +75,8 @@ $invoice->state->transitionTo(Paid::class);
 ```
 
 - `Policy::transition()` checks the permission of the step. The permission name ends with the step: the kebab-case name of the transition class, or of the target state when the step has no class. The policy prefix and the plural model name come first, for example internal.invoices.pay. Add each permission to `config/system.php`.
+- The policy refuses a step that the current state does not have, for example when another user moved the record after the page loaded.
+- `hasStepTo()` on a state tells whether the config has a step to a state, without the checks and the permissions.
 - `allowedFor()` on a state returns the states that a user can move to now, after the checks and the permissions. Use it for the buttons.
 - `reasonFor()` on a state returns why a step is blocked.
 - When `reason()` blocks a step, `transitionTo()` throws `Spatie\ModelStates\Exceptions\TransitionNotAllowed`.

@@ -15,9 +15,9 @@ use Tests\Fixtures\Models\Memo;
 #[DefaultState(Draft::class)]
 abstract class MemoState extends State
 {
-    public static function config(): StateConfig
+    protected static function configure(StateConfig $config): StateConfig
     {
-        return parent::config()
+        return $config
             ->allowTransition(Draft::class, Review::class)
             ->allowTransition(Review::class, Approved::class)
             ->allowTransition([Draft::class, Review::class, Approved::class, OnHold::class], OnHold::class)

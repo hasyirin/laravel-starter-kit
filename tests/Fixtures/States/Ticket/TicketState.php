@@ -16,9 +16,13 @@ use Tests\Fixtures\Transitions\Approve;
 #[DefaultState(Open::class)]
 abstract class TicketState extends State
 {
-    public static function config(): StateConfig
+    public static int $builds = 0;
+
+    protected static function configure(StateConfig $config): StateConfig
     {
-        return parent::config()
+        self::$builds++;
+
+        return $config
             ->allowTransition([Open::class, Returned::class], InReview::class)
             ->allowTransition(InReview::class, Returned::class)
             ->allowTransition(InReview::class, Approved::class, Approve::class)

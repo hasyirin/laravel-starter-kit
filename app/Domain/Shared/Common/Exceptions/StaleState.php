@@ -11,6 +11,6 @@ class StaleState extends CouldNotPerformTransition
 {
     public static function make(Model $model, string $field): self
     {
-        return new self(sprintf('The %s of %s [%s] changed after it was loaded. Load it again and retry.', $field, $model::class, (string) $model->getKey()));
+        return new self(sprintf('The %s of %s [%s] changed, or the record was deleted, after it was loaded. Load it again and retry.', $field, $model::class, (string) $model->getKey()));
     }
 }

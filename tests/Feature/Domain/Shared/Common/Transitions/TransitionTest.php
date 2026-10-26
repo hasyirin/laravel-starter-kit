@@ -68,6 +68,23 @@ test('a step fails when another request changed the state first', function (): v
         ->and($ticket->fresh()?->state)->toBeInstanceOf(InReview::class);
 });
 
+test('a step fails when another request deleted the record first', function (): void {
+    $ticket = Ticket::query()->create(['title' => 'Leak']);
+    DB::table('tickets')->delete();
+
+    expect(fn (): mixed => $ticket->state->transitionTo(InReview::class))->toThrow(StaleState::class);
+});
+
+test('a failed step leaves the model as it was', function (): void {
+    $ticket = Ticket::query()->create(['title' => 'Leak', 'approvable' => true]);
+    $ticket->state->transitionTo(InReview::class);
+    Ticket::saving(fn (): bool => false);
+
+    expect(fn (): mixed => $ticket->state->transitionTo(Approved::class))->toThrow(StateNotSaved::class)
+        ->and($ticket->state)->toBeInstanceOf(InReview::class)
+        ->and($ticket->isDirty())->toBeFalse();
+});
+
 test('a step on a new model saves the model', function (): void {
     $ticket = new Ticket(['title' => 'Leak']);
 

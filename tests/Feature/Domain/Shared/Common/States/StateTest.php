@@ -11,6 +11,8 @@ use Spatie\ModelStates\Exceptions\TransitionNotFound;
 use Spatie\ModelStates\State;
 use Tests\Fixtures\Models\Ticket;
 use Tests\Fixtures\Policies\TicketPolicy;
+use Tests\Fixtures\States\Memo\Approved as MemoApproved;
+use Tests\Fixtures\States\Memo\MemoState;
 use Tests\Fixtures\States\Ticket\Approved;
 use Tests\Fixtures\States\Ticket\InReview;
 use Tests\Fixtures\States\Ticket\Open;
@@ -37,6 +39,26 @@ test('a new model gets the default state', function (): void {
 
     expect($ticket->state)->toBeInstanceOf(Open::class)
         ->and($ticket->getRawOriginal('state'))->toBe('open');
+});
+
+test('the config of a state column is built once and each state gets a copy of it', function (): void {
+    expect(Open::config())->toEqual(InReview::config())
+        ->and(Open::config())->not->toBe(Open::config())
+        ->and(MemoState::config())->not->toEqual(TicketState::config())
+        ->and(TicketState::$builds)->toBe(1);
+});
+
+test('a change to a copy of the config does not reach the next caller', function (): void {
+    TicketState::config()->allowTransition(Open::class, Approved::class);
+
+    expect(TicketState::config()->isTransitionAllowed('open', 'approved'))->toBeFalse();
+});
+
+test('the shared config holds only plain values, so a worker can keep it between requests', function (): void {
+    $values = collect((array) TicketState::config())->flatten();
+
+    expect($values)->not->toBeEmpty()
+        ->and($values->filter(fn (mixed $value): bool => is_object($value)))->toBeEmpty();
 });
 
 test('the label is the headline of the class name, and a state can change it', function (): void {
@@ -109,6 +131,17 @@ test('the reason explains why a step is blocked', function (): void {
     $ticket->update(['approvable' => true]);
 
     expect($ticket->state->reasonFor('approved'))->toBeNull();
+});
+
+test('a state has a step to another state only when the config lists it', function (): void {
+    $ticket = Ticket::query()->create(['title' => 'Leak']);
+
+    expect($ticket->state->hasStepTo(InReview::class))->toBeTrue()
+        ->and($ticket->state->hasStepTo('approved'))->toBeFalse();
+});
+
+test('a state of another column is not a state of this column', function (): void {
+    expect(fn (): string => TicketState::abilityTo('in_review', MemoApproved::class))->toThrow(InvalidArgumentException::class, 'is not a state of '.TicketState::class);
 });
 
 test('the reason of a step that the config does not allow throws', function (): void {

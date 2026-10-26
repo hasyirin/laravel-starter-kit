@@ -17,6 +17,20 @@ use Tests\Fixtures\States\Ticket\Approved;
 use Tests\Fixtures\States\Ticket\InReview;
 use Tests\Fixtures\States\Ticket\Returned;
 
+beforeEach(function (): void {
+    Schema::create('tickets', function (Blueprint $table): void {
+        $table->id();
+        $table->string('title');
+        $table->string('state');
+        $table->boolean('approvable')->default(false);
+        $table->timestamp('approved_at')->nullable();
+        $table->timestamps();
+        $table->softDeletes();
+    });
+
+    Relation::morphMap(['ticket' => Ticket::class]);
+});
+
 test('the path uses the root, the prefix, the plural model name, and the action', function (): void {
     expect(new RolePolicy()->path('update-permissions'))->toBe('system.permissions.admin.controls.roles.update-permissions');
 });
@@ -80,16 +94,6 @@ test('has all permissions needs every permission', function (mixed $actions): vo
 ]);
 
 test('a transition needs the permission of its step', function (bool $reviewed, string $state, string $permission): void {
-    Schema::create('tickets', function (Blueprint $table): void {
-        $table->id();
-        $table->string('title');
-        $table->string('state');
-        $table->boolean('approvable')->default(false);
-        $table->timestamp('approved_at')->nullable();
-        $table->timestamps();
-        $table->softDeletes();
-    });
-    Relation::morphMap(['ticket' => Ticket::class]);
     config(['system.permissions.internal.tickets' => TicketPolicy::PERMISSIONS]);
     $this->seed(PermissionSeeder::class);
     $ticket = Ticket::query()->create(['title' => 'Leak']);
@@ -109,4 +113,17 @@ test('a transition needs the permission of its step', function (bool $reviewed, 
     'a step without a class' => [false, InReview::class, 'internal.tickets.in-review'],
     'a step with a class' => [true, Approved::class, 'internal.tickets.approve'],
     'a step back' => [true, Returned::class, 'internal.tickets.returned'],
+]);
+
+test('a transition is refused when the current state has no such step', function (string $state): void {
+    config(['system.permissions.internal.tickets' => TicketPolicy::PERMISSIONS]);
+    $this->seed(PermissionSeeder::class);
+    $ticket = Ticket::query()->create(['title' => 'Leak']);
+    $user = User::factory()->create();
+    $user->givePermissionTo(array_values(TicketPolicy::PERMISSIONS));
+
+    expect($user->can('transition', [$ticket, 'state', $state]))->toBeFalse();
+})->with([
+    'a target whose name is a permission' => [Returned::class],
+    'a target whose name is not a permission' => [Approved::class],
 ]);

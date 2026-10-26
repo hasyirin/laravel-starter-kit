@@ -20,7 +20,7 @@
 <x-field :$label :$description :$descriptionTrailing :$hint :$actions :$badge :$required :$name :$noErrorMessage {{ $attributes->only('class') }}>
     <flux:time-picker
         :$type
-        :locale="$locale ?? config('system.locale')"
+        :locale="$locale ?? \App\Domain\User\Support\Preferences::current()->locale"
         :$required
         :class="$inputClass"
         data-input-control

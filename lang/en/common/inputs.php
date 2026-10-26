@@ -11,5 +11,7 @@ return [
     'current_password' => 'Current password',
     'new_password' => 'New password',
     'confirm_password' => 'Confirm password',
+    'timezone' => 'Time zone',
+    'locale' => 'Language and region',
     'use_default' => 'Use the default: :value',
 ];

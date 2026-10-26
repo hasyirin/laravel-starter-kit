@@ -24,7 +24,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('guard_name');
-            $table->timestamps();
+            $table->timestampsTz();
 
             $table->unique(['name', 'guard_name']);
         });
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('guard_name');
             $table->boolean('is_system')->default(false);
-            $table->timestamps();
+            $table->timestampsTz();
 
             $table->unique(['name', 'guard_name']);
         });

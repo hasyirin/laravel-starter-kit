@@ -18,11 +18,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email');
-            $table->timestamp('email_verified_at')->nullable();
+            $table->timestampTz('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
-            $table->timestamps();
-            $table->softDeletes();
+            $table->timestampsTz();
+            $table->softDeletesTz();
         });
 
         DB::statement('create unique index users_email_unique on users (email) where deleted_at is null');
@@ -30,7 +30,7 @@ return new class extends Migration
         Schema::create('password_reset_tokens', function (Blueprint $table): void {
             $table->string('email')->primary();
             $table->string('token');
-            $table->timestamp('created_at')->nullable();
+            $table->timestampTz('created_at')->nullable();
         });
 
         Schema::create('sessions', function (Blueprint $table): void {

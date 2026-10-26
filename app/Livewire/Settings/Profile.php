@@ -6,11 +6,16 @@ namespace App\Livewire\Settings;
 
 use App\Domain\User\Concerns\ProfileValidationRules;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Preferences;
+use DateTimeZone;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Locale;
 
 #[Title('Profile settings')]
 class Profile extends Component
@@ -21,6 +26,10 @@ class Profile extends Component
 
     public string $email = '';
 
+    public string $timezone = '';
+
+    public string $locale = '';
+
     /**
      * Mount the component.
      */
@@ -29,8 +38,12 @@ class Profile extends Component
         /** @var User $user */
         $user = auth()->user();
 
+        $preferences = Preferences::of($user);
+
         $this->name = $user->name;
         $this->email = $user->email;
+        $this->timezone = $preferences->timezone;
+        $this->locale = $preferences->locale;
     }
 
     /**
@@ -41,11 +54,17 @@ class Profile extends Component
         /** @var User $user */
         $user = auth()->user();
 
-        $this->validate($this->profileRules($user->id));
+        $this->validate([
+            ...$this->profileRules($user->id),
+            'timezone' => ['required', 'timezone:all'],
+            'locale' => ['required', Rule::in(array_keys($this->locales))],
+        ]);
 
         $user->fill([
             'name' => $this->name,
             'email' => $this->email,
+            'timezone' => $this->timezone,
+            'locale' => $this->locale,
         ]);
 
         if ($user->isDirty('email')) {
@@ -74,6 +93,42 @@ class Profile extends Component
         $user->sendEmailVerificationNotification();
 
         Flux::toast(text: __('user/settings.profile.verification_sent'));
+    }
+
+    /**
+     * @return array<array<string, string>>
+     */
+    #[Computed]
+    public function timezones(): array
+    {
+        return collect(DateTimeZone::listIdentifiers())
+            ->groupBy(fn (string $timezone): string => str($timezone)->before('/')->value())
+            ->map(fn (Collection $timezones): array => $timezones->mapWithKeys(fn (string $timezone): array => [
+                $timezone => str($timezone)->after('/')->replace(['_', '/'], [' ', ' / '])->append(' (UTC', now($timezone)->format('P'), ')')->value(),
+            ])->all())
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function locales(): array
+    {
+        return collect(config()->array('system.locales'))
+            ->filter(fn (mixed $locale): bool => is_string($locale))
+            ->mapWithKeys(fn (string $locale): array => [$locale => (string) Locale::getDisplayName($locale, $locale)])
+            ->all();
+    }
+
+    #[Computed]
+    public function example(): ?string
+    {
+        if (! in_array($this->timezone, DateTimeZone::listIdentifiers(), true) || ! array_key_exists($this->locale, $this->locales)) {
+            return null;
+        }
+
+        return new Preferences($this->timezone, $this->locale)->datetime(now());
     }
 
     #[Computed]

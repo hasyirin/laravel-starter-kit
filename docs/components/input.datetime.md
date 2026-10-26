@@ -6,33 +6,40 @@
 <x-input.datetime label="Starts at" wire:model="form.starts_at" />
 ```
 
-The property gets `Y-m-d\TH:i`, for example `2026-10-26T14:30`, the same format as a `datetime-local` input. A `Carbon` property works too. It takes every [field prop](field.md).
+The picker shows the time in the time zone of the user, and the property holds the same moment in the app time zone, `app.timezone`. Type the property as `?CarbonImmutable`. It takes every [field prop](field.md).
 
 ## Defaults
 
 The kit changes these Flux defaults:
 
-| Prop                | Kit default                            | Flux default       |
-|---------------------|----------------------------------------|--------------------|
-| `with-today`        | `true`                                 | `false`            |
-| `selectable-header` | `true`                                 | `false`            |
-| `locale`            | `system.locale` in `config/system.php` | The browser locale |
+| Prop                | Kit default            | Flux default       |
+|---------------------|------------------------|--------------------|
+| `time`              | `input`                | `list`             |
+| `with-today`        | `true`                 | `false`            |
+| `selectable-header` | `true`                 | `false`            |
+| `locale`            | The locale of the user | The browser locale |
+
+With `time="input"`, the user types the exact minute and then confirms with the Select button.
 
 ## Time Zones
 
-The value is a wall-clock time. It has no time zone, so `2026-10-26T14:30` means 2:30 pm on 26 October wherever the user is. A `Carbon` property reads it in the time zone of the app. If your users are in other time zones, convert the value yourself, for example with `Carbon::parse($value, $timezone)->utc()`.
+- With the app time zone at its default, UTC, a user in Kuala Lumpur who picks 26 October, 2:30 pm, gives the property `2026-10-26 06:30`. With `Asia/Kuala_Lumpur` as the app time zone, the property gets `14:30`. When the property comes back from the server, the picker shows 2:30 pm again.
+- So the property is a real moment: save it, compare it with `now()`, or validate it with `after:now` as usual.
+- Keep the app time zone on one without daylight saving, such as UTC or `Asia/Kuala_Lumpur`. The property holds no offset, so in a zone with daylight saving, a time in the hour that repeats when the clocks go back is saved as the second one.
+- Limits move to the time zone of the user too: a `Carbon` value, `now`, or `today` in `min`, `max`, or `open-to`, and `Carbon` values in `unavailable`. A string with a date or a time stays as it is, in the time zone of the user.
+- Each user has a time zone in the profile settings. A new user gets the time zone of their browser.
 
-## Typed Time
+## List of Times
 
-By default, the user picks a time from a list. `time="input"` lets the user type the exact minute. The user then confirms with the Select button.
+`time="list"` lets the user pick a time from a list instead of typing it.
 
 ```blade
-<x-input.datetime label="Arrived at" wire:model="form.arrived_at" time="input" />
+<x-input.datetime label="Arrived at" wire:model="form.arrived_at" time="list" />
 ```
 
 ## Interval and Limits
 
-`interval` sets the minutes between the times in the list. `min` and `max` take a date and time, a date, `now`, or `today`. `min-time` and `max-time` limit the time on every day. Validate the value on the server too.
+`interval` sets the minutes between the suggested times. `min` and `max` take a `Carbon` value, a date and time, a date, `now`, or `today`. `min-time` and `max-time` limit the time on every day. Validate the value on the server too.
 
 ```blade
 <x-input.datetime label="Meeting" wire:model="form.meeting" interval="15" min="now" min-time="09:00" max-time="17:00" />
@@ -48,7 +55,7 @@ By default, the user picks a time from a list. `time="input"` lets the user type
 
 ## Range
 
-`mode="range"` picks a start and an end, each with its own time. The property gets an array with `start` and `end`, or use a `Flux\DateTimeRange` property.
+`mode="range"` picks a start and an end, each with its own time. Type the property as `?Flux\DateTimeRange`. An array property gets `start` and `end` in the app time zone. Build a `DateTimeRange` in the app time zone too, for example from model dates or `now()`, because Flux sends its times without an offset.
 
 ```blade
 <x-input.datetime label="Maintenance window" wire:model="form.maintenance_window" mode="range" />
@@ -70,13 +77,18 @@ The `trigger` slot replaces the button with your own button.
 
 ### Props
 
-| Prop                | Default         | Description                                       |
-|---------------------|-----------------|---------------------------------------------------|
-| Field props         |                 | `label`, `required`, `badge`, `hint`, `description`, `description:trailing`, and `no-error-message`. See [Field](field.md). |
-| `with-today`        | `true`          | Shows a button that moves the calendar to today.  |
-| `selectable-header` | `true`          | Shows menus for the month and the year.           |
-| `locale`            | `system.locale` | The locale of the month names and the time format. |
-| `input-class`       |                 | Classes for the picker.                           |
+| Prop                | Default                | Description                                                                 |
+|---------------------|------------------------|-----------------------------------------------------------------------------|
+| Field props         |                        | `label`, `required`, `badge`, `hint`, `description`, `description:trailing`, and `no-error-message`. See [Field](field.md). |
+| `time`              | `input`                | `input` to type the time, `list` to pick it from a list.                   |
+| `with-today`        | `true`                 | Shows a button that moves the calendar to today.                           |
+| `selectable-header` | `true`                 | Shows menus for the month and the year.                                    |
+| `locale`            | The locale of the user | The locale of the month names and the clock.                               |
+| `min`               |                        | The earliest moment. A `Carbon` value, `now`, or `today` moves to the time zone of the user. |
+| `max`               |                        | The latest moment, the same as `min`.                                      |
+| `open-to`           |                        | The month and time that the picker opens to when it is empty.              |
+| `unavailable`       |                        | Dates, times, and moments that the user cannot pick. `Carbon` values move to the time zone of the user. |
+| `input-class`       |                        | Classes for the picker.                                                    |
 
 ### Slots
 
@@ -87,4 +99,4 @@ The `trigger` slot replaces the button with your own button.
 
 ### Attributes
 
-All other attributes go to `flux:datetime-picker`, so its props work: `mode`, `time`, `interval`, `time-format`, `min`, `max`, `min-time`, `max-time`, `unavailable`, `default-time`, `min-range`, `max-range`, `months`, `with-confirmation`, `week-numbers`, `start-day`, `fixed-weeks`, `open-to`, `clearable`, `placeholder`, `size`, `disabled`, and `invalid`. `class` goes to the field.
+`wire:model` with any modifier goes to a hidden element that holds the value in the app time zone. Flux pickers do not send a blur event, so `.blur` and `.live.blur` never update the property. Use `wire:model.live` to send each change, or `wire:model` to send the value with the next request. Without `wire:model`, the picker works like `flux:datetime-picker`: `value` and the value that a plain form posts are in the time zone of the user. `class` goes to the field. All other attributes go to `flux:datetime-picker`, so its props work: `mode`, `interval`, `time-format`, `min-time`, `max-time`, `default-time`, `min-range`, `max-range`, `months`, `with-confirmation`, `week-numbers`, `start-day`, `fixed-weeks`, `clearable`, `placeholder`, `size`, `disabled`, and `invalid`.

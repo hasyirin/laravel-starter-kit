@@ -6,18 +6,18 @@
 <x-input.time label="Opening time" wire:model="form.opening_time" />
 ```
 
-The property gets the time as `H:i` on a 24-hour clock, for example `14:30`, also when the input shows 2:30 pm. It takes every [field prop](field.md).
+The property gets the time as `H:i` on a 24-hour clock, for example `14:30`, also when the input shows 2:30 pm. Keep the property a string, because Carbon always holds a date. A time of day has no time zone, so the picker never converts it. It takes every [field prop](field.md).
 
 ## Defaults
 
 The kit changes these Flux defaults:
 
-| Prop     | Kit default                            | Flux default       |
-|----------|----------------------------------------|--------------------|
-| `type`   | `input`                                | `button`           |
-| `locale` | `system.locale` in `config/system.php` | The browser locale |
+| Prop     | Kit default            | Flux default       |
+|----------|------------------------|--------------------|
+| `type`   | `input`                | `button`           |
+| `locale` | The locale of the user | The browser locale |
 
-With `en-MY`, the input shows a 12-hour clock with am and pm. `time-format="24-hour"` changes that.
+The clock follows the locale: `en-MY` and `ms-MY` show 12 hours, and `en-GB` shows 24 hours. `time-format` sets the clock for one field.
 
 ## Button
 
@@ -45,12 +45,12 @@ With `en-MY`, the input shows a 12-hour clock with am and pm. `time-format="24-h
 
 ### Props
 
-| Prop          | Default         | Description                                          |
-|---------------|-----------------|------------------------------------------------------|
+| Prop          | Default                | Description                                          |
+|---------------|------------------------|------------------------------------------------------|
 | Field props   |                 | `label`, `required`, `badge`, `hint`, `description`, `description:trailing`, and `no-error-message`. See [Field](field.md). |
-| `type`        | `input`         | `input` for a typed time, `button` for a button.     |
-| `locale`      | `system.locale` | The locale of the time format.                       |
-| `input-class` |                 | Classes for the picker.                              |
+| `type`        | `input`                | `input` for a typed time, `button` for a button.     |
+| `locale`      | The locale of the user | The locale of the time format.                       |
+| `input-class` |                        | Classes for the picker.                              |
 
 ### Slots
 
@@ -59,5 +59,7 @@ With `en-MY`, the input shows a 12-hour clock with am and pm. `time-format="24-h
 | Field slots | `label`, `badge`, `hint`, `actions`, and `description`. See [Field](field.md). |
 
 ### Attributes
+
+`wire:model` goes to `flux:time-picker`. Flux pickers do not send a blur event, so `.blur` and `.live.blur` never update the property. Use `wire:model.live` to send each change, or `wire:model` to send the value with the next request.
 
 All other attributes go to `flux:time-picker`, so its props work: `interval`, `min`, `max`, `unavailable`, `time-format`, `multiple`, `open-to`, `dropdown`, `clearable`, `placeholder`, `size`, `disabled`, and `invalid`. `class` goes to the field.

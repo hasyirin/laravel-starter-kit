@@ -28,7 +28,7 @@
         :$type
         :with-today="$withToday"
         :selectable-header="$selectableHeader"
-        :locale="$locale ?? config('system.locale')"
+        :locale="$locale ?? \App\Domain\User\Support\Preferences::current()->locale"
         :$trigger
         :$required
         :class="$inputClass"

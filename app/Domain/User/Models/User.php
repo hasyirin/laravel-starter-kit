@@ -28,6 +28,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string $email
  * @property CarbonImmutable|null $email_verified_at
  * @property string $password
+ * @property string|null $timezone
+ * @property string|null $locale
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property CarbonImmutable|null $two_factor_confirmed_at
@@ -54,6 +56,8 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail, Passkey
         'name',
         'email',
         'password',
+        'timezone',
+        'locale',
     ];
 
     protected $hidden = [
@@ -61,6 +65,11 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail, Passkey
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+    ];
+
+    protected $attributes = [
+        'timezone' => null,
+        'locale' => null,
     ];
 
     protected function casts(): array

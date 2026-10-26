@@ -8,6 +8,15 @@
 
 It takes every prop and slot of [`<x-input>`](input.md). To link to the password reset page from the label row, see the hint on [Field](field.md).
 
+## Defaults
+
+The kit changes these Flux defaults:
+
+| Prop       | Kit default | Flux default |
+|------------|-------------|--------------|
+| `type`     | `password`  | `text`       |
+| `viewable` | `true`      | `false`      |
+
 ## Autocomplete
 
 Set `autocomplete`, so that password managers fill in the right password. Use `current-password` on a login form and `new-password` where the user sets a password.

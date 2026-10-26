@@ -8,6 +8,14 @@
 
 The input shows the number in the format of its country, for example `012-345 6789`. The property gets the international E.164 format, for example `+60123456789`. It takes every [field prop](field.md).
 
+## Defaults
+
+The kit changes this Flux default:
+
+| Prop      | Kit default                                    | Flux default |
+|-----------|------------------------------------------------|--------------|
+| `country` | `system.country` in `config/system.php`, `MY`  | No country   |
+
 ## Country
 
 The country starts at `system.country` in `config/system.php`, which is `MY`. `country` sets another one. When the user types a number with a country code, such as `+65`, the menu changes to that country.

@@ -22,8 +22,8 @@ return new class extends Migration
             $table->foreignIdFor(Position::class)->nullable()->index()->constrained(new Position()->getTable());
             $table->foreignIdFor(Branch::class)->nullable()->index()->constrained(new Branch()->getTable());
             $table->foreignIdFor(User::class)->index()->constrained(new User()->getTable())->cascadeOnDelete();
-            $table->timestamps();
-            $table->softDeletes();
+            $table->timestampsTz();
+            $table->softDeletesTz();
         });
     }
 

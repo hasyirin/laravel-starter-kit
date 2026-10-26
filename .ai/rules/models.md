@@ -17,7 +17,7 @@ Order model members like this:
 8. Attribute accessors and mutators (methods that return `Attribute`)
 
 ## Extend the shared base Model
-Extend `App\Domain\Shared\Common\Models\Model`, give its table `softDeletes()`, and add a morph alias for it in `EloquentServiceProvider`. If the model must extend another class, such as `Authenticatable` or a Spatie model, use the traits in `Shared/Common/Concerns/Models` instead.
+Extend `App\Domain\Shared\Common\Models\Model`, give its table `softDeletesTz()`, and add a morph alias for it in `EloquentServiceProvider`. If the model must extend another class, such as `Authenticatable` or a Spatie model, use the traits in `Shared/Common/Concerns/Models` instead.
 
 ## Use model properties, not Laravel 13 attributes
 Declare `$fillable`, `$hidden`, `$guarded`, `$visible`, and `$appends` as properties, not as class attributes such as `#[Fillable]` or `#[Hidden]`.

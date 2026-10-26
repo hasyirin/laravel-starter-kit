@@ -18,7 +18,7 @@ Flux hides `flux:label` from screen readers and uses its whole text as the name 
 ## Put the behavior of a component in resources/js/components
 Write the Alpine behavior of a component as a function in `resources/js/components/`, at the path of the component, for example `input/number.js` for `<x-input.number>`. Register it with `Alpine.data()` in `resources/js/app.js`, before `Livewire.start()`.
 
-Keep `wire:model` on an input element, never on a wrapper, so that all of its modifiers work. If the input shows another value than the property holds, as `<x-input.number>` does, put `wire:model` on a hidden input after the shown input, and repeat the events of the shown input on it.
+Keep `wire:model` on an input element, never on a wrapper, so that all of its modifiers work. If the control shows another value than the property holds, put `wire:model` on a hidden element after the control, and repeat the events of the control on it. `<x-input.number>` uses a hidden input for a string. `<x-input.datetime>` uses a hidden `div`, because a range is an object.
 
 ## Document each component
 When you add or change a component in `resources/views/components`, add or update its page in `docs/components/`. The page shows what the component is for and gives an example for every prop of its own. For the field props, it links to the Field page. It ends with a Reference section for the props, slots, and attributes. List each page in `docs/components/README.md`.

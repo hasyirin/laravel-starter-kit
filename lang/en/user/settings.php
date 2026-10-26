@@ -18,6 +18,7 @@ return [
         'resend_verification' => 'Click here to re-send the verification email.',
         'verification_sent' => 'A new verification link has been sent to your email address.',
         'updated' => 'Profile updated.',
+        'example' => 'Dates and times look like this: :example',
     ],
 
     'security' => [

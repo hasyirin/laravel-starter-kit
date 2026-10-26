@@ -6,7 +6,7 @@
 <x-input.date label="Start date" wire:model="form.start_date" />
 ```
 
-The property gets the date as `Y-m-d`, for example `2026-10-26`. A `Carbon` property works too. It takes every [field prop](field.md).
+The property gets the date as `Y-m-d`, for example `2026-10-26`. Type it as `?CarbonImmutable`. A date has no time zone, so the picker never converts it. It takes every [field prop](field.md).
 
 ## Defaults
 
@@ -14,12 +14,12 @@ The kit changes these Flux defaults:
 
 | Prop                | Kit default                                  | Flux default        |
 |---------------------|----------------------------------------------|---------------------|
-| `type`              | `input`, or `button` with `mode="range"`     | `button`            |
-| `with-today`        | `true`                                       | `false`             |
-| `selectable-header` | `true`                                       | `false`             |
-| `locale`            | `system.locale` in `config/system.php`       | The browser locale  |
+| `type`              | `input`, or `button` with `mode="range"` | `button`           |
+| `with-today`        | `true`                                   | `false`            |
+| `selectable-header` | `true`                                   | `false`            |
+| `locale`            | The locale of the user                   | The browser locale |
 
-`system.locale` is `en-MY`: English month names, with the day before the month, the same as `system.formats.date`. Turn a default off with `:with-today="false"` or `:selectable-header="false"`.
+Each user picks a locale in the profile settings, and a new user gets the one of their browser. The kit default, `system.locale` in `config/system.php`, is `en-MY`: English month names, with the day before the month. Turn a default off with `:with-today="false"` or `:selectable-header="false"`.
 
 ## Button
 
@@ -73,7 +73,7 @@ The `trigger` slot replaces the input with your own button.
 | `type`              | `input`, or `button` with `mode="range"` | `input` for a typed date, `button` for a button.                      |
 | `with-today`        | `true`                                   | Shows a button that moves the calendar to today.                      |
 | `selectable-header` | `true`                                   | Shows menus for the month and the year.                               |
-| `locale`            | `system.locale`                          | The locale of the month names and the date order.                     |
+| `locale`            | The locale of the user                   | The locale of the month names and the date order.                     |
 | `input-class`       |                                          | Classes for the picker.                                               |
 
 ### Slots
@@ -84,5 +84,7 @@ The `trigger` slot replaces the input with your own button.
 | `trigger`   | Your own element that opens the calendar, such as a button.                    |
 
 ### Attributes
+
+`wire:model` goes to `flux:date-picker`. Flux pickers do not send a blur event, so `.blur` and `.live.blur` never update the property. Use `wire:model.live` to send each change, or `wire:model` to send the value with the next request.
 
 All other attributes go to `flux:date-picker`, so its props work: `mode`, `min`, `max`, `unavailable`, `months`, `min-range`, `max-range`, `with-presets`, `presets`, `with-inputs`, `with-confirmation`, `week-numbers`, `start-day`, `open-to`, `force-open-to`, `clearable`, `placeholder`, `size`, `disabled`, and `invalid`. `class` goes to the field.

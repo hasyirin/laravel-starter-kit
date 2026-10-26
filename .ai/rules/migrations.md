@@ -12,4 +12,7 @@ Always pass the referenced table from the model: `$table->foreignIdFor(Organizat
 Add `->index()` to every foreign key column, before `constrained()`: `$table->foreignIdFor(Organization::class)->index()->constrained(new Organization()->getTable())`.
 
 ## Make unique indexes skip soft-deleted rows
-Tables for models that extend the base `Model` need `$table->softDeletes()`. On soft-deleted tables, enforce uniqueness with a partial index, not `->unique()`: `DB::statement('create unique index <table>_<columns>_unique on <table> (<columns>) where deleted_at is null')`.
+Tables for models that extend the base `Model` need `$table->softDeletesTz()`. On soft-deleted tables, enforce uniqueness with a partial index, not `->unique()`: `DB::statement('create unique index <table>_<columns>_unique on <table> (<columns>) where deleted_at is null')`.
+
+## Keep the time zone in timestamp columns
+Use `timestampTz()`, `timestampsTz()`, `nullableTimestampsTz()`, `softDeletesTz()`, and `dateTimeTz()`, never the variants without `Tz`. PostgreSQL then stores each value as a moment, and the `pgsql` connection reads and writes values in `app.timezone`. A time of day without a date, such as an opening time, can stay `time()`. A test fails on a migration that uses a variant without `Tz`.

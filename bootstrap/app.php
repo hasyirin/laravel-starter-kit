@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\AddTraceIdToContext;
+use App\Http\Middleware\ResolveUserPreferences;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -31,6 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
     }))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AddTraceIdToContext::class);
+        $middleware->web(append: [ResolveUserPreferences::class]);
+        // app.js writes these from the browser, so they are not encrypted.
+        $middleware->encryptCookies(except: ['timezone', 'locale']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

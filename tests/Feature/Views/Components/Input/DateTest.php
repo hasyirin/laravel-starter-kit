@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Dom\Element;
 use Dom\HTMLDocument;
 
-test('a date opens from a typed input, with the today button, the month and year menus, and the app locale', function (): void {
-    config(['system.locale' => 'en-GB']);
+test('a date opens from a typed input, with the today button, the month and year menus, and the locale of the user', function (): void {
+    context()->addHidden('locale', 'en-GB');
 
     $document = HTMLDocument::createFromString((string) $this->blade('<x-input.date label="Starts on" wire:model="starts_on" />'), LIBXML_NOERROR);
 

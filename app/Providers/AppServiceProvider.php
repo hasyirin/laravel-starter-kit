@@ -47,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
 
         Date::use(CarbonImmutable::class);
 
+        // The app keeps times in app.timezone, but scheduled tasks run on the clock of the business.
+        config(['app.schedule_timezone' => config('system.timezone')]);
+
         DB::prohibitDestructiveCommands(app()->isProduction());
 
         Blaze::optimize()->in(resource_path('views/components'));

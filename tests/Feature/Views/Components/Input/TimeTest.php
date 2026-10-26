@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Dom\HTMLDocument;
 
-test('a time is a typed input in the app locale', function (): void {
-    config(['system.locale' => 'en-GB']);
+test('a time is a typed input in the locale of the user', function (): void {
+    context()->addHidden('locale', 'en-GB');
 
     $document = HTMLDocument::createFromString((string) $this->blade('<x-input.time label="Opens at" wire:model="opens_at" />'), LIBXML_NOERROR);
 

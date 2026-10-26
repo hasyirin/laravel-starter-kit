@@ -3,14 +3,13 @@
 declare(strict_types=1);
 
 return [
+    'timezone' => 'Asia/Kuala_Lumpur',
+
     'locale' => 'en-MY',
 
-    'country' => 'MY',
+    'locales' => ['en-MY', 'ms-MY', 'en-GB', 'en-US'],
 
-    'formats' => [
-        'datetime' => 'd/m/Y, h:i A',
-        'date' => 'd/m/Y',
-    ],
+    'country' => 'MY',
 
     'owner' => [
         'organization' => ['code' => 'OWNER', 'name' => 'Owner Organization'],

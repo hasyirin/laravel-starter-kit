@@ -8,6 +8,17 @@
 
 It takes every [field prop](field.md). `prefix`, `suffix`, `size`, `default`, `default-label`, and `input-class` work the same way as on [`<x-input>`](input.md).
 
+## Defaults
+
+The kit sets these on the shown `flux:input`:
+
+| Prop           | Kit default                                                                 | Flux default |
+|----------------|-----------------------------------------------------------------------------|--------------|
+| `mask:dynamic` | A money mask from `decimals`, `comma`, and `separator`                      | No mask      |
+| `inputmode`    | `decimal` with `disable-negatives`, or `numeric` when `decimals` is also `0` | Not set      |
+
+Its own props start at `decimals="2"`, `comma=","`, and `separator="."`, and the input accepts a minus sign.
+
 ## Decimals
 
 `decimals` sets the number of decimals. The default is 2. With `decimals="0"`, the user can type whole numbers only.

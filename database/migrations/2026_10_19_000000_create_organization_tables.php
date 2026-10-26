@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('code', 10);
             $table->string('name');
             $table->boolean('is_owner')->default(false);
-            $table->timestamps();
-            $table->softDeletes();
+            $table->timestampsTz();
+            $table->softDeletesTz();
         });
 
         Schema::create('departments', function (Blueprint $table): void {
@@ -28,8 +28,8 @@ return new class extends Migration
             $table->string('code', 10);
             $table->string('name');
             $table->boolean('is_owner')->default(false);
-            $table->timestamps();
-            $table->softDeletes();
+            $table->timestampsTz();
+            $table->softDeletesTz();
         });
 
         Schema::create('branches', function (Blueprint $table): void {
@@ -38,8 +38,8 @@ return new class extends Migration
             $table->string('code', 10);
             $table->string('name');
             $table->boolean('is_owner')->default(false);
-            $table->timestamps();
-            $table->softDeletes();
+            $table->timestampsTz();
+            $table->softDeletesTz();
         });
 
         Schema::create('positions', function (Blueprint $table): void {
@@ -47,8 +47,8 @@ return new class extends Migration
             $table->foreignIdFor(Organization::class)->index()->constrained(new Organization()->getTable());
             $table->foreignIdFor(Department::class)->nullable()->index()->constrained(new Department()->getTable())->nullOnDelete();
             $table->string('name');
-            $table->timestamps();
-            $table->softDeletes();
+            $table->timestampsTz();
+            $table->softDeletesTz();
         });
 
         DB::statement('create unique index organizations_code_unique on organizations (code) where deleted_at is null');

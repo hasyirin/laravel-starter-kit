@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -48,11 +49,45 @@ test('the activity log records fillable changes but not hidden ones', function (
         ->and($changes?->get('old'))->toBe(['name' => 'First']);
 });
 
-test('timestamps are formatted with the configured datetime format', function (): void {
+test('timestamps are formatted in the time zone and locale of the current user', function (): void {
     $this->travelTo('2026-10-18 14:30:00');
+    context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
 
     $item = Item::query()->create(['group' => 'a', 'name' => 'First']);
 
-    expect($item->formatted_created_at)->toBe('18/10/2026, 02:30 PM')
-        ->and($item->formatted_updated_at)->toBe('18/10/2026, 02:30 PM');
+    expect($item->formatted_created_at)->toBe('18 Oct 2026, 22:30')
+        ->and($item->formatted_updated_at)->toBe('18 Oct 2026, 22:30');
 });
+
+test('a date with a fixed offset from the database gets the named zone of the app, so date math across daylight saving stays right', function (): void {
+    config(['app.timezone' => 'Europe/London']);
+
+    $item = Item::query()->create(['group' => 'a', 'name' => 'First']);
+    $item->setRawAttributes(['created_at' => '2026-07-01 12:00:00+01'] + $item->getAttributes());
+
+    expect($item->created_at?->timezoneName)->toBe('Europe/London')
+        ->and($item->created_at?->addMonths(6)->format('Y-m-d H:i'))->toBe('2027-01-01 12:00');
+});
+
+test('a date from another zone moves to the app zone before Eloquent writes it', function (): void {
+    $item = Item::query()->create(['group' => 'a', 'name' => 'First']);
+
+    $item->created_at = CarbonImmutable::parse('2026-10-26 14:30', 'Asia/Kuala_Lumpur');
+    $item->save();
+
+    expect(Item::query()->toBase()->value('created_at'))->toBe('2026-10-26 06:30:00');
+});
+
+test('a date-only value from a zone ahead of the app keeps its day', function (string $cast): void {
+    $this->travelTo(CarbonImmutable::parse('2026-10-25 23:00', 'UTC'));
+    Schema::table('items', function (Blueprint $table): void {
+        $table->date('due_on')->nullable();
+    });
+
+    $item = Item::query()->create(['group' => 'a', 'name' => 'First'])->mergeCasts(['due_on' => $cast]);
+    $item->due_on = today('Asia/Kuala_Lumpur');
+    $item->save();
+
+    expect(Item::query()->toBase()->value('due_on'))->toStartWith('2026-10-26')
+        ->and($item->fresh()?->mergeCasts(['due_on' => $cast])->due_on?->format('Y-m-d'))->toBe('2026-10-26');
+})->with(['date', 'immutable_date', 'date:d/m/Y']);

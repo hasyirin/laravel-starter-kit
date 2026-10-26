@@ -98,6 +98,8 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // timestamptz columns read the values that Eloquent writes, without an offset, in this time zone.
+            'timezone' => config('app.timezone'),
         ],
 
         'sqlsrv' => [

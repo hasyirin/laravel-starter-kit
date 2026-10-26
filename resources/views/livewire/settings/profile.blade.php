@@ -23,6 +23,30 @@
                 @endif
             </div>
 
+            <x-field :label="__('common/inputs.timezone')" name="timezone">
+                <flux:select wire:model.live="timezone" data-input-control>
+                    @foreach($this->timezones as $region => $timezones)
+                        <optgroup label="{{ $region }}" wire:key="region-{{ $region }}">
+                            @foreach($timezones as $timezone => $timezoneName)
+                                <option value="{{ $timezone }}" wire:key="timezone-{{ $timezone }}">{{ $timezoneName }}</option>
+                            @endforeach
+                        </optgroup>
+                    @endforeach
+                </flux:select>
+            </x-field>
+
+            <x-field
+                :label="__('common/inputs.locale')"
+                name="locale"
+                :description-trailing="$this->example === null ? null : __('user/settings.profile.example', ['example' => $this->example])"
+            >
+                <flux:select wire:model.live="locale" data-input-control>
+                    @foreach($this->locales as $locale => $localeName)
+                        <flux:select.option :value="$locale" wire:key="locale-{{ $locale }}">{{ $localeName }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </x-field>
+
             <div class="flex items-center gap-4">
                 <flux:button variant="primary" type="submit">{{ __('common/buttons.save') }}</flux:button>
             </div>

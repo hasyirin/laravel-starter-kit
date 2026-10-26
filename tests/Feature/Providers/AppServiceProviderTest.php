@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Providers\AppServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
 
 test('booting in production with debug mode on turns debug mode off and throws', function (): void {
     app()->detectEnvironment(fn (): string => 'production');
@@ -23,3 +24,7 @@ test('the app boots when debug mode is off or the environment is not production'
     ['production', false],
     ['local', true],
 ]);
+
+test('scheduled tasks run on the clock of the business, not in the time zone of the app', function (): void {
+    expect(resolve(Schedule::class)->command('inspire')->timezone)->toBe(config('system.timezone'));
+});

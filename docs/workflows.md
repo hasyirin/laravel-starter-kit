@@ -75,12 +75,32 @@ $invoice->state->transitionTo(Paid::class);
 ```
 
 - `Policy::transition()` checks the permission of the step. The permission name ends with the step: the kebab-case name of the transition class, or of the target state when the step has no class. The policy prefix and the plural model name come first, for example internal.invoices.pay. Add each permission to `config/system.php`.
-- The policy refuses a step that the current state does not have, for example when another user moved the record after the page loaded.
+- The policy refuses a step that the current state does not have, for example when another user moved the record after the page loaded. In a Livewire component, the component's `transitionTo()` below turns this into a toast.
 - `hasStepTo()` on a state tells whether the config has a step to a state, without the checks and the permissions.
 - `allowedFor()` on a state returns the states that a user can move to now, after the checks and the permissions. Use it for the buttons.
 - `reasonFor()` on a state returns why a step is blocked.
 - When `reason()` blocks a step, `transitionTo()` throws `Spatie\ModelStates\Exceptions\TransitionNotAllowed`.
 - `StaleState`, `StateNotSaved`, and the Spatie exception above all extend `Spatie\ModelStates\Exceptions\CouldNotPerformTransition`, so one catch handles any step that fails.
+
+### In a Livewire Component
+
+In a component that extends `App\Livewire\Component`, call the component's own `transitionTo()` instead of the state's. It checks the permission and runs the step, and it shows a Flux toast instead of an error page when the step fails:
+
+```php
+public function pay(): void
+{
+    if ($this->transitionTo($this->invoice->state, Paid::class)) {
+        Flux::toast(variant: 'success', text: __('billing/invoices.paid'));
+    }
+}
+```
+
+- It holds no business work. The step's work stays in its transition class, which takes the place of an [Action](actions.md) for a step.
+- It returns true when the step ran.
+- When the record changed after the page loaded, so the step no longer exists or another request saved first, it shows a toast and reloads the page with `wire:navigate`.
+- When `reason()` blocks the step, it shows the reason in a toast and keeps the page, so the user keeps what they typed.
+- When a listener stopped the save, it shows a toast.
+- When the user does not have the permission, it still fails with a 403. The buttons from `allowedFor()` never offer such a step, so only a removed permission or a forged request gets there.
 
 ## Listen for Changes
 

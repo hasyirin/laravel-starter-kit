@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Domain\User\Actions\UpdateProfile;
 use App\Domain\User\Concerns\ProfileValidationRules;
 use App\Domain\User\Models\User;
 use Flux\Flux;
@@ -36,23 +37,14 @@ class Profile extends Component
     /**
      * Update the profile information for the currently authenticated user.
      */
-    public function updateProfileInformation(): void
+    public function updateProfileInformation(UpdateProfile $updateProfile): void
     {
         /** @var User $user */
         $user = auth()->user();
 
         $this->validate($this->profileRules($user->id));
 
-        $user->fill([
-            'name' => $this->name,
-            'email' => $this->email,
-        ]);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
+        $updateProfile->execute($user, $this->name, $this->email);
 
         Flux::toast(variant: 'success', text: __('user/settings.profile.updated'));
     }

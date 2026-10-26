@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Domain\User\Actions\UpdatePassword;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
 use Exception;
@@ -101,7 +102,7 @@ class Security extends Component
     /**
      * Update the password for the currently authenticated user.
      */
-    public function updatePassword(): void
+    public function updatePassword(UpdatePassword $updatePassword): void
     {
         try {
             $this->validate([
@@ -117,9 +118,7 @@ class Security extends Component
         /** @var User $user */
         $user = auth()->user();
 
-        $user->update([
-            'password' => $this->password,
-        ]);
+        $updatePassword->execute($user, $this->password);
 
         $this->reset('current_password', 'password', 'password_confirmation');
 

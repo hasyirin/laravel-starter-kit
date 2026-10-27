@@ -11,9 +11,9 @@ class UpdateProfile
 {
     use Actionable;
 
-    public function execute(User $user, string $name, string $email): void
+    public function execute(User $user, string $name, string $email, string $timezone, string $locale): void
     {
-        $user->fill(['name' => $name, 'email' => $email]);
+        $user->fill(['name' => $name, 'email' => $email, 'timezone' => $timezone, 'locale' => $locale]);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -42,7 +42,7 @@ public function updateProfileInformation(UpdateProfile $updateProfile): void
 
     $this->validate($this->profileRules($user->id));
 
-    $updateProfile->execute($user, $this->name, $this->email);
+    $updateProfile->execute($user, $this->name, $this->email, $this->timezone, $this->locale);
 
     Flux::toast(variant: 'success', text: __('user/settings.profile.updated'));
 }

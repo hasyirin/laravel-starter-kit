@@ -22,3 +22,11 @@ test('the hint and actions slots reach the label row', function (): void {
     expect($document->querySelector('[data-input-label-row] [data-input-hint] [data-test="forgot"]'))->not->toBeNull()
         ->and($document->querySelector('[data-input-label-row] [data-input-actions] [data-test="generate"]'))->not->toBeNull();
 });
+
+test('the label, badge, and description slots reach the field', function (): void {
+    $view = $this->blade(
+        '<x-input.password wire:model="password"><x-slot:label>Slot label</x-slot:label><x-slot:badge>Slot badge</x-slot:badge><x-slot:description>Slot description</x-slot:description></x-input.password>',
+    );
+
+    $view->assertSee('Slot label')->assertSee('Slot badge')->assertSee('Slot description');
+});

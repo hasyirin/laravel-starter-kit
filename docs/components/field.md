@@ -121,6 +121,7 @@ Use `<x-field>` directly only for a control that has no kit input yet, such as a
 | `required`             | `false` | Shows a red asterisk after the label. The kit inputs also add the `required` attribute. |
 | `badge`                |         | A small badge after the label, such as "Optional".                                  |
 | `hint`                 |         | Short text at the right end of the label row.                                       |
+| `actions`              |         | Buttons at the right end of the label row, after the hint. Usually a slot.          |
 | `description`          |         | Help text between the label and the input.                                          |
 | `description:trailing` |         | Help text below the input. `description-trailing` also works.                       |
 | `no-error-message`     | `false` | Hides the error message. The input keeps the error color.                           |

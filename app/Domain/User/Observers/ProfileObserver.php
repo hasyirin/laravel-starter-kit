@@ -14,11 +14,11 @@ class ProfileObserver
 {
     public function creating(Profile $profile): void
     {
-        throw_if($profile->department_id !== null && Department::withTrashed()->whereKey($profile->department_id)->where('organization_id', $profile->organization_id)->doesntExist(), LogicException::class, 'The department of a profile must belong to its organization.');
+        throw_if($profile->department_id !== null && Department::query()->whereKey($profile->department_id)->where('organization_id', $profile->organization_id)->doesntExist(), LogicException::class, 'The department of a profile must belong to its organization.');
 
-        throw_if($profile->branch_id !== null && Branch::withTrashed()->whereKey($profile->branch_id)->where('organization_id', $profile->organization_id)->doesntExist(), LogicException::class, 'The branch of a profile must belong to its organization.');
+        throw_if($profile->branch_id !== null && Branch::query()->whereKey($profile->branch_id)->where('organization_id', $profile->organization_id)->doesntExist(), LogicException::class, 'The branch of a profile must belong to its organization.');
 
-        throw_if($profile->position_id !== null && Position::withTrashed()->whereKey($profile->position_id)->where('organization_id', $profile->organization_id)->where('department_id', $profile->department_id)->doesntExist(), LogicException::class, 'The position of a profile must belong to its organization and department.');
+        throw_if($profile->position_id !== null && Position::query()->whereKey($profile->position_id)->where('organization_id', $profile->organization_id)->where('department_id', $profile->department_id)->doesntExist(), LogicException::class, 'The position of a profile must belong to its organization and department.');
     }
 
     public function updating(): void

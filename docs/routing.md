@@ -77,6 +77,8 @@ Full-page Livewire components extend `App\Livewire\Pages\Shared\Page`. It gives 
 
 A guest page keeps the guest layout for signed-in users too. A page that more than one area uses gets the layout of each area.
 
+Two groups of pages do not extend `Page`. The settings pages extend `Livewire\Component`, so they use the app layout in every area, from `livewire.component_layout`. The pages of Fortify, such as login, use `resources/views/layouts/auth.blade.php`.
+
 ## Navigation
 
 - The app, internal, and admin areas each have a sidebar: `app/Livewire/Layouts/*/Sidebar.php`. Below the spacer, each sidebar links to the other areas:

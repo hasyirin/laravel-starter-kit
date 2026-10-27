@@ -7,7 +7,7 @@ namespace App\Livewire\Pages\Shared;
 use App\Livewire\Component;
 use Illuminate\View\View;
 
-class Page extends Component
+abstract class Page extends Component
 {
     public function rendering(View $view): View
     {

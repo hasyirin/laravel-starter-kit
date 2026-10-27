@@ -114,3 +114,25 @@ test('correct password must be provided to update password', function (): void {
 
     $response->assertHasErrors(['current_password']);
 });
+
+test('an open security page asks for the password again after the confirmation expires', function (string $method): void {
+    $user = User::factory()->create();
+    $user->forceFill(['two_factor_secret' => encrypt('test-secret'), 'two_factor_recovery_codes' => encrypt(json_encode(['code1'])), 'two_factor_confirmed_at' => now()])->save();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time() - config()->integer('auth.password_timeout') - 1]);
+
+    Livewire::test(Security::class)
+        ->call($method)
+        ->assertRedirect(route('password.confirm'));
+
+    expect($user->refresh()->two_factor_secret)->not->toBeNull();
+})->with(['disable', 'enable']);
+
+test('a recently confirmed password lets the security page disable two factor', function (): void {
+    $user = User::factory()->create();
+    $user->forceFill(['two_factor_secret' => encrypt('test-secret'), 'two_factor_recovery_codes' => encrypt(json_encode(['code1'])), 'two_factor_confirmed_at' => now()])->save();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+
+    Livewire::test(Security::class)->call('disable')->assertNoRedirect();
+
+    expect($user->refresh()->two_factor_secret)->toBeNull();
+});

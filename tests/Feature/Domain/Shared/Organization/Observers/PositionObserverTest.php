@@ -37,3 +37,11 @@ test('a position can move to another department of its organization', function (
 
     expect($position->fresh()?->department_id)->toBe($department->id);
 });
+
+test('a position accepts the ids of its organization and department as strings', function (): void {
+    $department = Department::factory()->create();
+
+    $position = Position::factory()->create(['organization_id' => (string) $department->organization_id, 'department_id' => (string) $department->id]);
+
+    $this->assertModelExists($position);
+});

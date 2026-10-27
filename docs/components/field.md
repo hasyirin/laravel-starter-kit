@@ -75,7 +75,7 @@ The hint and the actions sit outside the label. So clicking an action does not m
 
 ## Errors
 
-The field shows the first error of its `wire:model` property. Without `wire:model`, it uses the `name` attribute. On the local docs page, `form.taken_email` has a sample error.
+The field shows the first error of its `wire:model` property. Without `wire:model`, it uses the `name` attribute. On the local docs page, form.taken_email has a sample error.
 
 ```blade
 <x-input label="Email" type="email" wire:model="form.taken_email" />

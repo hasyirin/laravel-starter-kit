@@ -1,0 +1,35 @@
+{
+    "agents": [
+        "junie",
+        "claude_code"
+    ],
+    "cloud": false,
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch": false,
+    "packages": [
+        "spatie/laravel-activitylog",
+        "spatie/laravel-medialibrary",
+        "livewire/blaze",
+        "spatie/laravel-permission",
+        "spatie/laravel-ray",
+        "fruitcake/laravel-debugbar"
+    ],
+    "sail": false,
+    "skills": [
+        "infer-conventions",
+        "fortify-development",
+        "laravel-best-practices",
+        "testing-best-practices",
+        "configuring-horizon",
+        "fluxui-development",
+        "livewire-development",
+        "tailwindcss-development",
+        "blaze-optimize",
+        "activitylog-development",
+        "medialibrary-development",
+        "laravel-permission-development",
+        "debugging-output-and-previewing-html-using-ray",
+        "debug-using-debugbar"
+    ]
+}

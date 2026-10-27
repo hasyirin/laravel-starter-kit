@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Domain\User\Actions\UpdateProfile;
 use App\Domain\User\Concerns\ProfileValidationRules;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
@@ -49,7 +50,7 @@ class Profile extends Component
     /**
      * Update the profile information for the currently authenticated user.
      */
-    public function updateProfileInformation(): void
+    public function updateProfileInformation(UpdateProfile $updateProfile): void
     {
         /** @var User $user */
         $user = auth()->user();
@@ -60,18 +61,7 @@ class Profile extends Component
             'locale' => ['required', Rule::in(array_keys($this->locales))],
         ]);
 
-        $user->fill([
-            'name' => $this->name,
-            'email' => $this->email,
-            'timezone' => $this->timezone,
-            'locale' => $this->locale,
-        ]);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
+        $updateProfile->execute($user, $this->name, $this->email, $this->timezone, $this->locale);
 
         Flux::toast(variant: 'success', text: __('user/settings.profile.updated'));
     }

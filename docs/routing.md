@@ -68,18 +68,18 @@ The three login responses are in `app/Http/Responses`, and `FortifyServiceProvid
 
 Full-page Livewire components extend `App\Livewire\Pages\Shared\Page`. It gives each page the layout of the area that its route is in:
 
-| Route                                   | Layout             |
-|-----------------------------------------|--------------------|
-| `admin.*`                               | `layouts.admin`    |
-| `internal.*`                            | `layouts.internal` |
-| Other routes with the `auth` middleware | `layouts.app`      |
-| All other routes                        | `layouts.guest`    |
+| Route                                   | Layout                                       |
+|-----------------------------------------|----------------------------------------------|
+| `admin.*`                               | `resources/views/layouts/admin.blade.php`    |
+| `internal.*`                            | `resources/views/layouts/internal.blade.php` |
+| Other routes with the `auth` middleware | `resources/views/layouts/app.blade.php`      |
+| All other routes                        | `resources/views/layouts/guest.blade.php`    |
 
 A guest page keeps the guest layout for signed-in users too. A page that more than one area uses gets the layout of each area.
 
 ## Navigation
 
-- The app, internal, and admin areas each have a sidebar: `app/Livewire/Layouts/<Area>/Sidebar.php`. Below the spacer, each sidebar links to the other areas:
+- The app, internal, and admin areas each have a sidebar: `app/Livewire/Layouts/*/Sidebar.php`. Below the spacer, each sidebar links to the other areas:
   - The app sidebar links to Internal and Admin.
   - The internal sidebar links to App and Admin.
   - The admin sidebar links to App and Internal.

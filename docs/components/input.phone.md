@@ -41,7 +41,11 @@ The country starts at `system.country` in `config/system.php`, which is `MY`. `c
 
 ## Validation
 
-The input formats the number but does not check it. A number that it cannot read, or an incomplete one, stays as the user typed it. So validate the number on the server, for example with `regex:/^\+[1-9]\d{6,14}$/`.
+The input formats the number but does not check it. A number that it cannot read, or an incomplete one, stays as the user typed it. So validate the number on the server, for example with this rule:
+
+```php
+'phone' => ['required', 'regex:/^\+[1-9]\d{6,14}$/'],
+```
 
 ## Reference
 

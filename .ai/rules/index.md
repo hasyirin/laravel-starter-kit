@@ -4,7 +4,9 @@ Before planning or editing, find the row whose globs match the file's path and r
 
 | Applies to | Rule file |
 | --- | --- |
+| app/Domain/**/Actions/** | .ai/rules/actions.md |
 | app/** | .ai/rules/app.md |
+| docs/** | .ai/rules/docs.md |
 | app/Domain/**/Factories/*.php | .ai/rules/factories.md |
 | lang/** | .ai/rules/lang.md |
 | app/Livewire/** | .ai/rules/livewire.md |
@@ -13,6 +15,8 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Domain/**/Observers/*.php | .ai/rules/observers.md |
 | app/Domain/**/Policies/*.php | .ai/rules/policies.md |
 | app/Domain/**/Seeders/*.php | .ai/rules/seeders.md |
+| app/Domain/**/States/** | .ai/rules/states.md |
 | tests/** | .ai/rules/tests.md |
+| app/Domain/**/Transitions/** | .ai/rules/transitions.md |
 | resources/views/** | .ai/rules/views.md |
 | resources/views/**, resources/js/** | .ai/rules/ui.md |

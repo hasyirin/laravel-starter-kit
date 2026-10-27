@@ -27,6 +27,7 @@
         "livewire/livewire": "^4.1",
         "spatie/laravel-activitylog": "^5.1",
         "spatie/laravel-medialibrary": "^11.23",
+        "spatie/laravel-model-states": "^2.14",
         "spatie/laravel-permission": "^8.3",
         "spatie/laravel-ray": "^1.43"
     },
@@ -91,10 +92,17 @@
         "types:check": [
             "phpstan analyse"
         ],
+        "docs": [
+            "@php artisan docs:generate --ansi"
+        ],
+        "docs:check": [
+            "@php artisan docs:generate --check --ansi"
+        ],
         "test": [
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",
+            "@docs:check",
             "@putenv XDEBUG_MODE=coverage",
             "@php artisan test --tia"
         ],

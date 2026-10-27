@@ -10,6 +10,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - Fortify for authentication, with passkey support
 - Spatie Activitylog to log model and user activity
 - Spatie Media Library to attach files to Eloquent models
+- Spatie Model States for workflows
 - Spatie Permission for roles and permissions
 - Laravel Horizon for Redis queues
 - PostgreSQL in production, SQLite for local work and tests
@@ -25,7 +26,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Flux Pro** is installed from `composer.fluxui.dev`. You need a Flux Pro license.
 - **Filament 5 components** are installed. `resources/css/app.css` imports their styles, and `php artisan filament:upgrade` runs after each Composer autoload dump.
 - **Fonts** are Figtree and JetBrains Mono. Vite downloads them from Bunny Fonts at build time. The accent color is blue.
-- **Debugbar** and **Laravel Boost** are installed as dev dependencies.
+- **Debugbar** and **Laravel Boost** are installed as dev dependencies. The Boost guidelines, skills, and MCP config are committed, and `composer update` keeps the guidelines and skills current with `php artisan boost:update`.
 - **Ray** is installed as a production dependency, so a `ray()` call left in the code does not break production. Ray is off in production.
 - **Debug mode** is not allowed in production. If `APP_DEBUG=true` there, the app throws an exception at boot, so every request and Artisan command fails until you set `APP_DEBUG=false`. Requests get a plain 500 page, and the exception goes to the log.
 - **Spatie Activitylog** is installed. Its migration creates the `activity_log` table.
@@ -45,7 +46,8 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **`APP_DOMAIN`** is a new setting. It is available as `config('app.domain')`, and `APP_URL` is built from it.
 - **Livewire config** is published to `config/livewire.php`.
 - **HTTPS** is forced for all generated URLs, in every environment. Serve the app over HTTPS locally too.
-- **Models, factories, seeders, concerns, and actions** live in domain folders. A model's factory sits in the sibling `Factories` folder, for example `App\Domain\User\Factories\UserFactory`. The model links to its factory in `newFactory()`, and the factory links back with `$model`. Seeders extend `App\Domain\Shared\Common\Seeders\Seeder`. Fortify actions have their own `Fortify` folder only to keep them together, for example `App\Domain\User\Actions\Fortify\CreateNewUser`. Create a model with `php artisan make:model Domain/Billing/Models/Invoice`. Write its factory and seeder by hand, because `make:factory` and `make:seeder` still write to `database/`.
+- **Models, factories, seeders, concerns, and actions** live in domain folders. A model's factory sits in the sibling `Factories` folder, for example `App\Domain\User\Factories\UserFactory`. The model links to its factory in `newFactory()`, and the factory links back with `$model`. Seeders extend `App\Domain\Shared\Common\Seeders\Seeder`. Fortify actions have their own `Fortify` folder only to keep them together, for example `App\Domain\User\Actions\Fortify\CreateNewUser`. Create a model with `php artisan make:model Domain/Billing/Models/Invoice`. Write its factory and seeder by hand, because `make:factory` and `make:seeder` still write to `database/`. The listeners in every `Listeners` folder and the Artisan commands in every `Commands` folder under `app/Domain` are registered automatically, at any depth.
+- **Actions** hold the business work: one class per operation that uses the `Actionable` trait and runs with `execute()`. Livewire components only validate, authorize, call an Action, and show a toast or redirect. See [Actions](docs/actions.md).
 - **The base model**, `App\Domain\Shared\Common\Models\Model`, adds soft deletes and activity logging. A model that extends it needs a `deleted_at` column and an entry in the morph map. The activity log stores the model as a polymorphic subject, so without that entry, creating, updating, deleting, or restoring it throws `ClassMorphViolationException`. The log records changes to fillable attributes, but not to attributes in `$hidden`. Keep secrets in `$hidden`.
 - **Strict models** are on outside production. Lazy loading, reading a missing attribute, or mass-assigning an attribute that is not fillable throws an exception.
 - **Morph map** is enforced, and `user` maps to `App\Domain\User\Models\User`. Add each new polymorphic model to the map in `EloquentServiceProvider`.
@@ -54,6 +56,8 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Time zones and locales**: the app keeps times in its own time zone, `app.timezone` (UTC by default), and PostgreSQL stores them as `timestamptz`. The `pgsql` connection uses the app time zone too, so another `app.timezone` keeps working. Pick one without daylight saving: times travel without an offset, so the hour that repeats when the clocks go back is ambiguous. Scheduled tasks run on the clock of `system.timezone`. Kit models read dates in the named zone of the app, so date math across daylight saving stays right. Each user has a time zone and a locale (`users.timezone`, `users.locale`). A new user gets the ones of their browser, and the profile settings change them. `system.timezone`, `system.locale`, and `system.locales` in `config/system.php` set the defaults and the locales that users can pick. `<x-input.datetime>` shows times in the time zone of the user, and `App\Domain\User\Support\Preferences` formats dates and times for the user with the formats of their locale.
 - **Tests** use Pest syntax and run with test impact analysis.
 - **Code checks** are stricter. PHPStan runs at level 10 with extra Larastan checks and Livewire support. Rector runs with Laravel and Pest rules. Vite+ lints the JavaScript and formats the JavaScript and CSS in `resources/`. Prettier formats the Blade views and sorts their Tailwind classes.
+- **Workflows** use Spatie Model States. A base state extends `App\Domain\Shared\Common\States\State`, which gives labels, colors, and the next states that a user can move to. It lists its transitions in `configure()`, and the kit builds that config once per state column and keeps it, so a flow with many states stays fast, also on Octane. A transition class extends `App\Domain\Shared\Common\Transitions\Transition`, which saves in a transaction, and fails when the state changed after the model was loaded or when a listener stopped the save. Callers check the `transition` policy ability before each step. A Livewire component runs a step with its own `transitionTo()`, which shows a toast instead of an error page when the step fails. See [Workflows](docs/workflows.md).
+- **Docs** in `docs/` follow the code. `php artisan docs:generate` fills each section between `<!-- generated:name -->` and `<!-- /generated:name -->` from the code, for example the permission matrix and the rules that the test names state. It runs the migrations and seeders on an in-memory SQLite database, so the matrix shows the roles that the seeders create. `composer test` fails when a section is out of date, or when a doc names a file, class, translation key, permission, route, config key, table column, or environment variable in backticks that does not exist. See [Permissions](docs/modules/permission.md).
 
 ## Requirements
 
@@ -86,7 +90,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 4. If you serve the app from a different host, set `APP_DOMAIN` in `.env`.
 
-5. If you use an AI coding agent, generate the Boost guidelines, skills, and MCP config. git ignores the generated files. After this, `composer update` also runs `php artisan boost:update` to keep them current:
+5. If you use Junie, write its Boost MCP config. git ignores this one file, because it holds local paths. The other Boost files are committed:
 
    ```bash
    php artisan boost:install
@@ -107,13 +111,15 @@ composer dev
 
 ## Quality Checks
 
-| Command                | Description                                                                         |
-|------------------------|-------------------------------------------------------------------------------------|
-| `composer test`        | Clear the config cache, run `lint:check` and `types:check`, then run the Pest tests |
-| `composer lint`        | Fix code with Rector, Pint, the Vite+ linter and formatter, and Prettier            |
-| `composer lint:check`  | Check Pint, Rector, Vite+ linting and formatting, and Prettier without changes      |
-| `composer types:check` | Run PHPStan (Larastan) at level 10                                                  |
-| `composer ci:check`    | Run `composer test` with no process timeout, as CI does                             |
+| Command                | Description                                                                                        |
+|------------------------|----------------------------------------------------------------------------------------------------|
+| `composer test`        | Clear the config cache, run `lint:check`, `types:check`, and `docs:check`, then run the Pest tests |
+| `composer lint`        | Fix code with Rector, Pint, the Vite+ linter and formatter, and Prettier                           |
+| `composer lint:check`  | Check Pint, Rector, Vite+ linting and formatting, and Prettier without changes                     |
+| `composer types:check` | Run PHPStan (Larastan) at level 10                                                                 |
+| `composer docs`        | Fill the generated sections of the docs from the code                                              |
+| `composer docs:check`  | Fail when a generated section is out of date or a doc names code that does not exist               |
+| `composer ci:check`    | Run `composer test` with no process timeout, as CI does                                            |
 
 `composer test` runs the tests with test impact analysis (`--tia`). With Xdebug installed, Pest runs only the tests that your changes affect. Without it, Pest runs all tests.
 

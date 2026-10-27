@@ -12,6 +12,8 @@ Build views with the components in `resources/views/components` first, for examp
 ## Build each input on x-field
 Build each kit input on `<x-field>`, so that the label row, the help text, and the error look and work the same in every form. Pass the name of the property to `name`, and add `data-input-control` to the control.
 
+A control with its label beside it, such as one checkbox or a switch, uses an inline `flux:field` instead. Keep its asterisk outside the label too.
+
 ## Keep links, buttons, and marks out of Flux labels
 Flux hides `flux:label` from screen readers and uses its whole text as the name of the input, also the text that has `aria-hidden`. So put only the label text in a label. Put links, buttons, and marks such as the required asterisk outside it, for example in the `hint` or `actions` slot of `<x-field>`.
 

@@ -16,7 +16,6 @@
 
 <flux:field
     {{ $attributes->class([
-        'content-start',
         '[&>[data-input-label-row]+[data-flux-description]]:-mt-1!',
         '[&>[data-input-label-row]+[data-flux-description]]:mb-1!',
         '[&>[data-flux-error]]:mt-0!',

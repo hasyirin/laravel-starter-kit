@@ -64,6 +64,7 @@ export default function datetimeField() {
             // wire:model sits on a hidden element that holds the value in the app time zone. The picker shows the user's time zone.
             this.picker().addEventListener('input', (event) => this.forward(event, 'input'));
             this.picker().addEventListener('change', (event) => this.forward(event, 'change'));
+            this.picker().addEventListener('blur', (event) => this.forward(event, 'blur'));
 
             this.$nextTick(() => this.show(this.model().value));
 

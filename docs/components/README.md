@@ -14,6 +14,12 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 | [`<x-input.time>`](input.time.md)         | A time that the user types or picks from a list                                                                   |
 | [`<x-input.datetime>`](input.datetime.md) | A date and a time in one field                                                                                    |
 | [`<x-input.phone>`](input.phone.md)       | A phone number with a country menu. The property gets the E.164 format.                                           |
+| [`<x-textarea>`](textarea.md)             | Text with more than one line                                                                                      |
+| [`<x-select>`](select.md)                 | One option from a list with a search input, or many with `multiple`                                               |
+| [`<x-pillbox>`](pillbox.md)               | Many options, each shown as a pill                                                                                |
+| [`<x-checkbox>`](checkbox.md)             | One checkbox, or a group of checkboxes when it has options                                                        |
+| [`<x-radio>`](radio.md)                   | One option from a short list that stays in view                                                                   |
+| [`<x-switch>`](switch.md)                 | A setting that is on or off                                                                                       |
 
 ## Live Docs
 

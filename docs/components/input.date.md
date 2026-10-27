@@ -85,6 +85,6 @@ The `trigger` slot replaces the input with your own button.
 
 ### Attributes
 
-`wire:model` goes to `flux:date-picker`. Flux pickers do not send a blur event, so `.blur` and `.live.blur` never update the property. Use `wire:model.live` to send each change, or `wire:model` to send the value with the next request.
+`wire:model` goes to `flux:date-picker`. Flux keeps the focus on an element inside the picker, so the kit sends the blur event when the focus leaves the picker. Every modifier works, also `.blur` and `.live.blur`.
 
 All other attributes go to `flux:date-picker`, so its props work: `mode`, `min`, `max`, `unavailable`, `months`, `min-range`, `max-range`, `with-presets`, `presets`, `with-inputs`, `with-confirmation`, `week-numbers`, `start-day`, `open-to`, `force-open-to`, `clearable`, `placeholder`, `size`, `disabled`, and `invalid`. `class` goes to the field.

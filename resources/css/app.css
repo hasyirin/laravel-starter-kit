@@ -75,7 +75,7 @@
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
-    @apply grid gap-2;
+    @apply grid content-start gap-2;
 }
 
 [data-flux-label] {

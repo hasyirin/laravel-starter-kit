@@ -1,4 +1,5 @@
 import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
+import blurOnLeave from './components/field';
 import inputField from './components/input';
 import datetimeField from './components/input/datetime';
 import numberField from './components/input/number';
@@ -15,6 +16,7 @@ if (window.livewireStarted) {
     // The server fills an empty time zone and locale of the user from these.
     remember('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
     remember('locale', navigator.languages.join(','));
+    blurOnLeave();
     Alpine.data('inputField', inputField);
     Alpine.data('datetimeField', datetimeField);
     Alpine.data('numberField', numberField);

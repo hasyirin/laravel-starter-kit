@@ -89,18 +89,15 @@ The field shows the first error of its `wire:model` property. Without `wire:mode
 
 ## Wrap Another Control
 
-Use `<x-field>` directly only for a control that has no kit input yet, such as a select. Then:
+Use `<x-field>` directly only for a control that has no kit input yet, such as a one-time code. Then:
 
 - Give the field the `name` of the property, so it shows the error.
 - Add `required` to the control too. On the field, `required` only shows the asterisk.
 - Add `data-input-control` to the control, so the label dims when the control is disabled.
 
 ```blade
-<x-field label="Country" name="form.country" required>
-    <flux:select wire:model="form.country" placeholder="Choose a country" required data-input-control>
-        <flux:select.option value="MY">Malaysia</flux:select.option>
-        <flux:select.option value="SG">Singapore</flux:select.option>
-    </flux:select>
+<x-field label="Verification code" name="form.code" required>
+    <flux:otp wire:model="form.code" length="6" required data-input-control />
 </x-field>
 ```
 
@@ -109,7 +106,7 @@ Use `<x-field>` directly only for a control that has no kit input yet, such as a
 - Give every input a `label`. If the design has no visible label, add `aria-label` to the input instead.
 - Clicking the label puts the focus in the input.
 - Screen readers reach the links and buttons in the hint and the actions, because they sit outside the label.
-- `required` also turns on the browser's own check when the form is submitted. If you validate on the server only, add `novalidate` to the form.
+- `required` also turns on the browser's own check when the form is submitted, on the controls that the browser knows: inputs, textareas, and the browser's own select. If you validate on the server only, add `novalidate` to the form. The listbox select, the pillbox, the checkboxes, the radios, and the switch have no browser check.
 
 ## Reference
 

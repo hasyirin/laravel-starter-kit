@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Common\Events\StateChanged;
 use App\Domain\Shared\Common\Exceptions\StaleState;
 use App\Domain\Shared\Common\Exceptions\StateNotSaved;
+use App\Domain\Shared\Common\Exceptions\TransitionBlocked;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\TransactionBeginning;
@@ -57,6 +58,19 @@ test('a step that its reason blocks throws and keeps the state', function (): vo
 
     expect(fn (): mixed => $ticket->state->transitionTo(Approved::class))->toThrow(TransitionNotAllowed::class)
         ->and($ticket->fresh()?->state)->toBeInstanceOf(InReview::class);
+});
+
+test('a step that its reason blocks throws the reason', function (): void {
+    $ticket = Ticket::query()->create(['title' => 'Leak']);
+    $ticket->state->transitionTo(InReview::class);
+
+    try {
+        $ticket->state->transitionTo(Approved::class);
+        $this->fail('The step was not blocked.');
+    } catch (TransitionBlocked $transitionBlocked) {
+        expect($transitionBlocked->reason)->toBe('The ticket is not ready for approval.')
+            ->and($transitionBlocked)->toBeInstanceOf(TransitionNotAllowed::class);
+    }
 });
 
 test('a step fails when another request changed the state first', function (): void {

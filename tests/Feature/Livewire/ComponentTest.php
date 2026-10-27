@@ -9,6 +9,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Exceptions\MethodNotFoundException;
+use Livewire\Features\SupportLifecycleHooks\DirectlyCallingLifecycleHooksNotAllowedException;
 use Livewire\Livewire;
 use Tests\Fixtures\Livewire\AbilityCheck;
 use Tests\Fixtures\Livewire\TicketSteps;
@@ -127,6 +128,38 @@ test('a step passes its arguments to the transition class', function (): void {
         ->assertSet('ran', true);
 
     expect($this->ticket->fresh()?->approved_at?->toDateTimeString())->toBe('2026-01-02 03:04:05');
+});
+
+test('a step that an Action runs turns its failures into toasts', function (string $state, string $text, string $variant, bool $reloads): void {
+    $component = Livewire::test(TicketSteps::class, ['ticketId' => $this->ticket->id])
+        ->call('moveWithAction', $state)
+        ->assertNotSet('ran', true)
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __($text) && $params['dataset']['variant'] === $variant);
+
+    $reloads ? $component->assertRedirect() : $component->assertNoRedirect();
+})->with([
+    'a blocked step shows its reason' => [Approved::class, 'The ticket is not ready for approval.', 'warning', false],
+    'a step the record does not have reloads the page' => [InReview::class, 'common/workflows.changed', 'warning', true],
+]);
+
+test('a step that an Action runs shows a toast when a listener stops the save', function (): void {
+    Ticket::saving(fn (Ticket $ticket): bool => ! $ticket->isDirty('state'));
+
+    Livewire::test(TicketSteps::class, ['ticketId' => $this->ticket->id])
+        ->call('moveWithAction', Returned::class)
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('common/workflows.not_saved') && $params['dataset']['variant'] === 'danger');
+});
+
+test('an error that is not a step still reaches the error page', function (): void {
+    $component = Livewire::test(TicketSteps::class, ['ticketId' => $this->ticket->id]);
+
+    expect(fn () => $component->call('fail'))->toThrow(RuntimeException::class, 'Not a step.');
+});
+
+test('the exception hook cannot be called from the browser', function (): void {
+    $component = Livewire::test(TicketSteps::class, ['ticketId' => $this->ticket->id]);
+
+    expect(fn () => $component->call('exception', 'x', 'y'))->toThrow(DirectlyCallingLifecycleHooksNotAllowedException::class);
 });
 
 test('a step without the permission is forbidden', function (): void {

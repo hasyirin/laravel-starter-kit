@@ -88,8 +88,8 @@ $invoice->state->transitionTo(Paid::class);
 - `hasStepTo()` on a state tells whether the config has a step to a state, without the checks and the permissions.
 - `allowedFor()` on a state returns the states that a user can move to now, after the checks and the permissions. Use it for the buttons.
 - `reasonFor()` on a state returns why a step is blocked.
-- When `reason()` blocks a step, `transitionTo()` throws `Spatie\ModelStates\Exceptions\TransitionNotAllowed`.
-- `StaleState`, `StateNotSaved`, and the Spatie exception above all extend `Spatie\ModelStates\Exceptions\CouldNotPerformTransition`, so one catch handles any step that fails.
+- When `reason()` blocks a step, `transitionTo()` throws `App\Domain\Shared\Common\Exceptions\TransitionBlocked`, with the reason in its `reason` property. It extends `Spatie\ModelStates\Exceptions\TransitionNotAllowed`.
+- `StaleState`, `StateNotSaved`, and `TransitionBlocked` all extend `Spatie\ModelStates\Exceptions\CouldNotPerformTransition`, so one catch handles any step that fails.
 
 ### In a Livewire Component
 
@@ -105,12 +105,14 @@ public function pay(): void
 ```
 
 - It holds no business work. The step's work stays in its transition class, which takes the place of an [Action](actions.md) for a step.
-- It returns true when the step ran.
+- It returns true when the step ran, and false when the record changed before the step could start.
 - It passes extra arguments to the transition class, as in `$this->transitionTo($this->invoice->state, Paid::class, $reference)`.
 - When the record changed after the page loaded, so the step no longer exists or another request saved first, it shows a toast and reloads the page with `wire:navigate`.
 - When `reason()` blocks the step, it shows the reason in a toast and keeps the page, so the user keeps what they typed.
 - When a listener stopped the save, it shows a toast.
 - When the user does not have the permission, it still fails with a 403. The buttons from `allowedFor()` never offer such a step, so only a removed permission or a forged request gets there.
+
+The toasts come from the `exception()` hook of `App\Livewire\Component`. It catches a failed step anywhere in a component action, so a step that an Action runs inside a bigger operation gets the same toasts. Any other error still shows the error page. A component that defines its own `exception()` calls `parent::exception($e, $stopPropagation)` first.
 
 ## Listen for Changes
 

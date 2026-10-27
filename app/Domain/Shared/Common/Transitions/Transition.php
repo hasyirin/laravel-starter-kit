@@ -20,6 +20,10 @@ class Transition extends DefaultTransition
      */
     protected $model;
 
+    private bool $checked = false;
+
+    private ?string $blockedReason = null;
+
     public static function ability(): string
     {
         return str(class_basename(static::class))->kebab()->value();
@@ -32,7 +36,17 @@ class Transition extends DefaultTransition
 
     public function canTransition(): bool
     {
-        return $this->reason() === null;
+        if (! $this->checked) {
+            $this->blockedReason = $this->reason();
+            $this->checked = true;
+        }
+
+        return $this->blockedReason === null;
+    }
+
+    public function blockedReason(): ?string
+    {
+        return $this->blockedReason;
     }
 
     /**

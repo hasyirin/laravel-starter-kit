@@ -5,16 +5,35 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Domain\Shared\Common\Exceptions\StateNotSaved;
+use App\Domain\Shared\Common\Exceptions\TransitionBlocked;
 use App\Domain\Shared\Common\States\State;
 use App\Livewire\Concerns\InteractsWithAbilities;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\ModelStates\Exceptions\CouldNotPerformTransition;
-use Spatie\ModelStates\Exceptions\TransitionNotAllowed;
+use Throwable;
 
 abstract class Component extends \Livewire\Component
 {
     use InteractsWithAbilities;
+
+    /**
+     * @param  callable(): void  $stopPropagation
+     */
+    public function exception(Throwable $e, callable $stopPropagation): void
+    {
+        if (! $e instanceof CouldNotPerformTransition) {
+            return;
+        }
+
+        match (true) {
+            $e instanceof TransitionBlocked => Flux::toast(variant: 'warning', text: $e->reason),
+            $e instanceof StateNotSaved => Flux::toast(variant: 'danger', text: __('common/workflows.not_saved')),
+            default => $this->reloadChangedRecord(),
+        };
+
+        $stopPropagation();
+    }
 
     /**
      * @template TModel of Model
@@ -31,21 +50,7 @@ abstract class Component extends \Livewire\Component
 
         $this->authorize('transition', [$state->getModel(), $state->getField(), $to]);
 
-        try {
-            $state->transitionTo($to, ...$arguments);
-        } catch (TransitionNotAllowed) {
-            Flux::toast(variant: 'warning', text: $state->reasonFor($to, ...$arguments) ?? __('common/workflows.changed'));
-
-            return false;
-        } catch (StateNotSaved) {
-            Flux::toast(variant: 'danger', text: __('common/workflows.not_saved'));
-
-            return false;
-        } catch (CouldNotPerformTransition) {
-            $this->reloadChangedRecord();
-
-            return false;
-        }
+        $state->transitionTo($to, ...$arguments);
 
         return true;
     }

@@ -9,6 +9,7 @@ use App\Domain\Shared\Common\Concerns\Enums\InteractsWithLabel;
 use App\Domain\Shared\Common\Contracts\Enums\HasColor;
 use App\Domain\Shared\Common\Contracts\Enums\HasLabel;
 use App\Domain\Shared\Common\Events\StateChanged;
+use App\Domain\Shared\Common\Exceptions\TransitionBlocked;
 use App\Domain\Shared\Common\Transitions\Transition;
 use App\Domain\User\Models\User;
 use Illuminate\Contracts\Support\Htmlable;
@@ -114,6 +115,18 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
     public function not(\Spatie\ModelStates\State|string ...$states): bool
     {
         return ! $this->equals(...$states);
+    }
+
+    /**
+     * @return TModel
+     */
+    public function transition(\Spatie\ModelStates\Transition $transition): Model
+    {
+        if ($transition instanceof Transition && ! $transition->canTransition()) {
+            throw TransitionBlocked::because($this->getModel(), $transition::class, (string) $transition->blockedReason());
+        }
+
+        return parent::transition($transition);
     }
 
     public function hasStepTo(string $state): bool

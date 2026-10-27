@@ -52,4 +52,4 @@ A component can still read data for its view without an Action.
 
 ## State Steps
 
-A state step needs no Action, because its transition class holds the work: the checks in `reason()` and the changes in `apply()`. A component runs the step with its own `transitionTo()`, which only checks the permission and shows toasts. An Action calls `$model->state->transitionTo()` only when the step is one part of a bigger operation. See [Workflows](workflows.md).
+A state step needs no Action, because its transition class holds the work: the checks in `reason()` and the changes in `apply()`. A component runs the step with its own `transitionTo()`, which only checks the permission and shows toasts. An Action calls `$model->state->transitionTo()` only when the step is one part of a bigger operation. When a component calls such an Action and the step fails, the component still shows the same toasts, because its `exception()` hook catches the failure. See [Workflows](workflows.md).

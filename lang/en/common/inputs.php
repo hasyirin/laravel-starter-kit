@@ -12,6 +12,6 @@ return [
     'new_password' => 'New password',
     'confirm_password' => 'Confirm password',
     'timezone' => 'Time zone',
-    'locale' => 'Language and region',
+    'locale' => 'Date and time format',
     'use_default' => 'Use the default: :value',
 ];

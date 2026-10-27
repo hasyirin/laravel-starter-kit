@@ -94,6 +94,15 @@ test('the profile shows how dates look with the chosen time zone and locale', fu
         ->assertSee('Dates and times look like this: 26 Oct 2026, 14:30');
 });
 
+test('the date and time formats are named in the language of the app', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(Profile::class)
+        ->assertSee('Date and time format')
+        ->assertSee('Malay (Malaysia)')
+        ->assertDontSee('Melayu (Malaysia)');
+});
+
 test('user can delete their account', function (): void {
     $user = User::factory()->create();
 

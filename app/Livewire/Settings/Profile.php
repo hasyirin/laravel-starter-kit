@@ -117,7 +117,7 @@ class Profile extends Component
     {
         return collect(config()->array('system.locales'))
             ->filter(fn (mixed $locale): bool => is_string($locale))
-            ->mapWithKeys(fn (string $locale): array => [$locale => (string) Locale::getDisplayName($locale, $locale)])
+            ->mapWithKeys(fn (string $locale): array => [$locale => (string) Locale::getDisplayName($locale, app()->getLocale())])
             ->all();
     }
 

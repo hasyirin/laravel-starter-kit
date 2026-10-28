@@ -19,7 +19,7 @@ function contentDocument(Testable $component): HTMLDocument
     return HTMLDocument::createFromString('<!doctype html>'.$component->html(), LIBXML_NOERROR);
 }
 
-test('only the current tab\'s content mounts', function (): void {
+test("only the current tab's content mounts", function (): void {
     Livewire::test(TabsHost::class)
         ->assertSeeLivewire(OwnerPanel::class)
         ->assertDontSeeLivewire(DocumentsPanel::class);

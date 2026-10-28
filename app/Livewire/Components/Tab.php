@@ -72,13 +72,9 @@ final class Tab
 
     public static function make(string $slug): self
     {
-        if ($slug === '') {
-            throw new InvalidArgumentException('A tab slug cannot be empty.');
-        }
+        throw_if($slug === '', InvalidArgumentException::class, 'A tab slug cannot be empty.');
 
-        if (json_validate($slug) && ! is_array(json_decode($slug, true))) {
-            throw new InvalidArgumentException("A tab slug cannot be a JSON value such as a number or a boolean. Got [{$slug}].");
-        }
+        throw_if(json_validate($slug) && ! is_array(json_decode($slug, true)), InvalidArgumentException::class, "A tab slug cannot be a JSON value such as a number or a boolean. Got [{$slug}].");
 
         return new self($slug);
     }

@@ -10,7 +10,9 @@
 @endphp
 
 @if($tabs !== [])
-    <flux:tabs :attributes="$attributes->merge(['aria-label' => $ariaLabel, 'x-data' => 'tabs', 'data-tabs-key' => $queryAs, 'data-tabs-default' => $defaultSlug])">
+    <flux:tabs
+        :attributes="$attributes->merge(['aria-label' => $ariaLabel, 'x-data' => 'tabs', 'data-tabs-key' => $queryAs, 'data-tabs-default' => $defaultSlug])"
+    >
         <div class="contents">
             @foreach($tabs as $tab)
                 @php

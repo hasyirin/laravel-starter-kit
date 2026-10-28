@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Livewire\Components\Tab;
+use Dom\Element;
 use Dom\HTMLDocument;
 
 beforeEach(function (): void {
@@ -19,7 +20,7 @@ test('a navbar renders one item per tab with its label, its href, and its slug',
     $items = $document->querySelectorAll('[data-flux-navbar] [data-flux-navbar-items][data-tab]');
 
     expect($items->length)->toBe(3)
-        ->and(array_map(fn ($item): string => (string) str($item->textContent)->squish(), iterator_to_array($items)))->toBe(['Profile', 'Billing 3', 'Audit'])
+        ->and(array_map(fn (Element $item): string => (string) str($item->textContent)->squish(), iterator_to_array($items)))->toBe(['Profile', 'Billing 3', 'Audit'])
         ->and($document->querySelector('[data-tab="profile"]')?->getAttribute('href'))->toBe('https://example.test/settings?search=bob')
         ->and($document->querySelector('[data-tab="billing"]')?->getAttribute('href'))->toBe('https://example.test/settings?search=bob&tab=billing')
         ->and($document->querySelector('[data-flux-navbar]')?->getAttribute('aria-label'))->toBe('Settings')
@@ -102,5 +103,5 @@ test('no tab in a navbar uses wire:navigate', function (): void {
 });
 
 test('a navbar without tabs renders nothing', function (): void {
-    expect(trim((string) $this->blade('<x-tabs.navbar :tabs="[]" :current-tab="null" />')))->toBe('');
+    expect(trim((string) $this->blade('<x-tabs.navbar :tabs="[]" :current-tab="null" />')))->toBeEmpty();
 });

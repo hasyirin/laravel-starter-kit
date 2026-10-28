@@ -1,6 +1,16 @@
 <div>
     @if($bar === 'card')
-        <x-card.tabs :$tabs :$currentTab :panels="$tabPanels" :query-as="$queryTabAs" :variant="$variant ?? 'segmented'" :$strip :$orientation :params="$contentParams" :aria-label="$ariaLabel" />
+        <x-card.tabs
+            :$tabs
+            :$currentTab
+            :panels="$tabPanels"
+            :query-as="$queryTabAs"
+            :variant="$variant ?? 'segmented'"
+            :$strip
+            :$orientation
+            :params="$contentParams"
+            :aria-label="$ariaLabel"
+        />
     @elseif($bar === 'navlist')
         <div class="flex gap-6">
             <x-tabs.navlist :$tabs :$currentTab :query-as="$queryTabAs" :aria-label="$ariaLabel" class="w-40 shrink-0" />

@@ -98,6 +98,7 @@ test('a kept-alive tab is remembered after the first visit', function (): void {
         ->call('switchTab', 'owner');
 
     $component->assertSet('visitedTabs', ['documents']);
+
     expect(panelSlugs($component))->toBe(['owner', 'documents']);
 });
 

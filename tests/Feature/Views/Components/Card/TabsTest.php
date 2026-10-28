@@ -80,3 +80,10 @@ test('a strip puts its content directly under the wrapper so the panels can join
 
     expect($document->querySelector('[data-tabs-strip] > [data-tab-content] > [data-tab-panel] > [wire\:id]'))->not->toBeNull();
 });
+
+test('card tabs put the attributes of the caller on the wrapper', function (): void {
+    $wrapper = cardTabsDocument(Livewire::test(CardTabsHost::class))->querySelector('[data-tabs-strip]');
+
+    expect($wrapper?->getAttribute('id'))->toBe('tabs-test-id')
+        ->and($wrapper?->classList->contains('tabs-test-class'))->toBeTrue();
+});

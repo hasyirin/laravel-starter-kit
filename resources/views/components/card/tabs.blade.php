@@ -11,7 +11,7 @@
 ])
 
 @if($tabs !== [])
-    <div @if($strip) data-tabs-strip @endif>
+    <div {{ $attributes }} @if($strip) data-tabs-strip @endif>
         @if($strip)
             <x-card @class(['rounded-b-none border-b-0', 'py-0!' => $variant === 'navbar', 'p-2!' => $variant !== 'navbar'])>
                 @include('partials.tabs.card-bar')

@@ -10,17 +10,11 @@ class CardTabsHost extends TabsHost
 
     public bool $strip = true;
 
-    public function mountCardTabsHost(string $variant = 'segmented', bool $strip = true): void
-    {
-        $this->variant = $variant;
-        $this->strip = $strip;
-    }
-
     public function render(): string
     {
         return <<<'BLADE'
             <div>
-                <x-card.tabs :$tabs :$currentTab :panels="$tabPanels" :query-as="$queryTabAs" :$variant :$strip aria-label="Sections" />
+                <x-card.tabs :$tabs :$currentTab :panels="$tabPanels" :query-as="$queryTabAs" :$variant :$strip aria-label="Sections" class="tabs-test-class" id="tabs-test-id" />
             </div>
             BLADE;
     }

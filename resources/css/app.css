@@ -191,7 +191,6 @@ select:focus[data-flux-control] {
     }
 }
 
-/* The first card of a panel under a card tabs strip joins the strip. */
 [data-tabs-strip] > [data-tab-content] > [data-tab-panel] {
     & > [data-flux-card]:first-child,
     & > [wire\:id] > [data-flux-card]:first-child {

@@ -94,18 +94,8 @@ select:focus[data-flux-control] {
 
 /* The card rules below use Flux internals that a Flux update can change. docs/components/card.md lists them. */
 
-/* The toggle's click area covers the header of an accordion card, so the header's own links and controls sit above it. */
-[data-flux-card-header]:has([data-card-toggle]) {
-    position: relative;
-
-    & > [data-flux-card-actions],
-    & :is(a, button, input, select, textarea, summary, [tabindex]):not([data-card-toggle]) {
-        position: relative;
-        z-index: 1;
-    }
-}
-
-/* Folded parts stay in the DOM, so a header with no part shown below it takes Flux's look for a last header. */
+/* Folded parts stay in the DOM, so a header with no part shown below it takes the padding Flux gives a last header. The kit
+also rounds its bottom corners, so that a folded band matches the card. */
 [data-flux-card-header]:has([data-card-toggle]):not(:has(~ :not([hidden]))) {
     padding-bottom: var(--flux-card-part-py);
     border-bottom-width: 0;
@@ -117,7 +107,8 @@ select:focus[data-flux-control] {
     }
 }
 
-/* A part that is hidden until found keeps its box, so that find in page can search it. */
+/* A part that is hidden until found keeps its box, so that find in page can search it. content-visibility does what browsers
+with hidden="until-found" do, so that a browser without it also keeps the folded fields out of the tab order. */
 [data-flux-card] > [hidden='until-found'] {
     height: 0;
     min-height: 0;
@@ -126,11 +117,13 @@ select:focus[data-flux-control] {
     border-width: 0;
     box-shadow: none;
     overflow: clip;
+    content-visibility: hidden;
 }
 
-/* Cards in a group share their borders, and only the outer corners are round. Inset panels keep their own corners. */
+/* Cards in a group share their borders, and only the outer corners are round. A hidden card does not count, and inset panels
+keep their own corners. :nth-child(... of ...) instead of :has(~ ...) keeps a change in one card from restyling the others. */
 [data-card-group] {
-    & > [data-flux-card] ~ [data-flux-card] {
+    & > [data-flux-card]:not(:nth-child(1 of [data-flux-card]:not([hidden], [style*='display: none']))) {
         --flux-bleed-top-radius: 0px;
         border-top-width: 0;
         border-top-left-radius: 0;
@@ -149,7 +142,7 @@ select:focus[data-flux-control] {
         }
     }
 
-    & > [data-flux-card]:has(~ [data-flux-card]) {
+    & > [data-flux-card]:not(:nth-last-child(1 of [data-flux-card]:not([hidden], [style*='display: none']))) {
         --flux-bleed-bottom-radius: 0px;
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;

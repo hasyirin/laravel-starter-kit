@@ -1,9 +1,13 @@
+// Links and controls in the header handle their own clicks, so a click on one of them does not fold the card.
+const interactive = 'a, button, input, select, textarea, label, summary, [tabindex], [contenteditable]';
+
 function parts(root) {
     return [...root.querySelectorAll(':scope > [data-flux-card-body], :scope > [data-flux-card-footer]')];
 }
 
+// The computed height ignores a transform or zoom on an ancestor, which getBoundingClientRect() includes.
 function height(element) {
-    return element.getBoundingClientRect().height;
+    return parseFloat(getComputedStyle(element).height);
 }
 
 function cancelFold(root) {
@@ -23,16 +27,30 @@ function foldedHeight(root) {
     return folded;
 }
 
-// An error message or an open dialog must be visible, even in a folded card.
-function needsUser(root) {
-    return parts(root).some(
-        (part) => part.querySelector('dialog[open]') || [...part.querySelectorAll('[data-flux-error]')].some((error) => error.textContent.trim() !== ''),
-    );
+function errorText(root) {
+    return parts(root)
+        .flatMap((part) => [...part.querySelectorAll('[data-flux-error]')])
+        .map((error) => error.textContent.trim())
+        .filter(Boolean)
+        .join('\n');
+}
+
+function hasOpenDialog(root) {
+    return parts(root).some((part) => part.querySelector('dialog[open]'));
+}
+
+// Livewire's wire:navigate scrolls to the fragment without the browser's reveal of a part that is hidden until found, so a card
+// checks the fragment when it starts. Livewire starts the components again after each navigation.
+function fragmentTarget(root) {
+    const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+
+    return target && parts(root).some((part) => part.contains(target)) ? target : null;
 }
 
 export default function card() {
     let observer;
     let fold = 0;
+    let errors = '';
 
     return {
         cardOpen: true,
@@ -42,23 +60,49 @@ export default function card() {
             const root = this.$root;
 
             this.cardOpen = this.cardShown = root.dataset.cardCollapsed !== 'true';
+            errors = errorText(root);
 
-            // Livewire changes the attribute only when the server value changes, so the user's own folds survive other updates.
             observer = new MutationObserver((records) => {
+                const shown = errorText(root);
+                const newError = shown !== '' && shown !== errors;
+                const dialogOpened = records.some((record) => record.attributeName === 'open') && hasOpenDialog(root);
                 const open = root.dataset.cardCollapsed !== 'true';
 
-                if (records.some((record) => record.target === root && record.attributeName === 'data-card-collapsed') && open !== this.cardOpen) {
-                    this.foldCard(open);
-                } else if (!this.cardOpen && needsUser(root)) {
+                errors = shown;
+
+                if (!this.cardOpen && (newError || dialogOpened)) {
                     this.revealCard();
+                } else if (records.some((record) => record.target === root && record.attributeName === 'data-card-collapsed') && open !== this.cardOpen) {
+                    // Livewire changes the attribute only when the server value changes, so the user's own folds survive other updates.
+                    // A card does not fold over an error message or an open dialog.
+                    if (open || (shown === '' && !hasOpenDialog(root))) {
+                        this.foldCard(open);
+                    }
                 }
             });
             observer.observe(root, { attributeFilter: ['data-card-collapsed', 'open'], childList: true, characterData: true, subtree: true });
 
-            root.addEventListener('invalid', () => this.revealCard(), true);
+            root.addEventListener('click', (event) => {
+                const header = event.target.closest('[data-flux-card-header]');
+                const control = event.target.closest(interactive);
+
+                if (header?.parentElement === root && !header.contains(control) && !window.getSelection()?.toString()) {
+                    this.toggleCard();
+                }
+            });
+
+            root.addEventListener(
+                'invalid',
+                (event) => {
+                    if (parts(root).some((part) => part.contains(event.target))) {
+                        this.revealCard();
+                    }
+                },
+                true,
+            );
             root.addEventListener('beforematch', () => this.revealCard(), true);
 
-            if (!this.cardOpen && needsUser(root)) {
+            if (!this.cardOpen && (errors !== '' || fragmentTarget(root))) {
                 this.revealCard();
             }
         },

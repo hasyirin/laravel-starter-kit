@@ -27,6 +27,14 @@ test('a profile of another user does not end a profile', function (): void {
     expect(Profile::query()->withEndedAt()->find($profile->id)?->ended_at)->toBeNull();
 });
 
+test('a profile shows the name of its user, also after the user is deleted', function (): void {
+    $user = User::factory()->create(['name' => 'Ada Lovelace']);
+    $profile = Profile::factory()->for($user)->create();
+    $user->delete();
+
+    expect(Profile::query()->find($profile->id)?->name)->toBe('Ada Lovelace');
+});
+
 test('the roles of a profile cannot change after it is created', function (): void {
     $profile = Profile::factory()->withRoles(Role::query()->create(['name' => 'editor']))->create();
 

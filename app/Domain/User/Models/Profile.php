@@ -16,6 +16,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use LogicException;
@@ -28,6 +29,7 @@ use LogicException;
  * @property int|null $branch_id
  * @property int $user_id
  * @property-read CarbonImmutable|null $ended_at
+ * @property-read User $user
  */
 #[ObservedBy(ProfileObserver::class)]
 class Profile extends Model
@@ -89,7 +91,15 @@ class Profile extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
+    }
+
+    /**
+     * @return Attribute<string, never>
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->user->name);
     }
 
     /**

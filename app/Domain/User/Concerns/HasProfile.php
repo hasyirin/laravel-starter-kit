@@ -20,7 +20,7 @@ trait HasProfile
      */
     public function profile(): HasOne
     {
-        return $this->hasOne(Profile::class)->latestOfMany();
+        return $this->hasOne(Profile::class)->latestOfMany()->chaperone();
     }
 
     /**
@@ -28,6 +28,6 @@ trait HasProfile
      */
     public function profiles(): HasMany
     {
-        return $this->hasMany(Profile::class);
+        return $this->hasMany(Profile::class)->chaperone();
     }
 }

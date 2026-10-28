@@ -10,6 +10,6 @@ class DocumentsPanel extends Component
 {
     public function render(): string
     {
-        return '<div></div>';
+        return '<div>Documents panel</div>';
     }
 }

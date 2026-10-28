@@ -8,8 +8,12 @@ use App\Livewire\Component;
 
 class OwnerPanel extends Component
 {
+    public string $source = '';
+
+    public string $heading = '';
+
     public function render(): string
     {
-        return '<div></div>';
+        return '<div>Owner panel {{ $source }} {{ $heading }}</div>';
     }
 }

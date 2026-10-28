@@ -128,9 +128,9 @@ trait InteractsWithTabs
         $currentSlug = $this->currentTab?->slug();
 
         return array_values(array_filter(
-            $this->availableTabs(),
-            fn (Tab $tab): bool => $tab->slug() === $currentSlug
-                || ($tab->isKeptAlive() && in_array($tab->slug(), $this->visitedTabs, true)),
+            $this->visibleTabs,
+            fn (Tab $tab): bool => ! $tab->isDisabled() && ($tab->slug() === $currentSlug
+                || ($tab->isKeptAlive() && in_array($tab->slug(), $this->visitedTabs, true))),
         ));
     }
 

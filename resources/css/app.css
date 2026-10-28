@@ -43,6 +43,33 @@
 }
 
 @theme {
+    --animate-tab-enter-x: tab-enter-x 200ms ease-out;
+    --animate-tab-enter-y: tab-enter-y 200ms ease-out;
+
+    @keyframes tab-enter-x {
+        from {
+            opacity: 0;
+            transform: translateX(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes tab-enter-y {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+@theme {
     --color-accent: var(--color-blue-500);
     --color-accent-content: var(--color-blue-600);
     --color-accent-foreground: var(--color-white);

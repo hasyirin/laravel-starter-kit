@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Route;
+use Tests\Fixtures\Livewire\Tabs\TabsPage;
+
 const TABS_PAGE = '/docs/components/tabs';
 
 function tabsScript(string $body): string
@@ -12,7 +15,7 @@ function tabsScript(string $body): string
         const panel = (key, slug) => [...rootOf(key).querySelectorAll(`[data-tab-panel="${slug}"]`)]
             .find((element) => element.closest('[wire\\:id]') === rootOf(key)) ?? null;
         const shown = (key, slug) => panel(key, slug)?.checkVisibility() ?? false;
-        const network = { started: 0, finished: 0 };
+        const network = window.tabsNetwork ??= { started: 0, finished: 0 };
         const slowNetwork = (milliseconds) => {
             const fetchOriginal = window.fetch;
             window.fetch = async (...args) => {
@@ -222,4 +225,51 @@ test('arrow keys move the focus in a tab bar', function (): void {
     $page->keys('[data-tabs-key="intro"] [data-tab="profile"]', 'ArrowRight');
 
     expect($page->script('() => document.activeElement?.dataset.tab'))->toBe('notes');
+});
+
+test('a kept-alive tab clicked during a pending switch wins', function (): void {
+    Route::livewire('/browser/tabs', TabsPage::class)->middleware('web');
+
+    $page = visit('/browser/tabs');
+
+    $page->script(tabsScript(<<<'SCRIPT'
+        tab('tab', 'documents').click();
+        await until(() => shown('tab', 'documents'));
+        tab('tab', 'owner').click();
+        await until(() => shown('tab', 'owner') && ! shown('tab', 'documents'));
+        SCRIPT));
+
+    $page->script(tabsScript(<<<'SCRIPT'
+        slowNetwork(300);
+        tab('tab', 'notes').click();
+        await tick();
+        tab('tab', 'documents').click();
+        SCRIPT));
+
+    expect($page->script(tabsScript(<<<'SCRIPT'
+        await settled();
+
+        return shown('tab', 'documents')
+            && ! shown('tab', 'notes')
+            && tab('tab', 'documents').getAttribute('aria-selected') === 'true'
+            && location.search === '?tab=documents';
+        SCRIPT)))->toBeTrue();
+});
+
+test('a failed switch gives the mark back to the current tab', function (): void {
+    Route::livewire('/browser/tabs', TabsPage::class)->middleware('web');
+
+    $page = visit('/browser/tabs');
+
+    expect($page->script(tabsScript(<<<'SCRIPT'
+        window.fetch = () => Promise.reject(new TypeError('Failed to fetch'));
+
+        tab('tab', 'notes').click();
+        const markedAtOnce = tab('tab', 'notes').getAttribute('aria-selected') === 'true';
+
+        return markedAtOnce
+            && await until(() => tab('tab', 'owner').getAttribute('aria-selected') === 'true')
+            && tab('tab', 'notes').getAttribute('aria-selected') === 'false'
+            && shown('tab', 'owner');
+        SCRIPT)))->toBeTrue();
 });

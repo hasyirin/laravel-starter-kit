@@ -8,28 +8,37 @@ use App\Livewire\Component;
 use App\Livewire\Components\Tab;
 use App\Livewire\Concerns\InteractsWithTabs;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Locked;
 
 class Tabs extends Component
 {
     use InteractsWithTabs;
 
+    #[Locked]
     public string $queryAs = 'tab';
 
+    #[Locked]
     public string $bar = 'tabs';
 
+    #[Locked]
     public ?string $variant = null;
 
+    #[Locked]
     public bool $strip = true;
 
+    #[Locked]
     public bool $nested = false;
 
+    #[Locked]
     public string $orientation = 'horizontal';
 
     /**
      * @var array<string, mixed>
      */
+    #[Locked]
     public array $contentParams = [];
 
+    #[Locked]
     public ?string $ariaLabel = null;
 
     public function queryTabAs(): string

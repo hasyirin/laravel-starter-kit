@@ -31,6 +31,7 @@ export default function tabs() {
     return {
         init() {
             const root = this.$root;
+            let latestClick = 0;
             const linkOf = (event) => event.target.closest?.('[data-tab][href]');
 
             // Other components can change the URL without this bar rendering again.
@@ -71,15 +72,23 @@ export default function tabs() {
                     return;
                 }
 
+                const click = ++latestClick;
+
                 root.querySelectorAll('[data-tab]').forEach((other) => markSelected(other, other === item));
 
                 // A rendered panel shows at once. Otherwise the current panel stays until the new one arrives.
                 if (hasPanel(this.$wire.$el, slug)) {
                     this.$wire.tab = slug === defaultSlug ? '' : slug;
-                    this.$wire.$commit();
-                } else {
-                    this.$wire.switchTab(slug);
                 }
+
+                // The server answers clicks in order, so the last click wins. A failed request gives the mark back to the current tab.
+                this.$wire.switchTab(slug).finally(() => {
+                    if (click === latestClick) {
+                        const current = this.$wire.tab || root.dataset.tabsDefault;
+
+                        root.querySelectorAll('[data-tab]').forEach((other) => markSelected(other, other.dataset.tab === current));
+                    }
+                });
             });
         },
     };

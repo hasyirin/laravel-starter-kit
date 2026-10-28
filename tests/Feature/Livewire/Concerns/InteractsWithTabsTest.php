@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Livewire\Components\Tab;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use Tests\Fixtures\Livewire\Tabs\CountingTabsHost;
 use Tests\Fixtures\Livewire\Tabs\NestedHost;
 use Tests\Fixtures\Livewire\Tabs\TabsHost;
 
@@ -148,8 +149,7 @@ test('a nested set reads its own key from the Referer when it mounts in a later 
 test('the default tab keeps the key out of the URL', function (): void {
     $component = Livewire::withQueryParams(['tab' => 'owner'])->test(TabsHost::class);
 
-    $component->assertSet('tab', '')
-        ->assertViewHas('defaultTab', 'owner');
+    $component->assertSet('tab', '');
     expect(defaultTabSlugs($component))->toBe(['owner'])
         ->and($component->effects['url']['tab']['except'])->toBe('')
         ->and(tabHrefs($component)['owner'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#');
@@ -170,8 +170,7 @@ test('the default tab is the first available, not the first declared', function 
     $component = Livewire::withQueryParams(['tab' => 'documents'])
         ->test(TabsHost::class, ['hiddenTabs' => ['owner']]);
 
-    $component->assertSet('tab', '')
-        ->assertViewHas('defaultTab', 'documents');
+    $component->assertSet('tab', '');
     expect(tabHrefs($component)['documents'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#')
         ->and(tabHrefs($component)['notes'])->toEndWith('?tab=notes')
         ->and(defaultTabSlugs($component))->toBe(['documents']);
@@ -182,8 +181,7 @@ test('when the first available tab changes, an empty tab follows the new default
         ->set('hiddenTabs', ['owner']);
 
     $component->assertSet('tab', '')
-        ->assertViewHas('currentTab', fn (Tab $tab): bool => $tab->slug() === 'documents')
-        ->assertViewHas('defaultTab', 'documents');
+        ->assertViewHas('currentTab', fn (Tab $tab): bool => $tab->slug() === 'documents');
     expect(tabHrefs($component)['documents'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#')
         ->and(defaultTabSlugs($component))->toBe(['documents']);
 });
@@ -193,4 +191,28 @@ test('queryTabAs changes the URL key', function (): void {
 
     expect($component->effects['url']['tab']['as'])->toBe('holding')
         ->and(tabHrefs($component)['documents'])->toEndWith('?holding=documents');
+});
+
+test('an action that reads the current tab and then switches renders the new tab', function (): void {
+    $component = Livewire::test(TabsHost::class)
+        ->call('continueToDocuments');
+
+    $component->assertSet('tab', 'documents')
+        ->assertViewHas('currentTab', fn (Tab $tab): bool => $tab->slug() === 'documents')
+        ->assertSee('Documents panel');
+    expect(panelSlugs($component))->toBe(['documents']);
+});
+
+test('the tab list is built once per phase', function (): void {
+    CountingTabsHost::$tabsCalls = 0;
+
+    $component = Livewire::test(CountingTabsHost::class);
+
+    expect(CountingTabsHost::$tabsCalls)->toBe(2);
+
+    CountingTabsHost::$tabsCalls = 0;
+
+    $component->update(calls: [['method' => 'switchTab', 'params' => ['documents'], 'metadata' => []]], updates: ['tab' => 'documents']);
+
+    expect(CountingTabsHost::$tabsCalls)->toBe(3);
 });

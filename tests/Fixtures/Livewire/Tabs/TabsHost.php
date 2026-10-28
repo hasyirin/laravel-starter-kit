@@ -63,6 +63,13 @@ class TabsHost extends Component
         ];
     }
 
+    public function continueToDocuments(): void
+    {
+        if ($this->currentTab?->slug() === 'owner') {
+            $this->switchTab('documents');
+        }
+    }
+
     public function render(): string
     {
         return <<<'BLADE'

@@ -23,6 +23,11 @@ trait InteractsWithTabs
     private ?string $tabBeforeUpdate = null;
 
     /**
+     * @var array{visible: list<Tab>, available: list<Tab>, current: ?Tab, panels: list<Tab>}|null
+     */
+    private ?array $tabState = null;
+
+    /**
      * @return list<Tab>
      */
     abstract public function tabs(): array;
@@ -48,14 +53,11 @@ trait InteractsWithTabs
 
     public function mountInteractsWithTabs(): void
     {
-        $defaultTab = $this->availableTabs()[0] ?? null;
+        $availableTabs = $this->availableTabs();
 
-        abort_if($defaultTab === null, 404);
+        abort_if($availableTabs === [], 404);
 
-        $currentTab = $this->findAvailableTab($this->tab) ?? $defaultTab;
-
-        $this->tab = $this->storedSlug($currentTab);
-        $this->rememberKeptAliveTab($currentTab);
+        $this->selectTab($availableTabs, $this->findTab($availableTabs, $this->tab) ?? $availableTabs[0]);
     }
 
     public function updatingInteractsWithTabs(string $property): void
@@ -71,34 +73,33 @@ trait InteractsWithTabs
             return;
         }
 
-        $tab = $this->resolveTab($this->tab);
+        $availableTabs = $this->availableTabs();
+        $tab = $this->resolveTab($availableTabs, $this->tab);
 
         if ($tab === null) {
             $this->tab = $this->tabBeforeUpdate ?? '';
+            $this->forgetTabState();
 
             return;
         }
 
-        $this->tab = $this->storedSlug($tab);
-        $this->rememberKeptAliveTab($tab);
+        $this->selectTab($availableTabs, $tab);
     }
 
     public function switchTab(string $slug): void
     {
-        $tab = $this->findAvailableTab($slug);
+        $availableTabs = $this->availableTabs();
+        $tab = $this->findTab($availableTabs, $slug);
 
-        if ($tab === null) {
-            return;
+        if ($tab !== null) {
+            $this->selectTab($availableTabs, $tab);
         }
-
-        $this->tab = $this->storedSlug($tab);
-        $this->rememberKeptAliveTab($tab);
     }
 
     #[Computed]
     public function currentTab(): ?Tab
     {
-        return $this->resolveTab($this->tab) ?? $this->availableTabs()[0] ?? null;
+        return $this->tabState()['current'];
     }
 
     /**
@@ -107,16 +108,7 @@ trait InteractsWithTabs
     #[Computed]
     public function visibleTabs(): array
     {
-        $defaultSlug = $this->defaultTabSlug();
-        $pageUrl = Livewire::originalUrl();
-        $pageQuery = $this->pageQuery();
-
-        return array_values(array_map(
-            fn (Tab $tab): Tab => $tab
-                ->url($this->tabUrl($pageUrl, $pageQuery, $tab->slug() === $defaultSlug ? null : $tab->slug()))
-                ->markDefault($tab->slug() === $defaultSlug),
-            array_filter($this->tabs(), fn (Tab $tab): bool => $tab->isVisible()),
-        ));
+        return $this->tabState()['visible'];
     }
 
     /**
@@ -125,30 +117,26 @@ trait InteractsWithTabs
     #[Computed]
     public function tabPanels(): array
     {
-        $currentSlug = $this->currentTab?->slug();
-
-        return array_values(array_filter(
-            $this->visibleTabs,
-            fn (Tab $tab): bool => ! $tab->isDisabled() && ($tab->slug() === $currentSlug
-                || ($tab->isKeptAlive() && in_array($tab->slug(), $this->visitedTabs, true))),
-        ));
+        return $this->tabState()['panels'];
     }
 
     public function renderingInteractsWithTabs(View $view): void
     {
-        $currentTab = $this->currentTab;
+        $this->forgetTabState();
+
+        $tabState = $this->tabState();
+        $currentTab = $tabState['current'];
 
         if ($currentTab !== null) {
-            $this->tab = $this->storedSlug($currentTab);
+            $this->tab = $this->storedSlug($tabState['available'], $currentTab);
             $this->rememberKeptAliveTab($currentTab);
         }
 
         $view->with([
-            'tabs' => $this->visibleTabs,
+            'tabs' => $tabState['visible'],
             'currentTab' => $currentTab,
-            'defaultTab' => $this->defaultTabSlug(),
             'queryTabAs' => $this->queryTabAs(),
-            'tabPanels' => $this->tabPanels,
+            'tabPanels' => $tabState['panels'],
         ]);
     }
 
@@ -157,30 +145,105 @@ trait InteractsWithTabs
      */
     protected function availableTabs(): array
     {
-        return array_values(array_filter(
-            $this->tabs(),
-            fn (Tab $tab): bool => $tab->isVisible() && ! $tab->isDisabled(),
+        return $this->partitionTabs()['available'];
+    }
+
+    /**
+     * @return array{visible: list<Tab>, available: list<Tab>}
+     */
+    private function partitionTabs(): array
+    {
+        $visibleTabs = [];
+        $availableTabs = [];
+
+        foreach ($this->tabs() as $tab) {
+            if (! $tab->isVisible()) {
+                continue;
+            }
+
+            $visibleTabs[] = $tab;
+
+            if (! $tab->isDisabled()) {
+                $availableTabs[] = $tab;
+            }
+        }
+
+        return ['visible' => $visibleTabs, 'available' => $availableTabs];
+    }
+
+    /**
+     * @return array{visible: list<Tab>, available: list<Tab>, current: ?Tab, panels: list<Tab>}
+     */
+    private function tabState(): array
+    {
+        if ($this->tabState !== null) {
+            return $this->tabState;
+        }
+
+        ['visible' => $visibleTabs, 'available' => $availableTabs] = $this->partitionTabs();
+        $defaultTab = $availableTabs[0] ?? null;
+        $currentTab = $this->resolveTab($availableTabs, $this->tab) ?? $defaultTab;
+        $pageUrl = Livewire::originalUrl();
+        $pageQuery = $this->pageQuery();
+
+        foreach ($visibleTabs as $tab) {
+            $isDefault = $tab === $defaultTab;
+
+            $tab->url($this->tabUrl($pageUrl, $pageQuery, $isDefault ? null : $tab->slug()))->markDefault($isDefault);
+        }
+
+        $panels = array_values(array_filter(
+            $availableTabs,
+            fn (Tab $tab): bool => $tab === $currentTab || ($tab->isKeptAlive() && in_array($tab->slug(), $this->visitedTabs, true)),
         ));
+
+        return $this->tabState = [
+            'visible' => $visibleTabs,
+            'available' => $availableTabs,
+            'current' => $currentTab,
+            'panels' => $panels,
+        ];
     }
 
-    private function defaultTabSlug(): string
+    private function forgetTabState(): void
     {
-        return ($this->availableTabs()[0] ?? null)?->slug() ?? '';
+        $this->tabState = null;
+
+        unset($this->currentTab, $this->visibleTabs, $this->tabPanels);
     }
 
-    private function storedSlug(Tab $tab): string
+    /**
+     * @param  list<Tab>  $availableTabs
+     */
+    private function selectTab(array $availableTabs, Tab $tab): void
     {
-        return $tab->slug() === $this->defaultTabSlug() ? '' : $tab->slug();
+        $this->tab = $this->storedSlug($availableTabs, $tab);
+        $this->rememberKeptAliveTab($tab);
+        $this->forgetTabState();
     }
 
-    private function resolveTab(string $slug): ?Tab
+    /**
+     * @param  list<Tab>  $availableTabs
+     */
+    private function storedSlug(array $availableTabs, Tab $tab): string
     {
-        return $slug === '' ? $this->availableTabs()[0] ?? null : $this->findAvailableTab($slug);
+        return $tab->slug() === ($availableTabs[0] ?? null)?->slug() ? '' : $tab->slug();
     }
 
-    private function findAvailableTab(string $slug): ?Tab
+    /**
+     * @param  list<Tab>  $availableTabs
+     */
+    private function resolveTab(array $availableTabs, string $slug): ?Tab
     {
-        foreach ($this->availableTabs() as $tab) {
+        return $slug === '' ? $availableTabs[0] ?? null : $this->findTab($availableTabs, $slug);
+    }
+
+    /**
+     * @param  list<Tab>  $availableTabs
+     */
+    private function findTab(array $availableTabs, string $slug): ?Tab
+    {
+        foreach ($availableTabs as $tab) {
             if ($tab->slug() === $slug) {
                 return $tab;
             }

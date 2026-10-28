@@ -23,6 +23,15 @@ class Tabs extends Component
 
     public bool $nested = false;
 
+    public string $orientation = 'horizontal';
+
+    /**
+     * @var array<string, mixed>
+     */
+    public array $contentParams = [];
+
+    public ?string $ariaLabel = null;
+
     public function queryTabAs(): string
     {
         return $this->queryAs;

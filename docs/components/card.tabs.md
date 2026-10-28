@@ -6,7 +6,7 @@
 <livewire:pages.local.examples.tabs query-as="card" bar="card" />
 ```
 
-It takes the variables of the `InteractsWithTabs` trait, like the other bars and `<x-tabs.content>` together:
+It renders a bar and `<x-tabs.content>` in one tag, so it takes the variables of the `InteractsWithTabs` trait for both:
 
 ```html
 <x-card.tabs :$tabs :$currentTab :panels="$tabPanels" :query-as="$queryTabAs" />
@@ -39,6 +39,36 @@ The bar in the strip is a segmented [Flux tabs](https://fluxui.dev/components/ta
 ```
 
 Other combinations work too, but the kit does not use them.
+
+## Content
+
+`orientation` and `params` go to `<x-tabs.content>`. See [Tabs](tabs.md#content).
+
+`orientation="vertical"` makes the content slide in from the top:
+
+```blade
+<livewire:pages.local.examples.tabs query-as="card-vertical" bar="card" orientation="vertical" />
+```
+
+`params` gives props to the content of every tab. They win over the props of a tab:
+
+```html
+<x-card.tabs :$tabs :$currentTab :panels="$tabPanels" :query-as="$queryTabAs" :params="['project' => $project]" />
+```
+
+In this example, `params` gives every field a value:
+
+```blade
+<livewire:pages.local.examples.tabs query-as="card-params" bar="card" :content-params="['value' => 'Ada']" />
+```
+
+## Screen Readers
+
+`aria-label` gives the bar a name for screen readers:
+
+```blade
+<livewire:pages.local.examples.tabs query-as="card-labelled" bar="card" aria-label="Profile sections" />
+```
 
 ## The Card Below the Strip
 

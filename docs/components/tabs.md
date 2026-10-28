@@ -1,6 +1,6 @@
 # Tabs
 
-A tab set shows a bar of tabs and the content of the current tab. A click on a tab swaps only the content. The page does not load again, and only the current tab mounts its content.
+A tab set shows a bar of tabs and the content of the current tab. A click on a tab swaps only the content. The page does not load again, and at first only the current tab mounts its content.
 
 ```blade
 <livewire:pages.local.examples.tabs query-as="intro" />
@@ -100,7 +100,13 @@ When the URL holds a tab that is unknown, hidden, or disabled, the tab set opens
 <livewire:pages.local.examples.tabs query-as="navlist" bar="navlist" />
 ```
 
-All bars take the same props. Other attributes go to the Flux component, except `x-data`: the bar has its own Alpine behavior. For a bar in a card, see [Card Tabs](card.tabs.md).
+All bars take the same props. `aria-label` gives the bar a name for screen readers. Use it when the page has more than one bar, so the user can tell them apart:
+
+```blade
+<livewire:pages.local.examples.tabs query-as="labelled" aria-label="Profile sections" />
+```
+
+Other attributes go to the Flux component, except `x-data`: the bar has its own Alpine behavior. For a bar in a card, see [Card Tabs](card.tabs.md).
 
 ## Content
 
@@ -159,6 +165,10 @@ Tab::make('billing')->content(Billing::class)->disabled(! $this->project->hasPla
 
 The Closure runs on every request. So when the current tab becomes hidden or disabled, the tab set opens the default tab.
 
+Without an argument, `hidden()`, `visible()`, and `disabled()` take `true`.
+
+Hiding or disabling a tab only decides what the tab set shows. It does not protect the content. The content component must authorize the user in its own `mount()` and in its actions.
+
 ## Label, Icon, Badge, and Tooltip
 
 `label()` is the text of a tab. Without it, the tab shows its slug. `icon()` takes the name of a [Flux icon](https://fluxui.dev/components/icon). `badge()` adds a small badge after the label, and `badgeColor()` takes a [Flux badge](https://fluxui.dev/components/badge) color.
@@ -191,6 +201,8 @@ A tab set inside the content of a tab is a Livewire component of its own. It use
 
 When the user leaves the outer tab, the inner key stays in the URL. So when the user comes back, the inner set opens the tab that the user had.
 
+A nested set with no available tab aborts with 404 when it mounts, also when it mounts after a switch of the outer set. So give every nested set at least one tab that is always available.
+
 ```blade
 <livewire:pages.local.examples.tabs query-as="outer" nested />
 ```
@@ -205,7 +217,7 @@ One component holds one tab set. A second set on the same level needs its own co
 
 ### Tab
 
-`Tab::make()` takes the slug of the tab. The slug is the value in the URL.
+`Tab::make()` takes the slug of the tab. The slug is the value in the URL. An empty slug throws an `InvalidArgumentException`.
 
 | Method          | Description                                                                                         |
 |-----------------|-----------------------------------------------------------------------------------------------------|
@@ -213,12 +225,12 @@ One component holds one tab set. A second set on the same level needs its own co
 | `title()`       | Text for a heading on the page. The bars do not show it.                                            |
 | `description()` | Text for the page under the title. The bars do not show it.                                         |
 | `icon()`        | A Flux icon name, or a Closure.                                                                     |
-| `badge()`       | A badge after the label, or a Closure.                                                              |
+| `badge()`       | A badge after the label: a string, an int, or a Closure.                                            |
 | `badgeColor()`  | The color of the badge.                                                                             |
 | `tooltip()`     | A tooltip: `always`, and `disabled` for a disabled tab. Each takes a Closure too.                   |
-| `hidden()`      | Takes the tab out of the bar. A bool or a Closure.                                                  |
-| `visible()`     | The opposite of `hidden()`. The last call wins.                                                     |
-| `disabled()`    | Greys out the tab and stops it from opening. A bool or a Closure.                                   |
+| `hidden()`      | Takes the tab out of the bar. A bool or a Closure. The default is `true`.                           |
+| `visible()`     | The opposite of `hidden()`. The last call wins. The default is `true`.                              |
+| `disabled()`    | Greys out the tab and stops it from opening. A bool or a Closure. The default is `true`.            |
 | `content()`     | A Livewire component class, a view, or a Closure that returns one of them.                          |
 | `params()`      | Props for the content. An array or a Closure.                                                       |
 | `keepAlive()`   | Keeps a Livewire content mounted and hidden after the first visit.                                  |

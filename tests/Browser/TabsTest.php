@@ -12,7 +12,6 @@ function tabsScript(string $body): string
         const panel = (key, slug) => [...rootOf(key).querySelectorAll(`[data-tab-panel="${slug}"]`)]
             .find((element) => element.closest('[wire\\:id]') === rootOf(key)) ?? null;
         const shown = (key, slug) => panel(key, slug)?.checkVisibility() ?? false;
-        const tick = () => new Promise((resolve) => setTimeout(resolve, 50));
         const network = { started: 0, finished: 0 };
         const slowNetwork = (milliseconds) => {
             const fetchOriginal = window.fetch;
@@ -27,17 +26,6 @@ function tabsScript(string $body): string
                 }
             };
         };
-        const until = async (check) => {
-            for (let attempt = 0; attempt < 100; attempt++) {
-                if (check()) {
-                    return true;
-                }
-
-                await new Promise((resolve) => setTimeout(resolve, 100));
-            }
-
-            return false;
-        };
         const settled = async () => {
             for (let round = 0; round < 3; round++) {
                 await until(() => network.started > 0 && network.started === network.finished);
@@ -46,12 +34,8 @@ function tabsScript(string $body): string
         };
         SCRIPT;
 
-    return "async () => {\n{$helpers}\n{$body}\n}";
+    return browserScript("{$helpers}\n{$body}");
 }
-
-beforeEach(function (): void {
-    app()->detectEnvironment(fn (): string => 'local');
-});
 
 test('a tab click swaps only the content and sets only its own query key', function (): void {
     $page = visit(TABS_PAGE.'?search=bob&filters[status]=open');

@@ -122,3 +122,11 @@ test('a tab stores the text, the badge color, and the url it is given', function
         ->and(Tab::make('b')->resolvedUrl())->toBeNull()
         ->and(Tab::make('b')->resolvedParams())->toBe([]);
 });
+
+test('a tab is the default only when it is marked', function (): void {
+    $tab = Tab::make('a');
+
+    expect($tab->isDefault())->toBeFalse()
+        ->and($tab->markDefault()->isDefault())->toBeTrue()
+        ->and($tab->markDefault(false)->isDefault())->toBeFalse();
+});

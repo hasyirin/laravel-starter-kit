@@ -112,7 +112,9 @@ trait InteractsWithTabs
         $pageQuery = $this->pageQuery();
 
         return array_values(array_map(
-            fn (Tab $tab): Tab => $tab->url($this->tabUrl($pageUrl, $pageQuery, $tab->slug() === $defaultSlug ? null : $tab->slug())),
+            fn (Tab $tab): Tab => $tab
+                ->url($this->tabUrl($pageUrl, $pageQuery, $tab->slug() === $defaultSlug ? null : $tab->slug()))
+                ->markDefault($tab->slug() === $defaultSlug),
             array_filter($this->tabs(), fn (Tab $tab): bool => $tab->isVisible()),
         ));
     }

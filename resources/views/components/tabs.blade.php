@@ -6,7 +6,7 @@
 ])
 
 @php
-    $defaultSlug = collect($tabs)->first(fn (App\Livewire\Components\Tab $tab): bool => ! $tab->isDisabled())?->slug() ?? '';
+    $defaultSlug = collect($tabs)->first(fn (App\Livewire\Components\Tab $tab): bool => $tab->isDefault())?->slug() ?? '';
 @endphp
 
 @if($tabs !== [])
@@ -15,21 +15,24 @@
             @php
                 $isDisabled = $tab->isDisabled();
                 $tooltip = $tab->resolvedTooltip($isDisabled);
+                $isSelected = $tab->slug() === $currentTab?->slug();
                 $badge = $tab->resolvedBadge();
+                $key = 'tab-'.$tab->slug();
             @endphp
 
             @if($tooltip)
-                <flux:tooltip :content="$tooltip">
+                <flux:tooltip :content="$tooltip" :wire:key="$key">
             @endif
             <flux:tab
                 :href="$isDisabled ? null : $tab->resolvedUrl()"
                 :as="$isDisabled ? 'div' : null"
-                :selected="$tab->slug() === $currentTab?->slug()"
+                :selected="$isSelected"
+                :aria-selected="$isSelected ? 'true' : 'false'"
                 :icon="$tab->resolvedIcon()"
                 :aria-disabled="$isDisabled ? 'true' : null"
-                :class="$isDisabled ? 'pointer-events-none opacity-50' : null"
+                :class="$isDisabled ? 'cursor-default opacity-50' : null"
+                :wire:key="$tooltip ? null : $key"
                 data-tab="{{ $tab->slug() }}"
-                wire:key="tab-{{ $tab->slug() }}"
             >
                 {{ $tab->resolvedLabel() }}
 

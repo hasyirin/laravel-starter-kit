@@ -1,5 +1,10 @@
-function selectedAttribute(item) {
-    return item.hasAttribute('data-flux-tab') ? 'data-selected' : 'data-current';
+function markSelected(item, isSelected) {
+    if (item.hasAttribute('data-flux-tab')) {
+        item.toggleAttribute('data-selected', isSelected);
+        item.setAttribute('aria-selected', String(isSelected));
+    } else {
+        item.toggleAttribute('data-current', isSelected);
+    }
 }
 
 function isModifiedClick(event) {
@@ -48,8 +53,7 @@ export default function tabs(key, defaultSlug) {
                     return;
                 }
 
-                root.querySelectorAll('[data-tab]').forEach((other) => other.removeAttribute(selectedAttribute(other)));
-                item.setAttribute(selectedAttribute(item), '');
+                root.querySelectorAll('[data-tab]').forEach((other) => markSelected(other, other === item));
 
                 this.$wire.tab = slug === defaultSlug ? '' : slug;
                 this.$wire.switchTab(slug);

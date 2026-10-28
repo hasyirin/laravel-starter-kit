@@ -7,7 +7,7 @@ use Dom\HTMLDocument;
 
 beforeEach(function (): void {
     $this->tabs = [
-        Tab::make('profile')->label('Profile')->icon('user')->url('https://example.test/settings?search=bob'),
+        Tab::make('profile')->label('Profile')->icon('user')->url('https://example.test/settings?search=bob')->markDefault(),
         Tab::make('billing')->label('Billing')->badge('3')->badgeColor('red')->tooltip('Invoices and plans')->url('https://example.test/settings?search=bob&tab=billing'),
         Tab::make('audit')->label('Audit')->disabled(true)->tooltip('Shown to all', disabled: 'Ask an admin')->url('https://example.test/settings?search=bob&tab=audit'),
     ];
@@ -40,7 +40,8 @@ test('a tab bar marks the current tab only', function (): void {
     $document = HTMLDocument::createFromString((string) $this->blade('<x-tabs :tabs="$tabs" :current-tab="$tabs[1]" />', ['tabs' => $this->tabs]), LIBXML_NOERROR);
 
     expect($document->querySelector('[data-tab="billing"]')?->hasAttribute('data-selected'))->toBeTrue()
-        ->and($document->querySelectorAll('[data-tab][data-selected]')->length)->toBe(1);
+        ->and($document->querySelectorAll('[data-tab][data-selected]')->length)->toBe(1)
+        ->and(array_map(fn ($item): ?string => $item->getAttribute('aria-selected'), iterator_to_array($document->querySelectorAll('[data-tab]'))))->toBe(['false', 'true', 'false']);
 });
 
 test('a disabled tab in a tab bar has no href and is greyed out', function (): void {
@@ -51,8 +52,9 @@ test('a disabled tab in a tab bar has no href and is greyed out', function (): v
     expect($audit?->hasAttribute('href'))->toBeFalse()
         ->and($audit?->localName)->toBe('div')
         ->and($audit?->getAttribute('aria-disabled'))->toBe('true')
-        ->and($audit?->classList->contains('pointer-events-none'))->toBeTrue()
         ->and($audit?->classList->contains('opacity-50'))->toBeTrue()
+        ->and($audit?->classList->contains('cursor-default'))->toBeTrue()
+        ->and($audit?->classList->contains('pointer-events-none'))->toBeFalse()
         ->and($document->querySelector('[data-tab="profile"]')?->classList->contains('opacity-50'))->toBeFalse();
 });
 
@@ -64,15 +66,25 @@ test('a tooltip wraps a tab in a tab bar only when the tab has tooltip text, and
         ->and(trim($document->querySelector('[data-flux-tooltip]:has(> [data-tab="audit"]) [data-flux-tooltip-content]')?->textContent ?? ''))->toBe('Ask an admin');
 });
 
-test('the default slug of a tab bar is its first tab that is not disabled, and the query key reaches the Alpine behavior', function (): void {
+test('the default slug of a tab bar comes from the tab marked as default, and the query key reaches the Alpine behavior', function (): void {
     $tabs = [
-        Tab::make('audit')->disabled(true)->url('https://example.test/settings?section=audit'),
-        Tab::make('profile')->url('https://example.test/settings'),
+        Tab::make('audit')->url('https://example.test/settings?section=audit'),
+        Tab::make('profile')->url('https://example.test/settings')->markDefault(),
     ];
 
     $document = HTMLDocument::createFromString((string) $this->blade('<x-tabs :tabs="$tabs" :current-tab="$tabs[1]" query-as="section" />', ['tabs' => $tabs]), LIBXML_NOERROR);
 
     expect($document->querySelector('[data-flux-tabs]')?->getAttribute('x-data'))->toBe("tabs('section', 'profile')");
+});
+
+test('the key of each tab in a tab bar sits on the direct child of the loop', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-tabs :tabs="$tabs" :current-tab="$tabs[0]" />', ['tabs' => $this->tabs]), LIBXML_NOERROR);
+
+    $billing = $document->querySelector('[data-tab="billing"]');
+
+    expect($document->querySelector('[data-tab="profile"]')?->getAttribute('wire:key'))->toBe('tab-profile')
+        ->and($billing?->hasAttribute('wire:key'))->toBeFalse()
+        ->and($billing?->parentElement?->getAttribute('wire:key'))->toBe('tab-billing');
 });
 
 test('other attributes reach the Flux root of a tab bar', function (): void {

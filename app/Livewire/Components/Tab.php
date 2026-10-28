@@ -65,6 +65,8 @@ final class Tab
 
     private ?string $url = null;
 
+    private bool $isDefault = false;
+
     private function __construct(private readonly string $slug) {}
 
     public static function make(string $slug): self
@@ -208,6 +210,13 @@ final class Tab
         return $this;
     }
 
+    public function markDefault(bool $isDefault = true): self
+    {
+        $this->isDefault = $isDefault;
+
+        return $this;
+    }
+
     public function resolvedLabel(): string
     {
         return $this->label ?? $this->slug;
@@ -253,6 +262,11 @@ final class Tab
     public function isDisabled(): bool
     {
         return $this->disabled instanceof Closure ? (bool) ($this->disabled)() : $this->disabled;
+    }
+
+    public function isDefault(): bool
+    {
+        return $this->isDefault;
     }
 
     public function isKeptAlive(): bool

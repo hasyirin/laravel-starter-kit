@@ -22,6 +22,17 @@ function tabHrefs(Testable $component): array
 /**
  * @return list<string>
  */
+function defaultTabSlugs(Testable $component): array
+{
+    /** @var list<Tab> $tabs */
+    $tabs = $component->viewData('tabs');
+
+    return collect($tabs)->filter(fn (Tab $tab): bool => $tab->isDefault())->map(fn (Tab $tab): string => $tab->slug())->values()->all();
+}
+
+/**
+ * @return list<string>
+ */
 function panelSlugs(Testable $component): array
 {
     /** @var list<Tab> $panels */
@@ -139,7 +150,8 @@ test('the default tab keeps the key out of the URL', function (): void {
 
     $component->assertSet('tab', '')
         ->assertViewHas('defaultTab', 'owner');
-    expect($component->effects['url']['tab']['except'])->toBe('')
+    expect(defaultTabSlugs($component))->toBe(['owner'])
+        ->and($component->effects['url']['tab']['except'])->toBe('')
         ->and(tabHrefs($component)['owner'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#');
 
     $component->call('switchTab', 'notes')
@@ -161,7 +173,8 @@ test('the default tab is the first available, not the first declared', function 
     $component->assertSet('tab', '')
         ->assertViewHas('defaultTab', 'documents');
     expect(tabHrefs($component)['documents'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#')
-        ->and(tabHrefs($component)['notes'])->toEndWith('?tab=notes');
+        ->and(tabHrefs($component)['notes'])->toEndWith('?tab=notes')
+        ->and(defaultTabSlugs($component))->toBe(['documents']);
 });
 
 test('when the first available tab changes, an empty tab follows the new default', function (): void {
@@ -171,7 +184,8 @@ test('when the first available tab changes, an empty tab follows the new default
     $component->assertSet('tab', '')
         ->assertViewHas('currentTab', fn (Tab $tab): bool => $tab->slug() === 'documents')
         ->assertViewHas('defaultTab', 'documents');
-    expect(tabHrefs($component)['documents'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#');
+    expect(tabHrefs($component)['documents'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#')
+        ->and(defaultTabSlugs($component))->toBe(['documents']);
 });
 
 test('queryTabAs changes the URL key', function (): void {

@@ -13,6 +13,10 @@ function markSelected(item, isSelected) {
     }
 }
 
+function isSelected(item) {
+    return item.getAttribute('aria-selected') === 'true' || item.getAttribute('aria-current') === 'page';
+}
+
 function hasPanel(componentRoot, slug) {
     return [...componentRoot.querySelectorAll('[data-tab-panel]')].some(
         (panel) => panel.dataset.tabPanel === slug && panel.closest('[wire\\:id]') === componentRoot,
@@ -63,7 +67,7 @@ export default function tabs() {
                 const slug = item.dataset.tab;
                 const defaultSlug = root.dataset.tabsDefault;
 
-                if (slug === (this.$wire.tab || defaultSlug)) {
+                if (isSelected(item)) {
                     return;
                 }
 

@@ -8,8 +8,6 @@ use App\Livewire\Components\Tab;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
-use Livewire\Features\SupportAttributes\AttributeCollection;
-use Livewire\Features\SupportQueryString\BaseUrl;
 use Livewire\Livewire;
 
 trait InteractsWithTabs
@@ -54,16 +52,9 @@ trait InteractsWithTabs
 
         abort_if($defaultTab === null, 404);
 
-        $tabUrlAttribute = $this->tabUrlAttribute();
-
-        if ($tabUrlAttribute !== null) {
-            // Livewire reads the query string config before mount() runs, when tabs() may depend on state that mount() sets.
-            $tabUrlAttribute->except = $defaultTab->slug();
-        }
-
         $currentTab = $this->findAvailableTab($this->tab) ?? $defaultTab;
 
-        $this->tab = $currentTab->slug();
+        $this->tab = $this->storedSlug($currentTab);
         $this->rememberKeptAliveTab($currentTab);
     }
 
@@ -80,7 +71,7 @@ trait InteractsWithTabs
             return;
         }
 
-        $tab = $this->findAvailableTab($this->tab);
+        $tab = $this->resolveTab($this->tab);
 
         if ($tab === null) {
             $this->tab = $this->tabBeforeUpdate ?? '';
@@ -88,6 +79,7 @@ trait InteractsWithTabs
             return;
         }
 
+        $this->tab = $this->storedSlug($tab);
         $this->rememberKeptAliveTab($tab);
     }
 
@@ -99,14 +91,14 @@ trait InteractsWithTabs
             return;
         }
 
-        $this->tab = $tab->slug();
+        $this->tab = $this->storedSlug($tab);
         $this->rememberKeptAliveTab($tab);
     }
 
     #[Computed]
     public function currentTab(): ?Tab
     {
-        return $this->findAvailableTab($this->tab) ?? $this->availableTabs()[0] ?? null;
+        return $this->resolveTab($this->tab) ?? $this->availableTabs()[0] ?? null;
     }
 
     /**
@@ -115,7 +107,7 @@ trait InteractsWithTabs
     #[Computed]
     public function visibleTabs(): array
     {
-        $defaultSlug = ($this->availableTabs()[0] ?? null)?->slug();
+        $defaultSlug = $this->defaultTabSlug();
         $pageUrl = Livewire::originalUrl();
         $pageQuery = $this->pageQuery();
 
@@ -145,13 +137,14 @@ trait InteractsWithTabs
         $currentTab = $this->currentTab;
 
         if ($currentTab !== null) {
-            $this->tab = $currentTab->slug();
+            $this->tab = $this->storedSlug($currentTab);
             $this->rememberKeptAliveTab($currentTab);
         }
 
         $view->with([
             'tabs' => $this->visibleTabs,
             'currentTab' => $currentTab,
+            'defaultTab' => $this->defaultTabSlug(),
             'queryTabAs' => $this->queryTabAs(),
             'tabPanels' => $this->tabPanels,
         ]);
@@ -166,6 +159,21 @@ trait InteractsWithTabs
             $this->tabs(),
             fn (Tab $tab): bool => $tab->isVisible() && ! $tab->isDisabled(),
         ));
+    }
+
+    private function defaultTabSlug(): string
+    {
+        return ($this->availableTabs()[0] ?? null)?->slug() ?? '';
+    }
+
+    private function storedSlug(Tab $tab): string
+    {
+        return $tab->slug() === $this->defaultTabSlug() ? '' : $tab->slug();
+    }
+
+    private function resolveTab(string $slug): ?Tab
+    {
+        return $slug === '' ? $this->availableTabs()[0] ?? null : $this->findAvailableTab($slug);
     }
 
     private function findAvailableTab(string $slug): ?Tab
@@ -184,19 +192,6 @@ trait InteractsWithTabs
         if ($tab->isKeptAlive() && ! in_array($tab->slug(), $this->visitedTabs, true)) {
             $this->visitedTabs[] = $tab->slug();
         }
-    }
-
-    private function tabUrlAttribute(): ?BaseUrl
-    {
-        $attributes = $this->getAttributes();
-
-        if (! $attributes instanceof AttributeCollection) {
-            return null;
-        }
-
-        $attribute = $attributes->first(fn (mixed $attribute): bool => $attribute instanceof BaseUrl && $attribute->getName() === 'tab');
-
-        return $attribute instanceof BaseUrl ? $attribute : null;
     }
 
     /**

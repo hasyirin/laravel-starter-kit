@@ -45,7 +45,8 @@ test('mount keeps a valid tab from the URL', function (): void {
 test('mount falls back to the first available tab', function (string $slug, array $hiddenTabs): void {
     Livewire::withQueryParams(['tab' => $slug])
         ->test(TabsHost::class, ['hiddenTabs' => $hiddenTabs])
-        ->assertSet('tab', 'owner');
+        ->assertSet('tab', '')
+        ->assertViewHas('currentTab', fn (Tab $tab): bool => $tab->slug() === 'owner');
 })->with([
     'unknown' => ['missing', []],
     'hidden' => ['notes', ['notes']],
@@ -102,7 +103,8 @@ test('a current tab that becomes hidden falls back to the first available tab', 
         ->call('switchTab', 'notes')
         ->set('hiddenTabs', ['notes']);
 
-    $component->assertSet('tab', 'owner');
+    $component->assertSet('tab', '')
+        ->assertViewHas('currentTab', fn (Tab $tab): bool => $tab->slug() === 'owner');
     expect(panelSlugs($component))->toBe(['owner']);
 });
 
@@ -132,12 +134,44 @@ test('a nested set reads its own key from the Referer when it mounts in a later 
         ->assertSet('tab', 'documents');
 });
 
-test('the default tab is the first available, not the first declared', function (): void {
-    $component = Livewire::test(TabsHost::class, ['hiddenTabs' => ['owner']]);
+test('the default tab keeps the key out of the URL', function (): void {
+    $component = Livewire::withQueryParams(['tab' => 'owner'])->test(TabsHost::class);
 
-    $component->assertSet('tab', 'documents');
-    expect($component->effects['url']['tab']['except'])->toBe('documents')
-        ->and(tabHrefs($component)['documents'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#');
+    $component->assertSet('tab', '')
+        ->assertViewHas('defaultTab', 'owner');
+    expect($component->effects['url']['tab']['except'])->toBe('')
+        ->and(tabHrefs($component)['owner'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#');
+
+    $component->call('switchTab', 'notes')
+        ->call('switchTab', 'owner')
+        ->assertSet('tab', '');
+});
+
+test('setting tab to the default slug from the client stores an empty tab', function (): void {
+    Livewire::test(TabsHost::class)
+        ->call('switchTab', 'notes')
+        ->set('tab', 'owner')
+        ->assertSet('tab', '');
+});
+
+test('the default tab is the first available, not the first declared', function (): void {
+    $component = Livewire::withQueryParams(['tab' => 'documents'])
+        ->test(TabsHost::class, ['hiddenTabs' => ['owner']]);
+
+    $component->assertSet('tab', '')
+        ->assertViewHas('defaultTab', 'documents');
+    expect(tabHrefs($component)['documents'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#')
+        ->and(tabHrefs($component)['notes'])->toEndWith('?tab=notes');
+});
+
+test('when the first available tab changes, an empty tab follows the new default', function (): void {
+    $component = Livewire::test(TabsHost::class)
+        ->set('hiddenTabs', ['owner']);
+
+    $component->assertSet('tab', '')
+        ->assertViewHas('currentTab', fn (Tab $tab): bool => $tab->slug() === 'documents')
+        ->assertViewHas('defaultTab', 'documents');
+    expect(tabHrefs($component)['documents'])->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+$#');
 });
 
 test('queryTabAs changes the URL key', function (): void {

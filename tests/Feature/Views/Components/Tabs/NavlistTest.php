@@ -40,7 +40,9 @@ test('a navlist marks the current tab only', function (): void {
     $document = HTMLDocument::createFromString((string) $this->blade('<x-tabs.navlist :tabs="$tabs" :current-tab="$tabs[1]" />', ['tabs' => $this->tabs]), LIBXML_NOERROR);
 
     expect($document->querySelector('[data-tab="billing"]')?->hasAttribute('data-current'))->toBeTrue()
-        ->and($document->querySelectorAll('[data-tab][data-current]')->length)->toBe(1);
+        ->and($document->querySelectorAll('[data-tab][data-current]')->length)->toBe(1)
+        ->and($document->querySelector('[data-tab="billing"]')?->getAttribute('aria-current'))->toBe('page')
+        ->and($document->querySelectorAll('[data-tab][aria-current]')->length)->toBe(1);
 });
 
 test('a disabled tab in a navlist has no href and is greyed out', function (): void {

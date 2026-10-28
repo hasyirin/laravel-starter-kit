@@ -87,6 +87,18 @@ test('the key of each tab in a tab bar sits on the direct child of the loop', fu
         ->and($billing?->parentElement?->getAttribute('wire:key'))->toBe('tab-billing');
 });
 
+test('the tabs of a tab bar sit in one stable wrapper inside the Flux root', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-tabs :tabs="$tabs" :current-tab="$tabs[0]" />', ['tabs' => $this->tabs]), LIBXML_NOERROR);
+
+    $root = $document->querySelector('[data-flux-tabs]');
+    $wrapper = $root?->firstElementChild;
+
+    expect($root?->childElementCount)->toBe(1)
+        ->and($wrapper?->localName)->toBe('div')
+        ->and($wrapper?->getAttribute('class'))->toBe('contents')
+        ->and($wrapper?->querySelectorAll('[data-tab]')->length)->toBe(3);
+});
+
 test('other attributes reach the Flux root of a tab bar', function (): void {
     $document = HTMLDocument::createFromString((string) $this->blade('<x-tabs :tabs="$tabs" :current-tab="$tabs[0]" variant="segmented" class="mt-6" />', ['tabs' => $this->tabs]), LIBXML_NOERROR);
 

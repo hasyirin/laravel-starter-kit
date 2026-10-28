@@ -4,6 +4,12 @@ function markSelected(item, isSelected) {
         item.setAttribute('aria-selected', String(isSelected));
     } else {
         item.toggleAttribute('data-current', isSelected);
+
+        if (isSelected) {
+            item.setAttribute('aria-current', 'page');
+        } else {
+            item.removeAttribute('aria-current');
+        }
     }
 }
 

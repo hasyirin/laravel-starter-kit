@@ -11,38 +11,40 @@
 
 @if($tabs !== [])
     <flux:tabs :attributes="$attributes->merge(['aria-label' => $ariaLabel, 'x-data' => 'tabs('.Js::from($queryAs).', '.Js::from($defaultSlug).')'])">
-        @foreach($tabs as $tab)
-            @php
-                $isDisabled = $tab->isDisabled();
-                $tooltip = $tab->resolvedTooltip($isDisabled);
-                $isSelected = $tab->slug() === $currentTab?->slug();
-                $badge = $tab->resolvedBadge();
-                $key = 'tab-'.$tab->slug();
-            @endphp
+        <div class="contents">
+            @foreach($tabs as $tab)
+                @php
+                    $isDisabled = $tab->isDisabled();
+                    $tooltip = $tab->resolvedTooltip($isDisabled);
+                    $isSelected = $tab->slug() === $currentTab?->slug();
+                    $badge = $tab->resolvedBadge();
+                    $key = 'tab-'.$tab->slug();
+                @endphp
 
-            @if($tooltip)
-                <flux:tooltip :content="$tooltip" :wire:key="$key">
-            @endif
-            <flux:tab
-                :href="$isDisabled ? null : $tab->resolvedUrl()"
-                :as="$isDisabled ? 'div' : null"
-                :selected="$isSelected"
-                :aria-selected="$isSelected ? 'true' : 'false'"
-                :icon="$tab->resolvedIcon()"
-                :aria-disabled="$isDisabled ? 'true' : null"
-                :class="$isDisabled ? 'cursor-default opacity-50' : null"
-                :wire:key="$tooltip ? null : $key"
-                data-tab="{{ $tab->slug() }}"
-            >
-                {{ $tab->resolvedLabel() }}
-
-                @if($badge !== null && $badge !== '')
-                    <flux:badge size="sm" :color="$tab->resolvedBadgeColor()">{{ $badge }}</flux:badge>
+                @if($tooltip)
+                    <flux:tooltip :content="$tooltip" :wire:key="$key">
                 @endif
-            </flux:tab>
-            @if($tooltip)
-                </flux:tooltip>
-            @endif
-        @endforeach
+                <flux:tab
+                    :href="$isDisabled ? null : $tab->resolvedUrl()"
+                    :as="$isDisabled ? 'div' : null"
+                    :selected="$isSelected"
+                    :aria-selected="$isSelected ? 'true' : 'false'"
+                    :icon="$tab->resolvedIcon()"
+                    :aria-disabled="$isDisabled ? 'true' : null"
+                    :class="$isDisabled ? 'cursor-default opacity-50' : null"
+                    :wire:key="$tooltip ? null : $key"
+                    data-tab="{{ $tab->slug() }}"
+                >
+                    {{ $tab->resolvedLabel() }}
+
+                    @if($badge !== null && $badge !== '')
+                        <flux:badge size="sm" :color="$tab->resolvedBadgeColor()">{{ $badge }}</flux:badge>
+                    @endif
+                </flux:tab>
+                @if($tooltip)
+                    </flux:tooltip>
+                @endif
+            @endforeach
+        </div>
     </flux:tabs>
 @endif

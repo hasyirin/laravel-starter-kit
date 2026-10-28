@@ -130,3 +130,19 @@ test('a tab is the default only when it is marked', function (): void {
         ->and($tab->markDefault()->isDefault())->toBeTrue()
         ->and($tab->markDefault(false)->isDefault())->toBeFalse();
 });
+
+test('hidden, visible, and disabled turn on without an argument', function (): void {
+    expect(Tab::make('a')->hidden()->isVisible())->toBeFalse()
+        ->and(Tab::make('a')->hidden()->visible()->isVisible())->toBeTrue()
+        ->and(Tab::make('a')->disabled()->isDisabled())->toBeTrue();
+});
+
+test('an int badge resolves to a string', function (): void {
+    expect(Tab::make('a')->badge(3)->resolvedBadge())->toBe('3')
+        ->and(Tab::make('a')->badge(fn (): int => 0)->resolvedBadge())->toBe('0')
+        ->and(Tab::make('a')->badge(null)->resolvedBadge())->toBeNull();
+});
+
+test('a tab cannot have an empty slug', function (): void {
+    expect(fn () => Tab::make(''))->toThrow(InvalidArgumentException::class);
+});

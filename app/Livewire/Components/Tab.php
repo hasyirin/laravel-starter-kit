@@ -6,6 +6,7 @@ namespace App\Livewire\Components;
 
 use Closure;
 use Illuminate\Contracts\View\View;
+use InvalidArgumentException;
 use Livewire\Component;
 use LogicException;
 
@@ -23,9 +24,9 @@ final class Tab
     private Closure|string|null $icon = null;
 
     /**
-     * @var (Closure(): ?string)|string|null
+     * @var (Closure(): (int|string|null))|int|string|null
      */
-    private Closure|string|null $badge = null;
+    private Closure|int|string|null $badge = null;
 
     private ?string $badgeColor = null;
 
@@ -71,6 +72,10 @@ final class Tab
 
     public static function make(string $slug): self
     {
+        if ($slug === '') {
+            throw new InvalidArgumentException('A tab slug cannot be empty.');
+        }
+
         return new self($slug);
     }
 
@@ -111,9 +116,9 @@ final class Tab
     }
 
     /**
-     * @param  (Closure(): ?string)|string|null  $badge
+     * @param  (Closure(): (int|string|null))|int|string|null  $badge
      */
-    public function badge(Closure|string|null $badge): self
+    public function badge(Closure|int|string|null $badge): self
     {
         $this->badge = $badge;
 
@@ -142,7 +147,7 @@ final class Tab
     /**
      * @param  (Closure(): bool)|bool  $hidden
      */
-    public function hidden(Closure|bool $hidden): self
+    public function hidden(Closure|bool $hidden = true): self
     {
         $this->hidden = $hidden;
 
@@ -152,7 +157,7 @@ final class Tab
     /**
      * @param  (Closure(): bool)|bool  $visible
      */
-    public function visible(Closure|bool $visible): self
+    public function visible(Closure|bool $visible = true): self
     {
         $this->hidden = $visible instanceof Closure ? fn (): bool => ! $visible() : ! $visible;
 
@@ -162,7 +167,7 @@ final class Tab
     /**
      * @param  (Closure(): bool)|bool  $disabled
      */
-    public function disabled(Closure|bool $disabled): self
+    public function disabled(Closure|bool $disabled = true): self
     {
         $this->disabled = $disabled;
 
@@ -239,7 +244,9 @@ final class Tab
 
     public function resolvedBadge(): ?string
     {
-        return $this->badge instanceof Closure ? ($this->badge)() : $this->badge;
+        $badge = $this->badge instanceof Closure ? ($this->badge)() : $this->badge;
+
+        return $badge === null ? null : (string) $badge;
     }
 
     public function resolvedBadgeColor(): ?string

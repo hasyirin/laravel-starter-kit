@@ -77,29 +77,27 @@ test('the disabled tooltip wins only when the tab is disabled', function (): voi
         ->and(Tab::make('a')->resolvedTooltip(true))->toBeNull();
 });
 
-test('a Livewire class is livewire content and a view is view content', function (): void {
-    $livewire = Tab::make('a')->content(OwnerPanel::class);
-    $view = Tab::make('b')->content($contents = view('welcome'));
+test('a tab resolves a Livewire class or a view as content', function (): void {
+    $contents = view('welcome');
 
-    expect($livewire->contentKind())->toBe('livewire')
-        ->and($livewire->resolvedContent())->toBe(OwnerPanel::class)
-        ->and($view->contentKind())->toBe('view')
-        ->and($view->resolvedContent())->toBe($contents)
-        ->and(Tab::make('c')->content(fn (): string => OwnerPanel::class)->contentKind())->toBe('livewire');
+    expect(Tab::make('a')->content(OwnerPanel::class)->resolvedContent())->toBe(OwnerPanel::class)
+        ->and(Tab::make('b')->content($contents)->resolvedContent())->toBe($contents)
+        ->and(Tab::make('c')->content(fn (): string => OwnerPanel::class)->resolvedContent())->toBe(OwnerPanel::class);
 });
 
-test('a string that is not a Livewire class throws', function (): void {
-    expect(fn () => Tab::make('a')->content('partials.foo')->contentKind())->toThrow(LogicException::class)
+test('content that is not a view or a Livewire class throws', function (): void {
+    expect(fn () => Tab::make('a')->content('partials.foo')->resolvedContent())->toThrow(LogicException::class, 'content [partials.foo]')
         ->and(fn () => Tab::make('a')->content(stdClass::class)->resolvedContent())->toThrow(LogicException::class)
-        ->and(fn () => Tab::make('a')->contentKind())->toThrow(LogicException::class);
+        ->and(fn () => Tab::make('a')->content(fn (): OwnerPanel => new OwnerPanel)->resolvedContent())->toThrow(LogicException::class, 'content ['.OwnerPanel::class.']')
+        ->and(fn () => Tab::make('a')->content(fn (): null => null)->resolvedContent())->toThrow(LogicException::class, 'content [null]')
+        ->and(fn () => Tab::make('a')->resolvedContent())->toThrow(LogicException::class, 'has no content');
 });
 
 test('keep alive on view content throws', function (): void {
     $tab = Tab::make('a')->content(view('welcome'))->keepAlive();
 
-    expect(fn () => $tab->contentKind())->toThrow(LogicException::class)
-        ->and(fn () => $tab->resolvedContent())->toThrow(LogicException::class)
-        ->and(Tab::make('a')->content(OwnerPanel::class)->keepAlive()->contentKind())->toBe('livewire');
+    expect(fn () => $tab->resolvedContent())->toThrow(LogicException::class)
+        ->and(Tab::make('a')->content(OwnerPanel::class)->keepAlive()->resolvedContent())->toBe(OwnerPanel::class);
 });
 
 test('keep alive and lazy default to off and turn on without an argument', function (): void {
@@ -146,3 +144,11 @@ test('an int badge resolves to a string', function (): void {
 test('a tab cannot have an empty slug', function (): void {
     expect(fn () => Tab::make(''))->toThrow(InvalidArgumentException::class);
 });
+
+test('a tab slug cannot be a JSON value that Livewire decodes from the URL', function (string $slug): void {
+    expect(fn () => Tab::make($slug))->toThrow(InvalidArgumentException::class);
+})->with(['2', '2.0', '1e3', 'true', 'null', '"owner"']);
+
+test('a tab slug can hold digits next to other characters', function (string $slug): void {
+    expect(Tab::make($slug)->slug())->toBe($slug);
+})->with(['step-2', '2fa']);

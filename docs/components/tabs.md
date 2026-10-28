@@ -47,7 +47,7 @@ The trait gives the view these variables:
 
 ## How a Switch Works
 
-Each tab is a link. A plain click calls `InteractsWithTabs::switchTab()` on the component that owns the tab set, so only that component renders again. The bar marks the clicked tab at once, and the content dims until the server answers. A middle click, a click with Ctrl or Cmd, and "open in new tab" follow the link.
+Each tab is a link. A plain click calls `InteractsWithTabs::switchTab()` on the component that owns the tab set, so only that component renders again. The bar marks the clicked tab at once, and the current content dims until the server answers. A kept-alive tab that already rendered shows at once. A middle click, a click with Ctrl or Cmd, and "open in new tab" follow the link.
 
 `InteractsWithTabs::switchTab()` ignores a tab that is unknown, hidden, or disabled. When a tab changes in another way, for example with the Back button, the trait checks it in the same way and keeps the tab it had.
 
@@ -217,7 +217,7 @@ One component holds one tab set. A second set on the same level needs its own co
 
 ### Tab
 
-`Tab::make()` takes the slug of the tab. The slug is the value in the URL. An empty slug throws an `InvalidArgumentException`.
+`Tab::make()` takes the slug of the tab. The slug is the value in the URL. An empty slug throws an `InvalidArgumentException`. So does a slug that is a JSON value, such as `2`, `1e3`, `true`, or `null`, because Livewire decodes such values from the URL.
 
 | Method          | Description                                                                                         |
 |-----------------|-----------------------------------------------------------------------------------------------------|

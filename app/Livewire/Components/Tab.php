@@ -51,7 +51,7 @@ final class Tab
     private Closure|bool $disabled = false;
 
     /**
-     * @var (Closure(): (View|string))|View|string|null
+     * @var (Closure(): mixed)|View|string|null
      */
     private Closure|View|string|null $content = null;
 
@@ -74,6 +74,10 @@ final class Tab
     {
         if ($slug === '') {
             throw new InvalidArgumentException('A tab slug cannot be empty.');
+        }
+
+        if (json_validate($slug) && ! is_array(json_decode($slug, true))) {
+            throw new InvalidArgumentException("A tab slug cannot be a JSON value such as a number or a boolean. Got [{$slug}].");
         }
 
         return new self($slug);
@@ -175,7 +179,7 @@ final class Tab
     }
 
     /**
-     * @param  (Closure(): (View|string))|View|string  $content
+     * @param  (Closure(): mixed)|View|string  $content
      */
     public function content(Closure|View|string $content): self
     {
@@ -239,12 +243,12 @@ final class Tab
 
     public function resolvedIcon(): ?string
     {
-        return $this->icon instanceof Closure ? ($this->icon)() : $this->icon;
+        return value($this->icon);
     }
 
     public function resolvedBadge(): ?string
     {
-        $badge = $this->badge instanceof Closure ? ($this->badge)() : $this->badge;
+        $badge = value($this->badge);
 
         return $badge === null ? null : (string) $badge;
     }
@@ -258,17 +262,17 @@ final class Tab
     {
         $tooltip = $isDisabled && $this->tooltipDisabled !== null ? $this->tooltipDisabled : $this->tooltipAlways;
 
-        return $tooltip instanceof Closure ? $tooltip() : $tooltip;
+        return value($tooltip);
     }
 
     public function isVisible(): bool
     {
-        return ! ($this->hidden instanceof Closure ? (bool) ($this->hidden)() : $this->hidden);
+        return ! value($this->hidden);
     }
 
     public function isDisabled(): bool
     {
-        return $this->disabled instanceof Closure ? (bool) ($this->disabled)() : $this->disabled;
+        return (bool) value($this->disabled);
     }
 
     public function isDefault(): bool
@@ -291,17 +295,29 @@ final class Tab
         return $this->url;
     }
 
-    /**
-     * @return 'livewire'|'view'
-     */
-    public function contentKind(): string
-    {
-        return $this->resolveContent()[0];
-    }
-
     public function resolvedContent(): string|View
     {
-        return $this->resolveContent()[1];
+        if ($this->content === null) {
+            throw new LogicException("Tab [{$this->slug}] has no content.");
+        }
+
+        $content = value($this->content);
+
+        if ($content instanceof View) {
+            if ($this->keepAlive) {
+                throw new LogicException("Tab [{$this->slug}] cannot keep a view alive. Use a Livewire component.");
+            }
+
+            return $content;
+        }
+
+        if (is_string($content) && is_subclass_of($content, Component::class)) {
+            return $content;
+        }
+
+        $description = is_string($content) ? $content : get_debug_type($content);
+
+        throw new LogicException("Tab [{$this->slug}] content [{$description}] is not a view or a Livewire component class.");
     }
 
     /**
@@ -309,32 +325,6 @@ final class Tab
      */
     public function resolvedParams(): array
     {
-        return $this->params instanceof Closure ? ($this->params)() : $this->params;
-    }
-
-    /**
-     * @return array{0: 'livewire'|'view', 1: string|View}
-     */
-    private function resolveContent(): array
-    {
-        if ($this->content === null) {
-            throw new LogicException("Tab [{$this->slug}] has no content.");
-        }
-
-        $content = $this->content instanceof Closure ? ($this->content)() : $this->content;
-
-        if ($content instanceof View) {
-            if ($this->keepAlive) {
-                throw new LogicException("Tab [{$this->slug}] cannot keep a view alive. Use a Livewire component.");
-            }
-
-            return ['view', $content];
-        }
-
-        if (is_subclass_of($content, Component::class)) {
-            return ['livewire', $content];
-        }
-
-        throw new LogicException("Tab [{$this->slug}] content [{$content}] is not a view or a Livewire component class.");
+        return value($this->params);
     }
 }

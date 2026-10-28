@@ -23,7 +23,8 @@ test('a navlist renders one item per tab with its label, its href, and its slug'
         ->and($document->querySelector('[data-tab="profile"]')?->getAttribute('href'))->toBe('https://example.test/settings?search=bob')
         ->and($document->querySelector('[data-tab="billing"]')?->getAttribute('href'))->toBe('https://example.test/settings?search=bob&tab=billing')
         ->and($document->querySelector('[data-flux-navlist]')?->getAttribute('aria-label'))->toBe('Settings')
-        ->and($document->querySelector('[data-flux-navlist]')?->getAttribute('x-data'))->toBe("tabs('tab', 'profile')");
+        ->and($document->querySelector('[data-flux-navlist]')?->getAttribute('data-tabs-key'))->toBe('tab')
+        ->and($document->querySelector('[data-flux-navlist]')?->getAttribute('data-tabs-default'))->toBe('profile');
 });
 
 test('a navlist shows the icon and the badge of a tab', function (): void {
@@ -75,7 +76,8 @@ test('the default slug of a navlist comes from the tab marked as default, and th
 
     $document = HTMLDocument::createFromString((string) $this->blade('<x-tabs.navlist :tabs="$tabs" :current-tab="$tabs[1]" query-as="section" />', ['tabs' => $tabs]), LIBXML_NOERROR);
 
-    expect($document->querySelector('[data-flux-navlist]')?->getAttribute('x-data'))->toBe("tabs('section', 'profile')");
+    expect($document->querySelector('[data-flux-navlist]')?->getAttribute('data-tabs-key'))->toBe('section')
+        ->and($document->querySelector('[data-flux-navlist]')?->getAttribute('data-tabs-default'))->toBe('profile');
 });
 
 test('the key of each tab in a navlist sits on the direct child of the loop', function (): void {

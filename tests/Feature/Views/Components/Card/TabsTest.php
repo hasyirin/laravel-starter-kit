@@ -56,6 +56,15 @@ test('an underline variant without a strip renders the default bar bare', functi
         ->and($bar?->classList->contains('bg-zinc-800/5'))->toBeFalse();
 });
 
+test('another variant goes to the Flux tabs bar', function (): void {
+    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['variant' => 'pills', 'strip' => false]));
+
+    $bar = $document->querySelector('[data-flux-tabs]');
+
+    expect($bar?->classList->contains('h-8'))->toBeTrue()
+        ->and($bar?->classList->contains('border-b'))->toBeFalse();
+});
+
 test('the tab content renders outside the strip card in every look', function (array $props): void {
     $document = cardTabsDocument(Livewire::test(CardTabsHost::class, $props));
 

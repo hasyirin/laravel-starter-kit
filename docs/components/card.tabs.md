@@ -18,7 +18,7 @@ The bar in the strip is a segmented [Flux tabs](https://fluxui.dev/components/ta
 
 ## Looks
 
-`variant` picks the bar: `segmented`, `navbar`, or `underline`. `strip` puts the bar in the card strip. Four looks fit the kit. The first one above is the default.
+`variant` picks the bar: `segmented`, `navbar`, or `underline`. Other values go to Flux tabs, so `pills` works too. `strip` puts the bar in the card strip. Four looks fit the kit. The first one above is the default.
 
 `variant="navbar"` puts a navbar in the strip:
 
@@ -103,7 +103,7 @@ The card does not show the `title()` or the `description()` of a tab. Put them i
 | `current-tab` |              | The current tab, `$currentTab` from the trait.                                 |
 | `panels`      |              | Required. The tabs to render, `$tabPanels` from the trait.                     |
 | `query-as`    | `tab`        | The URL key, `$queryTabAs` from the trait.                                     |
-| `variant`     | `segmented`  | The bar: `segmented`, `navbar`, or `underline`.                                |
+| `variant`     | `segmented`  | The bar: `segmented`, `navbar`, `underline`, or a Flux tabs variant.           |
 | `strip`       | `true`       | Puts the bar in a thin card strip that the first card of the content joins.    |
 | `orientation` | `horizontal` | The direction of the slide of the content: `horizontal` or `vertical`.         |
 | `params`      | `[]`         | Props for the content of every tab. They win over the tab props.               |

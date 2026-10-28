@@ -10,7 +10,7 @@
 @endphp
 
 @if($tabs !== [])
-    <flux:navlist :attributes="$attributes->merge(['aria-label' => $ariaLabel, 'x-data' => 'tabs('.Js::from($queryAs).', '.Js::from($defaultSlug).')'])">
+    <flux:navlist :attributes="$attributes->merge(['aria-label' => $ariaLabel, 'x-data' => 'tabs', 'data-tabs-key' => $queryAs, 'data-tabs-default' => $defaultSlug])">
         @include('partials.tabs.nav-items', ['tabs' => $tabs, 'currentTab' => $currentTab, 'item' => 'flux::navlist.item'])
     </flux:navlist>
 @endif

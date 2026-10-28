@@ -101,11 +101,16 @@ test('a kept-alive tab is remembered after the first visit', function (): void {
     expect(panelSlugs($component))->toBe(['owner', 'documents']);
 });
 
-test('a kept-alive tab that becomes unavailable leaves the panels', function (): void {
+test('a kept-alive tab that becomes unavailable leaves the panels and is forgotten', function (): void {
     $component = Livewire::test(TabsHost::class)
         ->call('switchTab', 'documents')
         ->call('switchTab', 'owner')
         ->set('disabledTabs', ['movements', 'documents']);
+
+    expect(panelSlugs($component))->toBe(['owner']);
+
+    $component->assertSet('visitedTabs', [])
+        ->set('disabledTabs', ['movements']);
 
     expect(panelSlugs($component))->toBe(['owner']);
 });
@@ -127,6 +132,16 @@ test('hrefs keep every other query parameter', function (): void {
     expect(tabHrefs($component))
         ->owner->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+\?search=bob&filters%5Bstatus%5D=open$#')
         ->notes->toMatch('#^'.preg_quote(url('livewire-unit-test-endpoint'), '#').'/\w+\?search=bob&filters%5Bstatus%5D=open&tab=notes$#');
+});
+
+test('hrefs keep query keys with dots as they are', function (): void {
+    laterLivewireRequest('/clients/1?filter.status=open&tab=notes');
+
+    $component = Livewire::test(TabsHost::class);
+
+    expect(tabHrefs($component))
+        ->owner->toBe(url('clients/1?filter.status=open'))
+        ->documents->toBe(url('clients/1?filter.status=open&tab=documents'));
 });
 
 test('hrefs use the Referer query and the page path on a Livewire request', function (): void {

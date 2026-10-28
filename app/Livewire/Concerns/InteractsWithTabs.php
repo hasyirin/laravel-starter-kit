@@ -102,24 +102,6 @@ trait InteractsWithTabs
         return $this->tabState()['current'];
     }
 
-    /**
-     * @return list<Tab>
-     */
-    #[Computed]
-    public function visibleTabs(): array
-    {
-        return $this->tabState()['visible'];
-    }
-
-    /**
-     * @return list<Tab>
-     */
-    #[Computed]
-    public function tabPanels(): array
-    {
-        return $this->tabState()['panels'];
-    }
-
     public function renderingInteractsWithTabs(View $view): void
     {
         $this->forgetTabState();
@@ -131,6 +113,9 @@ trait InteractsWithTabs
             $this->tab = $this->storedSlug($tabState['available'], $currentTab);
             $this->rememberKeptAliveTab($currentTab);
         }
+
+        $availableSlugs = array_map(fn (Tab $tab): string => $tab->slug(), $tabState['available']);
+        $this->visitedTabs = array_values(array_intersect($this->visitedTabs, $availableSlugs));
 
         $view->with([
             'tabs' => $tabState['visible'],
@@ -184,7 +169,7 @@ trait InteractsWithTabs
         $defaultTab = $availableTabs[0] ?? null;
         $currentTab = $this->resolveTab($availableTabs, $this->tab) ?? $defaultTab;
         $pageUrl = Livewire::originalUrl();
-        $pageQuery = $this->pageQuery();
+        $pageQuery = $this->pageQueryString();
 
         foreach ($visibleTabs as $tab) {
             $isDefault = $tab === $defaultTab;
@@ -209,7 +194,7 @@ trait InteractsWithTabs
     {
         $this->tabState = null;
 
-        unset($this->currentTab, $this->visibleTabs, $this->tabPanels);
+        unset($this->currentTab);
     }
 
     /**
@@ -259,35 +244,28 @@ trait InteractsWithTabs
         }
     }
 
-    /**
-     * @return array<array-key, mixed>
-     */
-    private function pageQuery(): array
+    private function pageQueryString(): string
     {
         if (! Livewire::isLivewireRequest()) {
-            return request()->query();
+            return request()->server->getString('QUERY_STRING');
         }
 
-        parse_str((string) parse_url((string) request()->header('Referer'), PHP_URL_QUERY), $query);
-
-        return $query;
+        return (string) parse_url((string) request()->header('Referer'), PHP_URL_QUERY);
     }
 
-    /**
-     * @param  array<array-key, mixed>  $pageQuery
-     */
-    private function tabUrl(string $pageUrl, array $pageQuery, ?string $slug): string
+    private function tabUrl(string $pageUrl, string $pageQuery, ?string $slug): string
     {
         $key = $this->queryTabAs();
 
-        if ($slug === null) {
-            unset($pageQuery[$key]);
-        } else {
-            $pageQuery[$key] = $slug;
+        $pairs = array_filter(
+            explode('&', $pageQuery),
+            fn (string $pair): bool => $pair !== '' && urldecode(explode('=', $pair, 2)[0]) !== $key,
+        );
+
+        if ($slug !== null) {
+            $pairs[] = rawurlencode($key).'='.rawurlencode($slug);
         }
 
-        $queryString = http_build_query($pageQuery);
-
-        return $queryString === '' ? $pageUrl : "{$pageUrl}?{$queryString}";
+        return $pairs === [] ? $pageUrl : $pageUrl.'?'.implode('&', $pairs);
     }
 }

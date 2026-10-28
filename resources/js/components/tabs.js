@@ -13,11 +13,17 @@ function markSelected(item, isSelected) {
     }
 }
 
+function hasPanel(componentRoot, slug) {
+    return [...componentRoot.querySelectorAll('[data-tab-panel]')].some(
+        (panel) => panel.dataset.tabPanel === slug && panel.closest('[wire\\:id]') === componentRoot,
+    );
+}
+
 function isModifiedClick(event) {
     return event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey;
 }
 
-export default function tabs(key, defaultSlug) {
+export default function tabs() {
     return {
         init() {
             const root = this.$root;
@@ -31,6 +37,7 @@ export default function tabs(key, defaultSlug) {
                     return;
                 }
 
+                const { tabsKey: key, tabsDefault: defaultSlug } = root.dataset;
                 const url = new URL(window.location.href);
 
                 if (item.dataset.tab === defaultSlug) {
@@ -54,6 +61,7 @@ export default function tabs(key, defaultSlug) {
                 event.preventDefault();
 
                 const slug = item.dataset.tab;
+                const defaultSlug = root.dataset.tabsDefault;
 
                 if (slug === (this.$wire.tab || defaultSlug)) {
                     return;
@@ -61,8 +69,13 @@ export default function tabs(key, defaultSlug) {
 
                 root.querySelectorAll('[data-tab]').forEach((other) => markSelected(other, other === item));
 
-                this.$wire.tab = slug === defaultSlug ? '' : slug;
-                this.$wire.switchTab(slug);
+                // A rendered panel shows at once. Otherwise the current panel stays until the new one arrives.
+                if (hasPanel(this.$wire.$el, slug)) {
+                    this.$wire.tab = slug === defaultSlug ? '' : slug;
+                    this.$wire.$commit();
+                } else {
+                    this.$wire.switchTab(slug);
+                }
             });
         },
     };

@@ -24,7 +24,7 @@
                         wire:key="example-{{ $loop->index }}"
                         data-docs-example
                     >
-                        <div class="grid gap-6 bg-white p-6 dark:bg-zinc-900">{{ $part['preview'] }}</div>
+                        <div class="grid gap-6 bg-white p-6 dark:bg-zinc-900">{{ $part['preview']() }}</div>
 
                         @if($part['bindings'])
                             <div

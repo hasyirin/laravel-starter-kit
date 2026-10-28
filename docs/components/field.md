@@ -106,7 +106,7 @@ Use `<x-field>` directly only for a control that has no kit input yet, such as a
 - Give every input a `label`. If the design has no visible label, add `aria-label` to the input instead.
 - Clicking the label puts the focus in the input.
 - Screen readers reach the links and buttons in the hint and the actions, because they sit outside the label.
-- `required` also turns on the browser's own check when the form is submitted, on the controls that the browser knows: inputs, textareas, and the browser's own select. If you validate on the server only, add `novalidate` to the form. The listbox select, the pillbox, the checkboxes, the radios, and the switch have no browser check.
+- `required` also turns on the browser's own check when the form is submitted, on the controls that the browser knows: inputs, textareas, and the browser's own select. If you validate on the server only, add `novalidate` to the form. The listbox select, the pillbox, the checkboxes, the radios, the switch, the slider, the editor, and the file upload have no browser check.
 
 ## Reference
 

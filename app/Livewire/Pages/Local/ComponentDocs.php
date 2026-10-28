@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Pages\Local;
 
 use App\Livewire\Pages\Shared\Page;
+use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
@@ -54,7 +55,7 @@ class ComponentDocs extends Page
     }
 
     /**
-     * @return list<array{html: HtmlString}|array{preview: HtmlString, code: string, bindings: list<string>}>
+     * @return list<array{html: HtmlString}|array{preview: Closure(): HtmlString, code: string, bindings: list<string>}>
      */
     private function parts(string $markdown): array
     {
@@ -74,7 +75,8 @@ class ComponentDocs extends Page
             preg_match_all('/wire:model(?:\.[\w.]+)?="([^"]+)"/', $code, $bindings);
 
             return [
-                'preview' => new HtmlString(Blade::render($code)),
+                // Render the example in the view, after the page sets its layout: Livewire takes the layout of the first component that renders.
+                'preview' => fn (): HtmlString => new HtmlString(Blade::render($code)),
                 'code' => $code,
                 'bindings' => array_values(array_unique($bindings[1])),
             ];

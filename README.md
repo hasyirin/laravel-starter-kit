@@ -30,7 +30,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Ray** is installed as a production dependency, so a `ray()` call left in the code does not break production. Ray is off in production.
 - **Debug mode** is not allowed in production. If `APP_DEBUG=true` there, the app throws an exception at boot, so every request and Artisan command fails until you set `APP_DEBUG=false`. Requests get a plain 500 page, and the exception goes to the log.
 - **Spatie Activitylog** is installed. Its migration creates the `activity_log` table.
-- **Spatie Media Library** is installed. Its migration creates the `media` table. It stores files on a new public `media` disk (`storage/app/media`, served at `/media`).
+- **Spatie Media Library** is installed. Its migration creates the `media` table. It stores files on a private `media` disk (`storage/app/media`). The `media.show` route serves each file and its conversions to the users that the policy of its model lets view it, and `getUrl()` returns that route. Models get media through the kit's `HasMedia` contract and `InteractsWithMedia` trait, which make a `preview` of each image and take enum cases as collection names.
 - **Upload limit** is 1GB for the media library and for Livewire temporary uploads. PHP `upload_max_filesize` and `post_max_size` must also allow this size.
 - **PostgreSQL** is the production database. Local work and tests use SQLite. The migrations need PostgreSQL or SQLite, because the users table uses a partial unique index, which MySQL and MariaDB do not support.
 - **Users are soft deleted.** Deleting an account keeps the row. A deleted user cannot log in, and their email is free to register again: the unique index on `users.email` covers only users that are not deleted.
@@ -62,7 +62,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 ## Requirements
 
-- PHP 8.5+ with the `phpredis`, `exif`, `gd`, `bcmath`, `intl`, `pdo_pgsql`, `pcntl`, and `posix` extensions
+- PHP 8.5+ with the `phpredis`, `exif`, `gd` (with WebP support), `bcmath`, `intl`, `pdo_pgsql`, `pcntl`, and `posix` extensions. `php -r 'var_dump(gd_info()["WebP Support"]);'` prints `bool(true)` when GD has WebP.
 - PostgreSQL in production
 - Composer 2
 - Node.js 22.18+, 24.11+, or 26+

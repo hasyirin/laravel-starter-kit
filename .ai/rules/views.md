@@ -16,3 +16,6 @@ Add a description, hint, or secondary label only when it tells the user somethin
 
 ## Format dates and times for the user
 Show a date or a time as text with `App\Domain\User\Support\Preferences::current()`: `date()`, `datetime()`, or `time()` for a moment, such as `created_at`. They use the time zone and the locale of the user. For a date-only value, such as a `date` cast or a birthday, use `calendarDate()`: it keeps the day as stored. Do not call `format()` on a Carbon in a view. In a mail to another user, use `Preferences::of($user)`.
+
+## Clean HTML from users before you print it
+Never print HTML that users wrote, such as the value of `<x-editor>`, with `{!! !!}` as it is: a script or an `onclick` attribute in it runs for every reader. Print it through `str($html)->sanitizeHtml()`. It keeps the formatting and removes scripts, event attributes, and `javascript:` links. See `docs/components/editor.md`.

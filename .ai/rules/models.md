@@ -33,3 +33,6 @@ Put a model's factory in the sibling `Factories` folder. The model's `newFactory
 
 ## Use #[ObservedBy] observers for model events
 Put model event logic in an observer in the sibling `Observers` folder, and attach it with `#[ObservedBy(XObserver::class)]`, not `booted()`. Enforce invariants in the observer by throwing a `LogicException` with a full-sentence message.
+
+## Give a model media through the kit
+Implement `App\Domain\Shared\Common\Contracts\Models\HasMedia` and use `App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia`, not Spatie's `HasMedia` and `InteractsWithMedia`. The kit's trait makes the `preview` conversion that the file upload shows, and it takes enum cases as collection names. A model that writes its own `registerMediaConversions()` adds the `preview` again.

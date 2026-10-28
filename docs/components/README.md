@@ -20,6 +20,10 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 | [`<x-checkbox>`](checkbox.md)             | One checkbox, or a group of checkboxes when it has options                                                        |
 | [`<x-radio>`](radio.md)                   | One option from a short list that stays in view                                                                   |
 | [`<x-switch>`](switch.md)                 | A setting that is on or off                                                                                       |
+| [`<x-slider>`](slider.md)                 | A number, or a range of two numbers, picked with a handle                                                         |
+| [`<x-editor>`](editor.md)                 | Rich text with headings, lists, and links. The property gets HTML.                                                |
+| [`<x-autocomplete>`](autocomplete.md)     | A text field that suggests values while the user types                                                            |
+| [`<x-file-upload>`](file-upload.md)       | Files that the page stores with a model through Media Library                                                     |
 
 ## Live Docs
 

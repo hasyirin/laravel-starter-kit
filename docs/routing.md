@@ -15,7 +15,7 @@ Fortify registers the routes for login, registration, password reset, email veri
 ## Choose the Area
 
 - **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to this file. That middleware sends signed-in users away, so these routes would stop working for them.
-- **App**: pages for every signed-in user, such as the dashboard and the settings pages. Add the `verified` middleware to a route that needs a verified email address.
+- **App**: pages for every signed-in user, such as the dashboard and the settings pages, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` middleware to a route that needs a verified email address.
 - **Internal**: the daily work of the staff, for example orders and reports.
 - **Admin**: the administration of the system: users, roles, permissions, and Horizon.
 - **Local**: tools for developers, such as the live component docs at `/docs/components`. `EnsureLocalEnvironment` answers 404 in every other environment, so these routes stay registered but never open in production.

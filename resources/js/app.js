@@ -1,8 +1,10 @@
 import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
+import nameEditors from './components/editor';
 import blurOnLeave from './components/field';
 import inputField from './components/input';
 import datetimeField from './components/input/datetime';
 import numberField from './components/input/number';
+import sliderField from './components/slider';
 
 const remember = (name, value) => {
     document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; samesite=lax${location.protocol === 'https:' ? '; secure' : ''}`;
@@ -17,8 +19,10 @@ if (window.livewireStarted) {
     remember('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
     remember('locale', navigator.languages.join(','));
     blurOnLeave();
+    nameEditors();
     Alpine.data('inputField', inputField);
     Alpine.data('datetimeField', datetimeField);
     Alpine.data('numberField', numberField);
+    Alpine.data('sliderField', sliderField);
     Livewire.start();
 }

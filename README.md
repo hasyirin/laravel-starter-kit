@@ -81,7 +81,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 2. Make sure Redis runs on `127.0.0.1:6379`, because the seeders in the next step use the cache. If Redis runs elsewhere, copy `.env.example` to `.env` and change the `REDIS_*` values first.
 
-3. Install dependencies, create `.env`, generate the app key, run migrations, seed the database, create the storage links, and build assets:
+3. Install dependencies, create `.env`, generate the app key, run migrations, seed the database, create the storage links, install Chromium for the browser tests, and build assets:
 
    ```bash
    composer setup
@@ -89,10 +89,10 @@ A personal starting point for new Laravel projects. It is based on the official 
 
    Log in as `admin@example.com` (super admin) or `it@example.com` (no roles). Both have the password `password`.
 
-4. Install Chromium for the browser tests. On Linux, add `--with-deps` to also install the system libraries that Chromium needs:
+4. If Chromium does not start in the browser tests, install the system libraries that it needs. This uses `sudo` on Linux:
 
    ```bash
-   bunx playwright install chromium
+   bunx playwright install-deps chromium
    ```
 
 5. If you serve the app from a different host, set `APP_DOMAIN` in `.env`.

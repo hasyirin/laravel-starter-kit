@@ -45,5 +45,5 @@ test('an open page that needs a verified email sends the user to verify it once 
     expect($response->headers->get('Location'))->toBe($location);
 })->with([
     'a verified email' => [true, null],
-    'an unverified email' => [false, 'https://localhost/email/verify'],
+    'an unverified email' => [false, fn (): string => route('verification.notice')],
 ]);

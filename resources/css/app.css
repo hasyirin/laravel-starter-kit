@@ -191,6 +191,28 @@ select:focus[data-flux-control] {
     }
 }
 
+/* The first card of a panel under a card tabs strip joins the strip. */
+[data-tabs-strip] > [data-tab-content] > [data-tab-panel] {
+    & > [data-flux-card]:first-child,
+    & > [wire\:id] > [data-flux-card]:first-child {
+        --flux-bleed-top-radius: 0px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+
+        &::after {
+            display: none;
+        }
+
+        & > [data-flux-card-header],
+        &:not([data-flux-card-body-variant='inset']) > [data-flux-card-body] {
+            --flux-bleed-top-radius: 0px;
+            --flux-card-body-clip-top-radius: 0px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */

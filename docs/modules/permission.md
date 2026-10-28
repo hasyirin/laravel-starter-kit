@@ -1,6 +1,6 @@
 # Permissions
 
-The app checks access with permissions, and roles group permissions. A user gets their roles and permissions from their active profile. See **Profiles** in the README.
+The app checks access with permissions, and roles group permissions. A user gets the roles and permissions of their active profile, plus any given to the user directly. See **Profiles** in the README.
 
 ## Add a Permission
 
@@ -68,11 +68,13 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 - a user has the permissions of their active profile
 - a user does not have the permissions of an inactive profile
+- the permission helpers and scopes count the permissions of the active profile
 
 ### HasRoles
 
 - a user has the roles of their active profile
 - a user does not have the roles of an inactive profile
+- the role helpers and scopes count the roles of the active profile
 
 ### Role
 

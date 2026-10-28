@@ -20,3 +20,14 @@ test('a user does not have the permissions of an inactive profile', function ():
 
     expect($user->can('admin.access'))->toBeFalse();
 });
+
+test('the permission helpers and scopes count the permissions of the active profile', function (): void {
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::query()->create(['name' => 'reports.view']));
+    Profile::factory()->for($user)->withPermissions(Permission::query()->create(['name' => 'admin.access']))->create();
+    $other = User::factory()->create();
+
+    expect($user->getAllPermissions()->pluck('name')->sort()->values()->all())->toBe(['admin.access', 'reports.view'])
+        ->and(User::query()->permission('admin.access')->pluck('id')->all())->toBe([$user->id])
+        ->and(User::query()->withoutPermission('admin.access')->pluck('id')->all())->toBe([$other->id]);
+});

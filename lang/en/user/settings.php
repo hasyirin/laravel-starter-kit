@@ -17,6 +17,7 @@ return [
         'unverified' => 'Your email address is unverified.',
         'resend_verification' => 'Click here to re-send the verification email.',
         'verification_sent' => 'A new verification link has been sent to your email address.',
+        'verification_throttled' => 'Too many verification emails. Try again in :seconds seconds.',
         'updated' => 'Profile updated.',
         'example' => 'Dates and times look like this: :example',
     ],

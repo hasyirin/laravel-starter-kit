@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Settings\TwoFactor;
 
 use App\Domain\User\Models\User;
+use App\Livewire\Concerns\ConfirmsPassword;
 use Exception;
 use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 use Livewire\Attributes\Locked;
@@ -12,6 +13,8 @@ use Livewire\Component;
 
 class RecoveryCodes extends Component
 {
+    use ConfirmsPassword;
+
     /** @var list<string> */
     #[Locked]
     public array $recoveryCodes = [];
@@ -29,6 +32,10 @@ class RecoveryCodes extends Component
      */
     public function regenerateRecoveryCodes(GenerateNewRecoveryCodes $generateNewRecoveryCodes): void
     {
+        if (! $this->passwordIsConfirmed()) {
+            return;
+        }
+
         $generateNewRecoveryCodes(auth()->user());
 
         $this->loadRecoveryCodes();

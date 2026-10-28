@@ -114,7 +114,7 @@
                 x-on:change="useDefault($event.target.checked)"
             />
             <flux:label class="font-normal">
-                {{ $defaultLabel ?? __('common/inputs.use_default', ['value' => number_format((float) $default, $decimals, $separator, $comma)]) }}
+                {{ $defaultLabel ?? __('common/inputs.use_default', ['value' => \App\Domain\Shared\Common\Support\Decimal::format($default, $decimals, $separator, $comma)]) }}
             </flux:label>
         </flux:field>
     @endif

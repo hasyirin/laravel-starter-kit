@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Domain\Shared\Common\Support\ContextCauserResolver;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Blaze\Blaze;
+use Livewire\Livewire;
 use RuntimeException;
 use Spatie\Activitylog\Support\CauserResolver;
 
@@ -53,6 +55,8 @@ class AppServiceProvider extends ServiceProvider
         DB::prohibitDestructiveCommands(app()->isProduction());
 
         Blaze::optimize()->in(resource_path('views/components'));
+
+        Livewire::addPersistentMiddleware([EnsureEmailIsVerified::class]);
 
         Gate::before(fn (?User $user): ?true => $user?->checkPermissionTo(config('system.permissions.bypass-authorization')) ? true : null);
 

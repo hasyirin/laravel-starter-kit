@@ -66,7 +66,8 @@ The checkbox shows the default with the separators and decimals of the field.
 ## What the Property Gets
 
 - A string such as `"1234.50"`. An empty input gives `""`. Validate it with the `numeric` rule.
-- If the property has more decimals than `decimals`, the input shows it rounded. The property keeps its value until the user edits the input.
+- If the property has more decimals than `decimals`, the input shows it rounded. The property keeps its value until the user edits the input, also with `wire:model.blur`.
+- With `disable-negatives`, the user cannot type a minus sign. A negative value from the server still shows its minus sign.
 - `min` and `max` have no effect, because the input is a text field. Validate the range on the server.
 
 ## Reference

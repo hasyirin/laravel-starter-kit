@@ -25,7 +25,7 @@ With `time="input"`, the user types the exact minute and then confirms with the 
 
 - With the app time zone at its default, UTC, a user in Kuala Lumpur who picks 26 October, 2:30 pm, gives the property `2026-10-26 06:30`. With Asia/Kuala_Lumpur as the app time zone, the property gets `14:30`. When the property comes back from the server, the picker shows 2:30 pm again.
 - So the property is a real moment: save it, compare it with `now()`, or validate it with `after:now` as usual.
-- Keep the app time zone on one without daylight saving, such as UTC or Asia/Kuala_Lumpur. The property holds no offset, so in a zone with daylight saving, a time in the hour that repeats when the clocks go back is saved as the second one.
+- Keep the app time zone on one without daylight saving, such as UTC or Asia/Kuala_Lumpur. The property holds no offset, so in a zone with daylight saving, a time in the hour that repeats when the clocks go back can be saved as either of the two times, and which one depends on the zone.
 - Limits move to the time zone of the user too: a Carbon value, `now`, or `today` in `min`, `max`, or `open-to`, and Carbon values in `unavailable`. A string with a date or a time stays as it is, in the time zone of the user.
 - Each user has a time zone in the profile settings. A new user gets the time zone of their browser.
 

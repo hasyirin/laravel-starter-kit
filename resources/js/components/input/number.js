@@ -9,12 +9,8 @@ function round(whole, fraction, decimals) {
     return [(negative && digits > 0n ? '-' : '') + text.slice(0, text.length - decimals), text.slice(text.length - decimals)];
 }
 
-function format(value, { decimals, comma, separator, disableNegatives }) {
-    let text = value === null || value === undefined ? '' : String(value);
-
-    if (disableNegatives) {
-        text = text.replace(/-/g, '');
-    }
+function format(value, { decimals, comma, separator }) {
+    const text = value === null || value === undefined ? '' : String(value);
 
     if (!/^-?\d*\.?\d+$|^-?\d+\.?$/.test(text)) {
         return text;
@@ -89,8 +85,14 @@ export default function numberField() {
                 return;
             }
 
-            this.model().value = unformat(control.value, this.number);
-            this.model().dispatchEvent(copy);
+            const model = this.model();
+
+            // Blur, change, and Enter keep an untouched value, because the shown text is rounded to the decimals.
+            if (copy.type === 'input' || control.value !== this.display(model.value)) {
+                model.value = unformat(control.value, this.number);
+            }
+
+            model.dispatchEvent(copy);
         },
 
         show(value) {

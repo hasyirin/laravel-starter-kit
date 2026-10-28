@@ -12,6 +12,7 @@ use DateTimeZone;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -55,6 +56,8 @@ class Profile extends Component
         /** @var User $user */
         $user = auth()->user();
 
+        $this->email = str($this->email)->lower()->value();
+
         $this->validate([
             ...$this->profileRules($user->id),
             'timezone' => ['required', 'timezone:all'],
@@ -80,7 +83,13 @@ class Profile extends Component
             return;
         }
 
-        $user->sendEmailVerificationNotification();
+        $key = 'verification-notification:'.$user->id;
+
+        if (! RateLimiter::attempt($key, 6, $user->sendEmailVerificationNotification(...))) {
+            Flux::toast(variant: 'warning', text: __('user/settings.profile.verification_throttled', ['seconds' => RateLimiter::availableIn($key)]));
+
+            return;
+        }
 
         Flux::toast(text: __('user/settings.profile.verification_sent'));
     }

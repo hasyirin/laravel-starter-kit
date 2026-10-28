@@ -7,6 +7,7 @@ namespace App\Livewire\Settings;
 use App\Domain\User\Actions\UpdatePassword;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
+use App\Livewire\Concerns\ConfirmsPassword;
 use Exception;
 use Flux\Flux;
 use Illuminate\Validation\ValidationException;
@@ -26,6 +27,7 @@ use UnexpectedValueException;
 #[Title('Security settings')]
 class Security extends Component
 {
+    use ConfirmsPassword;
     use PasswordValidationRules;
 
     public string $current_password = '';
@@ -167,6 +169,10 @@ class Security extends Component
      */
     public function deletePasskey(DeletePasskey $deletePasskey): void
     {
+        if (! $this->passwordIsConfirmed()) {
+            return;
+        }
+
         if (! $this->deletingPasskeyId) {
             return;
         }
@@ -196,6 +202,10 @@ class Security extends Component
      */
     public function enable(EnableTwoFactorAuthentication $enableTwoFactorAuthentication): void
     {
+        if (! $this->passwordIsConfirmed()) {
+            return;
+        }
+
         /** @var User $user */
         $user = auth()->user();
 
@@ -253,6 +263,10 @@ class Security extends Component
      */
     public function confirmTwoFactor(ConfirmTwoFactorAuthentication $confirmTwoFactorAuthentication): void
     {
+        if (! $this->passwordIsConfirmed()) {
+            return;
+        }
+
         $this->validate();
 
         $confirmTwoFactorAuthentication(auth()->user(), $this->code);
@@ -277,6 +291,10 @@ class Security extends Component
      */
     public function disable(DisableTwoFactorAuthentication $disableTwoFactorAuthentication): void
     {
+        if (! $this->passwordIsConfirmed()) {
+            return;
+        }
+
         $disableTwoFactorAuthentication(auth()->user());
 
         $this->twoFactorEnabled = false;

@@ -18,7 +18,7 @@ class PositionObserver
 
         $organizationId = Department::withTrashed()->whereKey($position->department_id)->value('organization_id');
 
-        throw_if($organizationId !== $position->organization_id, LogicException::class, 'The department of a position must belong to the same organization.');
+        throw_if((int) $organizationId !== (int) $position->organization_id, LogicException::class, 'The department of a position must belong to the same organization.');
     }
 
     public function updating(Position $position): void

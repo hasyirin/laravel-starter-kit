@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Domain\User\Models\User;
 use App\Livewire\Settings\Profile;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 test('profile page is displayed', function (): void {
@@ -132,4 +134,40 @@ test('correct password must be provided to delete account', function (): void {
     $response->assertHasErrors(['password']);
 
     expect($user->fresh())->not->toBeNull();
+});
+
+test('the email is stored in lowercase', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(Profile::class)
+        ->set('email', 'Alice@Example.COM')
+        ->call('updateProfileInformation')
+        ->assertHasNoErrors();
+
+    expect(User::query()->where('email', 'alice@example.com')->exists())->toBeTrue()
+        ->and(User::factory()->create(['email' => 'Bob@Example.COM'])->email)->toBe('bob@example.com');
+});
+
+test('an email that differs from another user only in case is taken', function (): void {
+    User::factory()->create(['email' => 'bob@example.com']);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(Profile::class)
+        ->set('email', 'Bob@Example.com')
+        ->call('updateProfileInformation')
+        ->assertHasErrors(['email' => 'unique']);
+});
+
+test('the verification email can be sent six times a minute', function (): void {
+    Notification::fake();
+    $this->actingAs($user = User::factory()->unverified()->create());
+
+    $component = Livewire::test(Profile::class);
+
+    foreach (range(1, 7) as $attempt) {
+        $component->call('resendVerificationNotification');
+    }
+
+    Notification::assertSentToTimes($user, VerifyEmail::class, 6);
+    $component->assertDispatched('toast-show', fn (string $name, array $params): bool => str_starts_with($params['slots']['text'], 'Too many verification emails.'));
 });

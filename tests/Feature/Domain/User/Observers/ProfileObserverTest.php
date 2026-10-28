@@ -77,3 +77,12 @@ test('a profile cannot be updated', function (): void {
     expect(fn (): bool => $profile->update(['organization_id' => Organization::factory()->create()->id]))->toThrow(LogicException::class, 'Profiles cannot be updated. Create a new profile instead.')
         ->and($profile->fresh()?->organization_id)->toBeNull();
 });
+
+test('a new profile cannot have a deleted department, branch, or position', function (string $deleted): void {
+    $department = Department::factory()->create();
+    $position = Position::factory()->forDepartment($department)->create();
+    $branch = Branch::factory()->for($department->organization)->create();
+    ['department' => $department, 'position' => $position, 'branch' => $branch][$deleted]->delete();
+
+    expect(fn () => Profile::factory()->for($department->organization)->for($department)->for($position)->for($branch)->create())->toThrow(LogicException::class);
+})->with(['department', 'position', 'branch']);

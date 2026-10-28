@@ -1,4 +1,5 @@
 import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
+import card from './components/card';
 import blurOnLeave from './components/field';
 import inputField from './components/input';
 import datetimeField from './components/input/datetime';
@@ -17,6 +18,7 @@ if (window.livewireStarted) {
     remember('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
     remember('locale', navigator.languages.join(','));
     blurOnLeave();
+    Alpine.data('card', card);
     Alpine.data('inputField', inputField);
     Alpine.data('datetimeField', datetimeField);
     Alpine.data('numberField', numberField);

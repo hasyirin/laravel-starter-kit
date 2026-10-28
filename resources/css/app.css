@@ -92,6 +92,78 @@ select:focus[data-flux-control] {
     display: none !important;
 }
 
+/* The card rules below use Flux internals that a Flux update can change. docs/components/card.md lists them. */
+
+/* The toggle's click area covers the header of an accordion card, so the header's own links and controls sit above it. */
+[data-flux-card-header]:has([data-card-toggle]) {
+    position: relative;
+
+    & > [data-flux-card-actions],
+    & :is(a, button, input, select, textarea, summary, [tabindex]):not([data-card-toggle]) {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+/* Folded parts stay in the DOM, so a header with no part shown below it takes Flux's look for a last header. */
+[data-flux-card-header]:has([data-card-toggle]):not(:has(~ :not([hidden]))) {
+    padding-bottom: var(--flux-card-part-py);
+    border-bottom-width: 0;
+    border-bottom-left-radius: var(--flux-card-band-radius);
+    border-bottom-right-radius: var(--flux-card-band-radius);
+
+    &::after {
+        border-bottom-width: 0;
+    }
+}
+
+/* A part that is hidden until found keeps its box, so that find in page can search it. */
+[data-flux-card] > [hidden='until-found'] {
+    height: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    box-shadow: none;
+    overflow: clip;
+}
+
+/* Cards in a group share their borders, and only the outer corners are round. Inset panels keep their own corners. */
+[data-card-group] {
+    & > [data-flux-card] ~ [data-flux-card] {
+        --flux-bleed-top-radius: 0px;
+        border-top-width: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+
+        &::after {
+            display: none;
+        }
+
+        & > [data-flux-card-header],
+        &:not([data-flux-card-body-variant='inset']) > [data-flux-card-body] {
+            --flux-bleed-top-radius: 0px;
+            --flux-card-body-clip-top-radius: 0px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
+
+    & > [data-flux-card]:has(~ [data-flux-card]) {
+        --flux-bleed-bottom-radius: 0px;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+
+        & > :is([data-flux-card-header], [data-flux-card-footer]),
+        &:not([data-flux-card-body-variant='inset']) > [data-flux-card-body] {
+            --flux-bleed-bottom-radius: 0px;
+            --flux-card-body-clip-bottom-radius: 0px;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    }
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */

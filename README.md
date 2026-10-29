@@ -15,7 +15,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - Laravel Horizon for Redis queues
 - PostgreSQL in production, SQLite for local work and tests
 - Tailwind CSS 4, Vite (via Vite+)
-- Pest 5 with test impact analysis
+- Pest 5 with test impact analysis, and the Pest browser plugin with Playwright for browser tests
 - PHPStan (Larastan) at level 10, Rector, Pint, the Vite+ linter and formatter, and Prettier for Blade
 - Debugbar and Ray for local debugging
 - Laravel Boost for AI-assisted development
@@ -55,7 +55,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 - **Blaze** optimizes the Blade components in `resources/views/components`.
 - **UI components** in `resources/views/components` wrap Flux for forms: `<x-field>`, `<x-input>`, and `<x-input.number>`, `.password`, `.date`, `.time`, `.datetime`, and `.phone`. Views use them before Flux components. The date and time inputs use the locale of the user, and the phone input starts at the country `system.country` from `config/system.php`. See [Components](docs/components/README.md), or open `/docs/components` in the local environment for live examples.
 - **Time zones and locales**: the app keeps times in its own time zone, `app.timezone` (UTC by default), and PostgreSQL stores them as `timestamptz`. The `pgsql` connection uses the app time zone too, so another `app.timezone` keeps working. Pick one without daylight saving: times travel without an offset, so the hour that repeats when the clocks go back is ambiguous. Scheduled tasks run on the clock of `system.timezone`. Kit models read dates in the named zone of the app, so date math across daylight saving stays right. Each user has a time zone and a locale (`users.timezone`, `users.locale`). When a user has no time zone or locale yet, the app fills it from the browser, if that locale is in `system.locales`. The profile settings change them. `system.timezone`, `system.locale`, and `system.locales` in `config/system.php` set the defaults and the locales that users can pick. `<x-input.datetime>` shows times in the time zone of the user, and `App\Domain\User\Support\Preferences` formats dates and times for the user with the formats of their locale.
-- **Tests** use Pest syntax and run with test impact analysis.
+- **Tests** use Pest syntax and run with test impact analysis. Browser tests in `tests/Browser` drive the app in Chromium through Playwright. They cover behavior that runs in JavaScript, such as a tab switch that swaps only the content, a number input that shows separators, or an accordion card that opens when a field inside it is rejected.
 - **Code checks** are stricter. PHPStan runs at level 10 with extra Larastan checks and Livewire support. Rector runs with Laravel and Pest rules. Vite+ lints the JavaScript and formats the JavaScript and CSS in `resources/`. Prettier formats the Blade views and sorts their Tailwind classes.
 - **Workflows** use Spatie Model States. A base state extends `App\Domain\Shared\Common\States\State`, which gives labels, colors, and the next states that a user can move to. It lists its transitions in `configure()`. The kit builds that config once per state column and keeps it, so a flow with many states stays fast, also on Octane. A transition class extends `App\Domain\Shared\Common\Transitions\Transition`, which saves in a transaction, and fails when the state changed after the model was loaded or when a listener stopped the save. Callers check the `transition` policy ability before each step. A Livewire component runs a step with its own `transitionTo()`. The `exception()` hook of `App\Livewire\Component` shows a toast instead of an error page when a step fails, also a step inside an Action. See [Workflows](docs/workflows.md).
 - **Docs** in `docs/` follow the code. `php artisan docs:generate` fills each section between `<!-- generated:name -->` and `<!-- /generated:name -->` from the code, for example the permission matrix and the rules that the test names state. It runs the migrations and seeders on an in-memory SQLite database, so the matrix shows the roles that the seeders create. `composer test` fails when a section is out of date, or when a doc names a file, class, translation key, permission, route, config key, table column, or environment variable in backticks that does not exist. See [Permissions](docs/modules/permission.md).
@@ -81,7 +81,7 @@ A personal starting point for new Laravel projects. It is based on the official 
 
 2. Make sure Redis runs on `127.0.0.1:6379`, because the seeders in the next step use the cache. If Redis runs elsewhere, copy `.env.example` to `.env` and change the `REDIS_*` values first.
 
-3. Install dependencies, create `.env`, generate the app key, run migrations, seed the database, create the storage links, and build assets:
+3. Install dependencies, create `.env`, generate the app key, run migrations, seed the database, create the storage links, install Chromium for the browser tests, and build assets:
 
    ```bash
    composer setup
@@ -89,15 +89,21 @@ A personal starting point for new Laravel projects. It is based on the official 
 
    Log in as `admin@example.com` (super admin) or `it@example.com` (no roles). Both have the password `password`.
 
-4. If you serve the app from a different host, set `APP_DOMAIN` in `.env`.
+4. If Chromium does not start in the browser tests, install the system libraries that it needs. This uses `sudo` on Linux:
 
-5. If you use Junie, write its Boost MCP config. git ignores Junie's MCP config, because it holds local paths. The other Boost files are committed:
+   ```bash
+   bunx playwright install-deps chromium
+   ```
+
+5. If you serve the app from a different host, set `APP_DOMAIN` in `.env`.
+
+6. If you use Junie, write its Boost MCP config. git ignores Junie's MCP config, because it holds local paths. The other Boost files are committed:
 
    ```bash
    php artisan boost:install
    ```
 
-6. Install the image optimizers. The media library uses them to make converted images smaller. On Debian or Ubuntu:
+7. Install the image optimizers. The media library uses them to make converted images smaller. On Debian or Ubuntu:
 
    ```bash
    sudo apt install jpegoptim optipng pngquant gifsicle libavif-bin webp
@@ -124,11 +130,19 @@ composer dev
 
 `composer test` runs the tests with test impact analysis (`--tia`). With Xdebug installed, Pest runs only the tests that your changes affect. Without it, Pest runs all tests.
 
+To run only the browser tests:
+
+```bash
+php artisan test --testsuite=Browser
+```
+
+The browser tests build no assets, so run `bun run build` after a change in `resources/`. The Playwright server keeps running after the tests finish. If you pipe the test output into another command, such as `tail`, the command waits until that server stops.
+
 `composer lint` also removes `->only()` from tests, and `dump`, `dd`, and `ray` calls from `expect()` chains.
 
 ## Continuous Integration
 
-`.github/workflows/tests.yml` runs `composer ci:check` on pushes to `main` and on pull requests. It caches the Rector and PHPStan results.
+`.github/workflows/tests.yml` runs `composer ci:check` on pushes to `main` and on pull requests. It installs Chromium for the browser tests and caches the Rector and PHPStan results.
 
 CI must install Flux Pro, so add your Flux credentials as repository secrets. Add them as Dependabot secrets too, so that Dependabot pull requests can also install Flux Pro. Each command asks for the value:
 

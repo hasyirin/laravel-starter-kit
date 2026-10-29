@@ -6,6 +6,7 @@ import inputField from './components/input';
 import datetimeField from './components/input/datetime';
 import numberField from './components/input/number';
 import sliderField from './components/slider';
+import tabs from './components/tabs';
 
 const remember = (name, value) => {
     document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; samesite=lax${location.protocol === 'https:' ? '; secure' : ''}`;
@@ -26,5 +27,6 @@ if (window.livewireStarted) {
     Alpine.data('datetimeField', datetimeField);
     Alpine.data('numberField', numberField);
     Alpine.data('sliderField', sliderField);
+    Alpine.data('tabs', tabs);
     Livewire.start();
 }

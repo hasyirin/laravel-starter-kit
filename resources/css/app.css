@@ -43,6 +43,33 @@
 }
 
 @theme {
+    --animate-tab-enter-x: tab-enter-x 200ms ease-out;
+    --animate-tab-enter-y: tab-enter-y 200ms ease-out;
+
+    @keyframes tab-enter-x {
+        from {
+            opacity: 0;
+            transform: translateX(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes tab-enter-y {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+@theme {
     --color-accent: var(--color-blue-500);
     --color-accent-content: var(--color-blue-600);
     --color-accent-foreground: var(--color-white);
@@ -153,6 +180,27 @@ keep their own corners. :nth-child(... of ...) instead of :has(~ ...) keeps a ch
             --flux-card-body-clip-bottom-radius: 0px;
             border-bottom-left-radius: 0;
             border-bottom-right-radius: 0;
+        }
+    }
+}
+
+[data-tabs-strip] > [data-tab-content] > [data-tab-panel] {
+    & > [data-flux-card]:first-child,
+    & > [wire\:id] > [data-flux-card]:first-child {
+        --flux-bleed-top-radius: 0px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+
+        &::after {
+            display: none;
+        }
+
+        & > [data-flux-card-header],
+        &:not([data-flux-card-body-variant='inset']) > [data-flux-card-body] {
+            --flux-bleed-top-radius: 0px;
+            --flux-card-body-clip-top-radius: 0px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
         }
     }
 }

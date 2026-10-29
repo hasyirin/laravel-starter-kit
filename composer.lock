@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8616be822ba2c0dd1f32160744a379a2",
+    "content-hash": "ec99a1bfd8e0c3aec35f8072005067d5",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -2241,6 +2241,88 @@
                 }
             ],
             "time": "2026-08-24T17:13:02+00:00"
+        },
+        {
+            "name": "hasyirin/laravel-actor",
+            "version": "v1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hasyirin/laravel-actor.git",
+                "reference": "a13b1505d86cf63656c1c383db8fda5414ab9b60"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hasyirin/laravel-actor/zipball/a13b1505d86cf63656c1c383db8fda5414ab9b60",
+                "reference": "a13b1505d86cf63656c1c383db8fda5414ab9b60",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^12.0||^13.0",
+                "php": "^8.4",
+                "spatie/laravel-package-tools": "^1.16"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.14",
+                "nunomaduro/collision": "^8.1.1",
+                "orchestra/testbench": "^10.0.0||^11.0.0",
+                "pestphp/pest": "^3.0||^4.0||^5.0",
+                "pestphp/pest-plugin-arch": "^3.0||^4.0||^5.0",
+                "pestphp/pest-plugin-laravel": "^3.0||^4.0||^5.0",
+                "phpstan/extension-installer": "^1.3||^2.0",
+                "phpstan/phpstan-deprecation-rules": "^1.1||^2.0",
+                "phpstan/phpstan-phpunit": "^1.3||^2.0",
+                "spatie/laravel-ray": "^1.35"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Actor": "Hasyirin\\Actor\\Facades\\Actor"
+                    },
+                    "providers": [
+                        "Hasyirin\\Actor\\ActorServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Hasyirin\\Actor\\": "src/",
+                    "Hasyirin\\Actor\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hasyirin Fakhriy",
+                    "email": "hasyirin@novarift.my",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A polymorphic action log for Eloquent models — track who did what, when.",
+            "homepage": "https://github.com/hasyirin/laravel-actor",
+            "keywords": [
+                "actions",
+                "activity-log",
+                "audit-log",
+                "laravel",
+                "laravel-actor",
+                "tracking"
+            ],
+            "support": {
+                "issues": "https://github.com/hasyirin/laravel-actor/issues",
+                "source": "https://github.com/hasyirin/laravel-actor/tree/v1.1.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Hasyirin Fakhriy",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-10-28T07:34:14+00:00"
         },
         {
             "name": "kirschbaum-development/eloquent-power-joins",

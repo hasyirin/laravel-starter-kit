@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Shared\Actor\Models\Action;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
@@ -22,6 +23,7 @@ class EloquentServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! app()->isProduction());
 
         Relation::enforceMorphMap([
+            'action' => Action::class,
             'branch' => Branch::class,
             'department' => Department::class,
             'organization' => Organization::class,

@@ -36,3 +36,6 @@ Put model event logic in an observer in the sibling `Observers` folder, and atta
 
 ## Give a model media through the kit
 Implement `App\Domain\Shared\Common\Contracts\Models\HasMedia` and use `App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia`, not Spatie's `HasMedia` and `InteractsWithMedia`. The kit's trait makes the `preview` conversion that the file upload shows, and it takes enum cases as collection names. A model that writes its own `registerMediaConversions()` adds the `preview` again.
+
+## Record who acted with laravel-actor
+Record who did something to a record, such as who approved it, with `act()` from `Hasyirin\Actor\Concerns\InteractsWithActions`, not with columns such as `approved_by`. Add each kind of action as a case of `App\Domain\Shared\Actor\Enums\Act`. Use `App\Domain\Shared\Actor\Concerns\InteractsWithPreparer` to record who created a record. Show an action with `<x-act>`, see `docs/components/act.md`.

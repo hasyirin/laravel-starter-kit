@@ -6,6 +6,7 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 
 | Component                                 | Use it for                                                                                                        |
 |-------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| [`<x-act>`](act.md)                       | Who did an action on a record, such as who prepared it, with their position then and the time                     |
 | [`<x-card>`](card.md)                     | A Flux card built from slots, which the user can fold. `<x-card.group>` joins cards into one block.               |
 | [`<x-field>`](field.md)                   | The label row, help text, and error message that every input shares. It also wraps a control that has no kit input. |
 | [`<x-input>`](input.md)                   | A text field with a prefix or suffix, a size, case control, and a default value                                   |

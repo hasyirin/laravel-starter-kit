@@ -72,7 +72,7 @@ The `footer` slot sits below the body. Put buttons in a `<flux:card.actions>`, s
 
 ## Accordion
 
-`accordion` lets the user fold the body and the footer. A click anywhere on the header folds or opens the card, except a click on an action. The chevron turns to show the state. The fold takes 250 ms, and it is instant when the system asks for reduced motion.
+`accordion` lets the user fold the body and the footer. A click anywhere on the header folds or opens the card, except a click on a link, a button, or a field. The chevron turns to show the state. The fold takes 250 ms, and it is instant when the system asks for reduced motion.
 
 ```blade
 <x-card accordion body-class="grid gap-6 sm:grid-cols-2">
@@ -91,7 +91,7 @@ The `footer` slot sits below the body. Put buttons in a `<flux:card.actions>`, s
 </x-card>
 ```
 
-The fold works with every `body` style of the Flux card. With `body="divided"`, lines split the header, the body, and the footer. The line under the header fades out while the card folds.
+The fold works with every `body` style of the Flux card. With `body="divided"`, lines split the header, the body, and the footer.
 
 ```blade
 <x-card heading="Billing" accordion body="divided" body-class="grid gap-6 sm:grid-cols-2">
@@ -108,16 +108,20 @@ The fold works with every `body` style of the Flux card. With `body="divided"`, 
 
 The heading holds the toggle button, which tells screen readers if the card is open. Give the heading a `level` in the heading slot, so that screen readers also list the card with the other headings. Keep buttons and links out of an accordion heading, because a button cannot hold another button. Put them in `actions`.
 
-An accordion card needs a heading to toggle it. When the heading is empty, for example a `null` from the database, the card renders as a plain card.
+An accordion card needs a heading to toggle it, and a body or a footer to fold. Without them, for example with a `null` heading from the database, the card renders as a plain card.
 
 A folded card opens by itself when something inside needs the user:
 
 - a field that the browser rejects when the form is sent
-- an error message from the server
-- an open modal
+- a new error message from the server
+- a modal that opens
 - a match of find in page, or a link to an element inside the card
 
-An accordion card is an Alpine component with its own `x-data`, so it rejects an `x-data` of yours. Put your Alpine state on an element around the card. An `x-ref` inside the card belongs to the card, so code outside the card cannot reach it through `$refs`.
+The browser reports a field the same way when your own code calls `checkValidity()`, so that call also opens a folded card with a field that fails its check.
+
+A card does not fold when the server changes `collapsed` while it shows an error message or an open modal.
+
+An accordion card is an Alpine component with its own `x-data`, so it rejects an `x-data` of yours. Put your Alpine state on an element around the card. An `x-ref` on the card or inside it belongs to the card, so code outside the card cannot reach it through `$refs`.
 
 A card inside an accordion card stays a plain card unless it has its own `accordion`. Each accordion card folds only its own parts.
 
@@ -194,7 +198,7 @@ The kit also relies on how Flux draws a card:
 
 - A divided card draws its divider as the bottom border of the header. With `divider="inset"`, Flux draws it on the `::after` of the header instead. A folded header removes both.
 - The faint highlight of a card is the `::after` of the card. A group hides it on every card after the first.
-- Flux gives the last header of a card less padding and round bottom corners. Folded parts stay in the DOM, so the kit copies that look for a header with no part shown below it.
+- Flux gives the last header of a card less padding below its text. Folded parts stay in the DOM, so the kit copies that padding for a header with no part shown below it. The kit also rounds the bottom corners of that header, which Flux does not.
 
 ## Reference
 
@@ -204,7 +208,7 @@ The kit also relies on how Flux draws a card:
 |-------------------|---------|---------------------------------------------------------------------------------------------|
 | `heading`         |         | The heading in the header. It is also a slot.                                               |
 | `subheading`      |         | Text under the heading. It is also a slot.                                                  |
-| `accordion`       | `false` | Lets the user fold the body and the footer. Without a heading, the card stays plain.        |
+| `accordion`       | `false` | Lets the user fold the body and the footer. Without a heading or a part to fold, the card stays plain. |
 | `collapsed`       | `false` | Folds an accordion card in the HTML from the server. The card follows when the value changes. |
 | `body-class`      |         | Classes for the body.                                                                       |
 | Flux card props   |         | `variant`, `body`, `divider`, `size`, and `highlight`. See the [Flux card](https://fluxui.dev/components/card). |

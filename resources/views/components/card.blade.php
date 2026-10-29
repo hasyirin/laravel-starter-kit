@@ -16,45 +16,49 @@
         ? $part->attributes
         : new \Illuminate\View\ComponentAttributeBag;
 
+    if ($accordion && $attributes->get('x-data') !== null) {
+        throw new \InvalidArgumentException('An accordion card has its own x-data. Put your Alpine state on an element around the card.');
+    }
+
     $hasHeading = $hasContent($heading);
     $hasSubheading = $hasContent($subheading);
     $hasActions = $hasContent($actions);
     $hasBody = $hasContent($slot);
-    $hasFooter = $hasContent($footer);
+    $hasFooter = $hasContent($footer) && ! $partAttributes($footer)->get('hidden');
 
-    $accordion = $accordion && $hasHeading;
+    $accordion = $accordion && $hasHeading && ($hasBody || $hasFooter);
     $collapsed = $accordion && $collapsed;
 
-    if ($accordion && $attributes->has('x-data')) {
-        throw new \InvalidArgumentException('An accordion card has its own x-data. Put your Alpine state on an element around the card.');
-    }
-
-    // until-found keeps a folded part searchable, so find in page and links to it can open the card.
+    // until-found keeps a folded part searchable, so find in page and links to it can open the card. Livewire runs x-bind, not
+    // x-effect, when it copies the card's state onto new HTML, so a fold survives updates. A folding part is inert, so focus stays out.
     $foldAttributes = $accordion ? array_filter([
         'hidden' => $collapsed ? 'until-found' : null,
-        'x-effect' => "cardShown ? \$el.removeAttribute('hidden') : \$el.setAttribute('hidden', 'until-found')",
+        'x-bind:hidden' => "cardShown ? false : 'until-found'",
+        'x-bind:inert' => '! cardOpen && cardShown',
     ]) : [];
 @endphp
 
-<flux:card {{ $attributes->merge($accordion ? ['x-data' => 'card', 'data-card-collapsed' => $collapsed ? 'true' : 'false'] : []) }}>
+<flux:card
+    {{ $attributes->except($accordion ? ['x-data'] : [])->merge($accordion ? ['x-data' => 'card', 'data-card-collapsed' => $collapsed ? 'true' : 'false'] : []) }}
+>
     @if($hasHeading || $hasSubheading || $hasActions)
-        <flux:card.header>
+        <flux:card.header :class="$accordion ? 'group/card-header cursor-pointer' : null">
             @if($hasHeading)
                 <flux:card.heading :attributes="$partAttributes($heading)">
                     @if($accordion)
                         <button
                             type="button"
-                            class="group/card-toggle flex w-full cursor-pointer items-center justify-between gap-4 text-start after:absolute after:inset-0"
+                            class="group/card-toggle flex w-full cursor-pointer items-center justify-between gap-4 text-start"
                             aria-expanded="{{ $collapsed ? 'false' : 'true' }}"
                             x-bind:aria-expanded="cardOpen"
                             x-on:click="toggleCard"
                             data-card-toggle
                         >
-                            <span>{{ $heading }}</span>
+                            <span class="flex min-w-0 items-center gap-2 [overflow-wrap:anywhere]">{{ $heading }}</span>
 
                             <flux:icon.chevron-down
                                 variant="mini"
-                                class="shrink-0 text-zinc-300 transition-transform duration-250 group-hover/card-toggle:text-zinc-800 group-aria-expanded/card-toggle:rotate-180 motion-reduce:transition-none dark:text-zinc-400 dark:group-hover/card-toggle:text-white"
+                                class="shrink-0 text-zinc-500 transition-transform duration-250 group-hover/card-header:text-zinc-800 group-aria-expanded/card-toggle:rotate-180 motion-reduce:transition-none dark:text-zinc-400 dark:group-hover/card-header:text-white"
                             />
                         </button>
                     @else
@@ -78,6 +82,8 @@
     @endif
 
     @if($hasFooter)
-        <flux:card.footer :attributes="$partAttributes($footer)->merge($foldAttributes)">{{ $footer }}</flux:card.footer>
+        <flux:card.footer :attributes="$partAttributes($footer)->except(['hidden', ...array_keys($foldAttributes)])->merge($foldAttributes)">
+            {{ $footer }}
+        </flux:card.footer>
     @endif
 </flux:card>

@@ -108,9 +108,44 @@ test('a collapsed accordion card is folded in the server HTML, where find in pag
         ->and($document->querySelectorAll('[data-flux-card-body][hidden="until-found"], [data-flux-card-footer][hidden="until-found"]')->length)->toBe(2);
 });
 
-test('an accordion card rejects an x-data of its own', function (): void {
-    expect(fn () => $this->blade('<x-card accordion heading="Address" x-data="{ editing: false }">Street</x-card>'))
-        ->toThrow(ViewException::class, 'An accordion card has its own x-data.');
+test('a part keeps its fold through Livewire updates, because an x-bind holds its state', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-card accordion heading="Address"><p>Street</p><x-slot:footer>Saved.</x-slot:footer></x-card>'), LIBXML_NOERROR);
+
+    foreach ($document->querySelectorAll('[data-flux-card-body], [data-flux-card-footer]') as $part) {
+        expect([$part->hasAttribute('x-bind:hidden'), $part->hasAttribute('x-effect')])->toBe([true, false]);
+    }
+});
+
+test('an accordion card rejects an x-data of its own', function (string $template): void {
+    expect(fn () => $this->blade($template))->toThrow(ViewException::class, 'An accordion card has its own x-data.');
+})->with([
+    'with a heading' => ['<x-card accordion heading="Address" x-data="{ editing: false }">Street</x-card>'],
+    'while its heading is empty' => ['<x-card accordion :heading="null" x-data="{ editing: false }">Street</x-card>'],
+]);
+
+test('a null x-data does not count as one of its own', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-card accordion heading="Address" :x-data="null">Street</x-card>'), LIBXML_NOERROR);
+
+    expect($document->querySelector('[data-flux-card]')?->getAttribute('x-data'))->toBe('card');
+});
+
+test('an accordion card with nothing to fold renders as a plain card', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-card accordion heading="Address" />'), LIBXML_NOERROR);
+
+    expect($document->querySelector('[data-flux-card]')?->hasAttribute('x-data'))->toBeFalse()
+        ->and($document->querySelector('[data-card-toggle]'))->toBeNull();
+});
+
+test('a hidden footer slot renders no footer', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-card accordion heading="Address">Street<x-slot:footer :hidden="true">Save</x-slot:footer></x-card>'), LIBXML_NOERROR);
+
+    expect($document->querySelector('[data-flux-card-footer]'))->toBeNull();
+});
+
+test('the fold attributes of an accordion card win over the attributes of its footer slot', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-card accordion heading="Address">Street<x-slot:footer x-bind:hidden="mine">Save</x-slot:footer></x-card>'), LIBXML_NOERROR);
+
+    expect($document->querySelector('[data-flux-card-footer]')?->getAttribute('x-bind:hidden'))->not->toBe('mine');
 });
 
 test('the actions of an accordion card sit outside its toggle button', function (): void {

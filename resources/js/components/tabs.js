@@ -17,10 +17,12 @@ function isSelected(item) {
     return item.getAttribute('aria-selected') === 'true' || item.getAttribute('aria-current') === 'page';
 }
 
+function ownElements(componentRoot, selector) {
+    return [...componentRoot.querySelectorAll(selector)].filter((element) => element.closest('[wire\\:id]') === componentRoot);
+}
+
 function hasPanel(componentRoot, slug) {
-    return [...componentRoot.querySelectorAll('[data-tab-panel]')].some(
-        (panel) => panel.dataset.tabPanel === slug && panel.closest('[wire\\:id]') === componentRoot,
-    );
+    return ownElements(componentRoot, '[data-tab-panel]').some((panel) => panel.dataset.tabPanel === slug);
 }
 
 function isModifiedClick(event) {
@@ -32,6 +34,7 @@ export default function tabs() {
         init() {
             const root = this.$root;
             let latestClick = 0;
+            let dimTimer;
             const linkOf = (event) => event.target.closest?.('[data-tab][href]');
 
             // Other components can change the URL without this bar rendering again.
@@ -73,17 +76,27 @@ export default function tabs() {
                 }
 
                 const click = ++latestClick;
+                const contents = ownElements(this.$wire.$el, '[data-tab-content]');
+                const setPending = (isPending) => contents.forEach((content) => content.toggleAttribute('data-tabs-pending', isPending));
 
                 root.querySelectorAll('[data-tab]').forEach((other) => markSelected(other, other === item));
+                contents.forEach((content) => content.setAttribute('data-tabs-animate', ''));
+                clearTimeout(dimTimer);
+                setPending(false);
 
-                // A rendered panel shows at once. Otherwise the current panel stays until the new one arrives.
+                // A rendered panel shows at once. Otherwise the current panel stays, and dims only when the server is slow.
                 if (hasPanel(this.$wire.$el, slug)) {
                     this.$wire.tab = slug === defaultSlug ? '' : slug;
+                } else {
+                    dimTimer = setTimeout(() => setPending(true), 200);
                 }
 
                 // The server answers clicks in order, so the last click wins. A failed request gives the mark back to the current tab.
                 this.$wire.switchTab(slug).finally(() => {
                     if (click === latestClick) {
+                        clearTimeout(dimTimer);
+                        setPending(false);
+
                         const current = this.$wire.tab || root.dataset.tabsDefault;
 
                         root.querySelectorAll('[data-tab]').forEach((other) => markSelected(other, other.dataset.tab === current));

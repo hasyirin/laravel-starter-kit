@@ -6,14 +6,13 @@
 ])
 
 @php
-    $animation = $orientation === 'vertical' ? 'animate-tab-enter-y' : 'animate-tab-enter-x';
     $keptAliveValues = collect($panels)
         ->filter(fn (App\Livewire\Components\Tab $tab): bool => $tab->isKeptAlive())
         ->flatMap(fn (App\Livewire\Components\Tab $tab): array => $tab->isDefault() ? [$tab->slug(), ''] : [$tab->slug()])
         ->map(fn (string $value): string => Js::from($value)->toHtml());
 @endphp
 
-<div {{ $attributes->class('transition-opacity') }} data-tab-content wire:loading.class="opacity-50" wire:target="switchTab">
+<div {{ $attributes->class('transition-opacity data-tabs-pending:opacity-50') }} data-tab-content wire:ignore.self>
     @foreach($panels as $tab)
         @php
             $slug = $tab->slug();
@@ -29,7 +28,7 @@
         <div
             wire:key="tab-content-{{ $slug }}"
             data-tab-panel="{{ $slug }}"
-            @class([$animation, 'motion-reduce:animate-none'])
+            class="animate-tab-enter motion-reduce:animate-none"
             @if($showWhen !== null) x-show="{{ $showWhen }}" @endif
             @if($slug !== $currentTab?->slug()) style="display: none" @endif
         >

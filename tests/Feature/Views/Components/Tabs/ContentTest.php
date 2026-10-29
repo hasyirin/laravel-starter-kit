@@ -110,20 +110,16 @@ test('a lazy tab mounts its content lazily', function (): void {
         ->assertSeeText('Owner panel');
 });
 
-test('orientation picks the animation class', function (string $orientation, string $animation): void {
-    $classes = contentDocument(Livewire::test(TabsHost::class, ['orientation' => $orientation]))
-        ->querySelector('[data-tab-panel="owner"]')?->classList;
+test('a panel fades in unless the system asks for reduced motion', function (): void {
+    $classes = contentDocument(Livewire::test(TabsHost::class))->querySelector('[data-tab-panel="owner"]')?->classList;
 
-    expect($classes?->contains($animation))->toBeTrue()
+    expect($classes?->contains('animate-tab-enter'))->toBeTrue()
         ->and($classes?->contains('motion-reduce:animate-none'))->toBeTrue();
-})->with([
-    'horizontal' => ['horizontal', 'animate-tab-enter-x'],
-    'vertical' => ['vertical', 'animate-tab-enter-y'],
-]);
+});
 
-test('the content dims while a tab switch runs', function (): void {
+test('the content keeps the marks of the bar when it renders again', function (): void {
     $content = contentDocument(Livewire::test(TabsHost::class))->querySelector('[data-tab-content]');
 
-    expect($content?->getAttribute('wire:loading.class'))->toBe('opacity-50')
-        ->and($content?->getAttribute('wire:target'))->toBe('switchTab');
+    expect($content?->hasAttribute('wire:ignore.self'))->toBeTrue()
+        ->and($content?->classList->contains('data-tabs-pending:opacity-50'))->toBeTrue();
 });

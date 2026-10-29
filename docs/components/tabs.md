@@ -47,7 +47,7 @@ The trait gives the view these variables:
 
 ## How a Switch Works
 
-Each tab is a link. A plain click calls `InteractsWithTabs::switchTab()` on the component that owns the tab set, so only that component renders again. The bar marks the clicked tab at once, and the current content dims until the server answers. A kept-alive tab that already rendered shows at once. When the user clicks again before the server answers, the last click wins. When a request fails, the bar marks the current tab again. A middle click, a click with Ctrl or Cmd, and "open in new tab" follow the link.
+Each tab is a link. A plain click calls `InteractsWithTabs::switchTab()` on the component that owns the tab set, so only that component renders again. The bar marks the clicked tab at once. The current content stays until the server answers, and dims when the answer takes longer than 200 ms. A kept-alive tab that already rendered shows at once, without the dim. When the user clicks again before the server answers, the last click wins. When a request fails, the bar marks the current tab again. A middle click, a click with Ctrl or Cmd, and "open in new tab" follow the link.
 
 `InteractsWithTabs::switchTab()` ignores a tab that is unknown, hidden, or disabled. When a tab changes in another way, for example with the Back button, the trait checks it in the same way and keeps the tab it had.
 
@@ -130,7 +130,7 @@ Tab::make('members')->content(Members::class)->params(['role' => 'editor']),
 <x-tabs.content :panels="$tabPanels" :$currentTab :params="['project' => $project]" />
 ```
 
-The content enters with a short slide, from the side or, with `orientation="vertical"`, from the top. The slide stays off when the system asks for reduced motion.
+New content fades in for 150 ms after a click. The content of the first page load shows without the fade. The fade stays off when the system asks for reduced motion.
 
 ## Load Fresh and Keep Alive
 

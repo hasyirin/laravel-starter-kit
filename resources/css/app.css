@@ -43,28 +43,11 @@
 }
 
 @theme {
-    --animate-tab-enter-x: tab-enter-x 200ms ease-out;
-    --animate-tab-enter-y: tab-enter-y 200ms ease-out;
+    --animate-tab-enter: tab-enter 0s ease-out;
 
-    @keyframes tab-enter-x {
+    @keyframes tab-enter {
         from {
             opacity: 0;
-            transform: translateX(8px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-
-    @keyframes tab-enter-y {
-        from {
-            opacity: 0;
-            transform: translateY(4px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
         }
     }
 }
@@ -182,6 +165,12 @@ keep their own corners. :nth-child(... of ...) instead of :has(~ ...) keeps a ch
             border-bottom-right-radius: 0;
         }
     }
+}
+
+/* The fade has no length until the first click, so the first paint shows the content without it. A length set later does not
+replay a fade that ran already. */
+[data-tabs-animate] > [data-tab-panel] {
+    animation-duration: 150ms;
 }
 
 [data-tabs-strip] > [data-tab-content] > [data-tab-panel] {

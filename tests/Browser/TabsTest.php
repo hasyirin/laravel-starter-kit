@@ -29,6 +29,15 @@ function tabsScript(string $body): string
                 }
             };
         };
+        const watchDim = (key) => {
+            const content = rootOf(key).querySelector('[data-tab-content]');
+            window.tabsDim = { seen: false };
+            const look = () => {
+                window.tabsDim.seen ||= Number(getComputedStyle(content).opacity) < 1;
+                setTimeout(look, 20);
+            };
+            look();
+        };
         const settled = async () => {
             for (let round = 0; round < 3; round++) {
                 await until(() => network.started > 0 && network.started === network.finished);
@@ -140,6 +149,64 @@ test('the current panel stays until a panel that is not rendered arrives', funct
         const stayed = shown('keep-alive', 'profile') && panel('keep-alive', 'notes') === null;
 
         return stayed && await until(() => shown('keep-alive', 'notes') && ! shown('keep-alive', 'profile'));
+        SCRIPT)))->toBeTrue();
+});
+
+test('the first paint has no fade and a new panel fades in', function (): void {
+    $page = visit(TABS_PAGE);
+
+    expect($page->script(tabsScript(<<<'SCRIPT'
+        const noFadeAtFirst = getComputedStyle(panel('keep-alive', 'profile')).animationDuration === '0s';
+
+        slowNetwork(300);
+        tab('keep-alive', 'notes').click();
+        await tick();
+        const leavingPanelStill = panel('keep-alive', 'profile').getAnimations().every((animation) => animation.playState !== 'running');
+
+        await until(() => shown('keep-alive', 'notes'));
+        const style = getComputedStyle(panel('keep-alive', 'notes'));
+
+        return noFadeAtFirst && leavingPanelStill && style.animationName === 'tab-enter' && style.animationDuration === '0.15s';
+        SCRIPT)))->toBeTrue();
+});
+
+test('only a slow switch dims the content', function (int $milliseconds, bool $dims): void {
+    $page = visit(TABS_PAGE);
+
+    $page->script(tabsScript(<<<SCRIPT
+        watchDim('keep-alive');
+        slowNetwork({$milliseconds});
+        tab('keep-alive', 'notes').click();
+        SCRIPT));
+
+    expect($page->script(tabsScript(<<<'SCRIPT'
+        await settled();
+
+        return [window.tabsDim.seen, getComputedStyle(rootOf('keep-alive').querySelector('[data-tab-content]')).opacity];
+        SCRIPT)))->toBe([$dims, '1']);
+})->with([
+    'fast' => [50, false],
+    'slow' => [600, true],
+]);
+
+test('a kept-alive panel does not dim while its switch runs', function (): void {
+    $page = visit(TABS_PAGE);
+
+    $page->script(tabsScript(<<<'SCRIPT'
+        tab('keep-alive', 'notes').click();
+        await until(() => shown('keep-alive', 'notes'));
+        SCRIPT));
+
+    $page->script(tabsScript(<<<'SCRIPT'
+        watchDim('keep-alive');
+        slowNetwork(600);
+        tab('keep-alive', 'profile').click();
+        SCRIPT));
+
+    expect($page->script(tabsScript(<<<'SCRIPT'
+        await settled();
+
+        return window.tabsDim.seen === false && shown('keep-alive', 'profile');
         SCRIPT)))->toBeTrue();
 });
 

@@ -8,6 +8,7 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 |-------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
 | [`<x-act>`](act.md)                       | Who did an action on a record, such as who prepared it, with their position then and the time                     |
 | [`<x-card>`](card.md)                     | A Flux card built from slots, which the user can fold. `<x-card.group>` joins cards into one block.               |
+| [`<x-card.tabs>`](card.tabs.md)           | A tab bar in a thin card strip, with the content of the current tab below it                                      |
 | [`<x-field>`](field.md)                   | The label row, help text, and error message that every input shares. It also wraps a control that has no kit input. |
 | [`<x-input>`](input.md)                   | A text field with a prefix or suffix, a size, case control, and a default value                                   |
 | [`<x-input.number>`](input.number.md)     | A number with thousands separators and a fixed number of decimals                                                 |
@@ -26,6 +27,7 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 | [`<x-editor>`](editor.md)                 | Rich text with headings, lists, and links. The property gets HTML.                                                |
 | [`<x-autocomplete>`](autocomplete.md)     | A text field that suggests values while the user types                                                            |
 | [`<x-file-upload>`](file-upload.md)       | Files that the page stores with a model through Media Library                                                     |
+| [`<x-tabs>`](tabs.md)                     | A set of tabs in a Livewire component. A switch swaps only the content, and the URL keeps the tab.                |
 
 ## Live Docs
 

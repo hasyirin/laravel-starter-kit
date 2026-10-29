@@ -12,6 +12,7 @@
 /storage/pail
 /storage/phpstan
 /storage/rector
+/tests/Browser/Screenshots
 /vendor
 .env
 .env.backup

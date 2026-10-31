@@ -8,6 +8,11 @@ return [
     'copy' => 'Copy the code',
     'copied' => 'Copied',
     'examples' => [
+        'modal' => [
+            'open' => 'Add a contact',
+            'name' => 'Name',
+            'saved' => 'Contact saved.',
+        ],
         'tabs' => [
             'profile' => 'Profile',
             'display_name' => 'Display name',

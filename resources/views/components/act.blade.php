@@ -4,13 +4,19 @@
 ])
 
 @php
-    $name ??= $action?->name;
+    $name = $action?->name ?? $name;
 
     if (is_string($name)) {
         $name = \App\Domain\Shared\Actor\Enums\Act::from($name);
     }
 
-    $action?->loadMissing($action->profile_id === null ? ['actor'] : ['profile.user', 'profile.position']);
+    if ($action?->profile_id === null) {
+        $action?->setRelation('profile', null)->loadMissing(['actor' => fn ($actor) => $actor->constrain([\App\Domain\User\Models\User::class => fn ($query) => $query->withTrashed()->without('profile')])]);
+    } else {
+        $action->loadMissing(['profile.user' => fn ($user) => $user->without('profile'), 'profile.position']);
+    }
+
+    $actorName = $action?->profile?->name ?? ($action?->actor instanceof \App\Domain\Shared\Actor\Contracts\Models\HasActorName ? $action->actor->getActorName() : null);
 
     $position = $action?->profile?->position?->name;
 
@@ -23,7 +29,9 @@
 
         <dd class="ms-4 flex flex-col">
             @if($action)
-                <flux:text variant="strong" class="font-bold uppercase">{{ $action->profile?->name ?? $action->actor?->name }}</flux:text>
+                @if(filled($actorName))
+                    <flux:text variant="strong" class="font-bold uppercase">{{ $actorName }}</flux:text>
+                @endif
 
                 @if(filled($position))
                     <flux:text size="sm" class="font-semibold uppercase">{{ $position }}</flux:text>

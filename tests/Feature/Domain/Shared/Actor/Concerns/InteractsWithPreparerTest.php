@@ -7,6 +7,7 @@ use App\Domain\User\Models\Profile;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Tests\Fixtures\Models\CustomAction;
 use Tests\Fixtures\Models\Invoice;
 
 beforeEach(function (): void {
@@ -33,4 +34,12 @@ test('a model that a signed-in user creates records the user as its preparer', f
 
 test('a model created without a signed-in user has no preparer', function (): void {
     expect(Invoice::query()->create(['number' => 'INV-1'])->preparer)->toBeNull();
+});
+
+test('the preparer is an instance of the configured action model', function (): void {
+    config(['actor.models.action' => CustomAction::class]);
+    Relation::morphMap(['custom_action' => CustomAction::class]);
+    $this->actingAs(Profile::factory()->create()->user);
+
+    expect(Invoice::query()->create(['number' => 'INV-1'])->preparer)->toBeInstanceOf(CustomAction::class);
 });

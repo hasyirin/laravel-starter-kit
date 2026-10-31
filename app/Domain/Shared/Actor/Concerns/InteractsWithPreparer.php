@@ -26,6 +26,6 @@ trait InteractsWithPreparer
      */
     public function preparer(): MorphOne
     {
-        return $this->morphOne(Action::class, 'resource')->where('name', Act::Prepare);
+        return $this->morphOne(config('actor.models.action'), 'resource')->ofName(Act::Prepare);
     }
 }

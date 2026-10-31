@@ -95,14 +95,6 @@ class Profile extends Model
     }
 
     /**
-     * @return Attribute<string, never>
-     */
-    protected function name(): Attribute
-    {
-        return Attribute::get(fn (): string => $this->user->name);
-    }
-
-    /**
      * @param  Builder<static>  $query
      */
     #[Scope]
@@ -122,5 +114,13 @@ class Profile extends Model
     public function delete(): never
     {
         throw new LogicException('Profiles cannot be deleted.');
+    }
+
+    /**
+     * @return Attribute<string, never>
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->user->name);
     }
 }

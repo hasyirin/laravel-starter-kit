@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Actor\Models\Action;
+use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
@@ -62,6 +63,51 @@ test('an act shows the name of the actor when the action has no profile', functi
 
     expect($document->querySelector('dl > dd > p')?->textContent)->toBe('Ada Lovelace')
         ->and($document->querySelectorAll('dl > dd > p')->length)->toBe(2);
+});
+
+test('an act shows the name of a user without a profile who was deleted', function (): void {
+    $user = User::factory()->create(['name' => 'Ada Lovelace']);
+    $action = preparedBy($user);
+    $user->delete();
+
+    expect(renderAct('<x-act :action="$action" />', Action::query()->find($action->id))->querySelector('dl > dd > p')?->textContent)->toBe('Ada Lovelace');
+});
+
+test('an act shows no name for an actor without an actor name', function (): void {
+    $action = Actor::act(User::factory()->create(), Act::Prepare, Organization::factory()->create());
+
+    $lines = renderAct('<x-act :action="$action" />', $action)->querySelectorAll('dl > dd > p');
+
+    expect($lines->length)->toBe(1)
+        ->and($lines->item(0)?->textContent)->toBe((string) Preferences::current()->datetime($action->acted_at));
+});
+
+test('an act loads its profile, user, and position in three queries', function (): void {
+    $position = Position::factory()->create();
+    $action = preparedBy(Profile::factory()->for($position->organization)->for($position)->create()->user);
+    $action = Action::query()->find($action->id);
+
+    $this->expectsDatabaseQueryCount(3);
+
+    renderAct('<x-act :action="$action" />', $action);
+});
+
+test('an act without a profile loads its actor in one query', function (): void {
+    $action = Action::query()->find(preparedBy(User::factory()->create())->id);
+
+    $this->expectsDatabaseQueryCount(1);
+
+    renderAct('<x-act :action="$action" />', $action);
+});
+
+test('acts without a profile render from a query of many actions', function (): void {
+    preparedBy(User::factory()->create(['name' => 'Ada Lovelace']));
+    preparedBy(User::factory()->create(['name' => 'Grace Hopper']));
+
+    $names = Action::query()->oldest('id')->get()
+        ->map(fn (Action $action): ?string => renderAct('<x-act :action="$action" />', $action)->querySelector('dl > dd > p')?->textContent);
+
+    expect($names->all())->toBe(['Ada Lovelace', 'Grace Hopper']);
 });
 
 test('an act without an action shows its slot', function (string $template): void {

@@ -20,6 +20,28 @@
 
 Each action keeps the profile that its user had when they acted. So the act shows the position of that day, also after the user moves to another position, and it still shows the name of a user who was deleted later. A user without a profile gets their name and no position. The time follows the time zone and the locale of the user who reads the page.
 
+The act shows the name of an actor without a profile only when the actor implements `App\Domain\Shared\Actor\Contracts\Models\HasActorName`. `User` implements it. For any other actor, the act shows only the time.
+
+### Lists
+
+The act loads the relations that it shows for each action, so a list of acts runs one to three queries per row. Load them for the whole list first:
+
+```php
+use App\Domain\User\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+
+$invoices = Invoice::query()->with([
+    'preparer.profile.user' => fn (BelongsTo $user) => $user->without('profile'),
+    'preparer.profile.position',
+    'preparer.actor' => fn (MorphTo $actor) => $actor->constrain([
+        User::class => fn ($query) => $query->withTrashed()->without('profile'),
+    ]),
+])->get();
+```
+
+`without('profile')` skips the profile that `User` loads by default, because the act shows the profile that the action kept. When you eager load `actor`, it also loads deleted users, so the act still shows their names. `$action->actor` alone does not load a deleted user. A closure that constrains `User` on `actor` replaces that default, so add `withTrashed()` to it, as above.
+
 ## Record an Action
 
 Give the model the `Hasyirin\Actor\Concerns\InteractsWithActions` trait. `act()` records an action of the signed-in user, or of the user that you pass. A record keeps one action of each name, so acting again replaces the user and the time.

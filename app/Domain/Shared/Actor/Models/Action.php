@@ -9,9 +9,14 @@ use App\Domain\Shared\Actor\Observers\ActionObserver;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\User\Models\Profile;
+use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 /**
  * @property int $id
@@ -36,7 +41,6 @@ class Action extends \Hasyirin\Actor\Models\Action
         'resource_id',
         'actor_type',
         'actor_id',
-        'profile_id',
         'acted_at',
         'name',
     ];
@@ -55,5 +59,15 @@ class Action extends \Hasyirin\Actor\Models\Action
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
+    }
+
+    /**
+     * @return MorphTo<Model, $this>
+     */
+    public function actor(): MorphTo
+    {
+        return parent::actor()->constrain([
+            User::class => fn (Builder $query): Builder => $query->withoutGlobalScope(SoftDeletingScope::class),
+        ]);
     }
 }

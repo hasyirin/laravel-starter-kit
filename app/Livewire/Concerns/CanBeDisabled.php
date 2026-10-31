@@ -10,11 +10,11 @@ use Livewire\Attributes\Reactive;
 trait CanBeDisabled
 {
     #[Reactive]
-    public bool $disabled = false;
+    public ?bool $disabled = false;
 
     public function isDisabled(?string $part = null): bool
     {
-        return $this->disabled;
+        return $this->disabled === true;
     }
 
     public function renderingCanBeDisabled(View $view): void

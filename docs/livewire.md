@@ -67,3 +67,7 @@ if ($this->form->roles !== $this->originalRoles) {
 ```
 
 `App\Livewire\Components\FileUpload` uses the trait. A disabled file upload ignores uploads, removes, and moves without an error.
+
+## Modals
+
+`App\Livewire\Modal` and `App\Livewire\RecordModal` are the base classes for dialogs. See [Modal](components/modal.md).

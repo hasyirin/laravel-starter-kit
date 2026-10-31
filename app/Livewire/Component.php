@@ -8,6 +8,7 @@ use App\Domain\Shared\Common\Exceptions\StateNotSaved;
 use App\Domain\Shared\Common\Exceptions\TransitionBlocked;
 use App\Domain\Shared\Common\States\State;
 use App\Livewire\Concerns\InteractsWithAbilities;
+use App\Livewire\Concerns\Refreshable;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\ModelStates\Exceptions\CouldNotPerformTransition;
@@ -16,6 +17,7 @@ use Throwable;
 abstract class Component extends \Livewire\Component
 {
     use InteractsWithAbilities;
+    use Refreshable;
 
     /**
      * @param  callable(): void  $stopPropagation

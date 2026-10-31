@@ -7,6 +7,7 @@ namespace App\Livewire\Components;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Media\Rules\Uploads;
 use App\Livewire\Component;
+use App\Livewire\Concerns\CanBeDisabled;
 use BackedEnum;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Number;
@@ -14,13 +15,13 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Modelable;
-use Livewire\Attributes\Reactive;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class FileUpload extends Component
 {
+    use CanBeDisabled;
     use WithFileUploads;
 
     /** @var list<array{uuid: string, name: string, size: int, mime_type: string, preview?: bool, upload?: ?string}> */
@@ -55,9 +56,6 @@ class FileUpload extends Component
     #[Locked]
     public bool $inline = false;
 
-    #[Reactive]
-    public bool $disabled = false;
-
     /**
      * @return list<array{uuid: string, name: string, size: int, mime_type: string, preview: bool}>
      */
@@ -85,7 +83,7 @@ class FileUpload extends Component
         $this->uploads = null;
         $this->resetErrorBag('uploads');
 
-        if ($this->disabled) {
+        if ($this->isDisabled()) {
             return;
         }
 
@@ -117,7 +115,7 @@ class FileUpload extends Component
 
     public function remove(string $uuid): void
     {
-        if ($this->disabled) {
+        if ($this->isDisabled()) {
             return;
         }
 
@@ -138,7 +136,7 @@ class FileUpload extends Component
     {
         $index = array_search($uuid, array_column($this->items, 'uuid'), true);
 
-        if ($this->disabled || ! is_int($index)) {
+        if ($this->isDisabled() || ! is_int($index)) {
             return;
         }
 

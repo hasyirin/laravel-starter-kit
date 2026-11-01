@@ -17,6 +17,23 @@ A control with its label beside it, such as one checkbox or a switch, uses an in
 ## Keep links, buttons, and marks out of Flux labels
 Flux hides `flux:label` from screen readers and uses its whole text as the name of the input, also the text that has `aria-hidden`. So put only the label text in a label. Put links, buttons, and marks such as the required asterisk outside it, for example in the `hint` or `actions` slot of `<x-field>`.
 
+## Use one spacing scale
+Space every screen with these values. Most come from the defaults of Flux and the kit, so do not override them.
+
+| Gap | Value | How |
+| --- | --- | --- |
+| Card padding | 24px | The default `<x-card>` size |
+| Card heading to its subheading | 4px | The default of `<x-card>` |
+| Card header to the first input | 24px | The default of `<x-card>` |
+| Input to input, and last input to the buttons | 24px | `space-y-6` or `gap-6` |
+| Label to input, and input to help or error | 8px | The default of `<x-field>` |
+| Button to button | 8px | `gap-2` |
+| Card to card | 24px | `space-y-6` or `gap-6` |
+| Page heading to its subheading | 8px | The default of `flux:heading` |
+| Page heading to the content | 24px | `mb-6` |
+
+Use another value only when a screen has a reason that you can name, and then say why when you hand in the change.
+
 ## Put the behavior of a component in resources/js/components
 Write the Alpine behavior of a component as a function in `resources/js/components/`, at the path of the component, for example `input/number.js` for `<x-input.number>`. Register it with `Alpine.data()` in `resources/js/app.js`, before `Livewire.start()`.
 

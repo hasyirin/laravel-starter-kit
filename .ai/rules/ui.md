@@ -29,6 +29,7 @@ Space every screen with these values. Most come from the defaults of Flux and th
 | Label to input, and input to help or error | 8px | The default of `<x-field>` |
 | Button to button | 8px | `gap-2` |
 | Card to card | 24px | `space-y-6` or `gap-6` |
+| Breadcrumbs to the page heading | 24px | `mb-6` |
 | Page heading to its subheading | 8px | The default of `flux:heading` |
 | Page heading to the content | 24px | `mb-6` |
 

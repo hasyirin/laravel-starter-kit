@@ -10,4 +10,9 @@ return [
     'admin' => 'Admin',
     'search' => 'Search',
     'settings' => 'Settings',
+    'breadcrumbs' => [
+        'label' => 'Breadcrumb',
+        'home' => 'Home',
+        'more' => 'Show the hidden levels',
+    ],
 ];

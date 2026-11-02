@@ -48,6 +48,11 @@ parameters:
           reportUnmatched: false
         - identifier: cast.int
           reportUnmatched: false
+        - identifier: property.uninitialized
+          paths:
+              - app/Livewire/*
+              - tests/Fixtures/Livewire/*
+          reportUnmatched: false
         - identifier: trait.unused
           path: app/Domain/Shared/*
           reportUnmatched: false

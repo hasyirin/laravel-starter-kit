@@ -24,6 +24,8 @@ The act shows the name of an actor without a profile only when the actor impleme
 
 ### Lists
 
+In a [DataTable](data-table.md#show-who-acted), use `App\Filament\Tables\Columns\ActColumn`, which loads them for you.
+
 The act loads the relations that it shows for each action, so a list of acts runs one to three queries per row. Load them for the whole list first:
 
 ```php

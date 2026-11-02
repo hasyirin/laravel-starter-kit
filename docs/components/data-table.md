@@ -107,6 +107,16 @@ protected function getListeners(): array
 }
 ```
 
+## Show Who Acted
+
+`App\Filament\Tables\Columns\ActColumn` shows an action of each row as [`<x-act>`](act.md) does: the name of the user, the position that the user held then, and the time. Give it the relation of the action, such as `preparer`:
+
+```php
+ActColumn::make('preparer')->label(__('common/acts.prepare.by')),
+```
+
+The column loads the action, its profile, user, position, and actor for the whole page, so you do not add them to the query. A row without the action has an empty cell. You cannot search or sort the column.
+
 ## Add to the Table
 
 Override `table()` for anything else that Filament offers, and call the parent:
@@ -136,4 +146,18 @@ Use the helpers of Filament: `assertCanSeeTableRecords()`, `searchTable()`, `sor
 | `DataTable::recordUrl()`     | Null                                                | The page that a row links to.                                                 |
 | `DataTable::paginated()`     | True                                                | Set it to false to show all rows on one page. Use this only for a short list. |
 
-The presets are `App\Filament\Actions\CreateAction`, `App\Filament\Actions\ViewAction`, `App\Filament\Actions\EditAction`, `App\Filament\Actions\DeleteAction`, and `App\Filament\Tables\Columns\TimestampColumn`.
+### Presets
+
+Use these in place of the actions and columns of Filament with the same job. Each action sets its name, icon, label, and color. Give each one `visible()`, and `action()`, or `through()` for the delete action.
+
+| Preset                              | Name     | Icon                       | Label                   | Color   | Notes                                                                 |
+| ----------------------------------- | -------- | -------------------------- | ----------------------- | ------- | --------------------------------------------------------------------- |
+| `App\Filament\Actions\CreateAction` | `create` | `heroicon-m-plus`          | `common/buttons.add`    | Primary | For `headerActions()`.                                                |
+| `App\Filament\Actions\ViewAction`   | `view`   | `heroicon-m-eye`           | `common/buttons.view`   | Primary | A row click runs it.                                                  |
+| `App\Filament\Actions\EditAction`   | `edit`   | `heroicon-m-pencil-square` | `common/buttons.edit`   | Gray    | A row click runs it when the table has no `view` action.              |
+| `App\Filament\Actions\DeleteAction` | `delete` | Trash                      | `common/buttons.delete` | Danger  | Asks for a confirmation and needs `through()`. See [Delete](#delete). |
+
+| Preset                                        | Notes                                                                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `App\Filament\Tables\Columns\TimestampColumn` | Shows a time in the time zone and the locale of the user who reads the page, aligned to the end of the cell. |
+| `App\Filament\Tables\Columns\ActColumn`       | Shows who did an action, their position then, and when. See [Show Who Acted](#show-who-acted).               |

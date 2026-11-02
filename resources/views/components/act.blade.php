@@ -16,9 +16,9 @@
         $action->loadMissing(['profile.user' => fn ($user) => $user->without('profile'), 'profile.position']);
     }
 
-    $actorName = $action?->profile?->name ?? ($action?->actor instanceof \App\Domain\Shared\Actor\Contracts\Models\HasActorName ? $action->actor->getActorName() : null);
+    $actorName = $action?->actor_name;
 
-    $position = $action?->profile?->position?->name;
+    $position = $action?->position_name;
 
     $actedAt = \App\Domain\User\Support\Preferences::current()->datetime($action?->acted_at);
 @endphp

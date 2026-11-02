@@ -34,9 +34,8 @@ class RolePolicy extends Policy
         }
 
         return match ($type) {
-            null => true,
             'name' => ! $role->is_system,
-            default => $this->hasPermission($user, "update-$type"),
+            default => $this->hasTypedPermission($user, 'update', $type),
         };
     }
 

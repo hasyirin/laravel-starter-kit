@@ -43,6 +43,7 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `admin.controls.users.update-permissions` | ✓                   |
 | `admin.controls.users.update-roles`       | ✓                   |
 | `admin.controls.users.delete`             | ✓                   |
+| `admin.controls.users.view-activities`    | ✓                   |
 
 A role with `bypass-authorization` passes every check.
 

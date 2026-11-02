@@ -78,3 +78,43 @@ test('a user with the bypass-authorization permission can change their own roles
 
     expect($this->user->can('update', [$this->user, $type]))->toBeTrue();
 })->with(['roles', 'permissions']);
+
+test('a user cannot delete themselves from the admin list', function (): void {
+    $this->user->givePermissionTo('admin.controls.users.delete');
+
+    expect($this->user->can('delete', $this->user))->toBeFalse()
+        ->and($this->user->can('delete', $this->other))->toBeTrue();
+});
+
+test('only a user with bypass-authorization can delete a user who has it', function (): void {
+    $this->user->givePermissionTo('admin.controls.users.delete');
+    $this->other->givePermissionTo('bypass-authorization');
+
+    expect($this->user->can('delete', $this->other))->toBeFalse();
+
+    $this->user->givePermissionTo('bypass-authorization');
+
+    expect($this->user->can('delete', $this->other))->toBeTrue();
+});
+
+test('viewing the activities of a user needs view-activities', function (): void {
+    $this->user->givePermissionTo('admin.controls.users.view');
+
+    expect($this->user->can('view', [$this->other, 'activities']))->toBeFalse()
+        ->and($this->user->can('view', [$this->user, 'activities']))->toBeFalse();
+
+    $this->user->givePermissionTo('admin.controls.users.view-activities');
+
+    expect($this->user->can('view', [$this->other, 'activities']))->toBeTrue()
+        ->and($this->user->can('view', [$this->user, 'activities']))->toBeTrue();
+});
+
+test('a typed ability needs the base ability and the typed permission', function (): void {
+    $this->user->givePermissionTo('admin.controls.users.view-activities');
+
+    expect($this->user->can('view', [$this->other, 'activities']))->toBeFalse();
+
+    $this->user->givePermissionTo('admin.controls.users.view');
+
+    expect($this->user->can('view', [$this->other, 'activities']))->toBeTrue();
+});

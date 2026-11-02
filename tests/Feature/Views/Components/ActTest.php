@@ -12,7 +12,7 @@ use App\Domain\User\Support\Preferences;
 use Dom\Element;
 use Dom\HTMLDocument;
 use Hasyirin\Actor\Facades\Actor;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 
 function renderAct(string $template, ?Action $action = null): HTMLDocument
 {
@@ -21,7 +21,7 @@ function renderAct(string $template, ?Action $action = null): HTMLDocument
 
 function preparedBy(User $user): Action
 {
-    return Actor::act(User::factory()->create(), Act::Prepare, $user, new Carbon('2026-03-02 09:30:00'));
+    return Actor::act(User::factory()->create(), Act::Prepare, $user, Date::parse('2026-03-02 09:30:00'));
 }
 
 test('an act shows who did the action, their position at that time, and when', function (): void {

@@ -49,7 +49,6 @@ Give the model the `Hasyirin\Actor\Concerns\InteractsWithActions` trait. `act()`
 ```php
 use App\Domain\Shared\Actor\Enums\Act;
 use Hasyirin\Actor\Concerns\InteractsWithActions;
-use Illuminate\Support\Carbon;
 
 class Invoice extends Model
 {
@@ -57,10 +56,12 @@ class Invoice extends Model
 }
 
 $invoice->act(Act::Prepare);
-$invoice->act(Act::Prepare, $user, new Carbon($row->prepared_at));
+$invoice->act(Act::Prepare, $user, $row->prepared_at);
 ```
 
-Make the time with `new Carbon()`. `act()` accepts only an `Illuminate\Support\Carbon`, but `now()` gives a `Carbon\CarbonImmutable` in the kit, and Rector turns `Illuminate\Support\Carbon::parse()` into `Date::parse()`, which does too.
+The time takes any `DateTimeInterface`, such as `now()`.
+
+`act()` saves through Eloquent, so the `saving` observer sets the profile in the same write as the user. To react to an action, listen to `Hasyirin\Actor\Events\ActionRecorded`, which fires after the commit.
 
 Add a case to `App\Domain\Shared\Actor\Enums\Act` for each kind of action, and its text to `lang/en/common/acts.php`: `label` names the action, and `by` names the person, such as "Prepared by".
 

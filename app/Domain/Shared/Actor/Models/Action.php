@@ -41,6 +41,7 @@ class Action extends \Hasyirin\Actor\Models\Action
         'resource_id',
         'actor_type',
         'actor_id',
+        'profile_id',
         'acted_at',
         'name',
     ];

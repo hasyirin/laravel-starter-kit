@@ -15,6 +15,16 @@ return [
     'tabs' => [
         'roles' => 'Roles',
         'permissions' => 'Permissions',
+        'passkeys' => 'Passkeys',
+    ],
+    'passkeys_tab' => [
+        'name' => 'Name',
+        'authenticator' => 'Authenticator',
+        'created_at' => 'Created',
+        'last_used_at' => 'Last used',
+        'revoke' => 'Revoke',
+        'revoke_heading' => 'Revoke this passkey?',
+        'revoked' => 'The passkey is revoked.',
     ],
     'roles_tab' => [
         'role' => 'Role',

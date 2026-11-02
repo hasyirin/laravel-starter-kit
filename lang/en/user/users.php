@@ -12,6 +12,17 @@ return [
     'unverified' => 'Unverified',
     'mark_as_verified' => 'Mark as verified',
     'updated' => 'The user is saved.',
+    'tabs' => [
+        'roles' => 'Roles',
+    ],
+    'roles_tab' => [
+        'role' => 'Role',
+        'system' => 'System',
+        'attach' => 'Attach',
+        'detach' => 'Detach',
+        'detach_heading' => 'Detach this role?',
+        'saved' => 'The roles are saved.',
+    ],
     'create' => [
         'title' => 'Create user',
         'submit' => 'Create',

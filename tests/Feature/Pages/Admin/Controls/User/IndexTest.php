@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
+use App\Livewire\DataTables\Admin\UserDataTable;
 use App\Livewire\Pages\Admin\Controls\User\Index;
+use Livewire\Livewire;
 
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
@@ -39,4 +41,15 @@ test('the navigation shows the users item only with view-any', function (): void
     $user->givePermissionTo('admin.controls.users.view-any');
 
     $this->get(route('admin.dashboard'))->assertSee(route('admin.controls.users.index'));
+});
+
+test('the user table refuses a user without view-any', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Livewire::withoutLazyLoading()->test(UserDataTable::class)->assertForbidden();
+
+    $user->givePermissionTo('admin.controls.users.view-any');
+
+    Livewire::withoutLazyLoading()->test(UserDataTable::class)->assertOk();
 });

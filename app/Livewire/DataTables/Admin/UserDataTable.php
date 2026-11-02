@@ -20,6 +20,11 @@ use Livewire\Attributes\Defer;
 #[Defer]
 class UserDataTable extends DataTable
 {
+    public function mount(): void
+    {
+        $this->authorize('viewAny', User::class);
+    }
+
     /**
      * @return Builder<User>
      */

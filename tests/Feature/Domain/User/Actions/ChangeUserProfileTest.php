@@ -26,7 +26,7 @@ beforeEach(function (): void {
 /**
  * @return array<string, int>
  */
-function placementOf(Department $department): array
+function changeUserProfilePlacement(Department $department): array
 {
     return [
         'organization_id' => $department->organization_id,
@@ -39,7 +39,7 @@ function placementOf(Department $department): array
 /**
  * @return array{placement: array<string, mixed>, roles: list<string>, permissions: list<string>}
  */
-function snapshotOf(?Profile $profile): array
+function changeUserProfileSnapshot(?Profile $profile): array
 {
     expect($profile)->not->toBeNull();
 
@@ -53,10 +53,10 @@ function snapshotOf(?Profile $profile): array
 }
 
 test('a new profile copies the placement, roles, and permissions it was not given', function (string $given): void {
-    $placement = placementOf(Department::factory()->create());
+    $placement = changeUserProfilePlacement(Department::factory()->create());
     Profile::factory()->for($this->user)->state($placement)->withRoles('editor')->withPermissions('admin.access')->create();
 
-    $newPlacement = placementOf(Department::factory()->create());
+    $newPlacement = changeUserProfilePlacement(Department::factory()->create());
     $arguments = [
         'placement' => ['placement' => $newPlacement],
         'roles' => ['roles' => ['viewer']],
@@ -65,7 +65,7 @@ test('a new profile copies the placement, roles, and permissions it was not give
 
     $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, ...$arguments);
 
-    expect(snapshotOf($profile))->toBe([
+    expect(changeUserProfileSnapshot($profile))->toBe([
         'placement' => $given === 'placement' ? $newPlacement : $placement,
         'roles' => $given === 'roles' ? ['viewer'] : ['editor'],
         'permissions' => $given === 'permissions' ? ['admin.controls.users.view'] : ['admin.access'],
@@ -73,7 +73,7 @@ test('a new profile copies the placement, roles, and permissions it was not give
 })->with(['placement', 'roles', 'permissions']);
 
 test('nothing changes when the sets are the same', function (): void {
-    $placement = placementOf(Department::factory()->create());
+    $placement = changeUserProfilePlacement(Department::factory()->create());
     Profile::factory()->for($this->user)->state($placement)->withRoles('editor', 'viewer')->withPermissions('admin.access')->create();
 
     $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, $placement, ['viewer', 'editor'], ['admin.access']);
@@ -89,14 +89,14 @@ test('a change builds on the profile that is current when it saves', function ()
 
     $profile = ChangeUserProfile::make()->execute($this->actor, $user, roles: ['editor']);
 
-    expect(snapshotOf($profile)['permissions'])->toBe(['admin.controls.users.view'])
-        ->and(snapshotOf($profile)['roles'])->toBe(['editor']);
+    expect(changeUserProfileSnapshot($profile)['permissions'])->toBe(['admin.controls.users.view'])
+        ->and(changeUserProfileSnapshot($profile)['roles'])->toBe(['editor']);
 });
 
 test('a user without a profile gets a first profile', function (): void {
     $profile = ChangeUserProfile::make()->execute($this->actor, $this->user);
 
-    expect(snapshotOf($profile))->toBe([
+    expect(changeUserProfileSnapshot($profile))->toBe([
         'placement' => ['organization_id' => null, 'branch_id' => null, 'department_id' => null, 'position_id' => null],
         'roles' => [],
         'permissions' => [],
@@ -112,8 +112,8 @@ test('only a bypass holder can give or remove bypass-authorization or the super-
 
     $this->actor->givePermissionTo('bypass-authorization');
 
-    expect(snapshotOf(ChangeUserProfile::make()->execute($this->actor, $this->user, ...$give))[$argument])->toBe([$name])
-        ->and(snapshotOf(ChangeUserProfile::make()->execute($this->actor, $this->user, ...$remove))[$argument])->toBeEmpty();
+    expect(changeUserProfileSnapshot(ChangeUserProfile::make()->execute($this->actor, $this->user, ...$give))[$argument])->toBe([$name])
+        ->and(changeUserProfileSnapshot(ChangeUserProfile::make()->execute($this->actor, $this->user, ...$remove))[$argument])->toBeEmpty();
 })->with([
     'bypass-authorization' => ['permissions', 'bypass-authorization'],
     'super-admin' => ['roles', 'super-admin'],
@@ -134,15 +134,22 @@ test("a change by someone without bypass keeps the user's bypass-authorization a
 
     $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, roles: ['viewer'], permissions: ['admin.controls.users.view']);
 
-    expect(snapshotOf($profile))->toMatchArray([
+    expect(changeUserProfileSnapshot($profile))->toMatchArray([
         'roles' => ['super-admin', 'viewer'],
         'permissions' => ['admin.controls.users.view', 'bypass-authorization'],
     ]);
 });
 
 test('the department, branch, and position must fit the organization', function (): void {
-    $placement = [...placementOf(Department::factory()->create()), 'organization_id' => Organization::factory()->create()->id];
+    $placement = [...changeUserProfilePlacement(Department::factory()->create()), 'organization_id' => Organization::factory()->create()->id];
 
     expect(fn (): ?Profile => ChangeUserProfile::make()->execute($this->actor, $this->user, $placement))->toThrow(LogicException::class)
+        ->and($this->user->profiles()->count())->toBe(0);
+});
+
+test('a non-bypass actor cannot give a custom role that carries bypass-authorization', function (): void {
+    Role::query()->create(['name' => 'root'])->givePermissionTo('bypass-authorization');
+
+    expect(fn (): ?Profile => ChangeUserProfile::make()->execute($this->actor, $this->user, roles: ['root']))->toThrow(AuthorizationException::class)
         ->and($this->user->profiles()->count())->toBe(0);
 });

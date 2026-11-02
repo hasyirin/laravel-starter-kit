@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\User\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
+use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -35,8 +36,10 @@ class ChangeUserProfile
             $currentPermissions = $this->normalized($permissionNames);
 
             $placement = $placement === null ? $currentPlacement : $this->placementOf($placement);
-            $roles = $this->guardedSet($actor, $user, $roles ?? $currentRoles, $currentRoles, $this->superAdminRole());
-            $permissions = $this->guardedSet($actor, $user, $permissions ?? $currentPermissions, $currentPermissions, $this->bypassPermission());
+            $actorHasBypass = $actor->checkPermissionTo($this->bypassPermission());
+            $isSelf = $actor->is($user);
+            $roles = $this->guardedSet($actorHasBypass, $isSelf, $roles ?? $currentRoles, $currentRoles, $this->bypassRoles());
+            $permissions = $this->guardedSet($actorHasBypass, $isSelf, $permissions ?? $currentPermissions, $currentPermissions, [$this->bypassPermission()]);
 
             if ($current instanceof Profile
                 && $placement === $currentPlacement
@@ -57,26 +60,25 @@ class ChangeUserProfile
     /**
      * @param  list<string>  $given
      * @param  list<string>  $current
+     * @param  list<string>  $protected
      * @return list<string>
      *
      * @throws AuthorizationException
      */
-    private function guardedSet(User $actor, User $user, array $given, array $current, string $protected): array
+    private function guardedSet(bool $actorHasBypass, bool $isSelf, array $given, array $current, array $protected): array
     {
-        $hadProtected = in_array($protected, $current, true);
-        $actorHasBypass = $actor->checkPermissionTo($this->bypassPermission());
+        $held = array_intersect($current, $protected);
 
-        if ($hadProtected && ! $actorHasBypass) {
-            $given[] = $protected;
-        }
+        $given = $this->normalized($actorHasBypass ? $given : [...$given, ...$held]);
 
-        $keepsProtected = in_array($protected, $given, true);
+        $added = array_diff(array_intersect($given, $protected), $current);
+        $removed = array_diff($held, $given);
 
-        throw_if($hadProtected !== $keepsProtected && ! $actorHasBypass, AuthorizationException::class);
+        throw_if(($added !== [] || $removed !== []) && ! $actorHasBypass, AuthorizationException::class);
 
-        throw_if($hadProtected && ! $keepsProtected && $actor->is($user), AuthorizationException::class);
+        throw_if($removed !== [] && $isSelf, AuthorizationException::class);
 
-        return $this->normalized($given);
+        return $given;
     }
 
     /**
@@ -102,9 +104,15 @@ class ChangeUserProfile
         return $names;
     }
 
-    private function superAdminRole(): string
+    /**
+     * @return list<string>
+     */
+    private function bypassRoles(): array
     {
-        return config()->string('system.roles.super-admin');
+        return $this->normalized(Role::query()->with('permissions')->get()
+            ->filter(fn (Role $role): bool => $role->name === config()->string('system.roles.super-admin') || $role->permissions->contains('name', $this->bypassPermission()))
+            ->map(fn (Role $role): string => $role->name)
+            ->all());
     }
 
     private function bypassPermission(): string

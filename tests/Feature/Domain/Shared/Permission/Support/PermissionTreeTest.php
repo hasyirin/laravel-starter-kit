@@ -41,3 +41,11 @@ test('a missing label falls back to the headline', function (): void {
     expect($reports['label'])->toBe('Monthly reports')
         ->and($reports['permissions'][0]['label'])->toBe('Export csv');
 });
+
+test('a group-level access permission makes its node an area', function (): void {
+    [$internal, $admin] = PermissionTree::build(['internal.access', 'admin.horizon.view'])['children'];
+
+    expect($internal['kind'])->toBe('area')
+        ->and($internal['permissions'])->toBe([['name' => 'internal.access', 'label' => 'Access']])
+        ->and($admin['children'][0]['kind'])->toBe('resource');
+});

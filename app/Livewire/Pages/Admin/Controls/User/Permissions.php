@@ -40,10 +40,7 @@ class Permissions extends Component
     #[Computed]
     public function tree(): array
     {
-        return PermissionTree::build(array_values(array_filter(
-            $this->configPermissions(),
-            fn (string $name): bool => $name !== $this->bypassPermission() || $this->actorHasBypass(),
-        )));
+        return PermissionTree::build(array_values(array_filter($this->configPermissions(), $this->isVisible(...))));
     }
 
     /**
@@ -52,7 +49,9 @@ class Permissions extends Component
     #[Computed]
     public function direct(): array
     {
-        return array_values($this->user->profile?->getPermissionNames()->map(fn (mixed $name): string => (string) $name)->all() ?? []);
+        $names = $this->user->profile?->getPermissionNames()->map(fn (mixed $name): string => (string) $name)->all() ?? [];
+
+        return array_values(array_filter($names, $this->isVisible(...)));
     }
 
     /**
@@ -64,13 +63,13 @@ class Permissions extends Component
         $fromRoles = [];
 
         /** @var Role $role */
-        foreach ($this->user->profile->roles ?? [] as $role) {
+        foreach ($this->user->profile?->loadMissing('roles.permissions')->roles ?? [] as $role) {
             foreach ($role->permissions as $permission) {
                 $fromRoles[(string) $permission->name] ??= $role->label;
             }
         }
 
-        return $fromRoles;
+        return array_filter($fromRoles, $this->isVisible(...), ARRAY_FILTER_USE_KEY);
     }
 
     /**
@@ -127,6 +126,11 @@ class Permissions extends Component
     private function configPermissions(): array
     {
         return array_values(collect(config('system.permissions'))->flatten()->map(fn (mixed $name): string => (string) $name)->all());
+    }
+
+    private function isVisible(string $name): bool
+    {
+        return $name !== $this->bypassPermission() || $this->actorHasBypass();
     }
 
     private function actor(): User

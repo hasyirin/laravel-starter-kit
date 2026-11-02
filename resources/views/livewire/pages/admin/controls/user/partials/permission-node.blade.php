@@ -9,7 +9,7 @@
             type="button"
             x-on:click="toggleOpen(@js($key))"
             x-bind:aria-expanded="isOpen(@js($key)).toString()"
-            aria-label="{{ $node['label'] }}"
+            x-bind:aria-label="isOpen(@js($key)) ? @js(__('user/users.permissions.collapse', ['label' => $node['label']])) : @js(__('user/users.permissions.expand', ['label' => $node['label']]))"
             class="flex size-3.5 shrink-0 cursor-pointer items-center justify-center text-zinc-500 dark:text-zinc-400"
         >
             <flux:icon.chevron-right variant="micro" class="size-3.5 transition-transform" x-bind:class="isOpen({{ Js::from($key) }}) && 'rotate-90'" />

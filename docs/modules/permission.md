@@ -127,5 +127,6 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 - a permission directly under an area is listed on the area
 - a one-segment permission is listed at the root
 - a missing label falls back to the headline
+- a group-level access permission makes its node an area
 
 <!-- /generated:test-rules -->

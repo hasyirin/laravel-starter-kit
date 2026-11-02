@@ -84,6 +84,19 @@ test('bypass-authorization is hidden without bypass', function (): void {
     expect(treeNames(permissionsTab($this->subject)->get('tree')))->toContain('bypass-authorization');
 });
 
+test('bypass-authorization is not sent to the browser without bypass', function (): void {
+    Profile::factory()->for($this->subject)->withRoles('super-admin')->withPermissions('bypass-authorization', 'internal.access')->create();
+
+    permissionsTab($this->subject)
+        ->assertSet('direct', ['internal.access'])
+        ->assertDontSee('bypass-authorization')
+        ->call('save', ['internal.access', 'admin.horizon.view'])
+        ->assertHasNoErrors();
+
+    expect($this->subject->fresh()->profile->getPermissionNames()->sort()->values()->all())
+        ->toBe(['admin.horizon.view', 'bypass-authorization', 'internal.access']);
+});
+
 test('your own direct bypass-authorization is locked', function (): void {
     $this->admin->givePermissionTo('bypass-authorization');
     Profile::factory()->for($this->admin)->withPermissions('bypass-authorization')->create();

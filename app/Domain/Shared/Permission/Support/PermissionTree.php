@@ -10,6 +10,8 @@ namespace App\Domain\Shared\Permission\Support;
  */
 class PermissionTree
 {
+    private const string GROUP_ACTION = 'access';
+
     /**
      * @param  iterable<string>  $names
      * @return PermissionNode
@@ -33,6 +35,7 @@ class PermissionTree
     {
         $permissions = [];
         $groups = [];
+        $hasActions = false;
 
         foreach ($paths as $path) {
             $segments = $path['segments'];
@@ -40,6 +43,7 @@ class PermissionTree
 
             if ($segments === []) {
                 $permissions[] = ['name' => $path['name'], 'label' => self::label('actions', $segment)];
+                $hasActions = $hasActions || $segment !== self::GROUP_ACTION;
             } else {
                 $groups[$segment][] = ['name' => $path['name'], 'segments' => $segments];
             }
@@ -55,7 +59,7 @@ class PermissionTree
         return [
             'key' => $key,
             'label' => $label,
-            'kind' => $children === [] ? 'resource' : 'area',
+            'kind' => $children === [] && $hasActions ? 'resource' : 'area',
             'permissions' => $permissions,
             'children' => $children,
         ];

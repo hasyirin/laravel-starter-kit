@@ -28,6 +28,8 @@ return [
         'search' => 'Search permissions',
         'only_granted' => 'Only granted',
         'expand_all' => 'Expand all',
+        'expand' => 'Expand :label',
+        'collapse' => 'Collapse :label',
         'from' => 'from :role',
         'count' => ':granted of :total',
         'unsaved' => '{1} :count unsaved change|[2,*] :count unsaved changes',

@@ -26,6 +26,7 @@ class ChangeUserProfile
     public function execute(User $actor, User $user, ?array $placement = null, ?array $roles = null, ?array $permissions = null): ?Profile
     {
         return $user->getConnection()->transaction(function () use ($actor, $user, $placement, $roles, $permissions): ?Profile {
+            $user->newQueryWithoutRelationships()->whereKey($user->getKey())->lockForUpdate()->first();
             $user->unsetRelation('profile');
             $actorHasBypass = $actor->checkPermissionTo($this->bypassPermission());
 

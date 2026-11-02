@@ -3,11 +3,15 @@
 declare(strict_types=1);
 
 return [
+    'add' => 'Add',
     'back' => 'Back',
     'cancel' => 'Cancel',
     'close' => 'Close',
     'confirm' => 'Confirm',
     'continue' => 'Continue',
+    'delete' => 'Delete',
+    'edit' => 'Edit',
     'log_out' => 'Log out',
     'save' => 'Save',
+    'view' => 'View',
 ];

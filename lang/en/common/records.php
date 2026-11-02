@@ -7,4 +7,7 @@ return [
     'edit' => 'Edit :record',
     'created' => ':record created.',
     'updated' => ':record updated.',
+    'none' => 'No records found.',
+    'delete' => 'Delete this record?',
+    'deleted' => 'Record deleted.',
 ];

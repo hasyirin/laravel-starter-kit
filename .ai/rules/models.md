@@ -25,6 +25,9 @@ Declare `$fillable`, `$hidden`, `$guarded`, `$visible`, and `$appends` as proper
 ## Document columns with @property docblocks
 Add a `@property` docblock for each column the model adds, typed as its cast returns it. Type dates as `CarbonImmutable`, not `Carbon`.
 
+## Prefer accessors over getter methods
+Give a value that a model gets from its columns or relations as an accessor: a method that returns `Attribute`, which you read as a property, such as `$profile->name` or `$action->actor_name`. Do not write a getter method such as `actorName()`. Write a method only when the value takes arguments or changes data.
+
 ## Keep system flags out of $fillable
 Keep system-controlled flags such as `is_owner` and `is_system` out of `$fillable`. Default them to `false` in `$attributes`, cast them to `boolean`, and set them only with `forceFill()` or inside `unguarded()`.
 

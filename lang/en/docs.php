@@ -8,6 +8,12 @@ return [
     'copy' => 'Copy the code',
     'copied' => 'Copied',
     'examples' => [
+        'data_table' => [
+            'name' => 'Name',
+            'code' => 'Code',
+            'created_at' => 'Created',
+            'viewed' => 'You opened a row.',
+        ],
         'modal' => [
             'open' => 'Add a contact',
             'name' => 'Name',

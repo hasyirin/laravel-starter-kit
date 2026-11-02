@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Models;
 
+use App\Domain\Shared\Actor\Contracts\Models\HasActorName;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
@@ -39,7 +40,7 @@ use Spatie\Activitylog\Models\Concerns\CausesActivity;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  */
-class User extends Authenticatable implements HasMedia, MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements HasActorName, HasMedia, MustVerifyEmail, PasskeyUser
 {
     use CausesActivity;
 
@@ -102,5 +103,10 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail, Passkey
         return $initials->length() > 1
             ? $initials->substr(0, 1).$initials->substr(-1)
             : $initials->value();
+    }
+
+    public function getActorName(): string
+    {
+        return $this->name;
     }
 }

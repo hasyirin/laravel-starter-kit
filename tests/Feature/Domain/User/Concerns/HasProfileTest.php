@@ -27,3 +27,12 @@ test('the active profile is loaded with the user', function (): void {
 
     expect($user?->relationLoaded('profile'))->toBeTrue();
 });
+
+test('the profiles of a user hold the same user', function (): void {
+    $profile = Profile::factory()->create();
+
+    $user = User::query()->find($profile->user_id);
+
+    expect($user?->profile?->user)->toBe($user)
+        ->and($user?->profiles->first()?->user)->toBe($user);
+});

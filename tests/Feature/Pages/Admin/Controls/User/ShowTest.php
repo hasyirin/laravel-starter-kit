@@ -79,12 +79,18 @@ test('the form is read-only without update', function (): void {
     $this->admin->revokePermissionTo('admin.controls.users.update');
 
     Livewire::test(Show::class, ['user' => $this->subject])
-        ->assertSeeHtml('disabled')
+        ->assertDontSee(__('common/buttons.save'))
+        ->assertSeeHtml('wire:model="form.name"')
         ->set('form.name', 'Renamed')
         ->call('save')
         ->assertForbidden();
 
     expect($this->subject->fresh()->name)->not->toBe('Renamed');
+});
+
+test('the form is editable with update', function (): void {
+    Livewire::test(Show::class, ['user' => $this->subject])
+        ->assertSee(__('common/buttons.save'));
 });
 
 test('an unverified email can be marked as verified', function (): void {

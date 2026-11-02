@@ -9,6 +9,7 @@ use App\Domain\User\Concerns\ProfileValidationRules;
 use App\Domain\User\Models\User;
 use App\Livewire\Form;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Locked;
 
 class UserForm extends Form
@@ -53,11 +54,9 @@ class UserForm extends Form
      */
     public function rules(): array
     {
-        $passwordRules = $this->passwordRules();
-
-        if ($this->userId !== null) {
-            $passwordRules[0] = 'nullable';
-        }
+        $passwordRules = $this->userId === null
+            ? $this->passwordRules()
+            : ['nullable', 'string', Password::default(), 'confirmed'];
 
         return [
             ...$this->profileRules($this->userId),

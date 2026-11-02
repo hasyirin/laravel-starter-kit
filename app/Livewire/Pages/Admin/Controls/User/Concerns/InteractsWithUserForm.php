@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Livewire\Concerns;
+namespace App\Livewire\Pages\Admin\Controls\User\Concerns;
 
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;

@@ -8,7 +8,7 @@ use App\Domain\User\Actions\UpdateUser;
 use App\Domain\User\Actions\VerifyUserEmail;
 use App\Domain\User\Models\User;
 use App\Livewire\Concerns\CanBeDisabled;
-use App\Livewire\Concerns\InteractsWithUserForm;
+use App\Livewire\Pages\Admin\Controls\User\Concerns\InteractsWithUserForm;
 use App\Livewire\Pages\Shared\Page;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;

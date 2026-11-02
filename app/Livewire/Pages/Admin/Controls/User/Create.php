@@ -6,7 +6,7 @@ namespace App\Livewire\Pages\Admin\Controls\User;
 
 use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Models\User;
-use App\Livewire\Concerns\InteractsWithUserForm;
+use App\Livewire\Pages\Admin\Controls\User\Concerns\InteractsWithUserForm;
 use App\Livewire\Pages\Shared\Page;
 use Illuminate\Contracts\View\View;
 

@@ -32,8 +32,10 @@ class ActivityModal extends Modal
     {
         $this->authorize('view', [$this->user, 'activities']);
 
-        $this->activityId = UserActivities::find($this->user, (int) $id)->id;
+        $this->activityId = $id;
         unset($this->activity);
+
+        abort_unless($this->activity instanceof Activity, 404);
 
         parent::show();
     }

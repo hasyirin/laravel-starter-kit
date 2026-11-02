@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Preferences;
 use App\Livewire\DataTables\Admin\User\ActivityDataTable;
 use App\Livewire\Pages\Admin\Controls\User\ActivityModal;
 use App\Livewire\Pages\Admin\Controls\User\Audit;
+use Carbon\CarbonImmutable;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -45,7 +48,7 @@ test('by this user lists what the user did', function (): void {
     activityTable($this->subject, 'by')
         ->assertCanSeeTableRecords([$did])
         ->assertCanNotSeeTableRecords([$doneToThem])
-        ->assertSee('name');
+        ->assertSee('User Olive Renamed');
 });
 
 test('on this user lists changes to the user and their profiles', function (): void {
@@ -108,7 +111,7 @@ test('the modal shows each changed field with its old and new value', function (
     Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
         ->call('show', $activity->id)
         ->assertSet('open', true)
-        ->assertSeeInOrder(['name', 'Sam Subject', 'Sam Renamed']);
+        ->assertSeeInOrder(['Name', 'Sam Subject', 'Sam Renamed']);
 });
 
 test('a profile entry shows the roles of that profile', function (): void {
@@ -121,6 +124,38 @@ test('a profile entry shows the roles of that profile', function (): void {
         ->call('show', $activity->id)
         ->assertSee('editor')
         ->assertSee('admin.access');
+});
+
+test('a profile entry shows field labels and the names of related records', function (): void {
+    $organization = Organization::factory()->create(['name' => 'Acme Holdings']);
+    $this->actingAs($this->admin);
+    Profile::factory()->for($this->subject)->for($organization)->create();
+    $activity = Activity::query()->latest('id')->firstOrFail();
+
+    activityTable($this->subject, 'on')->assertSee('Organization');
+
+    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+        ->call('show', $activity->id)
+        ->assertSeeInOrder(['Organization', 'Acme Holdings'])
+        ->assertSeeInOrder(['User', 'Sam Subject'])
+        ->assertDontSee('organization_id');
+});
+
+test('the modal shows dates for the viewer and booleans as yes or no', function (): void {
+    $this->actingAs($this->admin);
+    $verifiedAt = CarbonImmutable::parse('2026-01-02 03:04:05');
+    $activity = Activity::query()->create([
+        'description' => 'updated',
+        'event' => 'updated',
+        'subject_type' => 'user',
+        'subject_id' => $this->subject->id,
+        'attribute_changes' => ['attributes' => ['email_verified_at' => $verifiedAt->toJSON(), 'is_owner' => true], 'old' => ['email_verified_at' => null, 'is_owner' => false]],
+    ]);
+
+    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+        ->call('show', $activity->id)
+        ->assertSee(Preferences::current()->datetime($verifiedAt))
+        ->assertSeeInOrder(['No', 'Yes']);
 });
 
 test('the modal refuses an activity that does not involve the user', function (): void {

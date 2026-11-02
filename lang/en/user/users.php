@@ -49,6 +49,8 @@ return [
         'new' => 'New value',
         'no_changes' => 'No fields changed.',
         'none' => 'None',
+        'yes' => 'Yes',
+        'no' => 'No',
         'events' => [
             'created' => 'Created',
             'updated' => 'Updated',

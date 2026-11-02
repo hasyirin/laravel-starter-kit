@@ -78,7 +78,7 @@ class ActivityDataTable extends DataTable
                 ->state(fn (Activity $activity): string => UserActivities::subjectLabel($activity)),
             TextColumn::make('changes')
                 ->label((string) __('user/users.audit.changes'))
-                ->state(fn (Activity $activity): string => implode(', ', array_column(UserActivities::changes($activity), 'field')))
+                ->state(fn (Activity $activity): string => implode(', ', UserActivities::fieldLabels($activity)))
                 ->limit(60),
         ]));
     }

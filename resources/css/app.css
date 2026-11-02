@@ -82,6 +82,10 @@
         @apply border border-zinc-200 dark:border-zinc-800;
         --tw-ring-shadow: 0 0 #000 !important;
     }
+
+    .fi-ta-text:not(.fi-inline) {
+        @apply py-3!;
+    }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {

@@ -28,6 +28,10 @@ class Tabs extends Component
                 ->label((string) __('user/users.tabs.roles'))
                 ->content(RoleDataTable::class)
                 ->params(['userId' => $this->userId]),
+            Tab::make('permissions')
+                ->label((string) __('user/users.tabs.permissions'))
+                ->content(Permissions::class)
+                ->params(['userId' => $this->userId]),
         ];
     }
 

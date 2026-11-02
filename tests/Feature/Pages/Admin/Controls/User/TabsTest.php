@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Admin\User\RoleDataTable;
+use App\Livewire\Pages\Admin\Controls\User\Permissions;
 use App\Livewire\Pages\Admin\Controls\User\Tabs;
 use Livewire\Livewire;
 
@@ -23,10 +24,18 @@ test('the roles tab is the default tab', function (): void {
         ->assertSeeLivewire(RoleDataTable::class);
 });
 
-test('the tab is kept in the URL', function (): void {
-    $component = Livewire::test(Tabs::class, ['userId' => $this->subject->id]);
+test('switching to the permissions tab shows it', function (): void {
+    Livewire::test(Tabs::class, ['userId' => $this->subject->id])
+        ->call('switchTab', 'permissions')
+        ->assertSet('tab', 'permissions')
+        ->assertSeeLivewire(Permissions::class);
+});
 
-    expect($component->effects['url']['tab'])->toMatchArray(['as' => 'tab']);
+test('the tab is kept in the URL', function (): void {
+    Livewire::withQueryParams(['tab' => 'permissions'])
+        ->test(Tabs::class, ['userId' => $this->subject->id])
+        ->assertSet('tab', 'permissions')
+        ->assertSeeLivewire(Permissions::class);
 });
 
 test('the show page mounts the tabs below the card', function (): void {

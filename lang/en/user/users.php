@@ -14,6 +14,7 @@ return [
     'updated' => 'The user is saved.',
     'tabs' => [
         'roles' => 'Roles',
+        'permissions' => 'Permissions',
     ],
     'roles_tab' => [
         'role' => 'Role',
@@ -22,6 +23,15 @@ return [
         'detach' => 'Detach',
         'detach_heading' => 'Detach this role?',
         'saved' => 'The roles are saved.',
+    ],
+    'permissions' => [
+        'search' => 'Search permissions',
+        'only_granted' => 'Only granted',
+        'expand_all' => 'Expand all',
+        'from' => 'from :role',
+        'count' => ':granted of :total',
+        'unsaved' => '{1} :count unsaved change|[2,*] :count unsaved changes',
+        'saved' => 'The permissions are saved.',
     ],
     'create' => [
         'title' => 'Create user',

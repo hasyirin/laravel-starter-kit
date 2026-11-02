@@ -5,7 +5,7 @@
 <div class="flex flex-col px-3 py-3">
     @if($action instanceof \App\Domain\Shared\Actor\Models\Action)
         @if(filled($action->actor_name))
-            <flux:text variant="strong" class="font-bold uppercase">{{ $action->actor_name }}</flux:text>
+            <p class="fi-ta-text-item fi-size-sm">{{ $action->actor_name }}</p>
         @endif
 
         @if(filled($action->position_name))

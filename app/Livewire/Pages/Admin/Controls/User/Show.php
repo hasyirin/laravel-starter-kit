@@ -55,7 +55,10 @@ class Show extends Page
     {
         $this->authorize('update', $this->user);
 
-        $verifyUserEmail->execute($this->user);
+        /** @var User $actor */
+        $actor = auth()->user();
+
+        $verifyUserEmail->execute($actor, $this->user);
 
         $this->dispatch('modal-close', name: 'verify-email');
     }

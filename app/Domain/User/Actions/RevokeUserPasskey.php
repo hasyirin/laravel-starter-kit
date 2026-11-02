@@ -22,6 +22,10 @@ class RevokeUserPasskey
     {
         throw_if($actor->is($user), AuthorizationException::class);
 
+        $bypassPermission = config()->string('system.permissions.bypass-authorization');
+
+        throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
+
         ($this->deletePasskey)($user, $user->passkeys()->findOrFail($passkeyId));
     }
 }

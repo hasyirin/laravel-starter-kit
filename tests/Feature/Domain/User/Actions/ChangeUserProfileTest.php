@@ -129,16 +129,17 @@ test('nobody can remove their own super-admin role or bypass-authorization', fun
     'super-admin' => ['roles', 'super-admin'],
 ]);
 
-test("a change by someone without bypass keeps the user's bypass-authorization and super-admin role", function (): void {
-    Profile::factory()->for($this->user)->withRoles('super-admin', 'editor')->withPermissions('bypass-authorization', 'admin.access')->create();
+test('a user without bypass-authorization cannot change the profile of a user who has it', function (string $argument): void {
+    Profile::factory()->for($this->user)->withRoles('super-admin', 'editor')->withPermissions('admin.access')->create();
+    $arguments = [
+        'placement' => ['placement' => changeUserProfilePlacement(Department::factory()->create())],
+        'roles' => ['roles' => ['super-admin', 'viewer']],
+        'permissions' => ['permissions' => ['admin.controls.users.view']],
+    ][$argument];
 
-    $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, roles: ['viewer'], permissions: ['admin.controls.users.view']);
-
-    expect(changeUserProfileSnapshot($profile))->toMatchArray([
-        'roles' => ['super-admin', 'viewer'],
-        'permissions' => ['admin.controls.users.view', 'bypass-authorization'],
-    ]);
-});
+    expect(fn (): ?Profile => ChangeUserProfile::make()->execute($this->actor, $this->user, ...$arguments))->toThrow(AuthorizationException::class)
+        ->and($this->user->profiles()->count())->toBe(1);
+})->with(['placement', 'roles', 'permissions']);
 
 test('the department, branch, and position must fit the organization', function (): void {
     $placement = [...changeUserProfilePlacement(Department::factory()->create()), 'organization_id' => Organization::factory()->create()->id];

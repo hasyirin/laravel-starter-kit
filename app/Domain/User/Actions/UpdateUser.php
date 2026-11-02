@@ -6,6 +6,7 @@ namespace App\Domain\User\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\User\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class UpdateUser
 {
@@ -15,9 +16,15 @@ class UpdateUser
 
     /**
      * @param  array{organization_id: ?int, branch_id: ?int, department_id: ?int, position_id: ?int}  $placement
+     *
+     * @throws AuthorizationException
      */
     public function execute(User $actor, User $user, string $name, string $email, ?string $password, array $placement): void
     {
+        $bypassPermission = config()->string('system.permissions.bypass-authorization');
+
+        throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
+
         $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $password, $placement): void {
             $user->fill(['name' => $name, 'email' => $email]);
 

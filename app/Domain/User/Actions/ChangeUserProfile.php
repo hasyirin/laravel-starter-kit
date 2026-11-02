@@ -20,11 +20,17 @@ class ChangeUserProfile
      * @param  array{organization_id: ?int, branch_id: ?int, department_id: ?int, position_id: ?int}|null  $placement
      * @param  list<string>|null  $roles
      * @param  list<string>|null  $permissions
+     *
+     * @throws AuthorizationException
      */
     public function execute(User $actor, User $user, ?array $placement = null, ?array $roles = null, ?array $permissions = null): ?Profile
     {
         return $user->getConnection()->transaction(function () use ($actor, $user, $placement, $roles, $permissions): ?Profile {
             $user->unsetRelation('profile');
+            $actorHasBypass = $actor->checkPermissionTo($this->bypassPermission());
+
+            throw_if(! $actorHasBypass && $user->checkPermissionTo($this->bypassPermission()), AuthorizationException::class);
+
             $current = $user->profile()->first();
 
             $currentPlacement = $this->placementOf($current?->only(self::PLACEMENT_KEYS) ?? []);
@@ -36,7 +42,6 @@ class ChangeUserProfile
             $currentPermissions = $this->normalized($permissionNames);
 
             $placement = $placement === null ? $currentPlacement : $this->placementOf($placement);
-            $actorHasBypass = $actor->checkPermissionTo($this->bypassPermission());
             $isSelf = $actor->is($user);
             $roles = $this->guardedSet($actorHasBypass, $isSelf, $roles ?? $currentRoles, $currentRoles, $this->bypassRoles());
             $permissions = $this->guardedSet($actorHasBypass, $isSelf, $permissions ?? $currentPermissions, $currentPermissions, [$this->bypassPermission()]);

@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Role;
+use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Actions\UpdateUser;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Hash;
 
 beforeEach(function (): void {
@@ -64,4 +66,18 @@ test('changing the placement makes a new profile and keeps the roles', function 
     expect($this->user->profiles()->count())->toBe(2)
         ->and($profile?->department_id)->toBe($department->id)
         ->and($profile?->getRoleNames()->all())->toBe(['editor']);
+});
+
+test('a user without bypass-authorization cannot change a user who has it', function (): void {
+    $this->seed(PermissionSeeder::class);
+    $this->user->givePermissionTo('bypass-authorization');
+
+    expect(fn () => UpdateUser::make()->execute($this->actor, $this->user, 'New Name', 'new@example.com', 'new-password', $this->placement))
+        ->toThrow(AuthorizationException::class);
+
+    $fresh = $this->user->fresh();
+    expect($fresh->name)->not->toBe('New Name')
+        ->and($fresh->email)->not->toBe('new@example.com')
+        ->and(Hash::check('old-password', $fresh->password))->toBeTrue()
+        ->and($this->user->profiles()->count())->toBe(0);
 });

@@ -88,6 +88,18 @@ test('the form is read-only without update', function (): void {
     expect($this->subject->fresh()->name)->not->toBe('Renamed');
 });
 
+test('the form is read-only on a user with bypass-authorization without bypass', function (): void {
+    $this->subject->givePermissionTo('bypass-authorization');
+
+    Livewire::test(Show::class, ['user' => $this->subject])
+        ->assertDontSee(__('common/buttons.save'))
+        ->set('form.name', 'Renamed')
+        ->call('save')
+        ->assertForbidden();
+
+    expect($this->subject->fresh()->name)->not->toBe('Renamed');
+});
+
 test('the form is editable with update', function (): void {
     Livewire::test(Show::class, ['user' => $this->subject])
         ->assertSee(__('common/buttons.save'));

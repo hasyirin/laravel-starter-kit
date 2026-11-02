@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\Shared\Permission\Seeders\RoleSeeder;
+use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 
 beforeEach(function (): void {
@@ -95,6 +97,25 @@ test('only a user with bypass-authorization can delete a user who has it', funct
     $this->user->givePermissionTo('bypass-authorization');
 
     expect($this->user->can('delete', $this->other))->toBeTrue();
+});
+
+test('only a user with bypass-authorization can update a user who has it', function (?string $type): void {
+    $this->user->givePermissionTo('admin.controls.users.update', 'admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
+    $this->other->givePermissionTo('bypass-authorization');
+
+    expect($this->user->can('update', [$this->other, $type]))->toBeFalse();
+
+    $this->user->givePermissionTo('bypass-authorization');
+
+    expect($this->user->can('update', [$this->other, $type]))->toBeTrue();
+})->with(['details' => [null], 'roles' => ['roles'], 'permissions' => ['permissions']]);
+
+test('a role that carries bypass-authorization puts its holder out of reach of an update', function (): void {
+    $this->seed(RoleSeeder::class);
+    $this->user->givePermissionTo('admin.controls.users.update');
+    Profile::factory()->for($this->other)->withRoles('super-admin')->create();
+
+    expect($this->user->can('update', $this->other->fresh()))->toBeFalse();
 });
 
 test('viewing the activities of a user needs view-activities', function (): void {

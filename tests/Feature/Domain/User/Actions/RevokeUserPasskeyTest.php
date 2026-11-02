@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Actions\RevokeUserPasskey;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -39,5 +40,16 @@ test('a passkey of another user cannot be revoked', function (): void {
     $passkey = userPasskey(User::factory()->create());
 
     expect(fn () => RevokeUserPasskey::make()->execute(User::factory()->create(), $user, $passkey->id))->toThrow(ModelNotFoundException::class);
+    expect(Passkey::query()->find($passkey->id))->not->toBeNull();
+});
+
+test('a user without bypass-authorization cannot revoke a passkey of a user who has it', function (): void {
+    $this->seed(PermissionSeeder::class);
+    $user = User::factory()->create();
+    $user->givePermissionTo('bypass-authorization');
+
+    $passkey = userPasskey($user);
+
+    expect(fn () => RevokeUserPasskey::make()->execute(User::factory()->create(), $user, $passkey->id))->toThrow(AuthorizationException::class);
     expect(Passkey::query()->find($passkey->id))->not->toBeNull();
 });

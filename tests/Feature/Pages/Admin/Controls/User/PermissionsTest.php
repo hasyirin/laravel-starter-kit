@@ -89,12 +89,19 @@ test('bypass-authorization is not sent to the browser without bypass', function 
 
     permissionsTab($this->subject)
         ->assertSet('direct', ['internal.access'])
-        ->assertDontSee('bypass-authorization')
+        ->assertDontSee('bypass-authorization');
+});
+
+test('the permissions of a user with bypass-authorization are read-only without bypass', function (): void {
+    Profile::factory()->for($this->subject)->withRoles('super-admin')->withPermissions('bypass-authorization', 'internal.access')->create();
+
+    permissionsTab($this->subject)
+        ->assertSet('readOnly', true)
         ->call('save', ['internal.access', 'admin.horizon.view'])
-        ->assertHasNoErrors();
+        ->assertForbidden();
 
     expect($this->subject->fresh()->profile->getPermissionNames()->sort()->values()->all())
-        ->toBe(['admin.horizon.view', 'bypass-authorization', 'internal.access']);
+        ->toBe(['bypass-authorization', 'internal.access']);
 });
 
 test('your own direct bypass-authorization is locked', function (): void {

@@ -55,9 +55,7 @@ class DeleteAction extends Action
 
     private function runDeleteAction(Model $record): void
     {
-        if ($this->deleteAction === null) {
-            throw new LogicException(self::class.' needs an Action. Call through().');
-        }
+        throw_if($this->deleteAction === null, LogicException::class, self::class.' needs an Action. Call through().');
 
         // @phpstan-ignore method.nonObject (each Action types its own execute() parameter, so no shared contract fits)
         resolve($this->deleteAction)->execute($record);

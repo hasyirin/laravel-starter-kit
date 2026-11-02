@@ -109,7 +109,7 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
         $table = $this->getTable();
         $action = $table->getAction('view') ?? $table->getAction('edit');
 
-        return $action === null || $action->getClone()->group(null)->record($record)->isHidden() ? null : $action->getName();
+        return ! $action instanceof Action || $action->getClone()->group(null)->record($record)->isHidden() ? null : $action->getName();
     }
 
     protected function recordUrl(Model $record): ?string

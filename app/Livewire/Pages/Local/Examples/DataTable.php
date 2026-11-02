@@ -16,6 +16,7 @@ use App\Filament\Actions\ViewAction;
 use App\Filament\Tables\Columns\ActColumn;
 use App\Filament\Tables\Columns\TimestampColumn;
 use Carbon\CarbonImmutable;
+use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Flux\Flux;
@@ -33,11 +34,17 @@ class DataTable extends \App\Livewire\DataTables\DataTable
         ]);
     }
 
+    /**
+     * @return CreateAction[]
+     */
     protected function headerActions(): array
     {
         return [CreateAction::make()->action($this->showToast(...))];
     }
 
+    /**
+     * @return Column[]
+     */
     protected function columns(): array
     {
         return [
@@ -48,6 +55,9 @@ class DataTable extends \App\Livewire\DataTables\DataTable
         ];
     }
 
+    /**
+     * @return \Filament\Actions\Action[]
+     */
     protected function actions(): array
     {
         return [

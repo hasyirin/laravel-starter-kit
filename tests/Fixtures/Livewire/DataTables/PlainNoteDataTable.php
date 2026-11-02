@@ -7,6 +7,7 @@ namespace Tests\Fixtures\Livewire\DataTables;
 use App\Filament\Actions\DeleteAction;
 use App\Filament\Actions\EditAction;
 use App\Livewire\DataTables\DataTable;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -28,11 +29,17 @@ class PlainNoteDataTable extends DataTable
         return Note::query();
     }
 
+    /**
+     * @return TextColumn[]
+     */
     protected function columns(): array
     {
         return [TextColumn::make('title')];
     }
 
+    /**
+     * @return Action[]
+     */
     protected function actions(): array
     {
         return array_values(array_filter([

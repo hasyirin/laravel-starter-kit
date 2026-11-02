@@ -207,7 +207,7 @@ test('the create and view actions open the modal', function (): void {
 
 test('no class imports the delete action of Filament, because it skips the Actions', function (): void {
     $offenders = collect(iterator_to_array(Finder::create()->files()->in(app_path())->name('*.php')))
-        ->filter(fn (SplFileInfo $file): bool => str_contains($file->getContents(), 'Filament\\Actions\\DeleteAction'))
+        ->filter(fn (SplFileInfo $file): bool => preg_match('/(?<!App\\\\)Filament\\\\Actions\\\\DeleteAction\b/', $file->getContents()) === 1)
         ->keys();
 
     expect($offenders)->toBeEmpty();

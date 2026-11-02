@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Admin\Controls\User;
 
+use App\Domain\User\Models\User;
 use App\Livewire\Component;
 use App\Livewire\Components\Tab;
 use App\Livewire\Concerns\InteractsWithTabs;
@@ -11,6 +12,7 @@ use App\Livewire\DataTables\Admin\User\PasskeyDataTable;
 use App\Livewire\DataTables\Admin\User\RoleDataTable;
 use Illuminate\Contracts\View\View;
 use Laravel\Fortify\Features;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 
 class Tabs extends Component
@@ -43,7 +45,20 @@ class Tabs extends Component
                 ->params(['userId' => $this->userId]);
         }
 
+        if ($this->can('view', [$this->user, 'activities'])) {
+            $tabs[] = Tab::make('audit')
+                ->label((string) __('user/users.tabs.audit'))
+                ->content(Audit::class)
+                ->params(['userId' => $this->userId]);
+        }
+
         return $tabs;
+    }
+
+    #[Computed]
+    public function user(): User
+    {
+        return User::query()->findOrFail($this->userId);
     }
 
     public function render(): View

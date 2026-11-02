@@ -6,6 +6,7 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Admin\User\PasskeyDataTable;
 use App\Livewire\DataTables\Admin\User\RoleDataTable;
+use App\Livewire\Pages\Admin\Controls\User\Audit;
 use App\Livewire\Pages\Admin\Controls\User\Permissions;
 use App\Livewire\Pages\Admin\Controls\User\Tabs;
 use Laravel\Fortify\Features;
@@ -61,4 +62,18 @@ test('the passkeys tab is hidden when passkeys are off', function (): void {
     Livewire::test(Tabs::class, ['userId' => $this->subject->id])
         ->assertDontSeeLivewire(PasskeyDataTable::class)
         ->assertDontSee(__('user/users.tabs.passkeys'));
+});
+
+test('the audit tab shows with view-activities', function (): void {
+    $this->admin->givePermissionTo('admin.controls.users.view-activities');
+
+    Livewire::test(Tabs::class, ['userId' => $this->subject->id])
+        ->call('switchTab', 'audit')
+        ->assertSet('tab', 'audit')
+        ->assertSeeLivewire(Audit::class);
+});
+
+test('the audit tab is hidden without view-activities', function (): void {
+    Livewire::test(Tabs::class, ['userId' => $this->subject->id])
+        ->assertDontSee(__('user/users.tabs.audit'));
 });

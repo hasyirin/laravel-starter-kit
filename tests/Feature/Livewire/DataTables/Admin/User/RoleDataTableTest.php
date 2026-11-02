@@ -44,6 +44,12 @@ test('the roles tab lists the roles of the current profile', function (): void {
         ->assertCanNotSeeTableRecords([$this->editor]);
 });
 
+test('a system role shows a System badge', function (): void {
+    Profile::factory()->for($this->subject)->withRoles('super-admin')->create();
+
+    roleTable($this->subject)->assertSee('System');
+});
+
 test('the roles tab is empty without a profile', function (): void {
     roleTable($this->subject)->assertCountTableRecords(0);
 });

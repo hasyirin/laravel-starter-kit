@@ -19,6 +19,7 @@ use LogicException;
  * @property string $name
  * @property string $guard_name
  * @property bool $is_system
+ * @property-read bool $carries_bypass
  */
 #[ObservedBy(RoleObserver::class)]
 class Role extends \Spatie\Permission\Models\Role
@@ -82,5 +83,14 @@ class Role extends \Spatie\Permission\Models\Role
     protected function label(): Attribute
     {
         return Attribute::get(fn (): string => $this->is_system ? (string) __("user/roles.$this->name") : $this->name);
+    }
+
+    /**
+     * @return Attribute<bool, never>
+     */
+    protected function carriesBypass(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->name === config()->string('system.roles.super-admin')
+            || $this->permissions->contains('name', config()->string('system.permissions.bypass-authorization')));
     }
 }

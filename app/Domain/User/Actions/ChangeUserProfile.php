@@ -110,7 +110,7 @@ class ChangeUserProfile
     private function bypassRoles(): array
     {
         return $this->normalized(Role::query()->with('permissions')->get()
-            ->filter(fn (Role $role): bool => $role->name === config()->string('system.roles.super-admin') || $role->permissions->contains('name', $this->bypassPermission()))
+            ->filter(fn (Role $role): bool => $role->carries_bypass)
             ->map(fn (Role $role): string => $role->name)
             ->all());
     }

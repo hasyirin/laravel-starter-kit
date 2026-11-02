@@ -15,12 +15,12 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Column;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Translation\PotentiallyTranslatedString;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Defer;
 use Livewire\Attributes\Locked;
 
@@ -32,7 +32,7 @@ class RoleDataTable extends DataTable
 
     public function mount(): void
     {
-        $this->authorize('view', $this->user());
+        $this->authorize('view', $this->user);
     }
 
     /**
@@ -53,7 +53,7 @@ class RoleDataTable extends DataTable
                 ->label((string) __('user/users.roles_tab.attach'))
                 ->modalHeading((string) __('user/users.roles_tab.attach'))
                 ->modalSubmitActionLabel((string) __('user/users.roles_tab.attach'))
-                ->visible(fn (): bool => $this->can('update', [$this->user(), 'roles']))
+                ->visible(fn (): bool => $this->can('update', [$this->user, 'roles']))
                 ->schema([
                     Select::make('roles')
                         ->label((string) __('user/users.roles'))
@@ -63,7 +63,7 @@ class RoleDataTable extends DataTable
                         ->rules([fn (): Closure => $this->mustBeAttachable(...)]),
                 ])
                 ->action(function (array $data, ChangeUserProfile $changeUserProfile): void {
-                    $this->authorize('update', [$this->user(), 'roles']);
+                    $this->authorize('update', [$this->user, 'roles']);
 
                     /** @var list<string> $selected */
                     $selected = $data['roles'];
@@ -80,7 +80,10 @@ class RoleDataTable extends DataTable
     {
         return [
             TextColumn::make('label')->label((string) __('user/users.roles_tab.role')),
-            IconColumn::make('is_system')->label((string) __('user/users.roles_tab.system'))->boolean(),
+            TextColumn::make('is_system')
+                ->label((string) __('user/users.roles_tab.system'))
+                ->badge()
+                ->formatStateUsing(fn (bool $state): ?string => $state ? (string) __('user/users.roles_tab.system') : null),
         ];
     }
 
@@ -99,14 +102,15 @@ class RoleDataTable extends DataTable
                 ->modalSubmitActionLabel((string) __('user/users.roles_tab.detach'))
                 ->visible(fn (Role $role): bool => $this->canDetach($role))
                 ->action(function (Role $role, ChangeUserProfile $changeUserProfile): void {
-                    $this->authorize('update', [$this->user(), 'roles']);
+                    $this->authorize('update', [$this->user, 'roles']);
 
                     $this->changeRoles($changeUserProfile, array_values(array_diff($this->currentRoleNames(), [$role->name])));
                 }),
         ];
     }
 
-    private function user(): User
+    #[Computed]
+    public function user(): User
     {
         return User::query()->findOrFail($this->userId);
     }
@@ -124,23 +128,17 @@ class RoleDataTable extends DataTable
         return $this->actor()->checkPermissionTo(config()->string('system.permissions.bypass-authorization'));
     }
 
-    private function carriesBypass(Role $role): bool
-    {
-        return $role->name === config()->string('system.roles.super-admin')
-            || $role->permissions->contains('name', config()->string('system.permissions.bypass-authorization'));
-    }
-
     private function canDetach(Role $role): bool
     {
-        if ($this->cannot('update', [$this->user(), 'roles'])) {
+        if ($this->cannot('update', [$this->user, 'roles'])) {
             return false;
         }
 
-        if (! $this->carriesBypass($role)) {
+        if (! $role->carries_bypass) {
             return true;
         }
 
-        return $this->actorHasBypass() && ! $this->actor()->is($this->user());
+        return $this->actorHasBypass() && ! $this->actor()->is($this->user);
     }
 
     /**
@@ -148,7 +146,7 @@ class RoleDataTable extends DataTable
      */
     private function currentRoleNames(): array
     {
-        $profile = $this->user()->profile;
+        $profile = $this->user->profile;
 
         if (! $profile instanceof Profile) {
             return [];
@@ -179,7 +177,7 @@ class RoleDataTable extends DataTable
             ->whereNotIn('name', $this->currentRoleNames())
             ->orderBy('name')
             ->get()
-            ->filter(fn (Role $role): bool => $this->actorHasBypass() || ! $this->carriesBypass($role));
+            ->filter(fn (Role $role): bool => $this->actorHasBypass() || ! $role->carries_bypass);
     }
 
     /**
@@ -187,7 +185,7 @@ class RoleDataTable extends DataTable
      */
     private function changeRoles(ChangeUserProfile $changeUserProfile, array $roles): void
     {
-        $changeUserProfile->execute($this->actor(), $this->user(), roles: $roles);
+        $changeUserProfile->execute($this->actor(), $this->user, roles: $roles);
 
         Flux::toast(variant: 'success', text: __('user/users.roles_tab.saved'));
     }

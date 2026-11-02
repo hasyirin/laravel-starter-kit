@@ -44,10 +44,17 @@ test('the roles tab lists the roles of the current profile', function (): void {
         ->assertCanNotSeeTableRecords([$this->editor]);
 });
 
-test('a system role shows a System badge', function (): void {
-    Profile::factory()->for($this->subject)->withRoles('super-admin')->create();
+test('only a system role shows a System badge', function (): void {
+    Profile::factory()->for($this->subject)->withRoles('super-admin', 'editor')->create();
+    $superAdmin = Role::query()->where('name', 'super-admin')->firstOrFail();
 
-    roleTable($this->subject)->assertSee('System');
+    $column = roleTable($this->subject)->instance()->getTable()->getColumn('is_system');
+
+    expect($column->record($superAdmin)->getState())->toBe(__('user/users.roles_tab.system'));
+
+    $column->clearCachedState();
+
+    expect($column->record($this->editor)->getState())->toBeNull();
 });
 
 test('the roles tab is empty without a profile', function (): void {

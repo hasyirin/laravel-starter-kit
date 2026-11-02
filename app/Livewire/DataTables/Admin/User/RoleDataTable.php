@@ -83,7 +83,7 @@ class RoleDataTable extends DataTable
             TextColumn::make('is_system')
                 ->label((string) __('user/users.roles_tab.system'))
                 ->badge()
-                ->formatStateUsing(fn (bool $state): ?string => $state ? (string) __('user/users.roles_tab.system') : null),
+                ->state(fn (Role $role): ?string => $role->is_system ? (string) __('user/users.roles_tab.system') : null),
         ];
     }
 

@@ -39,7 +39,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AddTraceIdToContext::class);
         $middleware->web(append: [ResolveUserPreferences::class]);
-        // app.js writes these from the browser, so they are not encrypted.
+        // app.js writes these from the browser, so the app does not encrypt them.
         $middleware->encryptCookies(except: ['timezone', 'locale']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

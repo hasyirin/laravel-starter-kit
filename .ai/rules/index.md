@@ -20,5 +20,5 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Domain/**/States/** | .ai/rules/states.md |
 | tests/** | .ai/rules/tests.md |
 | app/Domain/**/Transitions/** | .ai/rules/transitions.md |
-| resources/views/**, resources/js/** | .ai/rules/ui.md |
+| resources/views/**, resources/js/**, resources/css/** | .ai/rules/ui.md |
 | resources/views/** | .ai/rules/views.md |

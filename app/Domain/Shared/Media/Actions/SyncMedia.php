@@ -17,7 +17,7 @@ class SyncMedia
     use Actionable;
 
     /**
-     * The browser sends the items, so only media of this collection is kept and only uploads that Livewire signed are added.
+     * The browser sends the items, so the action keeps only media of this collection and adds only uploads that Livewire signed.
      *
      * @param  list<array{uuid: string, name: string, size: int, mime_type: string, preview?: bool, upload?: ?string}>  $items
      */

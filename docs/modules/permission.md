@@ -100,7 +100,7 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 - view any needs the view-any permission
 - view needs the view-any or view permission
-- a user can view a role they have
+- having a role does not let a user view it
 - create needs the create permission
 - update needs the update permission
 - the name of a system role cannot be updated

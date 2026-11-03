@@ -19,7 +19,7 @@ class RolePolicy extends Policy
 
     public function view(User $user, Role $role): bool
     {
-        return $this->hasAnyPermission($user, 'view-any', 'view') || $user->hasRole($role);
+        return $this->hasAnyPermission($user, 'view-any', 'view');
     }
 
     public function create(User $user): bool

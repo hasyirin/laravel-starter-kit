@@ -30,11 +30,10 @@ test('view needs the view-any or view permission', function (string $permission)
     expect($this->user->can('view', $this->role))->toBeTrue();
 })->with(['admin.controls.roles.view-any', 'admin.controls.roles.view']);
 
-test('a user can view a role they have', function (): void {
+test('having a role does not let a user view it', function (): void {
     $this->user->assignRole($this->role);
 
-    expect($this->user->can('view', $this->role))->toBeTrue()
-        ->and($this->user->can('view', $this->system))->toBeFalse();
+    expect($this->user->can('view', $this->role))->toBeFalse();
 });
 
 test('create needs the create permission', function (): void {

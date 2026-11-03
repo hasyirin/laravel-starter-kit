@@ -90,7 +90,6 @@ class Role extends \Spatie\Permission\Models\Role
      */
     protected function carriesBypass(): Attribute
     {
-        return Attribute::get(fn (): bool => $this->name === config()->string('system.roles.super-admin')
-            || $this->permissions->contains('name', config()->string('system.permissions.bypass-authorization')));
+        return Attribute::get(fn (): bool => $this->permissions->contains('name', config()->string('system.permissions.bypass-authorization')));
     }
 }

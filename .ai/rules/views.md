@@ -8,6 +8,9 @@ paths:
 ## Use short translation keys
 Translate UI text with short keys from PHP files under `lang/en/`, such as `__('user/settings.profile.updated')`, never JSON sentence keys. Put shared labels in `lang/en/common/` (`buttons.php`, `inputs.php`).
 
+## Show by permission, never by role
+Use `@can` to show or hide UI. Never use `@role`, `@hasrole`, or `@hasanyrole`. Admins change roles at runtime.
+
 ## Never use em dashes
 Never write an em dash (`—` or `&mdash;`) in the frontend. Rewrite the sentence, or use a comma, colon, period, or parentheses instead.
 

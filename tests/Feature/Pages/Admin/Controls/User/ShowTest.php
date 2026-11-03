@@ -348,6 +348,13 @@ test('roles that carry bypass are not offered without bypass', function (): void
     expect(roleOptionStates(Livewire::test(Show::class, ['user' => $this->subject])))->toBe(['editor' => false]);
 });
 
+test('the super-admin role without bypass is offered like any other role', function (): void {
+    $this->admin->givePermissionTo('admin.controls.users.update-roles');
+    Role::query()->create(['name' => 'super-admin', 'guard_name' => 'web']);
+
+    expect(roleOptionStates(Livewire::test(Show::class, ['user' => $this->subject])))->toBe(['super-admin' => false]);
+});
+
 test('a bypass role that the user holds still shows without bypass', function (): void {
     $this->seed(RoleSeeder::class);
     Profile::factory()->for($this->subject)->withRoles('super-admin')->create();

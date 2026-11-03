@@ -14,5 +14,8 @@ Call the `auth()`, `config()`, `cache()`, `context()`, and `logger()` helpers in
 ## Use str() instead of Str::
 Use the fluent `str()` helper whenever there is a string to transform, for example `str($name)->initials()->value()`. Use static `Str::` only for calls without an input string, such as `Str::uuid7()` or `Str::random()`.
 
+## Check permissions, never roles
+Authorize and guard with permissions only, such as `$user->can()` or `checkPermissionTo()`. Never check a role, such as `hasRole('super-admin')`, and never compare role names. Admins change roles at runtime, and a project can rename them. If no permission fits, add one to `config/system.php`. The `super-admin` role is only a seeded role that holds `bypass-authorization`. `Gate::before()` checks that permission, not the role.
+
 ## Update the docs with the code
 After you change code that a doc in `docs/` describes, run `php artisan docs:generate` and update the hand-written text of that doc. `composer test` fails when a generated section is out of date or a doc names code that no longer exists.

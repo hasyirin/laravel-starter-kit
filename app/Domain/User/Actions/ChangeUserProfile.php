@@ -142,10 +142,8 @@ class ChangeUserProfile
     private function bypassRoles(): Collection
     {
         $names = Role::query()
-            ->with('permissions')
-            ->get()
-            ->filter(fn (Role $role): bool => $role->checkPermissionTo($this->bypassPermission()))
-            ->map(fn (Role $role): string => $role->name);
+            ->whereRelation('permissions', 'name', $this->bypassPermission())
+            ->pluck('name');
 
         return $this->normalized($names);
     }

@@ -93,6 +93,23 @@ test('a change builds on the profile that is current when it saves', function ()
         ->and(changeUserProfileSnapshot($profile)['roles'])->toBe(['editor']);
 });
 
+test('the bypass guard reads the profile that is current when it saves', function (): void {
+    Profile::factory()->for($this->user)->create();
+    $user = User::query()->findOrFail($this->user->id);
+    $user->load('profile');
+    Profile::factory()->for($this->user)->withPermissions('bypass-authorization')->create();
+
+    expect(fn (): ?Profile => ChangeUserProfile::make()->execute($this->actor, $user, roles: ['editor']))->toThrow(AuthorizationException::class);
+});
+
+test('the user holds the new profile after the change', function (): void {
+    $this->user->load('profile');
+
+    $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, roles: ['editor']);
+
+    expect($this->user->profile?->id)->toBe($profile?->id);
+});
+
 test('a user without a profile gets a first profile', function (): void {
     $profile = ChangeUserProfile::make()->execute($this->actor, $this->user);
 

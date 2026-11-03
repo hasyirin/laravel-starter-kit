@@ -22,9 +22,9 @@ class UserPolicy extends Policy
             && $this->hasTypedPermission($user, 'view', $type);
     }
 
-    public function create(User $user): bool
+    public function create(User $user, ?string $type = null): bool
     {
-        return $this->hasPermission($user, 'create');
+        return $this->hasPermission($user, 'create') && $this->hasTypedPermission($user, 'create', $type);
     }
 
     public function update(User $user, User $model, ?string $type = null): bool

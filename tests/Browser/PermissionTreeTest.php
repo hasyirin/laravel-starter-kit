@@ -15,11 +15,13 @@ beforeEach(function (): void {
         'admin.access',
         'admin.controls.users.view',
         'admin.controls.users.update',
+        'admin.controls.users.update-roles',
         'admin.controls.users.update-permissions',
     );
     $this->actingAs($admin);
 
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('admin.access');
+    Role::query()->create(['name' => 'viewer', 'guard_name' => 'web'])->givePermissionTo('internal.access');
     $this->subject = User::factory()->create();
     Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('admin.controls.users.view')->create();
 });
@@ -28,36 +30,42 @@ function permissionTreeScript(string $body): string
 {
     $helpers = <<<'SCRIPT'
         const tree = () => document.querySelector('[data-permission-tree]');
+        const chip = (name) => tree().querySelector(`[data-permission="${name}"]`);
         const chips = (key) => [...tree().querySelectorAll(`[data-node="${key}"] [data-permission]`)];
-        const ticked = (chip) => chip.getAttribute('aria-checked') === 'true';
-        const shownChips = () => [...tree().querySelectorAll('[data-permission]')].filter((chip) => chip.checkVisibility());
-        const unsaved = () => tree().querySelector('[data-unsaved]');
+        const ticked = (element) => element.getAttribute('aria-checked') === 'true';
+        const locked = (element) => element.getAttribute('aria-disabled') === 'true';
+        const shownChips = () => [...tree().querySelectorAll('[data-permission]')].filter((element) => element.checkVisibility());
+        const role = (name) => document.querySelector(`ui-checkbox[value="${name}"]`);
+        const openCard = async (heading) => {
+            const toggle = [...document.querySelectorAll('[data-card-toggle]')].find((button) => button.textContent.trim() === heading);
+
+            if (toggle.getAttribute('aria-expanded') === 'false') {
+                toggle.click();
+            }
+
+            await until(() => toggle.getAttribute('aria-expanded') === 'true');
+        };
         await until(() => tree() !== null);
+        await openCard('Permissions');
         SCRIPT;
 
     return browserScript("{$helpers}\n{$body}");
 }
 
-function visitPermissions(User $user): mixed
-{
-    return visit(route('admin.controls.users.show', ['user' => $user, 'tab' => 'permissions'], false));
-}
-
 test('ticking a resource box ticks all of its actions', function (): void {
-    $page = visitPermissions($this->subject);
+    $page = visit(route('admin.controls.users.show', $this->subject, false));
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         tree().querySelector('[data-node="admin.controls.roles"] [data-resource-box]').click();
 
-        return await until(() => chips('admin.controls.roles').length === 6 && chips('admin.controls.roles').every(ticked))
-            && unsaved().textContent.trim() === '6 unsaved changes';
+        return await until(() => chips('admin.controls.roles').length === 6 && chips('admin.controls.roles').every(ticked));
         SCRIPT)))->toBeTrue();
 
     $page->assertNoJavaScriptErrors();
 });
 
 test('search shows only matching actions', function (): void {
-    $page = visitPermissions($this->subject);
+    $page = visit(route('admin.controls.users.show', $this->subject, false));
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         const search = tree().querySelector('input');
@@ -66,7 +74,7 @@ test('search shows only matching actions', function (): void {
 
         await until(() => shownChips().length === 5);
 
-        return shownChips().map((chip) => [chip.dataset.permission, chip.querySelector('mark')?.textContent]);
+        return shownChips().map((element) => [element.dataset.permission, element.querySelector('mark')?.textContent]);
         SCRIPT)))->toBe([
         ['admin.controls.roles.update', 'Upd'],
         ['admin.controls.roles.update-permissions', 'Upd'],
@@ -78,26 +86,62 @@ test('search shows only matching actions', function (): void {
     $page->assertNoJavaScriptErrors();
 });
 
-test('saving shows the toast and clears the unsaved count', function (): void {
-    $page = visitPermissions($this->subject);
+test('ticking a role marks its permissions as given by that role', function (): void {
+    $page = visit(route('admin.controls.users.show', $this->subject, false));
+
+    expect($page->script(permissionTreeScript(<<<'SCRIPT'
+        await openCard('Roles');
+        const fromEditor = ticked(chip('admin.access')) && locked(chip('admin.access')) && chip('admin.access').textContent.includes('from editor');
+
+        role('viewer').click();
+        role('editor').click();
+        await until(() => ticked(chip('internal.access')) && ! ticked(chip('admin.access')));
+
+        return fromEditor
+            && locked(chip('internal.access'))
+            && chip('internal.access').textContent.includes('from viewer')
+            && ! locked(chip('admin.access'))
+            && ! chip('admin.access').textContent.includes('from editor');
+        SCRIPT)))->toBeTrue();
+
+    $page->assertNoJavaScriptErrors();
+});
+
+test('the save button of the form saves the ticked permissions and keeps the search', function (): void {
+    $page = visit(route('admin.controls.users.show', $this->subject, false));
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         const search = tree().querySelector('input');
         search.value = 'create';
         search.dispatchEvent(new Event('input', { bubbles: true }));
-        await until(() => shownChips().length === 2);
+        await until(() => shownChips().length === 4);
 
-        tree().querySelector('[data-permission="admin.controls.users.create"]').click();
-        await until(() => unsaved().checkVisibility());
+        chip('admin.controls.users.create').click();
+        await until(() => ticked(chip('admin.controls.users.create')));
 
-        tree().querySelector('[data-permission-save]').click();
+        document.querySelector('form[data-card-group] button[type="submit"]').click();
 
-        return await until(() => document.body.textContent.includes('The permissions are saved.') && ! unsaved().checkVisibility())
-            && shownChips().length === 2;
+        return await until(() => document.body.textContent.includes('The user is saved.'))
+            && shownChips().length === 4
+            && ticked(chip('admin.controls.users.create'));
         SCRIPT)))->toBeTrue();
 
     expect($this->subject->fresh()->profile->getPermissionNames()->sort()->values()->all())
         ->toBe(['admin.controls.users.create', 'admin.controls.users.view']);
+
+    $page->assertNoJavaScriptErrors();
+});
+
+test('enter in the search does not send the form', function (): void {
+    $page = visit(route('admin.controls.users.show', $this->subject, false));
+
+    $page->script(permissionTreeScript(<<<'SCRIPT'
+        tree().closest('form').addEventListener('submit', () => (window.formSent = true), { capture: true });
+        SCRIPT));
+
+    $page->keys('[data-permission-tree] input', 'Enter');
+
+    expect($page->script('() => window.formSent === true'))->toBeFalse();
 
     $page->assertNoJavaScriptErrors();
 });

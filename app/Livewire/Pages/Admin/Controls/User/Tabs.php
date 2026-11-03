@@ -9,7 +9,6 @@ use App\Livewire\Component;
 use App\Livewire\Components\Tab;
 use App\Livewire\Concerns\InteractsWithTabs;
 use App\Livewire\DataTables\Admin\User\PasskeyDataTable;
-use App\Livewire\DataTables\Admin\User\RoleDataTable;
 use Illuminate\Contracts\View\View;
 use Laravel\Fortify\Features;
 use Livewire\Attributes\Computed;
@@ -27,32 +26,18 @@ class Tabs extends Component
      */
     public function tabs(): array
     {
-        $tabs = [
-            Tab::make('roles')
-                ->label((string) __('user/users.tabs.roles'))
-                ->content(RoleDataTable::class)
-                ->params(['userId' => $this->userId]),
-            Tab::make('permissions')
-                ->label((string) __('user/users.tabs.permissions'))
-                ->content(Permissions::class)
-                ->params(['userId' => $this->userId]),
-        ];
-
-        if (Features::canManagePasskeys()) {
-            $tabs[] = Tab::make('passkeys')
+        return [
+            Tab::make('passkeys')
                 ->label((string) __('user/users.tabs.passkeys'))
                 ->content(PasskeyDataTable::class)
-                ->params(['userId' => $this->userId]);
-        }
-
-        if ($this->can('view', [$this->user, 'activities'])) {
-            $tabs[] = Tab::make('audit')
+                ->params(['userId' => $this->userId])
+                ->visible(Features::canManagePasskeys()),
+            Tab::make('audit')
                 ->label((string) __('user/users.tabs.audit'))
                 ->content(Audit::class)
-                ->params(['userId' => $this->userId]);
-        }
-
-        return $tabs;
+                ->params(['userId' => $this->userId])
+                ->visible(fn (): bool => $this->can('view', [$this->user, 'activities'])),
+        ];
     }
 
     #[Computed]
@@ -64,5 +49,10 @@ class Tabs extends Component
     public function render(): View
     {
         return view('livewire.pages.admin.controls.user.tabs');
+    }
+
+    protected function rendersWithoutTabs(): bool
+    {
+        return true;
     }
 }

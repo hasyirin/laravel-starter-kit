@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 return [
     'title' => 'Users',
+    'details' => 'Details',
     'roles' => 'Roles',
     'organization' => 'Organization',
     'branch' => 'Branch',
     'department' => 'Department',
     'position' => 'Position',
+    'created_at' => 'Created',
+    'email_verified_at' => 'Email verified',
     'unverified' => 'Unverified',
     'mark_as_verified' => 'Mark as verified',
     'updated' => 'The user is saved.',
     'tabs' => [
-        'roles' => 'Roles',
-        'permissions' => 'Permissions',
         'passkeys' => 'Passkeys',
         'audit' => 'Audit',
     ],
@@ -26,14 +27,6 @@ return [
         'revoke' => 'Revoke',
         'revoke_heading' => 'Revoke this passkey?',
         'revoked' => 'The passkey is revoked.',
-    ],
-    'roles_tab' => [
-        'role' => 'Role',
-        'system' => 'System',
-        'attach' => 'Attach',
-        'detach' => 'Detach',
-        'detach_heading' => 'Detach this role?',
-        'saved' => 'The roles are saved.',
     ],
     'audit' => [
         'by' => 'By this user',
@@ -69,6 +62,7 @@ return [
         ],
     ],
     'permissions' => [
+        'heading' => 'Permissions',
         'search' => 'Search permissions',
         'only_granted' => 'Only granted',
         'expand_all' => 'Expand all',
@@ -76,12 +70,9 @@ return [
         'collapse' => 'Collapse :label',
         'from' => 'from :role',
         'count' => ':granted of :total',
-        'unsaved' => '{1} :count unsaved change|[2,*] :count unsaved changes',
-        'saved' => 'The permissions are saved.',
     ],
     'create' => [
         'title' => 'Create user',
-        'submit' => 'Create',
     ],
     'verify' => [
         'heading' => 'Mark the email as verified?',

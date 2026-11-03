@@ -44,6 +44,8 @@ return [
                     'view-any' => 'admin.controls.users.view-any',
                     'view' => 'admin.controls.users.view',
                     'create' => 'admin.controls.users.create',
+                    'create-permissions' => 'admin.controls.users.create-permissions',
+                    'create-roles' => 'admin.controls.users.create-roles',
                     'update' => 'admin.controls.users.update',
                     'update-permissions' => 'admin.controls.users.update-permissions',
                     'update-roles' => 'admin.controls.users.update-roles',

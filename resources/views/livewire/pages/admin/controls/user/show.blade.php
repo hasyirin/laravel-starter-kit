@@ -3,11 +3,9 @@
 
     <flux:heading size="xl" class="mb-6">{{ $user->name }}</flux:heading>
 
-    @include('livewire.pages.admin.controls.user.partials.details', ['submit' => __('common/buttons.save')])
+    @include('livewire.pages.admin.controls.user.partials.details', ['submit' => __('common/buttons.update')])
 
-    <div class="mt-6">
-        <livewire:pages.admin.controls.user.tabs :user-id="$user->id" />
-    </div>
+    <livewire:pages.admin.controls.user.tabs :user-id="$user->id" />
 
     @can('update', $user)
         @unless($user->hasVerifiedEmail())

@@ -55,7 +55,11 @@ trait InteractsWithTabs
     {
         $availableTabs = $this->availableTabs();
 
-        abort_if($availableTabs === [], 404);
+        if ($availableTabs === []) {
+            abort_unless($this->rendersWithoutTabs(), 404);
+
+            return;
+        }
 
         $this->selectTab($availableTabs, $this->findTab($availableTabs, $this->tab) ?? $availableTabs[0]);
     }
@@ -131,6 +135,11 @@ trait InteractsWithTabs
     protected function availableTabs(): array
     {
         return $this->partitionTabs()['available'];
+    }
+
+    protected function rendersWithoutTabs(): bool
+    {
+        return false;
     }
 
     /**

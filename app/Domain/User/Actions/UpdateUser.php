@@ -16,16 +16,26 @@ class UpdateUser
 
     /**
      * @param  array{organization_id: ?int, branch_id: ?int, department_id: ?int, position_id: ?int}  $placement
+     * @param  array<int, string>|null  $roles
+     * @param  array<int, string>|null  $permissions
      *
      * @throws AuthorizationException
      */
-    public function execute(User $actor, User $user, string $name, string $email, ?string $password, array $placement): void
-    {
+    public function execute(
+        User $actor,
+        User $user,
+        string $name,
+        string $email,
+        ?string $password,
+        array $placement,
+        ?array $roles = null,
+        ?array $permissions = null,
+    ): void {
         $bypassPermission = config()->string('system.permissions.bypass-authorization');
 
         throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
 
-        $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $password, $placement): void {
+        $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $password, $placement, $roles, $permissions): void {
             $user->fill(['name' => $name, 'email' => $email]);
 
             if ($user->isDirty('email')) {
@@ -38,7 +48,7 @@ class UpdateUser
 
             $user->save();
 
-            $this->changeUserProfile->execute($actor, $user, $placement);
+            $this->changeUserProfile->execute($actor, $user, $placement, $roles, $permissions);
         });
     }
 }

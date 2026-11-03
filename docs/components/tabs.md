@@ -68,6 +68,25 @@ public function queryTabAs(): string
 
 When the URL holds a tab that is unknown, hidden, or disabled, the tab set opens the default tab. When no tab is available, the page answers 404.
 
+A tab set that is only one part of a page, such as the tabs below the form of a record, must not take the whole page down. Return `true` from `rendersWithoutTabs()`, and the set mounts without a tab instead: `$this->currentTab` is `null`, and `$tabPanels` is empty. Check `$tabs` in the view, so that the bar and its spacing stay out:
+
+```php
+protected function rendersWithoutTabs(): bool
+{
+    return true;
+}
+```
+
+```html
+<div>
+    @if($tabs !== [])
+        <x-tabs :$tabs :$currentTab :query-as="$queryTabAs" />
+
+        <x-tabs.content :panels="$tabPanels" :$currentTab class="mt-4" />
+    @endif
+</div>
+```
+
 ## Bars
 
 `<x-tabs>` renders a [Flux tabs](https://fluxui.dev/components/tabs) bar. It keeps the Flux default look, the underline. `variant` goes to Flux, so `segmented` and `pills` work too.
@@ -201,7 +220,7 @@ A tab set inside the content of a tab is a Livewire component of its own. It use
 
 When the user leaves the outer tab, the inner key stays in the URL. So when the user comes back, the inner set opens the tab that the user had.
 
-A nested set with no available tab aborts with 404 when it mounts, also when it mounts after a switch of the outer set. So give every nested set at least one tab that is always available.
+A nested set with no available tab aborts with 404 when it mounts, also when it mounts after a switch of the outer set. So give every nested set at least one tab that is always available, or let it render without tabs with `rendersWithoutTabs()`.
 
 ```blade
 <livewire:pages.local.examples.tabs query-as="outer" nested />
@@ -242,6 +261,7 @@ One component holds one tab set. A second set on the same level needs its own co
 |------------------------|-----------------------------------------------------------------------------------------------------|
 | `tabs()`               | Required. Returns the tabs of the set.                                                              |
 | `queryTabAs()`         | The URL key. The default is `tab`.                                                                  |
+| `rendersWithoutTabs()` | `true` mounts the set without a tab when no tab is available, instead of answering 404. The default is `false`. |
 | `switchTab()`          | Opens a tab by its slug. It ignores a tab that cannot open.                                         |
 | `$tab`                 | The slug of the current tab, or an empty string for the default tab.                                |
 | `$this->currentTab`    | The current `Tab`.                                                                                  |

@@ -5,8 +5,10 @@ declare(strict_types=1);
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
+use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
+use App\Livewire\Components\Option;
 use App\Livewire\Pages\Admin\Controls\User\Create;
 use Livewire\Livewire;
 
@@ -47,6 +49,71 @@ test('a new user opens on their page', function (): void {
     expect($profile->organization_id)->toBe($organization->id)
         ->and($profile->department_id)->toBe($department->id)
         ->and($profile->position_id)->toBe($position->id);
+});
+
+test('a new user gets the ticked roles and permissions', function (): void {
+    $this->admin->givePermissionTo('admin.controls.users.create', 'admin.controls.users.create-roles', 'admin.controls.users.create-permissions');
+    Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
+
+    Livewire::test(Create::class)
+        ->set('form.name', 'New Person')
+        ->set('form.email', 'new.person@example.com')
+        ->set('form.password', 'Str0ng-Passw0rd!')
+        ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
+        ->set('form.roles', ['editor'])
+        ->set('form.permissions', ['internal.access'])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $profile = User::query()->where('email', 'new.person@example.com')->firstOrFail()->profile;
+    expect($profile->getRoleNames()->all())->toBe(['editor'])
+        ->and($profile->getPermissionNames()->all())->toBe(['internal.access']);
+});
+
+test('roles and permissions are left out without create-roles and create-permissions', function (): void {
+    $this->admin->givePermissionTo('admin.controls.users.create');
+    Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
+
+    $component = Livewire::test(Create::class);
+
+    expect(collect($component->instance()->roleOptions)->every(fn (Option $option): bool => $option->isDisabled()))->toBeTrue()
+        ->and($component->instance()->canChange('permissions'))->toBeFalse();
+
+    $component
+        ->set('form.name', 'New Person')
+        ->set('form.email', 'new.person@example.com')
+        ->set('form.password', 'Str0ng-Passw0rd!')
+        ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
+        ->set('form.roles', ['editor'])
+        ->set('form.permissions', ['internal.access'])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $profile = User::query()->where('email', 'new.person@example.com')->firstOrFail()->profile;
+    expect($profile->getRoleNames()->all())->toBe([])
+        ->and($profile->getPermissionNames()->all())->toBe([]);
+});
+
+test('a position without a department can be picked without a department', function (): void {
+    $this->admin->givePermissionTo('admin.controls.users.create');
+    $position = Position::factory()->create();
+
+    $component = Livewire::test(Create::class)->set('form.organization_id', $position->organization_id);
+
+    expect($component->instance()->positions)->toBe([$position->id => $position->name]);
+
+    $component
+        ->set('form.name', 'New Person')
+        ->set('form.email', 'new.person@example.com')
+        ->set('form.password', 'Str0ng-Passw0rd!')
+        ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
+        ->set('form.position_id', $position->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $profile = User::query()->where('email', 'new.person@example.com')->firstOrFail()->profile;
+    expect($profile->position_id)->toBe($position->id)
+        ->and($profile->department_id)->toBeNull();
 });
 
 test('a department of another organization is refused', function (): void {

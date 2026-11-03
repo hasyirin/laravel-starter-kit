@@ -54,7 +54,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <flux:heading>{{ __('user/users.tabs.permissions') }}</flux:heading>
+                        <flux:heading>{{ __('user/users.permissions.heading') }}</flux:heading>
 
                         <div class="flex flex-wrap gap-2">
                             @forelse($activity->subject->permissions as $permission)

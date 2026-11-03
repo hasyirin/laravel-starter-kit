@@ -26,11 +26,17 @@ class Show extends Page
 
         $this->user = $user;
         $this->form->fillFromUser($user);
+        $this->fillRolesAndPermissions();
     }
 
     public function isDisabled(?string $part = null): bool
     {
         return $this->disabled === true || $this->cannot('update', $this->user);
+    }
+
+    public function canChange(string $type): bool
+    {
+        return ! $this->isDisabled() && $this->can('update', [$this->user, $type]);
     }
 
     public function save(UpdateUser $updateUser): void
@@ -43,10 +49,22 @@ class Show extends Page
         /** @var User $actor */
         $actor = auth()->user();
 
-        $updateUser->execute($actor, $this->user, $this->form->name, $this->form->email, $this->form->passwordOrNull(), $this->form->placement());
+        $roles = $this->rolesToSave();
+
+        $updateUser->execute(
+            $actor,
+            $this->user,
+            $this->form->name,
+            $this->form->email,
+            $this->form->passwordOrNull(),
+            $this->form->placement(),
+            $roles,
+            $this->permissionsToSave($roles),
+        );
 
         $this->form->reset('password', 'password_confirmation');
         $this->user->refresh();
+        $this->fillRolesAndPermissions();
 
         Flux::toast(variant: 'success', text: __('user/users.updated'));
     }
@@ -66,5 +84,10 @@ class Show extends Page
     public function render(): View
     {
         return view('livewire.pages.admin.controls.user.show')->title($this->user->name);
+    }
+
+    protected function subject(): ?User
+    {
+        return $this->user;
     }
 }

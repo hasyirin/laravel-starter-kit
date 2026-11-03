@@ -16,6 +16,8 @@ return [
         'view-any' => 'View any',
         'view' => 'View',
         'create' => 'Create',
+        'create-roles' => 'Create roles',
+        'create-permissions' => 'Create permissions',
         'update' => 'Update',
         'update-roles' => 'Update roles',
         'update-permissions' => 'Update permissions',

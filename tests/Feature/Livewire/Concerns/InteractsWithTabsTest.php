@@ -6,6 +6,7 @@ use App\Livewire\Components\Tab;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Fixtures\Livewire\Tabs\CountingTabsHost;
+use Tests\Fixtures\Livewire\Tabs\EmbeddedTabsHost;
 use Tests\Fixtures\Livewire\Tabs\NestedHost;
 use Tests\Fixtures\Livewire\Tabs\TabsHost;
 
@@ -68,6 +69,14 @@ test('mount falls back to the first available tab', function (string $slug, arra
 test('mount aborts with 404 when no tab is available', function (): void {
     Livewire::test(TabsHost::class, ['hiddenTabs' => ['owner', 'documents', 'notes']])
         ->assertNotFound();
+});
+
+test('a tab set that renders without tabs mounts with no current tab instead of a 404', function (): void {
+    Livewire::test(EmbeddedTabsHost::class, ['hiddenTabs' => ['owner', 'documents', 'notes']])
+        ->assertOk()
+        ->assertSet('tab', '')
+        ->assertViewHas('currentTab', fn (?Tab $tab): bool => ! $tab instanceof Tab)
+        ->assertViewHas('tabPanels', []);
 });
 
 test('switchTab ignores unknown, hidden, and disabled slugs', function (string $slug): void {

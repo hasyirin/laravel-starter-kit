@@ -30,11 +30,12 @@
 
                 <span x-html="highlighted(@js($permission['name']))">{{ $permission['label'] }}</span>
 
-                @isset($fromRoles[$permission['name']])
-                    <span class="rounded-md bg-zinc-200 px-1.5 text-[11px] text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
-                        {{ __('user/users.permissions.from', ['role' => $fromRoles[$permission['name']]]) }}
-                    </span>
-                @endisset
+                <span
+                    x-show="roleOf(@js($permission['name']))"
+                    x-text="fromText(@js($permission['name']))"
+                    x-cloak
+                    class="rounded-md bg-zinc-200 px-1.5 text-[11px] text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
+                ></span>
             </button>
         @endforeach
     </div>

@@ -68,6 +68,22 @@ test('changing the placement makes a new profile and keeps the roles', function 
         ->and($profile?->getRoleNames()->all())->toBe(['editor']);
 });
 
+test('the placement, the roles, and the permissions change in one new profile', function (): void {
+    $this->seed(PermissionSeeder::class);
+    Role::query()->create(['name' => 'editor']);
+    Profile::factory()->for($this->user)->create();
+    $department = Department::factory()->create();
+    $placement = ['organization_id' => $department->organization_id, 'branch_id' => null, 'department_id' => $department->id, 'position_id' => null];
+
+    UpdateUser::make()->execute($this->actor, $this->user, $this->user->name, $this->user->email, null, $placement, ['editor'], ['internal.access']);
+
+    $profile = $this->user->profile()->first();
+    expect($this->user->profiles()->count())->toBe(2)
+        ->and($profile?->department_id)->toBe($department->id)
+        ->and($profile?->getRoleNames()->all())->toBe(['editor'])
+        ->and($profile?->getPermissionNames()->all())->toBe(['internal.access']);
+});
+
 test('a user without bypass-authorization cannot change a user who has it', function (): void {
     $this->seed(PermissionSeeder::class);
     $this->user->givePermissionTo('bypass-authorization');

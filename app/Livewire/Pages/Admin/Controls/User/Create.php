@@ -19,6 +19,11 @@ class Create extends Page
         $this->authorize('create', User::class);
     }
 
+    public function canChange(string $type): bool
+    {
+        return $this->can('create', [User::class, $type]);
+    }
+
     public function save(CreateUser $createUser): void
     {
         $this->authorize('create', User::class);
@@ -29,7 +34,17 @@ class Create extends Page
         /** @var User $actor */
         $actor = auth()->user();
 
-        $user = $createUser->execute($actor, $this->form->name, $this->form->email, $this->form->password, $this->form->placement());
+        $roles = $this->rolesToSave();
+
+        $user = $createUser->execute(
+            $actor,
+            $this->form->name,
+            $this->form->email,
+            $this->form->password,
+            $this->form->placement(),
+            $roles,
+            $this->permissionsToSave($roles),
+        );
 
         $this->redirect(route('admin.controls.users.show', $user), navigate: true);
     }
@@ -37,5 +52,10 @@ class Create extends Page
     public function render(): View
     {
         return view('livewire.pages.admin.controls.user.create')->title(__('user/users.create.title'));
+    }
+
+    protected function subject(): ?User
+    {
+        return null;
     }
 }

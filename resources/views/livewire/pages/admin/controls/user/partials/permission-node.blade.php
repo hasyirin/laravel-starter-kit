@@ -19,7 +19,7 @@
             <button
                 type="button"
                 role="checkbox"
-                x-bind:aria-checked="resourceState(@js($key)) === 'part' ? 'mixed' : (resourceState(@js($key)) === 'on').toString()"
+                x-bind:aria-checked="resourceChecked(@js($key))"
                 x-bind:aria-disabled="readOnly.toString()"
                 x-on:click="toggleResource(@js($key))"
                 x-bind:class="{

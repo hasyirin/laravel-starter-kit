@@ -1,23 +1,51 @@
 function collectNodes(node, nodes = {}) {
-    nodes[node.key] = {
-        node,
-        names: [...node.permissions.map((permission) => permission.name), ...node.children.flatMap((child) => collectNodes(child, nodes)[child.key].names)],
-    };
+    const names = node.permissions.map((permission) => permission.name);
+
+    for (const child of node.children) {
+        collectNodes(child, nodes);
+        names.push(...nodes[child.key].names);
+    }
+
+    nodes[node.key] = { node, names };
 
     return nodes;
+}
+
+function collectLabels(nodes) {
+    const labels = {};
+
+    for (const { node } of Object.values(nodes)) {
+        for (const permission of node.permissions) {
+            labels[permission.name] = permission.label;
+        }
+    }
+
+    return labels;
+}
+
+function collectGrantingRoles(roles) {
+    const grantedBy = {};
+
+    for (const [role, { permissions }] of Object.entries(roles)) {
+        for (const name of permissions) {
+            grantedBy[name] ??= [];
+            grantedBy[name].push(role);
+        }
+    }
+
+    return grantedBy;
 }
 
 function escapeHtml(text) {
     return text.replace(/[&<>"']/g, (character) => `&#${character.charCodeAt(0)};`);
 }
 
-// The data comes from an attribute, so a Livewire update that changes it keeps the state of the tree.
+// The setup comes from an attribute, so a Livewire update keeps the open nodes and the search. The ticked roles and
+// permissions live in the Livewire form, so the tree follows the role checkboxes, and the form's save sends the ticks.
 export default function permissionTree() {
-    let nodes, labels, fromRoles, locked, text;
+    let nodes, labels, roles, grantedBy, locked, text;
 
     return {
-        saved: new Set(),
-        ticked: new Set(),
         open: new Set(),
         search: '',
         onlyGranted: false,
@@ -27,41 +55,57 @@ export default function permissionTree() {
         init() {
             const config = JSON.parse(this.$root.dataset.permissionTree);
 
-            ({ fromRoles, locked, text } = config);
+            ({ roles, locked, text } = config);
             nodes = collectNodes(config.tree);
-            labels = Object.fromEntries(Object.values(nodes).flatMap(({ node }) => node.permissions.map((permission) => [permission.name, permission.label])));
-            this.saved = new Set(config.direct);
-            this.ticked = new Set(config.direct);
+            labels = collectLabels(nodes);
+            grantedBy = collectGrantingRoles(roles);
             this.readOnly = config.readOnly;
-            this.open = new Set(Object.keys(nodes).filter((key) => nodes[key].names.some((name) => this.isGranted(name))));
+
+            const grantedKeys = Object.keys(nodes).filter((key) => nodes[key].names.some((name) => this.isGranted(name)));
+
+            this.open = new Set(grantedKeys);
         },
 
         get query() {
             return this.search.trim().toLowerCase();
         },
 
-        get changes() {
-            return [...this.ticked].filter((name) => !this.saved.has(name)).length + [...this.saved].filter((name) => !this.ticked.has(name)).length;
+        isTicked(name) {
+            return this.$wire.form.permissions.includes(name);
         },
 
-        get changesText() {
-            return (this.changes === 1 ? text.one : text.other).replace(':count', this.changes);
+        roleOf(name) {
+            return grantedBy[name]?.find((role) => this.$wire.form.roles.includes(role));
+        },
+
+        fromText(name) {
+            const role = this.roleOf(name);
+
+            if (role === undefined) {
+                return '';
+            }
+
+            return text.from.replace(':role', roles[role].label);
         },
 
         isGranted(name) {
-            return this.ticked.has(name) || name in fromRoles;
+            return this.isTicked(name) || this.roleOf(name) !== undefined;
         },
 
         isLocked(name) {
-            return this.readOnly || name in fromRoles || locked.includes(name);
+            return this.readOnly || this.roleOf(name) !== undefined || locked.includes(name);
         },
 
         chipState(name) {
-            if (name in fromRoles || locked.includes(name)) {
+            if (this.roleOf(name) !== undefined || locked.includes(name)) {
                 return 'lock';
             }
 
-            return this.ticked.has(name) ? 'on' : 'off';
+            if (this.isTicked(name)) {
+                return 'on';
+            }
+
+            return 'off';
         },
 
         toggle(name) {
@@ -69,17 +113,40 @@ export default function permissionTree() {
                 return;
             }
 
-            if (this.ticked.has(name)) {
-                this.ticked.delete(name);
-            } else {
-                this.ticked.add(name);
+            const permissions = this.$wire.form.permissions;
+
+            if (permissions.includes(name)) {
+                this.$wire.form.permissions = permissions.filter((ticked) => ticked !== name);
+
+                return;
             }
+
+            this.$wire.form.permissions = [...permissions, name];
         },
 
         resourceState(key) {
-            const granted = nodes[key].node.permissions.filter((permission) => this.isGranted(permission.name)).length;
+            const permissions = nodes[key].node.permissions;
+            const granted = permissions.filter((permission) => this.isGranted(permission.name)).length;
 
-            return granted === 0 ? 'off' : granted === nodes[key].node.permissions.length ? 'on' : 'part';
+            if (granted === 0) {
+                return 'off';
+            }
+
+            if (granted === permissions.length) {
+                return 'on';
+            }
+
+            return 'part';
+        },
+
+        resourceChecked(key) {
+            const state = this.resourceState(key);
+
+            if (state === 'part') {
+                return 'mixed';
+            }
+
+            return String(state === 'on');
         },
 
         toggleResource(key) {
@@ -88,15 +155,22 @@ export default function permissionTree() {
             }
 
             const editable = nodes[key].node.permissions.map((permission) => permission.name).filter((name) => !this.isLocked(name));
-            const tick = this.resourceState(key) !== 'on';
+            const others = this.$wire.form.permissions.filter((name) => !editable.includes(name));
 
-            editable.forEach((name) => (tick ? this.ticked.add(name) : this.ticked.delete(name)));
+            if (this.resourceState(key) === 'on') {
+                this.$wire.form.permissions = others;
+
+                return;
+            }
+
+            this.$wire.form.permissions = [...others, ...editable];
         },
 
         countText(key) {
             const names = nodes[key].names;
+            const granted = names.filter((name) => this.isGranted(name)).length;
 
-            return text.count.replace(':granted', names.filter((name) => this.isGranted(name)).length).replace(':total', names.length);
+            return text.count.replace(':granted', granted).replace(':total', names.length);
         },
 
         isShown(name) {
@@ -104,7 +178,11 @@ export default function permissionTree() {
                 return false;
             }
 
-            return this.query === '' || labels[name].toLowerCase().includes(this.query) || name.toLowerCase().includes(this.query);
+            if (this.query === '') {
+                return true;
+            }
+
+            return labels[name].toLowerCase().includes(this.query) || name.toLowerCase().includes(this.query);
         },
 
         isNodeShown(key) {
@@ -118,14 +196,21 @@ export default function permissionTree() {
         toggleOpen(key) {
             if (this.open.has(key)) {
                 this.open.delete(key);
-            } else {
-                this.open.add(key);
+
+                return;
             }
+
+            this.open.add(key);
         },
 
         highlighted(name) {
             const label = labels[name];
-            const at = this.query === '' ? -1 : label.toLowerCase().indexOf(this.query);
+
+            if (this.query === '') {
+                return escapeHtml(label);
+            }
+
+            const at = label.toLowerCase().indexOf(this.query);
 
             if (at === -1) {
                 return escapeHtml(label);
@@ -134,19 +219,6 @@ export default function permissionTree() {
             const end = at + this.query.length;
 
             return `${escapeHtml(label.slice(0, at))}<mark>${escapeHtml(label.slice(at, end))}</mark>${escapeHtml(label.slice(end))}`;
-        },
-
-        cancel() {
-            this.ticked = new Set(this.saved);
-        },
-
-        async save() {
-            const saved = await this.$wire.save([...this.ticked]);
-
-            if (Array.isArray(saved)) {
-                this.saved = new Set(saved);
-                this.ticked = new Set(saved);
-            }
         },
     };
 }

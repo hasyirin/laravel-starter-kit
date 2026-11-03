@@ -10,6 +10,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Domain/**/Factories/*.php | .ai/rules/factories.md |
 | lang/** | .ai/rules/lang.md |
 | app/Livewire/** | .ai/rules/livewire.md |
+| **/*.md | .ai/rules/md.md |
 | database/migrations/** | .ai/rules/migrations.md |
 | app/Domain/**/Models/*.php | .ai/rules/models.md |
 | app/Domain/**/Observers/*.php | .ai/rules/observers.md |

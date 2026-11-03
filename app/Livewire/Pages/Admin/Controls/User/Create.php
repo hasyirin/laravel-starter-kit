@@ -46,6 +46,7 @@ class Create extends Page
             $this->permissionsToSave($roles),
         );
 
+        $this->notifySaved((string) __('user/users.user'), created: true);
         $this->redirect(route('admin.controls.users.show', $user), navigate: true);
     }
 

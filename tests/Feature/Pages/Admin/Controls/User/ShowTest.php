@@ -129,7 +129,7 @@ test('saving puts the placement, the roles, and the permissions in one new profi
         ->set('form.permissions', ['internal.access'])
         ->call('save')
         ->assertHasNoErrors()
-        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('user/users.updated'));
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === 'User updated.');
 
     $profile = $this->subject->fresh()->profile;
     expect($this->subject->profiles()->count())->toBe(2)

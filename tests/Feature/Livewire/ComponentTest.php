@@ -62,7 +62,7 @@ test('the ability helpers cannot be called from the browser', function (string $
     $component = Livewire::test(AbilityCheck::class);
 
     expect(fn () => $component->call($method, 'admin.access'))->toThrow(MethodNotFoundException::class);
-})->with(['can', 'cannot', 'canAny', 'cannotAny']);
+})->with(['can', 'cannot', 'canAny', 'cannotAny', 'notifySaved']);
 
 test('a step runs when the record still has it', function (): void {
     Livewire::test(TicketSteps::class, ['ticketId' => $this->ticket->id])

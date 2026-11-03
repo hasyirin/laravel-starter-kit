@@ -43,6 +43,7 @@ test('a new user opens on their page', function (): void {
         ->set('form.position_id', $position->id)
         ->call('save')
         ->assertHasNoErrors()
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === 'User created.')
         ->assertRedirect(route('admin.controls.users.show', User::query()->where('email', 'new.person@example.com')->firstOrFail()));
 
     $profile = User::query()->where('email', 'new.person@example.com')->firstOrFail()->profile;

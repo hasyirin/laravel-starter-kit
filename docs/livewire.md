@@ -1,6 +1,16 @@
 # Livewire Components
 
-New components extend `App\Livewire\Component`. It shows a toast when a workflow step fails (see [Workflows](workflows.md)), gives the ability helpers of `App\Livewire\Concerns\InteractsWithAbilities`, and makes the component refreshable.
+New components extend `App\Livewire\Component`. It shows a toast when a workflow step fails (see [Workflows](workflows.md)), gives the ability helpers of `App\Livewire\Concerns\InteractsWithAbilities`, shows the saved toast of a record, and makes the component refreshable.
+
+## Saved Toast
+
+After you save a record, call `notifySaved()` with the name of the record. Pass `created: true` for a new record. The toast shows "User created." or "User updated." from `common/records.created` and `common/records.updated`:
+
+```php
+$this->notifySaved(__('user/users.user'), created: false);
+```
+
+For any other message, call `Flux::toast()` with a sentence of its own.
 
 ## Refresh
 

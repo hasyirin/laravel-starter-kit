@@ -121,7 +121,7 @@ test('the save button of the form saves the ticked permissions and keeps the sea
 
         document.querySelector('form[data-card-group] button[type="submit"]').click();
 
-        return await until(() => document.body.textContent.includes('The user is saved.'))
+        return await until(() => document.body.textContent.includes('User updated.'))
             && shownChips().length === 2
             && ticked(chip('admin.controls.users.create'));
         SCRIPT)))->toBeTrue();

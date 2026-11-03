@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'title' => 'Users',
+    'user' => 'User',
     'details' => 'User details',
     'roles' => 'Roles',
     'organization' => 'Organization',
@@ -15,7 +16,6 @@ return [
     'email_verified_at' => 'Email verified',
     'unverified' => 'Unverified',
     'mark_as_verified' => 'Mark as verified',
-    'updated' => 'The user is saved.',
     'tabs' => [
         'passkeys' => 'Passkeys',
         'audit' => 'Audit',

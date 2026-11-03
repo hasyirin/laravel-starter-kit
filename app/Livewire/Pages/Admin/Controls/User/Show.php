@@ -10,7 +10,6 @@ use App\Domain\User\Models\User;
 use App\Livewire\Concerns\CanBeDisabled;
 use App\Livewire\Pages\Admin\Controls\User\Concerns\InteractsWithUserForm;
 use App\Livewire\Pages\Shared\Page;
-use Flux\Flux;
 use Illuminate\Contracts\View\View;
 
 class Show extends Page
@@ -66,7 +65,7 @@ class Show extends Page
         $this->user->refresh();
         $this->fillRolesAndPermissions();
 
-        Flux::toast(variant: 'success', text: __('user/users.updated'));
+        $this->notifySaved((string) __('user/users.user'), created: false);
     }
 
     public function verifyEmail(VerifyUserEmail $verifyUserEmail): void

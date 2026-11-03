@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -84,7 +83,7 @@ abstract class RecordModal extends Modal
         $this->recordId = null;
         unset($this->record);
 
-        Flux::toast(variant: 'success', text: __($wasCreated ? 'common/records.created' : 'common/records.updated', ['record' => static::label()]));
+        $this->notifySaved(static::label(), $wasCreated);
 
         $this->dispatch(static::event());
 

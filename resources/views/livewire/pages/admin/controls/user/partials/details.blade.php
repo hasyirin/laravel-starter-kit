@@ -23,31 +23,28 @@
         />
 
         @isset($user)
-            <dl class="grid content-start gap-2">
-                <dt class="text-sm font-medium text-zinc-800 dark:text-white">{{ __('user/users.created_at') }}</dt>
+            <x-slot:footer>
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <x-entry :label="__('user/users.created_at')">{{ Preferences::current()->datetime($user->created_at) }}</x-entry>
 
-                <dd>
-                    <flux:text variant="strong">{{ Preferences::current()->datetime($user->created_at) }}</flux:text>
-                </dd>
-            </dl>
+                    <x-entry :label="__('user/users.email_verified_at')">
+                        @if($user->hasVerifiedEmail())
+                            {{ Preferences::current()->datetime($user->email_verified_at) }}
+                        @else
+                            <span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                                <span class="size-1.5 rounded-full bg-current"></span>
+                                {{ __('user/users.unverified') }}
+                            </span>
 
-            <dl class="grid content-start gap-2">
-                <dt class="text-sm font-medium text-zinc-800 dark:text-white">{{ __('user/users.email_verified_at') }}</dt>
-
-                <dd class="flex flex-wrap items-center gap-2">
-                    @if($user->hasVerifiedEmail())
-                        <flux:text variant="strong">{{ Preferences::current()->datetime($user->email_verified_at) }}</flux:text>
-                    @else
-                        <flux:badge size="sm" color="amber">{{ __('user/users.unverified') }}</flux:badge>
-
-                        @can('update', $user)
-                            <flux:modal.trigger name="verify-email">
-                                <flux:button size="xs" variant="ghost">{{ __('user/users.mark_as_verified') }}</flux:button>
-                            </flux:modal.trigger>
-                        @endcan
-                    @endif
-                </dd>
-            </dl>
+                            @can('update', $user)
+                                <flux:modal.trigger name="verify-email">
+                                    <flux:link as="button" variant="subtle">{{ __('user/users.mark_as_verified') }}</flux:link>
+                                </flux:modal.trigger>
+                            @endcan
+                        @endif
+                    </x-entry>
+                </div>
+            </x-slot:footer>
         @endisset
     </x-card>
 

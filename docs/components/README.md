@@ -9,6 +9,7 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 | [`<x-act>`](act.md)                       | Who did an action on a record, such as who prepared it, with their position then and the time                     |
 | [`<x-card>`](card.md)                     | A Flux card built from slots, which the user can fold. `<x-card.group>` joins cards into one block.               |
 | [`<x-card.tabs>`](card.tabs.md)           | A segmented tab bar, with the content of the current tab below it, and an optional card strip                   |
+| [`<x-entry>`](entry.md)                   | A value that the user reads but does not edit, with a small label above it                                        |
 | [`<x-field>`](field.md)                   | The label row, help text, and error message that every input shares. It also wraps a control that has no kit input. |
 | [`<x-input>`](input.md)                   | A text field with a prefix or suffix, a size, case control, and a default value                                   |
 | [`<x-input.number>`](input.number.md)     | A number with thousands separators and a fixed number of decimals                                                 |

@@ -86,7 +86,7 @@ trait InteractsWithUserForm
         $held = $this->heldRoles();
 
         return $roles
-            ->reject(fn (Role $role): bool => $role->carries_bypass && $held->doesntContain($role->name))
+            ->reject(fn (Role $role): bool => $role->checkPermissionTo($this->bypassPermission()) && $held->doesntContain($role->name))
             ->values();
     }
 
@@ -221,7 +221,7 @@ trait InteractsWithUserForm
         $held = $this->heldRoles();
 
         return $this->roles
-            ->filter(fn (Role $role): bool => $isSelf && $role->carries_bypass && $held->contains($role->name))
+            ->filter(fn (Role $role): bool => $isSelf && $role->checkPermissionTo($this->bypassPermission()) && $held->contains($role->name))
             ->map(fn (Role $role): string => $role->name)
             ->values();
     }

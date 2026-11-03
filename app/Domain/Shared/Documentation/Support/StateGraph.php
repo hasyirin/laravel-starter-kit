@@ -144,7 +144,7 @@ class StateGraph
 
     private function bypasses(Role $role): bool
     {
-        return $role->permissions->contains('name', config()->string('system.permissions.bypass-authorization'));
+        return $role->checkPermissionTo(config()->string('system.permissions.bypass-authorization'));
     }
 
     /**

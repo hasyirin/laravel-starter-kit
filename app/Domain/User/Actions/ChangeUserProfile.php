@@ -144,7 +144,7 @@ class ChangeUserProfile
         $names = Role::query()
             ->with('permissions')
             ->get()
-            ->filter(fn (Role $role): bool => $role->carries_bypass)
+            ->filter(fn (Role $role): bool => $role->checkPermissionTo($this->bypassPermission()))
             ->map(fn (Role $role): string => $role->name);
 
         return $this->normalized($names);

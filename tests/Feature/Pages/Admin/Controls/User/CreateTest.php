@@ -52,7 +52,7 @@ test('a new user opens on their page', function (): void {
 });
 
 test('a new user gets the ticked roles and permissions', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.create', 'admin.controls.users.create-roles', 'admin.controls.users.create-permissions');
+    $this->admin->givePermissionTo('admin.controls.users.create', 'admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
 
     Livewire::test(Create::class)
@@ -70,7 +70,7 @@ test('a new user gets the ticked roles and permissions', function (): void {
         ->and($profile->getPermissionNames()->all())->toBe(['internal.access']);
 });
 
-test('roles and permissions are left out without create-roles and create-permissions', function (): void {
+test('roles and permissions are left out without update-roles and update-permissions', function (): void {
     $this->admin->givePermissionTo('admin.controls.users.create');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
 

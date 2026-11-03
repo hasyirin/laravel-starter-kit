@@ -114,7 +114,7 @@ test('the save button of the form saves the ticked permissions and keeps the sea
         const search = tree().querySelector('input');
         search.value = 'create';
         search.dispatchEvent(new Event('input', { bubbles: true }));
-        await until(() => shownChips().length === 4);
+        await until(() => shownChips().length === 2);
 
         chip('admin.controls.users.create').click();
         await until(() => ticked(chip('admin.controls.users.create')));
@@ -122,7 +122,7 @@ test('the save button of the form saves the ticked permissions and keeps the sea
         document.querySelector('form[data-card-group] button[type="submit"]').click();
 
         return await until(() => document.body.textContent.includes('The user is saved.'))
-            && shownChips().length === 4
+            && shownChips().length === 2
             && ticked(chip('admin.controls.users.create'));
         SCRIPT)))->toBeTrue();
 

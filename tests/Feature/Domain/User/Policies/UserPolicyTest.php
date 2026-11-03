@@ -42,13 +42,13 @@ test('create needs the create permission', function (): void {
     expect($this->user->can('create', User::class))->toBeTrue();
 });
 
-test('creating with a type needs create and the create permission for that type', function (string $type): void {
+test('creating with a type needs create and the update permission for that type', function (string $type): void {
     $this->user->givePermissionTo('admin.controls.users.create');
 
     expect($this->user->can('create', [User::class, $type]))->toBeFalse();
 
     $this->user->revokePermissionTo('admin.controls.users.create');
-    $this->user->givePermissionTo("admin.controls.users.create-{$type}");
+    $this->user->givePermissionTo("admin.controls.users.update-{$type}");
 
     expect($this->user->can('create', [User::class, $type]))->toBeFalse();
 

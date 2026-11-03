@@ -39,8 +39,6 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `admin.controls.users.view-any`           | ✓                   |
 | `admin.controls.users.view`               | ✓                   |
 | `admin.controls.users.create`             | ✓                   |
-| `admin.controls.users.create-permissions` | ✓                   |
-| `admin.controls.users.create-roles`       | ✓                   |
 | `admin.controls.users.update`             | ✓                   |
 | `admin.controls.users.update-permissions` | ✓                   |
 | `admin.controls.users.update-roles`       | ✓                   |

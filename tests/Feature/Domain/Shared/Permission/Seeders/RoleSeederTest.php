@@ -30,8 +30,6 @@ test('seeding leaves out permissions that match an except pattern', function ():
         'admin.controls.roles.view',
         'admin.controls.roles.view-any',
         'admin.controls.users.create',
-        'admin.controls.users.create-permissions',
-        'admin.controls.users.create-roles',
         'admin.controls.users.update',
         'admin.controls.users.view',
         'admin.controls.users.view-activities',

@@ -5,7 +5,9 @@
 
     @include('livewire.pages.admin.controls.user.partials.details', ['submit' => __('common/buttons.update')])
 
-    <livewire:pages.admin.controls.user.tabs :user-id="$user->id" />
+    <div class="mt-6">
+        <livewire:pages.admin.controls.user.tabs :user-id="$user->id" />
+    </div>
 
     @can('update', $user)
         @unless($user->hasVerifiedEmail())

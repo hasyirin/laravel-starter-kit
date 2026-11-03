@@ -1,7 +1,8 @@
-<div class="space-y-6">
+<div class="space-y-4">
     <x-radio
         wire:model.live="direction"
         variant="segmented"
+        input-class="w-fit"
         :aria-label="__('user/users.tabs.audit')"
         :options="['by' => __('user/users.audit.by'), 'on' => __('user/users.audit.on')]"
     />

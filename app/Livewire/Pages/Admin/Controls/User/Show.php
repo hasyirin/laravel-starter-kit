@@ -32,9 +32,9 @@ class Show extends Page
         return $this->disabled === true || $this->cannot('update', $this->user);
     }
 
-    public function canChange(string $type): bool
+    public function editable(string $part): bool
     {
-        return ! $this->isDisabled() && $this->form->canChange($type);
+        return ! $this->isDisabled() && $this->form->editable($part);
     }
 
     #[Computed]

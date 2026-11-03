@@ -78,7 +78,7 @@ test('roles and permissions are left out without update-roles and update-permiss
     $component = Livewire::test(Create::class);
 
     expect(collect($component->instance()->roleOptions)->every(fn (Option $option): bool => $option->isDisabled()))->toBeTrue()
-        ->and($component->instance()->canChange('permissions'))->toBeFalse();
+        ->and($component->instance()->editable('permissions'))->toBeFalse();
 
     $component
         ->set('form.name', 'New Person')

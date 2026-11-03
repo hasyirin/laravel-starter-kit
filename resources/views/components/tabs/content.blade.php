@@ -7,8 +7,8 @@
 
 @php
     $keptAliveValues = collect($panels)
-        ->filter(fn (App\Livewire\Components\Tab $tab): bool => $tab->isKeptAlive())
-        ->flatMap(fn (App\Livewire\Components\Tab $tab): array => $tab->isDefault() ? [$tab->slug(), ''] : [$tab->slug()])
+        ->filter(fn (App\Livewire\Components\Tab $tab): bool => $tab->keptAlive())
+        ->flatMap(fn (App\Livewire\Components\Tab $tab): array => $tab->default() ? [$tab->slug(), ''] : [$tab->slug()])
         ->map(fn (string $value): string => Js::from($value)->toHtml());
 @endphp
 
@@ -19,7 +19,7 @@
             $content = $tab->resolvedContent();
             $mergedParams = array_merge($tab->resolvedParams(), $params);
             $showWhen = match (true) {
-                $tab->isKeptAlive() => '$wire.tab === '.Js::from($slug).($tab->isDefault() ? " || \$wire.tab === ''" : ''),
+                $tab->keptAlive() => '$wire.tab === '.Js::from($slug).($tab->default() ? " || \$wire.tab === ''" : ''),
                 $keptAliveValues->isNotEmpty() => '! ['.$keptAliveValues->implode(', ').'].includes($wire.tab)',
                 default => null,
             };

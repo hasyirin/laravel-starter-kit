@@ -52,16 +52,16 @@ class ChangeUserProfile
                 ->whereRelation('permissions', 'name', $this->bypassPermission())
                 ->pluck('name'));
 
-            $isSelf = $actor->is($user);
-            $this->guardProtected($actorHasBypass, $isSelf, $newRoles, $currentRoles, $bypassRoles);
-            $this->guardProtected($actorHasBypass, $isSelf, $newPermissions, $currentPermissions, collect([$this->bypassPermission()]));
+            $self = $actor->is($user);
+            $this->guardProtected($actorHasBypass, $self, $newRoles, $currentRoles, $bypassRoles);
+            $this->guardProtected($actorHasBypass, $self, $newPermissions, $currentPermissions, collect([$this->bypassPermission()]));
 
-            $isUnchanged = $current instanceof Profile
+            $unchanged = $current instanceof Profile
                 && $newPlacement === $currentPlacement
                 && $newRoles->all() === $currentRoles->all()
                 && $newPermissions->all() === $currentPermissions->all();
 
-            if ($isUnchanged) {
+            if ($unchanged) {
                 return null;
             }
 
@@ -85,14 +85,14 @@ class ChangeUserProfile
      *
      * @throws AuthorizationException
      */
-    private function guardProtected(bool $actorHasBypass, bool $isSelf, Collection $new, Collection $current, Collection $protected): void
+    private function guardProtected(bool $actorHasBypass, bool $self, Collection $new, Collection $current, Collection $protected): void
     {
         $added = $new->intersect($protected)->diff($current);
         $removed = $current->intersect($protected)->diff($new);
 
         throw_if($added->isNotEmpty() && ! $actorHasBypass, AuthorizationException::class);
 
-        throw_if($removed->isNotEmpty() && $isSelf, AuthorizationException::class);
+        throw_if($removed->isNotEmpty() && $self, AuthorizationException::class);
     }
 
     /**

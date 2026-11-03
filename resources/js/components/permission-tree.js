@@ -43,7 +43,7 @@ function escapeHtml(text) {
 // The setup comes from an attribute, so a Livewire update keeps the open nodes and the search. The ticked roles and
 // permissions live in the Livewire form, so the tree follows the role checkboxes, and the form's save sends the ticks.
 export default function permissionTree() {
-    let nodes, labels, roles, grantedBy, locked, text;
+    let nodes, labels, roles, grantedBy, lockedNames, text;
 
     return {
         open: new Set(),
@@ -55,13 +55,13 @@ export default function permissionTree() {
         init() {
             const config = JSON.parse(this.$root.dataset.permissionTree);
 
-            ({ roles, locked, text } = config);
+            ({ roles, locked: lockedNames, text } = config);
             nodes = collectNodes(config.tree);
             labels = collectLabels(nodes);
             grantedBy = collectGrantingRoles(roles);
             this.readOnly = config.readOnly;
 
-            const grantedKeys = Object.keys(nodes).filter((key) => nodes[key].names.some((name) => this.isGranted(name)));
+            const grantedKeys = Object.keys(nodes).filter((key) => nodes[key].names.some((name) => this.granted(name)));
 
             this.open = new Set(grantedKeys);
         },
@@ -70,7 +70,7 @@ export default function permissionTree() {
             return this.search.trim().toLowerCase();
         },
 
-        isTicked(name) {
+        ticked(name) {
             return this.$wire.form.permissions.includes(name);
         },
 
@@ -88,20 +88,20 @@ export default function permissionTree() {
             return text.from.replace(':role', roles[role].label);
         },
 
-        isGranted(name) {
-            return this.isTicked(name) || this.roleOf(name) !== undefined;
+        granted(name) {
+            return this.ticked(name) || this.roleOf(name) !== undefined;
         },
 
-        isLocked(name) {
-            return this.readOnly || locked.includes(name);
+        locked(name) {
+            return this.readOnly || lockedNames.includes(name);
         },
 
         chipState(name) {
-            if (locked.includes(name)) {
+            if (lockedNames.includes(name)) {
                 return 'lock';
             }
 
-            if (this.isTicked(name)) {
+            if (this.ticked(name)) {
                 return 'on';
             }
 
@@ -113,7 +113,7 @@ export default function permissionTree() {
         },
 
         toggle(name) {
-            if (this.isLocked(name)) {
+            if (this.locked(name)) {
                 return;
             }
 
@@ -130,7 +130,7 @@ export default function permissionTree() {
 
         resourceState(key) {
             const permissions = nodes[key].node.permissions;
-            const ticked = permissions.filter((permission) => this.isTicked(permission.name)).length;
+            const ticked = permissions.filter((permission) => this.ticked(permission.name)).length;
 
             if (ticked === 0) {
                 return 'off';
@@ -158,7 +158,7 @@ export default function permissionTree() {
                 return;
             }
 
-            const editable = nodes[key].node.permissions.map((permission) => permission.name).filter((name) => !this.isLocked(name));
+            const editable = nodes[key].node.permissions.map((permission) => permission.name).filter((name) => !this.locked(name));
             const others = this.$wire.form.permissions.filter((name) => !editable.includes(name));
 
             if (this.resourceState(key) === 'on') {
@@ -172,13 +172,13 @@ export default function permissionTree() {
 
         countText(key) {
             const names = nodes[key].names;
-            const granted = names.filter((name) => this.isGranted(name)).length;
+            const granted = names.filter((name) => this.granted(name)).length;
 
             return text.count.replace(':granted', granted).replace(':total', names.length);
         },
 
-        isShown(name) {
-            if (this.onlyGranted && !this.isGranted(name)) {
+        shown(name) {
+            if (this.onlyGranted && !this.granted(name)) {
                 return false;
             }
 
@@ -189,11 +189,11 @@ export default function permissionTree() {
             return labels[name].toLowerCase().includes(this.query) || name.toLowerCase().includes(this.query);
         },
 
-        isNodeShown(key) {
-            return nodes[key].names.some((name) => this.isShown(name));
+        nodeShown(key) {
+            return nodes[key].names.some((name) => this.shown(name));
         },
 
-        isOpen(key) {
+        opened(key) {
             return this.expandAll || this.query !== '' || this.open.has(key);
         },
 

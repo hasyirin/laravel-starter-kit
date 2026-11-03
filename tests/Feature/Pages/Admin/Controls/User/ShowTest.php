@@ -231,7 +231,7 @@ test('the roles are read-only without update-roles', function (): void {
 test('the permissions are read-only without update-permissions', function (): void {
     $component = Livewire::test(Show::class, ['user' => $this->subject]);
 
-    expect($component->instance()->canChange('permissions'))->toBeFalse();
+    expect($component->instance()->editable('permissions'))->toBeFalse();
 
     $component->set('form.name', 'Renamed')->set('form.permissions', ['internal.access'])->call('save')->assertHasNoErrors();
 
@@ -248,7 +248,7 @@ test('your own roles and permissions are read-only without bypass', function ():
     $component = Livewire::test(Show::class, ['user' => $this->admin]);
 
     expect(roleOptionStates($component))->toBe(['editor' => true])
-        ->and($component->instance()->canChange('permissions'))->toBeFalse();
+        ->and($component->instance()->editable('permissions'))->toBeFalse();
 });
 
 test('your own bypass role is locked', function (): void {
@@ -278,7 +278,7 @@ test('your own direct bypass-authorization is locked', function (): void {
     $component = Livewire::test(Show::class, ['user' => $this->admin]);
 
     expect($component->instance()->lockedPermissions->all())->toBe(['bypass-authorization'])
-        ->and($component->instance()->canChange('permissions'))->toBeTrue();
+        ->and($component->instance()->editable('permissions'))->toBeTrue();
 });
 
 test('a permission that a held role gives can be saved as direct', function (): void {

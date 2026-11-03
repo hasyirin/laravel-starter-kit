@@ -29,7 +29,7 @@ function defaultTabSlugs(Testable $component): array
     /** @var list<Tab> $tabs */
     $tabs = $component->viewData('tabs');
 
-    return collect($tabs)->filter(fn (Tab $tab): bool => $tab->isDefault())->map(fn (Tab $tab): string => $tab->slug())->values()->all();
+    return collect($tabs)->filter(fn (Tab $tab): bool => $tab->default())->map(fn (Tab $tab): string => $tab->slug())->values()->all();
 }
 
 /**

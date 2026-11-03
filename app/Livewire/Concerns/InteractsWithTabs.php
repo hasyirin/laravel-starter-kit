@@ -181,14 +181,14 @@ trait InteractsWithTabs
         $pageQuery = $this->pageQueryString();
 
         foreach ($visibleTabs as $tab) {
-            $isDefault = $tab === $defaultTab;
+            $default = $tab === $defaultTab;
 
-            $tab->url($this->tabUrl($pageUrl, $pageQuery, $isDefault ? null : $tab->slug()))->markDefault($isDefault);
+            $tab->url($this->tabUrl($pageUrl, $pageQuery, $default ? null : $tab->slug()))->markDefault($default);
         }
 
         $panels = array_values(array_filter(
             $availableTabs,
-            fn (Tab $tab): bool => $tab === $currentTab || ($tab->isKeptAlive() && in_array($tab->slug(), $this->visitedTabs, true)),
+            fn (Tab $tab): bool => $tab === $currentTab || ($tab->keptAlive() && in_array($tab->slug(), $this->visitedTabs, true)),
         ));
 
         return $this->tabState = [
@@ -248,7 +248,7 @@ trait InteractsWithTabs
 
     private function rememberKeptAliveTab(Tab $tab): void
     {
-        if ($tab->isKeptAlive() && ! in_array($tab->slug(), $this->visitedTabs, true)) {
+        if ($tab->keptAlive() && ! in_array($tab->slug(), $this->visitedTabs, true)) {
             $this->visitedTabs[] = $tab->slug();
         }
     }

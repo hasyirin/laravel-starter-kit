@@ -7,12 +7,10 @@ namespace App\Livewire\Forms\Admin;
 use App\Domain\Shared\Permission\Support\PermissionTree;
 use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Actions\UpdateUser;
-use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Concerns\ProfileValidationRules;
 use App\Domain\User\Models\User;
 use App\Livewire\Form;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -20,7 +18,6 @@ use Livewire\Attributes\Locked;
 
 class UserForm extends Form
 {
-    use PasswordValidationRules;
     use ProfileValidationRules;
 
     #[Locked]
@@ -85,8 +82,8 @@ class UserForm extends Form
         $this->email = str($this->email)->lower()->value();
         $this->validate();
 
-        $roles = $this->canChange('roles') ? $this->roles : null;
-        $permissions = $this->canChange('permissions') ? $this->permissions : null;
+        $roles = $this->editable('roles') ? $this->roles : null;
+        $permissions = $this->editable('permissions') ? $this->permissions : null;
 
         if (! $this->user instanceof User) {
             return CreateUser::make()->execute($this->actor(), $this->name, $this->email, $this->password, $this->placement(), $roles, $permissions);
@@ -106,7 +103,7 @@ class UserForm extends Form
     {
         return [
             ...$this->profileRules($this->user?->id),
-            'password' => $this->passwordFieldRules(),
+            'password' => ['nullable', Rule::requiredIf(! $this->user instanceof User), 'string', Password::default(), 'confirmed'],
             'organization_id' => [
                 'nullable',
                 'integer',
@@ -155,13 +152,13 @@ class UserForm extends Form
         ];
     }
 
-    public function canChange(string $type): bool
+    public function editable(string $part): bool
     {
         if (! $this->user instanceof User) {
-            return $this->can('create', [User::class, $type]);
+            return $this->can('create', [User::class, $part]);
         }
 
-        return $this->can('update', [$this->user, $type]);
+        return $this->can('update', [$this->user, $part]);
     }
 
     private function actor(): User
@@ -184,17 +181,5 @@ class UserForm extends Form
         return collect($names)
             ->map(fn (mixed $name): string => (string) $name)
             ->values();
-    }
-
-    /**
-     * @return array<int, Password|ValidationRule|array<mixed>|string>
-     */
-    private function passwordFieldRules(): array
-    {
-        if (! $this->user instanceof User) {
-            return $this->passwordRules();
-        }
-
-        return ['nullable', 'string', Password::default(), 'confirmed'];
     }
 }

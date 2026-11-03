@@ -26,9 +26,9 @@ trait InteractsWithUserForm
 {
     public UserForm $form;
 
-    public function canChange(string $type): bool
+    public function editable(string $part): bool
     {
-        return $this->form->canChange($type);
+        return $this->form->editable($part);
     }
 
     /**
@@ -97,13 +97,13 @@ trait InteractsWithUserForm
     #[Computed]
     public function roleOptions(): Collection
     {
-        $readOnly = ! $this->canChange('roles');
-        $isSelf = $this->isSelf();
+        $readOnly = ! $this->editable('roles');
+        $self = $this->editingSelf();
         $held = $this->heldRoles();
 
         return $this->roles->map(fn (Role $role): Option => Option::make($role->name)
             ->label($role->label)
-            ->disabled($readOnly || ($isSelf && $held->contains($role->name) && $role->checkPermissionTo($this->bypassPermission()))));
+            ->disabled($readOnly || ($self && $held->contains($role->name) && $role->checkPermissionTo($this->bypassPermission()))));
     }
 
     /**
@@ -137,10 +137,10 @@ trait InteractsWithUserForm
     #[Computed]
     public function lockedPermissions(): Collection
     {
-        $isSelf = $this->isSelf();
+        $self = $this->editingSelf();
 
         return $this->heldPermissions()
-            ->filter(fn (string $name): bool => $isSelf && $name === $this->bypassPermission())
+            ->filter(fn (string $name): bool => $self && $name === $this->bypassPermission())
             ->values();
     }
 
@@ -187,7 +187,7 @@ trait InteractsWithUserForm
             ->values();
     }
 
-    private function isSelf(): bool
+    private function editingSelf(): bool
     {
         return $this->form->user?->is($this->actor()) ?? false;
     }

@@ -51,3 +51,6 @@ Write each comment by the rules in `.ai/rules/md.md`: short sentences, one idea 
 
 ## Return early and never nest ternaries
 Check the edge cases first and return early, so the main path stays at the lowest indent. Never nest ternaries, and this includes Alpine expressions in Blade. Use guard clauses, `if` statements, or a lookup object. Choose readable code over short code, and give each step its own line.
+
+## Name booleans without is
+Follow the naming rule of `.ai/rules/php.md` in JavaScript, Alpine, and Blade too. Name a boolean variable, parameter, or method with the plain word, such as `ticked(name)` or `selected`, not `isTicked(name)` or `isSelected`. Keep the `is` or `has` prefix for the same cases: the plain word is in use, the code overrides a browser or library name such as `event.isComposing`, or a function tests its argument, such as `isModifiedClick(event)`. If the plain word is in use, choose another plain word, for example `opened(key)` next to the `open` set.

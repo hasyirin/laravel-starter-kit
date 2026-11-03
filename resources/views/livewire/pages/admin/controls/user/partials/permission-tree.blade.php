@@ -4,7 +4,7 @@
             'tree' => $this->permissionTree,
             'roles' => (object) $this->rolePermissions,
             'locked' => $this->lockedPermissions,
-            'readOnly' => ! $this->canChange('permissions'),
+            'readOnly' => ! $this->editable('permissions'),
             'text' => [
                 'count' => __('user/users.permissions.count'),
                 'from' => __('user/users.permissions.from', ['role' => ':role']),

@@ -12,7 +12,13 @@ Use Laravel collections instead of plain arrays. When code must keep an array, s
 Write each comment by the rules in `.ai/rules/md.md`: short sentences, one idea per sentence, the active voice, and common words. Keep code names exact.
 
 ## Return early with guard clauses
-Check the edge cases first and return early, so the main path stays at the lowest indent. Do not wrap the main path in an `if`/`else`. Do not hide an edge case in a ternary, such as `return $isSelf ? $locked : [];`; write `if (! $isSelf) { return []; }` and then the main path.
+Check the edge cases first and return early, so the main path stays at the lowest indent. Do not wrap the main path in an `if`/`else`. Do not hide an edge case in a ternary, such as `return $self ? $locked : [];`; write `if (! $self) { return []; }` and then the main path.
 
 ## Write code that reads easily
 Choose readable code over short code. Never nest ternaries: use guard clauses, `if` statements, or `match`. Give each step its own line instead of a long chain on one line. If a variable needs a docblock, such as `/** @var User $actor */`, and the line above it declares another variable, put an empty line between them.
+
+## Name booleans without is
+Name a boolean variable or parameter with the plain word, such as `$self`, `$unchanged`, or `$disabled`, not `$isSelf`. Name a method that returns a boolean in the same way, such as `editable()`, not `canChange()` or `isEditable()`. Keep the `is` or `has` prefix only in these cases:
+- The plain word is already in use, by a fluent setter of the same name (`disabled()` sets the state, so `isDisabled()` reads it) or by a property.
+- The method overrides a framework or package method, such as `hasRole()`.
+- The method tests its argument, such as `isDate($value)`. Without the prefix, `date($value)` reads like it returns a date.

@@ -53,16 +53,16 @@
                 $optionIcon = $option->resolvedIcon();
                 $optionDescription = $option->resolvedDescription();
                 $optionBadge = $option->resolvedBadge();
-                $isRich = filled($optionIcon) || filled($optionDescription) || filled($optionBadge);
+                $rich = filled($optionIcon) || filled($optionDescription) || filled($optionBadge);
             @endphp
 
             {{-- A pill shows the text of its option, so a rich option names the pill with its label. --}}
             <flux:pillbox.option
                 :value="$option->value()"
-                :selected-label="$option->resolvedSelectedLabel() ?? ($isRich ? $option->resolvedText() : null)"
+                :selected-label="$option->resolvedSelectedLabel() ?? ($rich ? $option->resolvedText() : null)"
                 :disabled="$option->isDisabled()"
             >
-                @if($isRich)
+                @if($rich)
                     <div class="flex min-w-0 items-start">
                         @if(is_string($optionIcon))
                             <flux:icon :icon="$optionIcon" variant="mini" class="me-2 text-zinc-400 dark:text-white/60" />

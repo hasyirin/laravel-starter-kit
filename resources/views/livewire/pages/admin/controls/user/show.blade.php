@@ -5,7 +5,7 @@
 
     @include('livewire.pages.admin.controls.user.partials.details', ['submit' => __('common/buttons.update')])
 
-    <div class="mt-6">
+    <div class="mt-10">
         <livewire:pages.admin.controls.user.tabs :user-id="$user->id" />
     </div>
 

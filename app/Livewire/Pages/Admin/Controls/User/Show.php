@@ -11,6 +11,7 @@ use App\Livewire\Concerns\CanBeDisabled;
 use App\Livewire\Pages\Admin\Controls\User\Concerns\InteractsWithUserForm;
 use App\Livewire\Pages\Shared\Page;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Computed;
 
 class Show extends Page
 {
@@ -36,6 +37,24 @@ class Show extends Page
     public function canChange(string $type): bool
     {
         return ! $this->isDisabled() && $this->can('update', [$this->user, $type]);
+    }
+
+    #[Computed]
+    public function subheading(): string
+    {
+        $profile = $this->user->profile;
+
+        $placement = collect([
+            $profile?->position?->name,
+            $profile?->department?->name,
+            $profile?->organization?->name,
+        ])->filter();
+
+        if ($placement->isEmpty()) {
+            return $this->user->email;
+        }
+
+        return $placement->implode(' · ');
     }
 
     public function save(UpdateUser $updateUser): void

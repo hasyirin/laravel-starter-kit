@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Organization\Models\Department;
+use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Permission;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
@@ -85,6 +86,35 @@ test('the form ticks the roles and the direct permissions of the current profile
     Livewire::test(Show::class, ['user' => $this->subject])
         ->assertSet('form.roles', ['viewer'])
         ->assertSet('form.permissions', ['internal.access']);
+});
+
+test('the heading names the position, department, and organization of the user', function (): void {
+    $department = Department::factory()->create(['name' => 'Finance']);
+    $department->organization->update(['name' => 'Head Office']);
+
+    $position = Position::factory()->forDepartment($department)->create(['name' => 'Clerk']);
+    Profile::factory()->for($this->subject)->create([
+        'organization_id' => $department->organization_id,
+        'department_id' => $department->id,
+        'position_id' => $position->id,
+    ]);
+
+    expect(Livewire::test(Show::class, ['user' => $this->subject])->instance()->subheading)->toBe('Clerk · Finance · Head Office');
+});
+
+test('the heading leaves out the parts of the placement that the user does not have', function (): void {
+    $department = Department::factory()->create(['name' => 'Finance']);
+    $department->organization->update(['name' => 'Head Office']);
+    Profile::factory()->for($this->subject)->create([
+        'organization_id' => $department->organization_id,
+        'department_id' => $department->id,
+    ]);
+
+    expect(Livewire::test(Show::class, ['user' => $this->subject])->instance()->subheading)->toBe('Finance · Head Office');
+});
+
+test('the heading shows the email of a user without a placement', function (): void {
+    expect(Livewire::test(Show::class, ['user' => $this->subject])->instance()->subheading)->toBe($this->subject->email);
 });
 
 test('the details show when the user was created and verified the email', function (): void {

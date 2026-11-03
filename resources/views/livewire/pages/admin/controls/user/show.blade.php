@@ -1,7 +1,14 @@
 <flux:main container>
     <x-breadcrumbs :items="[['label' => __('user/users.title'), 'href' => route('admin.controls.users.index')], ['label' => $user->email]]" class="mb-6" />
 
-    <flux:heading size="xl" class="mb-6">{{ $user->name }}</flux:heading>
+    <div class="mb-6 flex items-center gap-4">
+        <flux:avatar size="lg" :name="$user->name" :initials="$user->initials()" />
+
+        <div>
+            <flux:heading size="xl" class="mb-0!">{{ $user->name }}</flux:heading>
+            <flux:subheading>{{ $this->subheading }}</flux:subheading>
+        </div>
+    </div>
 
     @include('livewire.pages.admin.controls.user.partials.details', ['submit' => __('common/buttons.update')])
 

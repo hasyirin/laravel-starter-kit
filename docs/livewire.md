@@ -44,7 +44,7 @@ public function save(): void
 
 ### Disable One Part
 
-`isDisabled()` and `ensureEnabled()` take an optional part, such as `roles`. Without an override, a part follows the whole component. To lock one part by a rule, check the part in the override, and keep `$this->disabled` in the check, so that a disabled component also disables every part. The typed abilities of the policies are a good rule, for example the `$type` of `App\Domain\User\Policies\UserPolicy::update()`:
+`isDisabled()` and `ensureEnabled()` take an optional part, such as `roles`. Without an override, a part follows the whole component. To lock one part by a rule, check the part in the override. Keep `$this->disabled` in the check, so that a disabled component also disables every part. The typed abilities of the policies are a good rule, for example the `$type` of `App\Domain\User\Policies\UserPolicy::update()`:
 
 ```php
 public function isDisabled(?string $part = null): bool

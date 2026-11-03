@@ -26,7 +26,7 @@ Declare `$fillable`, `$hidden`, `$guarded`, `$visible`, and `$appends` as proper
 Add a `@property` docblock for each column the model adds, typed as its cast returns it. Type dates as `CarbonImmutable`, not `Carbon`.
 
 ## Prefer accessors over getter methods
-Give a value that a model gets from its columns or relations as an accessor: a method that returns `Attribute`, which you read as a property, such as `$profile->name` or `$action->actor_name`. Do not write a getter method such as `actorName()`. Write a method only when the value takes arguments or changes data.
+Give a value that a model gets from its columns or relations as an accessor. An accessor is a method that returns `Attribute`, and you read it as a property, such as `$profile->name` or `$action->actor_name`. Do not write a getter method such as `actorName()`. Write a method only when the value takes arguments or changes data.
 
 ## Keep system flags out of $fillable
 Keep system-controlled flags such as `is_owner` and `is_system` out of `$fillable`. Default them to `false` in `$attributes`, cast them to `boolean`, and set them only with `forceFill()` or inside `unguarded()`.
@@ -41,4 +41,4 @@ Put model event logic in an observer in the sibling `Observers` folder, and atta
 Implement `App\Domain\Shared\Common\Contracts\Models\HasMedia` and use `App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia`, not Spatie's `HasMedia` and `InteractsWithMedia`. The kit's trait makes the `preview` conversion that the file upload shows, and it takes enum cases as collection names. A model that writes its own `registerMediaConversions()` adds the `preview` again.
 
 ## Record who acted with laravel-actor
-Record who did something to a record, such as who approved it, with `act()` from `Hasyirin\Actor\Concerns\InteractsWithActions`, not with columns such as `approved_by`. Add each kind of action as a case of `App\Domain\Shared\Actor\Enums\Act`. Use `App\Domain\Shared\Actor\Concerns\InteractsWithPreparer` to record who created a record. Show an action with `<x-act>`, see `docs/components/act.md`.
+Record who did something to a record, such as who approved it, with `act()` from `Hasyirin\Actor\Concerns\InteractsWithActions`. Do not use columns such as `approved_by`. Add each kind of action as a case of `App\Domain\Shared\Actor\Enums\Act`. Use `App\Domain\Shared\Actor\Concerns\InteractsWithPreparer` to record who created a record. Show an action with `<x-act>`. See `docs/components/act.md`.

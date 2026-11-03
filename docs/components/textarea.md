@@ -19,7 +19,7 @@ It takes every [field prop](field.md).
 
 ## Case Control
 
-`case` changes the case while the user types, the same way as on [`<x-input>`](input.md). With `sentence`, the first letter and each letter after a full stop, a question mark, or an exclamation mark become uppercase, also on a new line. All other letters become lowercase.
+`case` changes the case while the user types, the same way as on [`<x-input>`](input.md). With `sentence`, the first letter becomes uppercase. So does each letter after a full stop, a question mark, or an exclamation mark, also on a new line. All other letters become lowercase.
 
 ```blade
 <x-textarea label="Remarks" wire:model="form.remarks" case="sentence" placeholder="the parcel was left at the door. please call first" />

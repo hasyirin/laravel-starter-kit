@@ -1,6 +1,6 @@
 # Act
 
-`<x-act>` shows who did an action on a record, such as who prepared it: the name of the user, the position that the user held then, and the time. The kit records actions with [laravel-actor](https://github.com/hasyirin/laravel-actor).
+`<x-act>` shows who did an action on a record, such as who prepared it. It shows the name of the user, the position that the user held then, and the time. The kit records actions with [laravel-actor](https://github.com/hasyirin/laravel-actor).
 
 ```blade
 <x-act name="prepare">Not prepared yet.</x-act>
@@ -18,7 +18,7 @@
 <x-act name="prepare" :action="$invoice->action(App\Domain\Shared\Actor\Enums\Act::Prepare)">Not prepared yet.</x-act>
 ```
 
-Each action keeps the profile that its user had when they acted. So the act shows the position of that day, also after the user moves to another position, and it still shows the name of a user who was deleted later. A user without a profile gets their name and no position. The time follows the time zone and the locale of the user who reads the page.
+Each action keeps the profile that its user had when they acted. So the act shows the position of that day, also after the user moves to another position. It also shows the name of the user after someone deletes that user. A user without a profile gets their name and no position. The time follows the time zone and the locale of the user who reads the page.
 
 The act shows the name of an actor without a profile only when the actor implements `App\Domain\Shared\Actor\Contracts\Models\HasActorName`. `User` implements it. For any other actor, the act shows only the time.
 
@@ -65,11 +65,11 @@ The time takes any `DateTimeInterface`, such as `now()`.
 
 `act()` saves through Eloquent, so the `saving` observer sets the profile in the same write as the user. To react to an action, listen to `Hasyirin\Actor\Events\ActionRecorded`, which fires after the commit.
 
-Add a case to `App\Domain\Shared\Actor\Enums\Act` for each kind of action, and its text to `lang/en/common/acts.php`: `label` names the action, and `by` names the person, such as "Prepared by".
+For each kind of action, add a case to `App\Domain\Shared\Actor\Enums\Act`. Add its text to `lang/en/common/acts.php`: `label` names the action, and `by` names the person, such as "Prepared by".
 
 ## Preparer
 
-`InteractsWithPreparer` records the signed-in user as the preparer when a record is created, and `preparer` gives that action. A record that is created without a signed-in user, such as in a seeder or a queued job, gets no preparer.
+`InteractsWithPreparer` records the signed-in user as the preparer when the app creates a record, and `preparer` gives that action. If no user is signed in at that time, such as in a seeder or a queued job, the record gets no preparer.
 
 ```php
 use App\Domain\Shared\Actor\Concerns\InteractsWithPreparer;

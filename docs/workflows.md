@@ -5,7 +5,7 @@ A workflow moves a record through states, for example an application from review
 ## Add a State Column
 
 1. Add a string column for the state to the table.
-2. Make a folder for the column, for example app/Domain/Billing/States/InvoiceState. Put the abstract base state and all its states in this one folder, because Spatie finds the states by their folder.
+2. Make a folder for the column, for example app/Domain/Billing/States/InvoiceState. Put the abstract base state and all its states in this one folder. Spatie finds the states by their folder.
 3. Make the base state extend `App\Domain\Shared\Common\States\State`. Set its default state with the `#[DefaultState]` attribute, and list its transitions in `configure()`:
 
 ```php
@@ -25,7 +25,7 @@ abstract class InvoiceState extends State
 4. Give each state a name in snake case, for example `public static string $name = 'site_visit';`. Spatie stores this name in the column, and its docs do not allow hyphens in names.
 5. In the model, use `Spatie\ModelStates\HasStates` and cast the column to the base state.
 
-Write each transition as one `allowTransition()` call, and put all the states that a step can start from in one array. A loop is a step back to an earlier state. Do not use the `#[AllowTransition]` attribute.
+Write each transition as one `allowTransition()` call. Put all the states that a step can start from in one array. A loop is a step back to an earlier state. Do not use the `#[AllowTransition]` attribute.
 
 The kit builds the config of a state column once and keeps it for the life of the PHP process. That is one request on PHP-FPM, but many requests or jobs in an Octane worker or a queue worker. Spatie would otherwise build the config again for every record and every check, which is slow for a flow with many states. So:
 
@@ -62,9 +62,9 @@ class Pay extends Transition
 
 - `reason()` returns why the step must not run, or null. The step runs only when it returns null.
 - `apply()` changes other attributes. They save together with the new state.
-- Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state or deleted the record after the model was loaded, and `StateNotSaved` when a listener stopped the save. When a step fails, it puts the old attributes back on the model, so the model matches the database again.
+- Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state or deleted the record after the app loaded the model. It throws `StateNotSaved` when a listener stopped the save. When a step fails, it puts the old attributes back on the model, so the model matches the database again.
 
-To give a step input, such as a payment reference, add a constructor parameter after the model, the field, and the new state. Then pass the value after the target state, as in `$invoice->state->transitionTo(Paid::class, $reference)`. Give the parameter a default, and make `reason()` work without it, because `allowedFor()` builds each transition without input:
+To give a step input, such as a payment reference, add a constructor parameter. Put it after the model, the field, and the new state. Then pass the value after the target state, as in `$invoice->state->transitionTo(Paid::class, $reference)`. Give the parameter a default, and make `reason()` work without it, because `allowedFor()` builds each transition without input:
 
 ```php
 public function __construct(Invoice $model, string $field, State $newState, private readonly ?string $reference = null)
@@ -107,7 +107,7 @@ public function pay(): void
 - It holds no business work. The step's work stays in its transition class, which takes the place of an [Action](actions.md) for a step.
 - It returns true when the step ran, and false when the record changed before the step could start.
 - It passes extra arguments to the transition class, as in `$this->transitionTo($this->invoice->state, Paid::class, $reference)`.
-- When the record changed after the page loaded, so the step no longer exists or another request saved first, it shows a toast and reloads the page with `wire:navigate`.
+- When the record changed after the page loaded, it shows a toast and reloads the page with `wire:navigate`. This happens when the step no longer exists, or when another request saved first.
 - When `reason()` blocks the step, it shows the reason in a toast and keeps the page, so the user keeps what they typed.
 - When a listener stopped the save, it shows a toast.
 - When the user does not have the permission, it still fails with a 403. The buttons from `allowedFor()` never offer such a step, so only a removed permission or a forged request gets there.

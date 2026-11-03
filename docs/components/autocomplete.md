@@ -20,7 +20,7 @@ It takes every [field prop](field.md). When the user picks a suggestion with the
 
 ## Suggestions from the Server
 
-For a long list, such as all cities, let the server find the suggestions. Send the text while the user types with `wire:model.live.debounce.250ms`, build the options from it, and turn off the filter in the browser with `:filter="false"`, so the browser shows the suggestions as the server sends them.
+For a long list, such as all cities, let the server find the suggestions. Send the text while the user types with `wire:model.live.debounce.250ms`, and build the options from it. Turn off the filter in the browser with `:filter="false"`, so the browser shows the suggestions as the server sends them.
 
 ```html
 <x-autocomplete label="City" wire:model.live.debounce.250ms="city" :options="$this->cities" :filter="false" />

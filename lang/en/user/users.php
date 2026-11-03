@@ -32,6 +32,8 @@ return [
         'by' => 'By this user',
         'on' => 'On this user',
         'time' => 'Time',
+        'from' => 'From',
+        'until' => 'Until',
         'event' => 'Event',
         'causer' => 'By',
         'subject' => 'Subject',

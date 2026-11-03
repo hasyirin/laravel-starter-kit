@@ -72,10 +72,51 @@ test('the subject type filter keeps only that type', function (): void {
     $this->actingAs($this->admin);
 
     activityTable($this->subject, 'by')
-        ->filterTable('subject_type', 'profile')
+        ->filterTable('subject_type', ['profile'])
         ->assertCanSeeTableRecords([$onProfile])
         ->assertCanNotSeeTableRecords([$onUser]);
 });
+
+test('the event filter keeps only those events in both directions', function (string $direction): void {
+    $updated = renameAs($this->subject, $this->subject, 'Sam Renamed');
+    Profile::factory()->for($this->subject)->create();
+    $created = Activity::query()->latest('id')->firstOrFail();
+    $created->update(['causer_type' => $this->subject->getMorphClass(), 'causer_id' => $this->subject->id]);
+    $this->actingAs($this->admin);
+
+    activityTable($this->subject, $direction)
+        ->filterTable('event', ['created'])
+        ->assertCanSeeTableRecords([$created])
+        ->assertCanNotSeeTableRecords([$updated]);
+})->with(['by', 'on']);
+
+test('the time filter keeps the days that the viewer picks, in the time zone of the viewer', function (): void {
+    context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
+    $early = renameAs($this->admin, $this->subject, 'Sam Early');
+    $early->forceFill(['created_at' => CarbonImmutable::parse('2026-01-01 15:00', 'UTC')])->save();
+    $late = renameAs($this->admin, $this->subject, 'Sam Late');
+    $late->forceFill(['created_at' => CarbonImmutable::parse('2026-01-01 17:00', 'UTC')])->save();
+
+    activityTable($this->subject, 'on')
+        ->filterTable('created_at', ['from' => '2026-01-02', 'until' => '2026-01-02'])
+        ->assertCanSeeTableRecords([$late])
+        ->assertCanNotSeeTableRecords([$early]);
+});
+
+test('the search finds an entry by who did it, a changed value, or its event', function (string $search): void {
+    $byAdmin = renameAs($this->admin, $this->subject, 'Sam Renamed');
+    $byOther = renameAs($this->other, $this->subject, 'Sam Again');
+    Profile::factory()->for($this->subject)->create();
+    $created = Activity::query()->latest('id')->firstOrFail();
+    $this->actingAs($this->admin);
+
+    $expected = ['ada' => $byAdmin, 'again' => $byOther, 'created' => $created][$search];
+
+    activityTable($this->subject, 'on')
+        ->searchTable(strtoupper($search))
+        ->assertCanSeeTableRecords([$expected])
+        ->assertCanNotSeeTableRecords(collect([$byAdmin, $byOther, $created])->reject(fn (Activity $activity): bool => $activity->is($expected))->all());
+})->with(['who did it' => ['ada'], 'a changed value' => ['again'], 'its event' => ['created']]);
 
 test('the audit tab needs view-activities', function (string $component, array $params): void {
     $this->admin->revokePermissionTo('admin.controls.users.view-activities');

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Collection;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -37,6 +38,47 @@ class UserActivities
     public static function find(User $user, int $id): Activity
     {
         return self::involving($user, by: true, on: true)->findOrFail($id);
+    }
+
+    /**
+     * @param  Builder<Activity>  $query
+     */
+    public static function search(Builder $query, string $search): void
+    {
+        $term = str($search)->trim()->lower()->value();
+
+        $events = collect(self::events())
+            ->filter(fn (string $label): bool => str($label)->lower()->contains($term))
+            ->keys();
+
+        $types = collect(Relation::morphMap())
+            ->keys()
+            ->filter(fn (string $type): bool => str(self::typeLabel($type))->lower()->contains($term));
+
+        $query->where(fn (Builder $query): Builder => $query
+            ->whereIn('event', $events)
+            ->orWhereIn('subject_type', $types)
+            ->orWhereHasMorph('causer', [User::class], fn (Builder $causer): Builder => $causer->whereLike('name', "%$term%"))
+            ->orWhereLike(new Expression('CAST(attribute_changes AS TEXT)'), "%$term%"));
+    }
+
+    /**
+     * @param  Builder<Activity>  $query
+     * @param  array<array-key, mixed>  $dates
+     */
+    public static function between(Builder $query, array $dates): void
+    {
+        $timezone = Preferences::current()->timezone;
+        $from = $dates['from'] ?? null;
+        $until = $dates['until'] ?? null;
+
+        if (is_string($from) && $from !== '') {
+            $query->where('created_at', '>=', CarbonImmutable::parse($from, $timezone)->startOfDay()->setTimezone(config()->string('app.timezone')));
+        }
+
+        if (is_string($until) && $until !== '') {
+            $query->where('created_at', '<=', CarbonImmutable::parse($until, $timezone)->endOfDay()->setTimezone(config()->string('app.timezone')));
+        }
     }
 
     /**

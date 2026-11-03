@@ -11,10 +11,13 @@ use App\Filament\Tables\Columns\TimestampColumn;
 use App\Livewire\DataTables\DataTable;
 use App\Livewire\Pages\Admin\Controls\User\ActivityModal;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\BaseFilter;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Livewire\Attributes\Computed;
@@ -35,6 +38,13 @@ class ActivityDataTable extends DataTable
     public function mount(): void
     {
         $this->authorize('view', [$this->user, 'activities']);
+    }
+
+    public function table(Table $table): Table
+    {
+        return parent::table($table)
+            ->searchable()
+            ->searchUsing(fn (Builder $query, string $search) => UserActivities::search($query, $search));
     }
 
     #[Computed]
@@ -87,17 +97,22 @@ class ActivityDataTable extends DataTable
      */
     protected function filters(): array
     {
-        if ($this->direction === 'on') {
-            return [];
-        }
-
         return [
             SelectFilter::make('event')
                 ->label((string) __('user/users.audit.event'))
-                ->options(UserActivities::events()),
+                ->options(fn (): array => UserActivities::events())
+                ->multiple(),
             SelectFilter::make('subject_type')
                 ->label((string) __('user/users.audit.subject_type'))
-                ->options($this->subjectTypes()),
+                ->options(fn (): array => $this->subjectTypes())
+                ->multiple(),
+            Filter::make('created_at')
+                ->label((string) __('user/users.audit.time'))
+                ->schema([
+                    DatePicker::make('from')->label((string) __('user/users.audit.from')),
+                    DatePicker::make('until')->label((string) __('user/users.audit.until')),
+                ])
+                ->query(fn (Builder $query, array $data) => UserActivities::between($query, $data)),
         ];
     }
 

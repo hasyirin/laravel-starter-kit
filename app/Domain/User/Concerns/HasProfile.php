@@ -10,11 +10,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 trait HasProfile
 {
-    public function initializeHasProfile(): void
-    {
-        $this->with[] = 'profile';
-    }
-
     /**
      * @return HasOne<Profile, $this>
      */

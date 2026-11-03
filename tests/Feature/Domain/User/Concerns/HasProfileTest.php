@@ -20,12 +20,13 @@ test('the profiles of a user include the inactive profiles', function (): void {
     expect($user->profiles)->toHaveCount(2);
 });
 
-test('the active profile is loaded with the user', function (): void {
+test('the active profile loads when it is read', function (): void {
     $profile = Profile::factory()->create();
 
     $user = User::query()->find($profile->user_id);
 
-    expect($user?->relationLoaded('profile'))->toBeTrue();
+    expect($user?->relationLoaded('profile'))->toBeFalse()
+        ->and($user?->profile?->id)->toBe($profile->id);
 });
 
 test('the profiles of a user hold the same user', function (): void {

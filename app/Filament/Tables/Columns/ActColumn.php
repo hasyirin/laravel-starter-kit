@@ -23,10 +23,6 @@ class ActColumn extends Column
     {
         $name = $this->getName();
 
-        return $query->with([
-            "{$name}.profile.user" => fn (Relation $user): Relation => $user->without('profile'),
-            "{$name}.profile.position",
-            "{$name}.actor" => fn (Relation $actor): Relation => $actor->without('profile'),
-        ]);
+        return $query->with(["{$name}.profile.user", "{$name}.profile.position", "{$name}.actor"]);
     }
 }

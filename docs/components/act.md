@@ -30,19 +30,18 @@ The act loads the relations that it shows for each action, so a list of acts run
 
 ```php
 use App\Domain\User\Models\User;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 $invoices = Invoice::query()->with([
-    'preparer.profile.user' => fn (BelongsTo $user) => $user->without('profile'),
+    'preparer.profile.user',
     'preparer.profile.position',
     'preparer.actor' => fn (MorphTo $actor) => $actor->constrain([
-        User::class => fn ($query) => $query->withTrashed()->without('profile'),
+        User::class => fn ($query) => $query->withTrashed(),
     ]),
 ])->get();
 ```
 
-`without('profile')` skips the profile that `User` loads by default, because the act shows the profile that the action kept. When you eager load `actor`, it also loads deleted users, so the act still shows their names. `$action->actor` alone does not load a deleted user. A closure that constrains `User` on `actor` replaces that default, so add `withTrashed()` to it, as above.
+When you eager load `actor`, it also loads deleted users, so the act still shows their names. `$action->actor` alone does not load a deleted user. A closure that constrains `User` on `actor` replaces that default, so add `withTrashed()` to it, as above.
 
 ## Record an Action
 

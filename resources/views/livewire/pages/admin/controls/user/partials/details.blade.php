@@ -50,7 +50,7 @@
 
     <x-card accordion body="divided" body-class="grid gap-6 sm:grid-cols-2">
         <x-slot:heading level="2">
-            {{ __('user/users.organization') }}
+            {{ __('user/users.organization_details') }}
         </x-slot:heading>
 
         <x-select wire:model.live="form.organization_id" :label="__('user/users.organization')" :options="$this->organizations" clearable :$disabled />

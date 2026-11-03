@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 return [
     'title' => 'Users',
-    'details' => 'Details',
+    'details' => 'User details',
     'roles' => 'Roles',
     'organization' => 'Organization',
+    'organization_details' => 'Organization details',
     'branch' => 'Branch',
     'department' => 'Department',
     'position' => 'Position',

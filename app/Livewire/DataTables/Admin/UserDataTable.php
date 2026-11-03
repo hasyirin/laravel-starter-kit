@@ -79,6 +79,12 @@ class UserDataTable extends DataTable
 
     protected function to(?User $record = null): void
     {
-        $this->redirect($record instanceof User ? route('admin.controls.users.show', $record) : route('admin.controls.users.create'), navigate: true);
+        if (! $record instanceof User) {
+            $this->redirect(route('admin.controls.users.create'), navigate: true);
+
+            return;
+        }
+
+        $this->redirect(route('admin.controls.users.show', $record), navigate: true);
     }
 }

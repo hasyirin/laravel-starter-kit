@@ -1,6 +1,4 @@
 @use(App\Domain\User\Models\Profile)
-@use(App\Domain\User\Models\User)
-@use(App\Domain\User\Support\Preferences)
 @use(App\Domain\User\Support\UserActivities)
 
 <div>
@@ -13,12 +11,10 @@
                 <div>
                     <flux:heading size="lg">{{ UserActivities::subjectLabel($activity) }}</flux:heading>
 
-                    <flux:subheading>
-                        {{ collect([UserActivities::eventLabel($activity), $activity->causer instanceof User ? $activity->causer->name : null, Preferences::current()->datetime($activity->created_at)])->filter()->implode(' · ') }}
-                    </flux:subheading>
+                    <flux:subheading>{{ UserActivities::summary($activity) }}</flux:subheading>
                 </div>
 
-                @if($changes === [])
+                @if($changes->isEmpty())
                     <flux:text>{{ __('user/users.audit.no_changes') }}</flux:text>
                 @else
                     <flux:table>

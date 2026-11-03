@@ -32,7 +32,7 @@ test('a one-segment permission is listed at the root', function (): void {
     $tree = PermissionTree::build(['bypass-authorization', 'internal.access']);
 
     expect($tree['permissions'])->toBe([['name' => 'bypass-authorization', 'label' => 'Bypass authorization']])
-        ->and(array_column($tree['children'], 'key'))->toBe(['internal']);
+        ->and(collect($tree['children'])->pluck('key')->all())->toBe(['internal']);
 });
 
 test('a missing label falls back to the headline', function (): void {

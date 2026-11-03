@@ -44,3 +44,6 @@ Keep `wire:model` on an input element, never on a wrapper, so that all of its mo
 When you add or change a component in `resources/views/components`, add or update its page in `docs/components/`. The page shows what the component is for and gives an example for every prop of its own. For the field props, it links to the Field page. It ends with a Reference section for the props, slots, and attributes. List each page in `docs/components/README.md`.
 
 The local page at `/docs/components` renders each `blade` example as a live preview. So write each example as complete Blade that renders on its own, and bind its inputs to `form.<field>`.
+
+## Return early and never nest ternaries
+Check the edge cases first and return early, so the main path stays at the lowest indent. Never nest ternaries, also in Alpine expressions in Blade: use guard clauses, `if` statements, or a lookup object. Choose readable code over short code, and give each step its own line.

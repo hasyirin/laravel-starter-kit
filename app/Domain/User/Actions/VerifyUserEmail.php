@@ -21,8 +21,10 @@ class VerifyUserEmail
 
         throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
 
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
+        if ($user->hasVerifiedEmail()) {
+            return;
         }
+
+        $user->markEmailAsVerified();
     }
 }

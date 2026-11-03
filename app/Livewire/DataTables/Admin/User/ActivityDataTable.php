@@ -56,7 +56,7 @@ class ActivityDataTable extends DataTable
      */
     protected function columns(): array
     {
-        return array_values(array_filter([
+        return [
             TimestampColumn::make('created_at')->label((string) __('user/users.audit.time')),
             TextColumn::make('event')
                 ->label((string) __('user/users.audit.event'))
@@ -68,19 +68,18 @@ class ActivityDataTable extends DataTable
                     ActivityEvent::Restored->value => 'warning',
                     default => 'gray',
                 }),
-            $this->direction === 'on'
-                ? TextColumn::make('causer_name')
-                    ->label((string) __('user/users.audit.causer'))
-                    ->state(fn (Activity $activity): ?string => $activity->causer instanceof User ? $activity->causer->name : null)
-                : null,
+            TextColumn::make('causer_name')
+                ->label((string) __('user/users.audit.causer'))
+                ->state(fn (Activity $activity): ?string => UserActivities::causerName($activity))
+                ->visible($this->direction === 'on'),
             TextColumn::make('subject_label')
                 ->label((string) __('user/users.audit.subject'))
                 ->state(fn (Activity $activity): string => UserActivities::subjectLabel($activity)),
             TextColumn::make('changes')
                 ->label((string) __('user/users.audit.changes'))
-                ->state(fn (Activity $activity): string => implode(', ', UserActivities::fieldLabels($activity)))
+                ->state(fn (Activity $activity): string => UserActivities::fieldLabels($activity)->implode(', '))
                 ->limit(60),
-        ]));
+        ];
     }
 
     /**
@@ -98,7 +97,7 @@ class ActivityDataTable extends DataTable
                 ->options(UserActivities::events()),
             SelectFilter::make('subject_type')
                 ->label((string) __('user/users.audit.subject_type'))
-                ->options(collect(array_keys(Relation::morphMap()))->mapWithKeys(fn (string $type): array => [$type => UserActivities::typeLabel($type)])->all()),
+                ->options($this->subjectTypes()),
         ];
     }
 
@@ -110,5 +109,16 @@ class ActivityDataTable extends DataTable
         return [
             ViewAction::make()->action(fn (Activity $activity) => $this->dispatch('show', id: $activity->id)->to(ActivityModal::class)),
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function subjectTypes(): array
+    {
+        return collect(Relation::morphMap())
+            ->keys()
+            ->mapWithKeys(fn (string $type): array => [$type => UserActivities::typeLabel($type)])
+            ->all();
     }
 }

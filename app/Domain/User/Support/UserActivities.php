@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Collection;
 use ReflectionMethod;
 use ReflectionNamedType;
 use Spatie\Activitylog\Enums\ActivityEvent;
@@ -57,7 +58,11 @@ class UserActivities
     {
         $key = "user/users.audit.subjects.$type";
 
-        return trans()->has($key) ? (string) __($key) : str($type)->headline()->value();
+        if (! trans()->has($key)) {
+            return str($type)->headline()->value();
+        }
+
+        return (string) __($key);
     }
 
     public static function subjectLabel(Activity $activity): string
@@ -65,42 +70,57 @@ class UserActivities
         return self::typeLabel((string) $activity->subject_type).' '.(self::recordName($activity->subject) ?? '#'.$activity->subject_id);
     }
 
+    public static function causerName(Activity $activity): ?string
+    {
+        if (! $activity->causer instanceof User) {
+            return null;
+        }
+
+        return $activity->causer->name;
+    }
+
+    public static function summary(Activity $activity): string
+    {
+        return collect([
+            self::eventLabel($activity),
+            self::causerName($activity),
+            Preferences::current()->datetime($activity->created_at),
+        ])
+            ->filter()
+            ->implode(' · ');
+    }
+
     public static function fieldLabel(string $field): string
     {
         $key = collect(["common/inputs.$field", "validation.attributes.$field"])->first(fn (string $key): bool => trans()->has($key));
 
-        return $key === null ? str($field)->replaceEnd('_id', '')->headline()->value() : (string) __($key);
+        if ($key === null) {
+            return str($field)->replaceEnd('_id', '')->headline()->value();
+        }
+
+        return (string) __($key);
     }
 
     /**
-     * @return list<string>
+     * @return Collection<int, string>
      */
-    public static function fieldLabels(Activity $activity): array
+    public static function fieldLabels(Activity $activity): Collection
     {
         [$old, $new] = self::changeSets($activity);
 
-        return array_map(fn (int|string $field): string => self::fieldLabel((string) $field), array_keys($new + $old));
+        return self::fieldsOf($old, $new)->map(fn (string $field): string => self::fieldLabel($field));
     }
 
     /**
-     * @return list<array{field: string, old: string, new: string}>
+     * @return Collection<int, array{field: string, old: string, new: string}>
      */
-    public static function changes(Activity $activity): array
+    public static function changes(Activity $activity): Collection
     {
         [$old, $new] = self::changeSets($activity);
-        $class = Relation::getMorphedModel((string) $activity->subject_type);
-        $model = $class === null ? null : new $class;
+        $model = self::subjectModel($activity);
 
-        return array_map(function (int|string $field) use ($model, $old, $new): array {
-            $field = (string) $field;
-            $names = self::relatedNames($model, $field, [$old[$field] ?? null, $new[$field] ?? null]);
-
-            return [
-                'field' => self::fieldLabel($field),
-                'old' => self::format($model, $field, $old[$field] ?? null, $names),
-                'new' => self::format($model, $field, $new[$field] ?? null, $names),
-            ];
-        }, array_keys($new + $old));
+        return self::fieldsOf($old, $new)
+            ->map(fn (string $field): array => self::change($model, $field, $old[$field] ?? null, $new[$field] ?? null));
     }
 
     /**
@@ -137,12 +157,59 @@ class UserActivities
         ];
     }
 
+    /**
+     * @param  array<array-key, mixed>  $old
+     * @param  array<array-key, mixed>  $new
+     * @return Collection<int, string>
+     */
+    private static function fieldsOf(array $old, array $new): Collection
+    {
+        return collect($new)
+            ->union($old)
+            ->keys()
+            ->map(fn (int|string $field): string => (string) $field);
+    }
+
+    /**
+     * @return array{field: string, old: string, new: string}
+     */
+    private static function change(?Model $model, string $field, mixed $old, mixed $new): array
+    {
+        $names = self::relatedNames($model, $field, [$old, $new]);
+
+        return [
+            'field' => self::fieldLabel($field),
+            'old' => self::format($model, $field, $old, $names),
+            'new' => self::format($model, $field, $new, $names),
+        ];
+    }
+
+    private static function subjectModel(Activity $activity): ?Model
+    {
+        $class = Relation::getMorphedModel((string) $activity->subject_type);
+
+        if ($class === null) {
+            return null;
+        }
+
+        return new $class;
+    }
+
     private static function recordName(?Model $record): ?string
     {
         $attribute = collect(self::NAME_ATTRIBUTES)->first(fn (string $attribute): bool => (bool) $record?->hasAttribute($attribute));
-        $name = $attribute === null ? null : $record?->getAttribute($attribute);
 
-        return is_scalar($name) ? (string) $name : null;
+        if ($attribute === null) {
+            return null;
+        }
+
+        $name = $record?->getAttribute($attribute);
+
+        if (! is_scalar($name)) {
+            return null;
+        }
+
+        return (string) $name;
     }
 
     /**
@@ -157,19 +224,34 @@ class UserActivities
             return null;
         }
 
-        $names = [];
-        $records = $relation->getQuery()->whereKey(array_values(array_filter($ids, fn (mixed $id): bool => is_int($id) || is_string($id))))->get();
+        $keys = collect($ids)
+            ->filter(fn (mixed $id): bool => is_int($id) || is_string($id))
+            ->values();
 
-        foreach ($records as $record) {
-            $key = $record->getKey();
-            $name = self::recordName($record);
+        return $relation->getQuery()
+            ->whereKey($keys)
+            ->get()
+            ->mapWithKeys(fn (Model $record): array => self::nameEntry($record))
+            ->all();
+    }
 
-            if ((is_int($key) || is_string($key)) && $name !== null) {
-                $names[$key] = $name;
-            }
+    /**
+     * @return array<array-key, string>
+     */
+    private static function nameEntry(Model $record): array
+    {
+        $key = $record->getKey();
+        $name = self::recordName($record);
+
+        if (! is_int($key) && ! is_string($key)) {
+            return [];
         }
 
-        return $names;
+        if ($name === null) {
+            return [];
+        }
+
+        return [$key => $name];
     }
 
     /**
@@ -191,10 +273,12 @@ class UserActivities
 
         $relation = Relation::noConstraints(fn (): mixed => $model->{$method}());
 
-        /** @var BelongsTo<Model, Model>|null $belongsTo */
-        $belongsTo = $relation instanceof BelongsTo && $relation->getForeignKeyName() === $field ? $relation : null;
+        if (! $relation instanceof BelongsTo || $relation->getForeignKeyName() !== $field) {
+            return null;
+        }
 
-        return $belongsTo;
+        /** @var BelongsTo<Model, Model> $relation */
+        return $relation;
     }
 
     /**
@@ -206,10 +290,24 @@ class UserActivities
             $value === null => '',
             is_bool($value) => (string) __($value ? 'user/users.audit.yes' : 'user/users.audit.no'),
             $names !== null && (is_int($value) || is_string($value)) => $names[(string) $value] ?? '#'.$value,
-            is_string($value) && (bool) $model?->hasCast($field, self::DATE_CASTS) => (string) Preferences::current()->calendarDate(CarbonImmutable::parse($value)),
-            is_string($value) && ((bool) $model?->hasCast($field, self::DATETIME_CASTS) || in_array($field, $model?->getDates() ?? [], true)) => (string) Preferences::current()->datetime(CarbonImmutable::parse($value)),
+            is_string($value) && self::isDate($model, $field) => (string) Preferences::current()->calendarDate(CarbonImmutable::parse($value)),
+            is_string($value) && self::isDateTime($model, $field) => (string) Preferences::current()->datetime(CarbonImmutable::parse($value)),
             is_scalar($value) => (string) $value,
             default => (string) json_encode($value),
         };
+    }
+
+    private static function isDate(?Model $model, string $field): bool
+    {
+        return (bool) $model?->hasCast($field, self::DATE_CASTS);
+    }
+
+    private static function isDateTime(?Model $model, string $field): bool
+    {
+        if (! $model instanceof Model) {
+            return false;
+        }
+
+        return $model->hasCast($field, self::DATETIME_CASTS) || collect($model->getDates())->containsStrict($field);
     }
 }

@@ -200,6 +200,22 @@ The kit also relies on how Flux draws a card:
 - The faint highlight of a card is the `::after` of the card. A group hides it on every card after the first.
 - Flux gives the last header of a card less padding below its text. Folded parts stay in the DOM, so the kit copies that padding for a header with no part shown below it. The kit also rounds the bottom corners of that header, which Flux does not.
 
+## Disabled
+
+`disabled` on a card or a group disables every kit input inside it, so a form sets it once. An input reads it with `@aware`. An input that sets its own `disabled` keeps it, also `false`. Buttons do not follow it, so hide or disable the submit button yourself.
+
+```blade
+<x-card heading="Company" disabled>
+    <div class="space-y-6">
+        <x-input label="Name" wire:model="form.locked_company_name" />
+        <x-select label="Country" wire:model="form.locked_company_country" :options="['MY' => 'Malaysia', 'SG' => 'Singapore']" />
+        <x-input label="Reference" wire:model="form.locked_company_reference" :disabled="false" />
+    </div>
+</x-card>
+```
+
+In a Livewire component with `App\Livewire\Concerns\CanBeDisabled`, pass `$disabled` to the group: `<x-card.group form wire:submit="save" :$disabled>`. An input inside a nested Livewire component does not follow it reliably, because that component renders again on its own, without the card. Pass `disabled` to the nested component instead.
+
 ## Reference
 
 ### Props
@@ -211,6 +227,7 @@ The kit also relies on how Flux draws a card:
 | `accordion`       | `false` | Lets the user fold the body and the footer. Without a heading or a part to fold, the card stays plain. |
 | `collapsed`       | `false` | Folds an accordion card in the HTML from the server. The card follows when the value changes. |
 | `body-class`      |         | Classes for the body.                                                                       |
+| `disabled`        | `false` | Disables every kit input inside the card. See [Disabled](#disabled).                        |
 | Flux card props   |         | `variant`, `body`, `divider`, `size`, and `highlight`. See the [Flux card](https://fluxui.dev/components/card). |
 
 ### Slots
@@ -232,5 +249,6 @@ All other attributes go to the card, such as `class`, `id`, and `wire:key`. An a
 | Prop   | Default | Description                    |
 |--------|---------|--------------------------------|
 | `form` | `false` | Renders the group as a `<form>`. |
+| `disabled` | `false` | Disables every kit input in its cards. See [Disabled](#disabled). |
 
 All other attributes go to the group, such as `class` and `wire:submit`.

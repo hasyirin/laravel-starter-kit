@@ -1,4 +1,5 @@
 @props([
+    'disabled' => false,
     'form' => false,
 ])
 

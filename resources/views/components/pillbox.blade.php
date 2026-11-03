@@ -1,3 +1,5 @@
+@aware(['disabled' => false])
+
 @props([
     'label' => null,
     'description' => null,
@@ -14,6 +16,10 @@
     'inputClass' => null,
     'noErrorMessage' => false,
 ])
+
+@php
+    $attributes = $attributes->merge(['disabled' => $disabled]);
+@endphp
 
 @php
     $descriptionTrailing ??= $attributes->pluck('description:trailing');

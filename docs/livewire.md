@@ -74,7 +74,7 @@ public function isDisabled(?string $part = null): bool
 }
 ```
 
-The view gets `$disabled` with the result of `isDisabled()`. Pass it on to the inputs, for example `<x-input wire:model="form.name" :$disabled />`.
+The view gets `$disabled` with the result of `isDisabled()`. Pass it once to the card or the card group that holds the inputs, for example `<x-card.group form wire:submit="save" :$disabled>`, and every kit input inside follows. See [Disabled](components/card.md#disabled). An input outside a card takes it directly: `<x-input wire:model="form.name" :$disabled />`.
 
 A disabled input in the browser does not stop a request. Start each action that changes data with `ensureEnabled()`. It answers 403 when the component is disabled:
 

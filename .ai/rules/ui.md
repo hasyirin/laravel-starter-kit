@@ -15,6 +15,11 @@ Build each kit input on `<x-field>`. Then the label row, the help text, and the 
 
 A control with its label beside it, such as one checkbox or a switch, uses an inline `flux:field` instead. Keep its asterisk outside the label too.
 
+## Let each input follow a disabled card
+Start each kit input with `@aware(['disabled' => false])`, so that it follows `disabled` on the card or card group around it. Then merge it into the attributes of the control in a `@php` block: `$attributes = $attributes->merge(['disabled' => $disabled]);`. An input that takes `disabled` as a prop passes the prop on. Do not use the one-line `@php(...)` in a file that also has a `@php` block, because Blade then reads them as one block.
+
+To disable a form, pass `disabled` once to its card or card group, not to each input.
+
 ## Keep links, buttons, and marks out of Flux labels
 Flux hides `flux:label` from screen readers and uses its whole text as the name of the input. This includes text that has `aria-hidden`. So put only the label text in a label. Put links, buttons, and marks such as the required asterisk outside it, for example in the `hint` or `actions` slot of `<x-field>`.
 

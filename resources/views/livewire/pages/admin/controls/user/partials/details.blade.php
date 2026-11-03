@@ -2,24 +2,23 @@
 
 @php($disabled ??= false)
 
-<x-card.group form wire:submit="save">
+<x-card.group form wire:submit="save" :$disabled>
     <x-card accordion body="divided" body-class="grid gap-6 sm:grid-cols-2">
         <x-slot:heading level="2">
             {{ __('user/users.details') }}
         </x-slot:heading>
 
-        <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required :$disabled />
+        <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required />
 
-        <x-input wire:model="form.email" type="email" :label="__('common/inputs.email')" autocomplete="off" required :$disabled />
+        <x-input wire:model="form.email" type="email" :label="__('common/inputs.email')" autocomplete="off" required />
 
-        <x-input.password wire:model="form.password" :label="__('common/inputs.password')" autocomplete="new-password" :required="! isset($user)" :$disabled />
+        <x-input.password wire:model="form.password" :label="__('common/inputs.password')" autocomplete="new-password" :required="! isset($user)" />
 
         <x-input.password
             wire:model="form.password_confirmation"
             :label="__('common/inputs.confirm_password')"
             autocomplete="new-password"
             :required="! isset($user)"
-            :$disabled
         />
 
         @isset($user)
@@ -53,7 +52,7 @@
             {{ __('user/users.organization_details') }}
         </x-slot:heading>
 
-        <x-select wire:model.live="form.organization_id" :label="__('user/users.organization')" :options="$this->organizations" clearable :$disabled />
+        <x-select wire:model.live="form.organization_id" :label="__('user/users.organization')" :options="$this->organizations" clearable />
 
         <x-select
             wire:model="form.branch_id"

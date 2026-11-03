@@ -101,7 +101,7 @@ test('a position without a department can be picked without a department', funct
 
     $component = Livewire::test(Create::class)->set('form.organization_id', $position->organization_id);
 
-    expect($component->instance()->positions)->toBe([$position->id => $position->name]);
+    expect($component->instance()->positions->all())->toBe([$position->id => $position->name]);
 
     $component
         ->set('form.name', 'New Person')

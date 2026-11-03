@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Admin\Controls\User;
 
-use App\Domain\User\Actions\UpdateUser;
 use App\Domain\User\Actions\VerifyUserEmail;
 use App\Domain\User\Models\User;
 use App\Livewire\Concerns\CanBeDisabled;
@@ -25,8 +24,7 @@ class Show extends Page
         $this->authorize('view', $user);
 
         $this->user = $user;
-        $this->form->fillFromUser($user);
-        $this->fillRolesAndPermissions();
+        $this->form->set($user);
     }
 
     public function isDisabled(?string $part = null): bool
@@ -36,7 +34,7 @@ class Show extends Page
 
     public function canChange(string $type): bool
     {
-        return ! $this->isDisabled() && $this->can('update', [$this->user, $type]);
+        return ! $this->isDisabled() && $this->form->canChange($type);
     }
 
     #[Computed]
@@ -57,32 +55,12 @@ class Show extends Page
         return $placement->implode(' · ');
     }
 
-    public function save(UpdateUser $updateUser): void
+    public function save(): void
     {
         $this->authorize('update', $this->user);
 
-        $this->form->email = str($this->form->email)->lower()->value();
-        $this->form->validate();
-
-        /** @var User $actor */
-        $actor = auth()->user();
-
-        $roles = $this->rolesToSave();
-
-        $updateUser->execute(
-            $actor,
-            $this->user,
-            $this->form->name,
-            $this->form->email,
-            $this->form->passwordOrNull(),
-            $this->form->placement(),
-            $roles,
-            $this->permissionsToSave($roles),
-        );
-
-        $this->form->reset('password', 'password_confirmation');
-        $this->user->refresh();
-        $this->fillRolesAndPermissions();
+        $this->user = $this->form->save();
+        $this->form->set($this->user);
 
         $this->notifySaved((string) __('user/users.user'), created: false);
     }
@@ -102,10 +80,5 @@ class Show extends Page
     public function render(): View
     {
         return view('livewire.pages.admin.controls.user.show')->title($this->user->name);
-    }
-
-    protected function subject(): ?User
-    {
-        return $this->user;
     }
 }

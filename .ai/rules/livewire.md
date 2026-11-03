@@ -9,7 +9,15 @@ paths:
 Translate UI text with short keys from PHP files under `lang/en/`, such as `__('user/settings.profile.updated')`, never JSON sentence keys. Put shared labels in `lang/en/common/` (`buttons.php`, `inputs.php`).
 
 ## Keep components thin
-A component validates the input, authorizes the user, and calls an Action for the work. Then it shows the result: a toast, a redirect, or state for the view. Inject the Action into the component method, for example `public function updateProfileInformation(UpdateProfile $updateProfile): void`, and call its `execute()`. Do not write models or apply domain rules in a component. Reading data for the view is fine.
+A component authorizes the user and starts the work. Then it shows the result: a toast, a redirect, or state for the view. If the component has a form object, call the form's `save()`. If not, validate the input and call an Action: inject it into the component method, for example `public function updateProfileInformation(UpdateProfile $updateProfile): void`, and call its `execute()`. Do not write models or apply domain rules in a component. Reading data for the view is fine.
+
+## Build forms with set() and save()
+Extend `App\Livewire\Form`. Put a form in `app/Livewire/Forms/<Area>/<Model>Form.php`. Give it typed properties and a `rules()` method; do not use `#[Validate]`. Use one form for create and edit:
+- `set(Model $model): static` fills the form from a record.
+- `save(): Model` validates, then calls the Action with `make()->execute()`, and returns the record. If the record is null, it creates one.
+- A form never writes models and never opens a transaction. The Action does that.
+- Mark each property that the user does not type with `#[Locked]`, such as the record and any flag that changes the rules. A browser can change any other public property.
+- Do not put a `disabled` flag on a form. Disable the component with `CanBeDisabled`, and check a part that the user can or cannot change with the policy in `save()`.
 
 ## Run workflow steps with the component's transitionTo()
 Run a state step with the component's `$this->transitionTo($model->state, Paid::class)` from `App\Livewire\Component`, not with `authorize()` and the state's `transitionTo()`. It checks the permission. The `exception()` hook of the base component turns any failed step into a Flux toast. This includes a step that an Action runs, so do not catch step exceptions in a component. If a component defines its own `exception()`, call `parent::exception($e, $stopPropagation)` first.

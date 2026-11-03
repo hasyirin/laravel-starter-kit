@@ -110,6 +110,23 @@ test('the user holds the new profile after the change', function (): void {
     expect($this->user->profile?->id)->toBe($profile?->id);
 });
 
+test('a permission that a new role gives is not kept as a direct permission', function (): void {
+    Role::findByName('editor')->givePermissionTo('admin.access');
+
+    $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, roles: ['editor'], permissions: ['admin.access', 'admin.controls.users.view']);
+
+    expect(changeUserProfileSnapshot($profile)['permissions'])->toBe(['admin.controls.users.view']);
+});
+
+test('a direct permission stays direct when a new role also gives it', function (): void {
+    Profile::factory()->for($this->user)->withPermissions('admin.access')->create();
+    Role::findByName('editor')->givePermissionTo('admin.access');
+
+    $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, roles: ['editor'], permissions: ['admin.access']);
+
+    expect(changeUserProfileSnapshot($profile)['permissions'])->toBe(['admin.access']);
+});
+
 test('a user without a profile gets a first profile', function (): void {
     $profile = ChangeUserProfile::make()->execute($this->actor, $this->user);
 

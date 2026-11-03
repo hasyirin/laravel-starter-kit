@@ -31,10 +31,6 @@ class UpdateUser
         ?array $roles = null,
         ?array $permissions = null,
     ): void {
-        $bypassPermission = config()->string('system.permissions.bypass-authorization');
-
-        throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
-
         $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $password, $placement, $roles, $permissions): void {
             $user->fill(['name' => $name, 'email' => $email]);
 

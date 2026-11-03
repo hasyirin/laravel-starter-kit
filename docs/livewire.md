@@ -22,6 +22,41 @@ $this->dispatch('refresh')->to(Documents::class);
 
 A `refresh` event without `to()` renders every component on the page again. Do not name a method of your own `refresh()`.
 
+## Forms
+
+A form object holds the input of one record. It extends `App\Livewire\Form` and lives in a folder under `app/Livewire/Forms`, such as `app/Livewire/Forms/Admin`. One form serves both the create page and the edit page. `App\Livewire\Forms\Admin\UserForm` is the example.
+
+A form has two main methods:
+
+- `set()` fills the form from a record. Call it in `mount()`, and again after a save.
+- `save()` validates the input, calls the Action, and returns the record. When the form has no record, `save()` creates one.
+
+The form does not write models. The Action does the write and opens the transaction. So the component only authorizes the user, calls `save()`, and shows the result:
+
+```php
+public function mount(User $user): void
+{
+    $this->authorize('view', $user);
+
+    $this->user = $user;
+    $this->form->set($user);
+}
+
+public function save(): void
+{
+    $this->authorize('update', $this->user);
+
+    $this->user = $this->form->save();
+    $this->form->set($this->user);
+
+    $this->notifySaved(__('user/users.user'), created: false);
+}
+```
+
+Mark the record and every other property that the user does not type with `#[Locked]`. A browser can change any public property that is not locked. A flag that changes the rules, such as `required`, must be locked too.
+
+When the user can change only some parts of a record, check each part with the policy in `save()`. For example, `UserForm` sends the roles to the Action only when the user can `update` the `roles` of that user. A disabled input in the browser does not stop a request, so the check must be on the server.
+
 ## Disable
 
 `App\Livewire\Concerns\CanBeDisabled` gives a component a `disabled` prop. The parent passes it, and the component follows when the parent changes it:

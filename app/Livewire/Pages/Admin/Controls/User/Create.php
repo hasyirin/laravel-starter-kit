@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Admin\Controls\User;
 
-use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Models\User;
 use App\Livewire\Pages\Admin\Controls\User\Concerns\InteractsWithUserForm;
 use App\Livewire\Pages\Shared\Page;
@@ -19,32 +18,11 @@ class Create extends Page
         $this->authorize('create', User::class);
     }
 
-    public function canChange(string $type): bool
-    {
-        return $this->can('create', [User::class, $type]);
-    }
-
-    public function save(CreateUser $createUser): void
+    public function save(): void
     {
         $this->authorize('create', User::class);
 
-        $this->form->email = str($this->form->email)->lower()->value();
-        $this->form->validate();
-
-        /** @var User $actor */
-        $actor = auth()->user();
-
-        $roles = $this->rolesToSave();
-
-        $user = $createUser->execute(
-            $actor,
-            $this->form->name,
-            $this->form->email,
-            $this->form->password,
-            $this->form->placement(),
-            $roles,
-            $this->permissionsToSave($roles),
-        );
+        $user = $this->form->save();
 
         $this->notifySaved((string) __('user/users.user'), created: true);
         $this->redirect(route('admin.controls.users.show', $user), navigate: true);
@@ -53,10 +31,5 @@ class Create extends Page
     public function render(): View
     {
         return view('livewire.pages.admin.controls.user.create')->title(__('user/users.create.title'));
-    }
-
-    protected function subject(): ?User
-    {
-        return null;
     }
 }

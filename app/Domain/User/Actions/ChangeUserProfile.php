@@ -43,13 +43,29 @@ class ChangeUserProfile
             $currentRoles = $this->normalized($current?->getRoleNames());
             $currentPermissions = $this->normalized($current?->getPermissionNames());
 
-            $isSelf = $actor->is($user);
-            $givenRoles = collect($roles ?? $currentRoles->all());
-            $givenPermissions = collect($permissions ?? $currentPermissions->all());
-
             $newPlacement = $this->placementOf($placement ?? $currentPlacement);
-            $newRoles = $this->guardedSet($actorHasBypass, $isSelf, $givenRoles, $currentRoles, $this->bypassRoles());
-            $newPermissions = $this->guardedSet($actorHasBypass, $isSelf, $givenPermissions, $currentPermissions, collect([$this->bypassPermission()]));
+            $newRoles = $this->normalized(collect($roles ?? $currentRoles->all()));
+
+            $knownRoles = Role::query()
+                ->with('permissions')
+                ->whereIn('name', $currentRoles->merge($newRoles)->all())
+                ->get();
+
+            $bypassRoles = $this->normalized($knownRoles
+                ->filter(fn (Role $role): bool => $role->checkPermissionTo($this->bypassPermission()))
+                ->pluck('name'));
+
+            $roleGivenPermissions = $this->normalized($knownRoles
+                ->whereIn('name', $newRoles->all())
+                ->flatMap(fn (Role $role): Collection => $role->permissions->pluck('name')));
+
+            $newPermissions = $this->normalized(collect($permissions ?? $currentPermissions->all()))
+                ->filter(fn (string $name): bool => $currentPermissions->contains($name) || $roleGivenPermissions->doesntContain($name))
+                ->values();
+
+            $isSelf = $actor->is($user);
+            $this->guardProtected($actorHasBypass, $isSelf, $newRoles, $currentRoles, $bypassRoles);
+            $this->guardProtected($actorHasBypass, $isSelf, $newPermissions, $currentPermissions, collect([$this->bypassPermission()]));
 
             $isUnchanged = $current instanceof Profile
                 && $newPlacement === $currentPlacement
@@ -74,30 +90,20 @@ class ChangeUserProfile
     }
 
     /**
-     * @param  Collection<int, string>  $given
+     * @param  Collection<int, string>  $new
      * @param  Collection<int, string>  $current
      * @param  Collection<int, string>  $protected
-     * @return Collection<int, string>
      *
      * @throws AuthorizationException
      */
-    private function guardedSet(bool $actorHasBypass, bool $isSelf, Collection $given, Collection $current, Collection $protected): Collection
+    private function guardProtected(bool $actorHasBypass, bool $isSelf, Collection $new, Collection $current, Collection $protected): void
     {
-        $held = $current->intersect($protected);
+        $added = $new->intersect($protected)->diff($current);
+        $removed = $current->intersect($protected)->diff($new);
 
-        if (! $actorHasBypass) {
-            $given = $given->merge($held);
-        }
-
-        $given = $this->normalized($given);
-        $added = $given->intersect($protected)->diff($current);
-        $removed = $held->diff($given);
-
-        throw_if(($added->isNotEmpty() || $removed->isNotEmpty()) && ! $actorHasBypass, AuthorizationException::class);
+        throw_if($added->isNotEmpty() && ! $actorHasBypass, AuthorizationException::class);
 
         throw_if($removed->isNotEmpty() && $isSelf, AuthorizationException::class);
-
-        return $given;
     }
 
     /**
@@ -134,18 +140,6 @@ class ChangeUserProfile
             ->unique()
             ->sort()
             ->values();
-    }
-
-    /**
-     * @return Collection<int, string>
-     */
-    private function bypassRoles(): Collection
-    {
-        $names = Role::query()
-            ->whereRelation('permissions', 'name', $this->bypassPermission())
-            ->pluck('name');
-
-        return $this->normalized($names);
     }
 
     private function bypassPermission(): string

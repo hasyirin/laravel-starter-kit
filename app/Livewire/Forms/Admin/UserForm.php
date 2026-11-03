@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Livewire\Forms\Admin;
 
 use App\Domain\Shared\Permission\Support\PermissionTree;
+use App\Domain\User\Actions\CreateUser;
+use App\Domain\User\Actions\UpdateUser;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Concerns\ProfileValidationRules;
 use App\Domain\User\Models\User;
 use App\Livewire\Form;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Locked;
@@ -20,7 +24,7 @@ class UserForm extends Form
     use ProfileValidationRules;
 
     #[Locked]
-    public ?int $userId = null;
+    public ?User $user = null;
 
     public string $name = '';
 
@@ -48,17 +52,51 @@ class UserForm extends Form
      */
     public array $permissions = [];
 
-    public function fillFromUser(User $user): void
+    public function set(User $user): static
     {
-        $this->userId = $user->id;
+        $this->user = $user;
         $this->name = $user->name;
         $this->email = $user->email;
+        $this->reset('password', 'password_confirmation');
 
         $profile = $user->profile;
         $this->organization_id = $profile?->organization_id;
         $this->branch_id = $profile?->branch_id;
         $this->department_id = $profile?->department_id;
         $this->position_id = $profile?->position_id;
+
+        $bypassPermission = config()->string('system.permissions.bypass-authorization');
+        $actorHasBypass = $this->actor()->checkPermissionTo($bypassPermission);
+
+        $this->roles = $this->names($profile?->getRoleNames())->all();
+        $this->permissions = $this->names($profile?->getPermissionNames())
+            ->reject(fn (string $name): bool => $name === $bypassPermission && ! $actorHasBypass)
+            ->values()
+            ->all();
+
+        return $this;
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function save(): User
+    {
+        $this->email = str($this->email)->lower()->value();
+        $this->validate();
+
+        $roles = $this->canChange('roles') ? $this->roles : null;
+        $permissions = $this->canChange('permissions') ? $this->permissions : null;
+
+        if (! $this->user instanceof User) {
+            return CreateUser::make()->execute($this->actor(), $this->name, $this->email, $this->password, $this->placement(), $roles, $permissions);
+        }
+
+        $password = $this->password === '' ? null : $this->password;
+
+        UpdateUser::make()->execute($this->actor(), $this->user, $this->name, $this->email, $password, $this->placement(), $roles, $permissions);
+
+        return $this->user;
     }
 
     /**
@@ -67,7 +105,7 @@ class UserForm extends Form
     public function rules(): array
     {
         return [
-            ...$this->profileRules($this->userId),
+            ...$this->profileRules($this->user?->id),
             'password' => $this->passwordFieldRules(),
             'organization_id' => [
                 'nullable',
@@ -117,13 +155,35 @@ class UserForm extends Form
         ];
     }
 
-    public function passwordOrNull(): ?string
+    public function canChange(string $type): bool
     {
-        if ($this->password === '') {
-            return null;
+        if (! $this->user instanceof User) {
+            return $this->can('create', [User::class, $type]);
         }
 
-        return $this->password;
+        return $this->can('update', [$this->user, $type]);
+    }
+
+    private function actor(): User
+    {
+        /** @var User $actor */
+        $actor = auth()->user();
+
+        return $actor;
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     *
+     * @param  Collection<TKey, TValue>|null  $names
+     * @return Collection<int, string>
+     */
+    private function names(?Collection $names): Collection
+    {
+        return collect($names)
+            ->map(fn (mixed $name): string => (string) $name)
+            ->values();
     }
 
     /**
@@ -131,7 +191,7 @@ class UserForm extends Form
      */
     private function passwordFieldRules(): array
     {
-        if ($this->userId === null) {
+        if (! $this->user instanceof User) {
             return $this->passwordRules();
         }
 

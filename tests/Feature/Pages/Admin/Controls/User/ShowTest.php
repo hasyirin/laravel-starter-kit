@@ -14,6 +14,7 @@ use App\Livewire\Components\Option;
 use App\Livewire\Pages\Admin\Controls\User\Show;
 use App\Livewire\Pages\Admin\Controls\User\Tabs;
 use Carbon\CarbonImmutable;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -127,6 +128,11 @@ test('the details show when the user was created and verified the email', functi
     Livewire::test(Show::class, ['user' => $user])
         ->assertSeeInOrder([__('user/users.created_at'), '2 Jan 2026, 16:30', __('user/users.email_verified_at'), '3 Jan 2026, 17:45']);
 });
+
+test('the browser cannot change the user of the form', function (): void {
+    Livewire::test(Show::class, ['user' => $this->subject])
+        ->set('form.user', $this->admin->id);
+})->throws(CannotUpdateLockedPropertyException::class);
 
 test('saving keeps the roles of the profile', function (): void {
     $role = Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);

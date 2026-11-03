@@ -26,42 +26,43 @@ trait InteractsWithUserForm
 {
     public UserForm $form;
 
-    abstract public function canChange(string $type): bool;
-
-    abstract protected function subject(): ?User;
+    public function canChange(string $type): bool
+    {
+        return $this->form->canChange($type);
+    }
 
     /**
-     * @return array<int, string>
+     * @return Collection<int, string>
      */
     #[Computed]
-    public function organizations(): array
+    public function organizations(): Collection
     {
         return $this->namesOf(Organization::query());
     }
 
     /**
-     * @return array<int, string>
+     * @return Collection<int, string>
      */
     #[Computed]
-    public function branches(): array
+    public function branches(): Collection
     {
         return $this->namesOf(Branch::query()->where('organization_id', $this->form->organization_id));
     }
 
     /**
-     * @return array<int, string>
+     * @return Collection<int, string>
      */
     #[Computed]
-    public function departments(): array
+    public function departments(): Collection
     {
         return $this->namesOf(Department::query()->where('organization_id', $this->form->organization_id));
     }
 
     /**
-     * @return array<int, string>
+     * @return Collection<int, string>
      */
     #[Computed]
-    public function positions(): array
+    public function positions(): Collection
     {
         return $this->namesOf(Position::query()
             ->where('organization_id', $this->form->organization_id)
@@ -97,11 +98,12 @@ trait InteractsWithUserForm
     public function roleOptions(): Collection
     {
         $readOnly = ! $this->canChange('roles');
-        $locked = $this->lockedRoles();
+        $isSelf = $this->isSelf();
+        $held = $this->heldRoles();
 
         return $this->roles->map(fn (Role $role): Option => Option::make($role->name)
             ->label($role->label)
-            ->disabled($readOnly || $locked->contains($role->name)));
+            ->disabled($readOnly || ($isSelf && $held->contains($role->name) && $role->checkPermissionTo($this->bypassPermission()))));
     }
 
     /**
@@ -154,54 +156,12 @@ trait InteractsWithUserForm
         $this->form->position_id = null;
     }
 
-    protected function fillRolesAndPermissions(): void
-    {
-        $this->form->roles = $this->heldRoles()->all();
-        $this->form->permissions = $this->visiblePermissions($this->heldPermissions())->all();
-    }
-
-    /**
-     * @return array<int, string>|null
-     */
-    protected function rolesToSave(): ?array
-    {
-        if (! $this->canChange('roles')) {
-            return null;
-        }
-
-        return $this->form->roles;
-    }
-
-    /**
-     * @param  array<int, string>|null  $roles
-     * @return array<int, string>|null
-     */
-    protected function permissionsToSave(?array $roles): ?array
-    {
-        if (! $this->canChange('permissions')) {
-            return null;
-        }
-
-        $fromRoles = Role::query()
-            ->with('permissions')
-            ->whereIn('name', $roles ?? $this->heldRoles())
-            ->get()
-            ->flatMap(fn (Role $role): Collection => $role->permissions->pluck('name'));
-
-        $held = $this->heldPermissions();
-
-        return collect($this->form->permissions)
-            ->filter(fn (string $name): bool => $held->contains($name) || $fromRoles->doesntContain($name))
-            ->values()
-            ->all();
-    }
-
     /**
      * @return Collection<int, string>
      */
     private function heldRoles(): Collection
     {
-        return $this->names($this->subject()?->profile?->getRoleNames());
+        return $this->names($this->form->user?->profile?->getRoleNames());
     }
 
     /**
@@ -209,45 +169,7 @@ trait InteractsWithUserForm
      */
     private function heldPermissions(): Collection
     {
-        return $this->names($this->subject()?->profile?->getPermissionNames());
-    }
-
-    /**
-     * @return Collection<int, string>
-     */
-    private function lockedRoles(): Collection
-    {
-        $isSelf = $this->isSelf();
-        $held = $this->heldRoles();
-
-        return $this->roles
-            ->filter(fn (Role $role): bool => $isSelf && $role->checkPermissionTo($this->bypassPermission()) && $held->contains($role->name))
-            ->map(fn (Role $role): string => $role->name)
-            ->values();
-    }
-
-    private function isSelf(): bool
-    {
-        $subject = $this->subject();
-
-        if ($subject === null) {
-            return false;
-        }
-
-        return $subject->is($this->actor());
-    }
-
-    private function actor(): User
-    {
-        /** @var User $actor */
-        $actor = auth()->user();
-
-        return $actor;
-    }
-
-    private function actorHasBypass(): bool
-    {
-        return $this->actor()->checkPermissionTo($this->bypassPermission());
+        return $this->names($this->form->user?->profile?->getPermissionNames());
     }
 
     /**
@@ -265,13 +187,34 @@ trait InteractsWithUserForm
             ->values();
     }
 
+    private function isSelf(): bool
+    {
+        return $this->form->user?->is($this->actor()) ?? false;
+    }
+
+    private function actorHasBypass(): bool
+    {
+        return $this->actor()->checkPermissionTo($this->bypassPermission());
+    }
+
+    private function actor(): User
+    {
+        /** @var User $actor */
+        $actor = auth()->user();
+
+        return $actor;
+    }
+
     private function bypassPermission(): string
     {
         return config()->string('system.permissions.bypass-authorization');
     }
 
     /**
-     * @param  Collection<array-key, mixed>|null  $names
+     * @template TKey of array-key
+     * @template TValue
+     *
+     * @param  Collection<TKey, TValue>|null  $names
      * @return Collection<int, string>
      */
     private function names(?Collection $names): Collection
@@ -285,11 +228,11 @@ trait InteractsWithUserForm
      * @template TModel of Branch|Department|Organization|Position
      *
      * @param  Builder<TModel>  $query
-     * @return array<int, string>
+     * @return Collection<int, string>
      */
-    private function namesOf(Builder $query): array
+    private function namesOf(Builder $query): Collection
     {
-        /** @var array<int, string> */
-        return $query->orderBy('name')->pluck('name', 'id')->all();
+        /** @var Collection<int, string> */
+        return $query->orderBy('name')->pluck('name', 'id');
     }
 }

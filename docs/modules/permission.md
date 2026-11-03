@@ -10,9 +10,9 @@ The app checks access with permissions, and roles group permissions. A user gets
 
 ## Add a Role
 
-Add the role to `RoleSeeder::data()`, or to the `data()` method of a seeder that extends `RoleSeeder`. Call a new role seeder from `DatabaseSeeder`, so that the seeding and the permission matrix include it. Each role lists permission patterns and exceptions, and `*` matches any text. `RoleSeeder` only adds permissions to a role, so changes made in production stay.
+Add the role to `RoleSeeder::data()`, or to the `data()` method of a seeder that extends `RoleSeeder`. Call a new role seeder from `DatabaseSeeder`, so that the seeding and the permission matrix include it. Each role lists permission patterns and exceptions, and `*` matches any text. `RoleSeeder` only adds permissions to a role, so the changes that people make in production stay.
 
-The seeders create system roles. A system role cannot be renamed or deleted.
+The seeders create system roles. Nobody can rename or delete a system role.
 
 ## Bypass
 

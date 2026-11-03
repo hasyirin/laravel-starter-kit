@@ -112,12 +112,12 @@ An accordion card needs a heading to toggle it, and a body or a footer to fold. 
 
 A folded card opens by itself when something inside needs the user:
 
-- a field that the browser rejects when the form is sent
+- a field that the browser rejects when the user sends the form
 - a new error message from the server
 - a modal that opens
 - a match of find in page, or a link to an element inside the card
 
-The browser reports a field the same way when your own code calls `checkValidity()`, so that call also opens a folded card with a field that fails its check.
+If your own code calls `checkValidity()`, the browser reports a field the same way. So that call also opens a folded card with a field that fails its check.
 
 A card does not fold when the server changes `collapsed` while it shows an error message or an open modal.
 

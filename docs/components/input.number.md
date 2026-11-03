@@ -49,7 +49,7 @@ The input accepts a minus sign. `disable-negatives` removes it. Phones then show
 
 ## Live Updates
 
-`wire:model` sits on a hidden input that holds the plain number. Each event of the shown input is repeated on the hidden input, so every modifier works. For example, `.live` sends the number while the user types, and `.blur` sends it when the user leaves the field.
+`wire:model` sits on a hidden input that holds the plain number. The kit repeats each event of the shown input on the hidden input, so every modifier works. For example, `.live` sends the number while the user types, and `.blur` sends it when the user leaves the field.
 
 ```blade
 <x-input.number label="Reading" wire:model.live="form.reading" suffix="mm" />

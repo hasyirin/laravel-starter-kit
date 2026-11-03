@@ -39,7 +39,7 @@ In the local environment, open `/docs/components`. The page shows these files an
 ## Write a Component Page
 
 - Name the file after the component, for example `input.md` for `<x-input>` and `input.number.md` for `<x-input.number>`. Start it with a `#` heading.
-- If the component changes a Flux default or wraps a Flux prop with its own default, add a Defaults section after the first example.
+- If the component changes a Flux default, add a Defaults section after the first example. A Flux prop that the component gives its own default is also such a change.
 - Show every prop of the component in an example. For the field props, link to [Field](field.md) instead of repeating them. End the page with a Reference section for the props, slots, and attributes.
 - Write each `blade` example so that it renders on its own, and bind it to `form.<field>`. The live docs page renders all examples on one Livewire page that has a `form` array. A test renders every page, so a broken example fails the tests.
 - When you add or change a component, update its page and its row in this table.

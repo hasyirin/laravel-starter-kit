@@ -49,7 +49,7 @@ The trait gives the view these variables:
 
 Each tab is a link. A plain click calls `InteractsWithTabs::switchTab()` on the component that owns the tab set, so only that component renders again. The bar marks the clicked tab at once. The current content stays until the server answers, and dims when the answer takes longer than 200 ms. A kept-alive tab that already rendered shows at once, without the dim. When the user clicks again before the server answers, the last click wins. When a request fails, the bar marks the current tab again. A middle click, a click with Ctrl or Cmd, and "open in new tab" follow the link.
 
-`InteractsWithTabs::switchTab()` ignores a tab that is unknown, hidden, or disabled. When a tab changes in another way, for example with the Back button, the trait checks it in the same way and keeps the tab it had.
+`InteractsWithTabs::switchTab()` ignores a tab that is unknown, hidden, or disabled. A tab can also change in another way, for example with the Back button. The trait then checks the tab in the same way and keeps the tab it had.
 
 ## The URL
 
@@ -57,7 +57,7 @@ The tab set keeps its tab in the URL, under the key from `queryTabAs()`. The def
 
 The default tab is the first tab that is visible and not disabled. Its key stays out of the URL, so the page keeps a clean URL. For the default tab, the `$tab` property holds an empty string. To read the current tab in code, use `$this->currentTab`. It gives the `Tab`, also for the default tab.
 
-Give a tab set another key when the page has more than one set, or when `tab` already means something on the page:
+If the page has more than one set, or if `tab` already means something on the page, give the tab set another key:
 
 ```php
 public function queryTabAs(): string
@@ -68,7 +68,7 @@ public function queryTabAs(): string
 
 When the URL holds a tab that is unknown, hidden, or disabled, the tab set opens the default tab. When no tab is available, the page answers 404.
 
-A tab set that is only one part of a page, such as the tabs below the form of a record, must not take the whole page down. Return `true` from `rendersWithoutTabs()`, and the set mounts without a tab instead: `$this->currentTab` is `null`, and `$tabPanels` is empty. Check `$tabs` in the view, so that the bar and its spacing stay out:
+A tab set can be only one part of a page, such as the tabs below the form of a record. Then it must not take the whole page down. Return `true` from `rendersWithoutTabs()`, and the set mounts without a tab instead: `$this->currentTab` is `null`, and `$tabPanels` is empty. Check `$tabs` in the view, so that the bar and its spacing stay out:
 
 ```php
 protected function rendersWithoutTabs(): bool
@@ -163,7 +163,7 @@ In the example, Profile stays alive and Notes loads fresh. Type in both fields, 
 <livewire:pages.local.examples.tabs query-as="keep-alive" />
 ```
 
-Only a Livewire component can stay alive. A view renders inside the component that owns the tab set and has no state of its own, so `keepAlive()` on a view throws a `LogicException`. A kept-alive tab that becomes hidden or disabled leaves the page.
+Only a Livewire component can stay alive. A view renders inside the component that owns the tab set. It has no state of its own, so `keepAlive()` on a view throws a `LogicException`. A kept-alive tab that becomes hidden or disabled leaves the page.
 
 ## Lazy
 
@@ -220,7 +220,7 @@ A tab set inside the content of a tab is a Livewire component of its own. It use
 
 When the user leaves the outer tab, the inner key stays in the URL. So when the user comes back, the inner set opens the tab that the user had.
 
-A nested set with no available tab aborts with 404 when it mounts, also when it mounts after a switch of the outer set. So give every nested set at least one tab that is always available, or let it render without tabs with `rendersWithoutTabs()`.
+A nested set with no available tab aborts with 404 when it mounts. This also applies when it mounts after a switch of the outer set. So give every nested set at least one tab that is always available, or let it render without tabs with `rendersWithoutTabs()`.
 
 ```blade
 <livewire:pages.local.examples.tabs query-as="outer" nested />

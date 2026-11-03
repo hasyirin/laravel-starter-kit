@@ -102,6 +102,7 @@
             "@php artisan docs:generate --check --ansi"
         ],
         "test": [
+            "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",

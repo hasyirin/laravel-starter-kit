@@ -281,7 +281,7 @@ test('your own direct bypass-authorization is locked', function (): void {
         ->and($component->instance()->canChange('permissions'))->toBeTrue();
 });
 
-test('permissions that the roles give are not saved as direct', function (): void {
+test('a permission that a held role gives can be saved as direct', function (): void {
     $this->admin->givePermissionTo('admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('admin.access');
     Profile::factory()->for($this->subject)->withRoles('editor')->create();
@@ -291,10 +291,10 @@ test('permissions that the roles give are not saved as direct', function (): voi
         ->call('save')
         ->assertHasNoErrors();
 
-    expect($this->subject->fresh()->profile->getPermissionNames()->all())->toBe(['admin.horizon.view']);
+    expect($this->subject->fresh()->profile->getPermissionNames()->sort()->values()->all())->toBe(['admin.access', 'admin.horizon.view']);
 });
 
-test('permissions that newly ticked roles give are not saved as direct', function (): void {
+test('a permission that a newly ticked role gives can be saved as direct', function (): void {
     $this->admin->givePermissionTo('admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('admin.access');
 
@@ -306,7 +306,7 @@ test('permissions that newly ticked roles give are not saved as direct', functio
 
     $profile = $this->subject->fresh()->profile;
     expect($profile->getRoleNames()->all())->toBe(['editor'])
-        ->and($profile->getPermissionNames()->all())->toBe(['admin.horizon.view']);
+        ->and($profile->getPermissionNames()->sort()->values()->all())->toBe(['admin.access', 'admin.horizon.view']);
 });
 
 test('a direct permission that a role also gives stays direct', function (): void {

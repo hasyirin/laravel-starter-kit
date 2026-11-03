@@ -91,17 +91,34 @@ test('ticking a role marks its permissions as given by that role', function (): 
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         await openCard('Roles');
-        const fromEditor = ticked(chip('admin.access')) && locked(chip('admin.access')) && chip('admin.access').textContent.includes('from editor');
+        const fromEditor = ! ticked(chip('admin.access')) && ! locked(chip('admin.access')) && chip('admin.access').textContent.includes('from editor');
 
         role('viewer').click();
         role('editor').click();
-        await until(() => ticked(chip('internal.access')) && ! ticked(chip('admin.access')));
+        await until(() => chip('internal.access').textContent.includes('from viewer') && ! chip('admin.access').textContent.includes('from editor'));
 
         return fromEditor
-            && locked(chip('internal.access'))
-            && chip('internal.access').textContent.includes('from viewer')
-            && ! locked(chip('admin.access'))
-            && ! chip('admin.access').textContent.includes('from editor');
+            && ! ticked(chip('internal.access'))
+            && ! locked(chip('internal.access'));
+        SCRIPT)))->toBeTrue();
+
+    $page->assertNoJavaScriptErrors();
+});
+
+test('a permission that a role gives can also be ticked as direct, and stays when the role is removed', function (): void {
+    $page = visit(route('admin.controls.users.show', $this->subject, false));
+
+    expect($page->script(permissionTreeScript(<<<'SCRIPT'
+        await openCard('Roles');
+
+        chip('admin.access').click();
+        await until(() => ticked(chip('admin.access')));
+        const directAndFromEditor = chip('admin.access').textContent.includes('from editor');
+
+        role('editor').click();
+        await until(() => ! chip('admin.access').textContent.includes('from editor'));
+
+        return directAndFromEditor && ticked(chip('admin.access'));
         SCRIPT)))->toBeTrue();
 
     $page->assertNoJavaScriptErrors();

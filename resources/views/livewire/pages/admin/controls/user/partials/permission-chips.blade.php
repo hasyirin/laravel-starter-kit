@@ -5,7 +5,7 @@
                 type="button"
                 role="checkbox"
                 x-show="isShown(@js($permission['name']))"
-                x-bind:aria-checked="isGranted(@js($permission['name'])).toString()"
+                x-bind:aria-checked="isTicked(@js($permission['name'])).toString()"
                 x-bind:aria-disabled="isLocked(@js($permission['name'])).toString()"
                 x-on:click="toggle(@js($permission['name']))"
                 x-bind:class="{
@@ -20,7 +20,7 @@
                 <span
                     x-bind:class="{
                         'border-accent bg-accent text-accent-foreground': chipState(@js($permission['name'])) === 'on',
-                        'border-zinc-300 bg-zinc-200 text-zinc-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-300': chipState(@js($permission['name'])) === 'lock',
+                        'border-zinc-300 bg-zinc-200 text-zinc-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-300': ['lock', 'role'].includes(chipState(@js($permission['name']))),
                         'opacity-45': readOnly,
                     }"
                     class="flex size-3.5 shrink-0 items-center justify-center rounded-sm border-[1.5px] border-zinc-400 dark:border-zinc-500"

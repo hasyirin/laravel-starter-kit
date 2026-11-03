@@ -93,16 +93,20 @@ export default function permissionTree() {
         },
 
         isLocked(name) {
-            return this.readOnly || this.roleOf(name) !== undefined || locked.includes(name);
+            return this.readOnly || locked.includes(name);
         },
 
         chipState(name) {
-            if (this.roleOf(name) !== undefined || locked.includes(name)) {
+            if (locked.includes(name)) {
                 return 'lock';
             }
 
             if (this.isTicked(name)) {
                 return 'on';
+            }
+
+            if (this.roleOf(name) !== undefined) {
+                return 'role';
             }
 
             return 'off';
@@ -126,13 +130,13 @@ export default function permissionTree() {
 
         resourceState(key) {
             const permissions = nodes[key].node.permissions;
-            const granted = permissions.filter((permission) => this.isGranted(permission.name)).length;
+            const ticked = permissions.filter((permission) => this.isTicked(permission.name)).length;
 
-            if (granted === 0) {
+            if (ticked === 0) {
                 return 'off';
             }
 
-            if (granted === permissions.length) {
+            if (ticked === permissions.length) {
                 return 'on';
             }
 

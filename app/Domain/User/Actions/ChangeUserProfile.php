@@ -46,22 +46,11 @@ class ChangeUserProfile
             $newPlacement = $this->placementOf($placement ?? $currentPlacement);
             $newRoles = $this->normalized(collect($roles ?? $currentRoles->all()));
 
-            $knownRoles = Role::query()
-                ->with('permissions')
-                ->whereIn('name', $currentRoles->merge($newRoles)->all())
-                ->get();
+            $newPermissions = $this->normalized(collect($permissions ?? $currentPermissions->all()));
 
-            $bypassRoles = $this->normalized($knownRoles
-                ->filter(fn (Role $role): bool => $role->checkPermissionTo($this->bypassPermission()))
+            $bypassRoles = $this->normalized(Role::query()
+                ->whereRelation('permissions', 'name', $this->bypassPermission())
                 ->pluck('name'));
-
-            $roleGivenPermissions = $this->normalized($knownRoles
-                ->whereIn('name', $newRoles->all())
-                ->flatMap(fn (Role $role): Collection => $role->permissions->pluck('name')));
-
-            $newPermissions = $this->normalized(collect($permissions ?? $currentPermissions->all()))
-                ->filter(fn (string $name): bool => $currentPermissions->contains($name) || $roleGivenPermissions->doesntContain($name))
-                ->values();
 
             $isSelf = $actor->is($user);
             $this->guardProtected($actorHasBypass, $isSelf, $newRoles, $currentRoles, $bypassRoles);

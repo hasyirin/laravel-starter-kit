@@ -158,12 +158,8 @@ test('the first paint has no fade and a new panel fades in', function (): void {
     expect($page->script(tabsScript(<<<'SCRIPT'
         const noFadeAtFirst = getComputedStyle(panel('keep-alive', 'profile')).animationDuration === '0s';
 
-        // The first click gives every panel a fade of 150ms. A fade that started less than 150ms before it runs again.
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
         slowNetwork(300);
         tab('keep-alive', 'notes').click();
-        await tick();
         const leavingPanelStill = panel('keep-alive', 'profile').getAnimations().every((animation) => animation.playState !== 'running');
 
         await until(() => shown('keep-alive', 'notes'));

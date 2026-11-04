@@ -52,13 +52,13 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
     public static function options(): Collection
     {
         return collect(static::getStateMapping()->all())
-            ->mapWithKeys(fn (mixed $state, mixed $name): array => [(string) $name => new (static::stateClass((string) $state))(null)->label()]);
+            ->mapWithKeys(fn (mixed $state, mixed $name): array => [(string) $name => new (static::classOf((string) $state))(null)->label()]);
     }
 
     public static function abilityTo(string $from, string $to): string
     {
-        $to = static::stateClass($to);
-        $transition = self::config()->resolveTransitionClass(static::stateClass($from)::getMorphClass(), $to::getMorphClass());
+        $to = static::classOf($to);
+        $transition = self::config()->resolveTransitionClass(static::classOf($from)::getMorphClass(), $to::getMorphClass());
 
         return $transition !== null && is_subclass_of($transition, Transition::class)
             ? $transition::ability()
@@ -68,7 +68,7 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
     /**
      * @return class-string<State<Model>>
      */
-    protected static function stateClass(string $state): string
+    protected static function classOf(string $state): string
     {
         $class = static::resolveStateClass($state);
         $base = self::config()->baseStateClass;
@@ -131,7 +131,7 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
 
     public function hasStepTo(string $state): bool
     {
-        return self::config()->isTransitionAllowed(static::getMorphClass(), static::stateClass($state)::getMorphClass());
+        return self::config()->isTransitionAllowed(static::getMorphClass(), static::classOf($state)::getMorphClass());
     }
 
     /**
@@ -148,7 +148,7 @@ abstract class State extends \Spatie\ModelStates\State implements HasColor, HasL
     public function reasonFor(string $state, mixed ...$arguments): ?string
     {
         $from = static::getMorphClass();
-        $to = static::stateClass($state);
+        $to = static::classOf($state);
 
         if (! self::config()->isTransitionAllowed($from, $to::getMorphClass())) {
             throw CouldNotPerformTransition::notFound($from, $to::getMorphClass(), $this->getModel());

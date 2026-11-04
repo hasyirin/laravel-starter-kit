@@ -35,7 +35,7 @@ function unformat(value, { comma, separator, disableNegatives }) {
     return disableNegatives ? text.replace(/-/g, '') : text;
 }
 
-function sameNumber(left, right) {
+function same(left, right) {
     const a = left === null || left === undefined ? '' : String(left);
     const b = right === null || right === undefined ? '' : String(right);
 
@@ -98,7 +98,7 @@ export default function numberField() {
         show(value) {
             const control = this.control();
 
-            if (!sameNumber(unformat(control.value, this.number), value)) {
+            if (!same(unformat(control.value, this.number), value)) {
                 control.value = this.display(value);
             }
         },

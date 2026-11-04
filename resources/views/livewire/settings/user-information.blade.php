@@ -10,7 +10,7 @@
             <div>
                 <flux:input wire:model="email" :label="__('common/inputs.email')" type="email" required autocomplete="email" />
 
-                @if($this->hasUnverifiedEmail)
+                @if($this->unverified)
                     <div>
                         <flux:text class="mt-4">
                             {{ __('user/settings.user_information.unverified') }}

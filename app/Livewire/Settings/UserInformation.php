@@ -78,7 +78,7 @@ class UserInformation extends Component
     }
 
     #[Computed]
-    public function hasUnverifiedEmail(): bool
+    public function unverified(): bool
     {
         $user = auth()->user();
 

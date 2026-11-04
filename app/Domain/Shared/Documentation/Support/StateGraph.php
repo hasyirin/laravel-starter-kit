@@ -109,9 +109,15 @@ class StateGraph
         return $default === null ? null : $default::getMorphClass();
     }
 
-    public function hasPolicy(): bool
+    public function policy(): ?Policy
     {
-        return Gate::getPolicyFor($this->model) instanceof Policy;
+        $policy = Gate::getPolicyFor($this->model);
+
+        if (! $policy instanceof Policy) {
+            return null;
+        }
+
+        return $policy;
     }
 
     public function permission(string $step): ?string

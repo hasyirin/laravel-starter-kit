@@ -37,7 +37,7 @@ class DeleteAction extends Action
             ->modalSubmitActionLabel((string) __('common/buttons.delete'))
             ->hidden(fn (Model $record): bool => method_exists($record, 'trashed') && $record->trashed())
             ->action(function (Model $record): void {
-                $this->runDeleteAction($record);
+                $this->run($record);
 
                 Flux::toast(variant: 'success', text: __('common/records.deleted'));
             });
@@ -53,7 +53,7 @@ class DeleteAction extends Action
         return $this;
     }
 
-    private function runDeleteAction(Model $record): void
+    private function run(Model $record): void
     {
         throw_if($this->deleteAction === null, LogicException::class, self::class.' needs an Action. Call through().');
 

@@ -96,9 +96,9 @@ class PermissionTree
             return 'area';
         }
 
-        $hasActions = $actions->contains(fn (array $path): bool => $path['rest'] !== self::GROUP_ACTION);
+        $groupOnly = $actions->every(fn (array $path): bool => $path['rest'] === self::GROUP_ACTION);
 
-        if (! $hasActions) {
+        if ($groupOnly) {
             return 'area';
         }
 

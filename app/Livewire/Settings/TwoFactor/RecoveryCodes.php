@@ -24,13 +24,13 @@ class RecoveryCodes extends Component
      */
     public function mount(): void
     {
-        $this->loadRecoveryCodes();
+        $this->load();
     }
 
     /**
      * Generate new recovery codes for the user.
      */
-    public function regenerateRecoveryCodes(GenerateNewRecoveryCodes $generateNewRecoveryCodes): void
+    public function regenerate(GenerateNewRecoveryCodes $generateNewRecoveryCodes): void
     {
         if (! $this->passwordIsConfirmed()) {
             return;
@@ -38,13 +38,13 @@ class RecoveryCodes extends Component
 
         $generateNewRecoveryCodes(auth()->user());
 
-        $this->loadRecoveryCodes();
+        $this->load();
     }
 
     /**
      * Load the recovery codes for the user.
      */
-    private function loadRecoveryCodes(): void
+    private function load(): void
     {
         /** @var User $user */
         $user = auth()->user();

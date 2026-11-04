@@ -15,6 +15,7 @@ beforeEach(function (): void {
         $table->string('group');
         $table->string('name');
         $table->string('secret')->nullable();
+        $table->string('status')->nullable();
         $table->unsignedInteger('sort_order');
         $table->timestamps();
         $table->softDeletes();
@@ -47,6 +48,28 @@ test('the activity log records fillable changes but not hidden ones', function (
 
     expect($changes?->get('attributes'))->toBe(['name' => 'Renamed'])
         ->and($changes?->get('old'))->toBe(['name' => 'First']);
+});
+
+test('the activity log records columns that are not fillable', function (): void {
+    $item = Item::query()->create(['group' => 'a', 'name' => 'First']);
+
+    $item->forceFill(['status' => 'approved'])->save();
+
+    $changes = Activity::query()->where('event', 'updated')->sole()->attribute_changes;
+
+    expect($changes?->get('attributes'))->toBe(['status' => 'approved'])
+        ->and($changes?->get('old'))->toBe(['status' => null]);
+});
+
+test('the activity log leaves out the key and the timestamps', function (): void {
+    $item = Item::query()->create(['group' => 'a', 'name' => 'First']);
+    $item->delete();
+
+    $created = Activity::query()->where('event', 'created')->sole()->attribute_changes?->get('attributes');
+    $deleted = Activity::query()->where('event', 'deleted')->sole()->attribute_changes?->get('old');
+
+    expect($created)->toBeArray()->not->toHaveKeys(['id', 'created_at', 'updated_at', 'deleted_at'])
+        ->and($deleted)->toBeArray()->not->toHaveKeys(['id', 'created_at', 'updated_at', 'deleted_at']);
 });
 
 test('timestamps are formatted in the time zone and locale of the current user', function (): void {

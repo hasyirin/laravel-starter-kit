@@ -16,7 +16,7 @@ trait InteractsWithActivityLogs
         return LogOptions::defaults()
             ->dontLogEmptyChanges()
             ->logOnlyDirty()
-            ->logFillable()
-            ->logExcept($this->getHidden());
+            ->logAll()
+            ->logExcept(array_filter([...$this->getHidden(), $this->getKeyName(), $this->getCreatedAtColumn(), $this->getUpdatedAtColumn(), 'deleted_at']));
     }
 }

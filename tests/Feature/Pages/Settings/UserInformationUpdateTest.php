@@ -3,27 +3,26 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
-use App\Livewire\Settings\Profile;
-use Carbon\CarbonImmutable;
+use App\Livewire\Settings\UserInformation;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
-test('profile page is displayed', function (): void {
+test('the user information page is displayed', function (): void {
     $this->actingAs($user = User::factory()->create());
 
-    $this->get('/settings/profile')->assertOk();
+    $this->get('/settings/user-information')->assertOk();
 });
 
-test('profile information can be updated', function (): void {
+test('user information can be updated', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
-    $response = Livewire::test(Profile::class)
+    $response = Livewire::test(UserInformation::class)
         ->set('name', 'Test User')
         ->set('email', 'test@example.com')
-        ->call('updateProfileInformation');
+        ->call('save');
 
     $response->assertHasNoErrors();
 
@@ -39,70 +38,14 @@ test('email verification status is unchanged when email address is unchanged', f
 
     $this->actingAs($user);
 
-    $response = Livewire::test(Profile::class)
+    $response = Livewire::test(UserInformation::class)
         ->set('name', 'Test User')
         ->set('email', $user->email)
-        ->call('updateProfileInformation');
+        ->call('save');
 
     $response->assertHasNoErrors();
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
-});
-
-test('the time zone and locale start at the ones of the user, or else at the config', function (?string $timezone, string $expected): void {
-    config(['system.timezone' => 'Asia/Kuala_Lumpur']);
-
-    $this->actingAs(User::factory()->create(['timezone' => $timezone]));
-
-    Livewire::test(Profile::class)->assertSet('timezone', $expected);
-})->with([
-    'a chosen time zone' => ['Asia/Tokyo', 'Asia/Tokyo'],
-    'no time zone yet' => [null, 'Asia/Kuala_Lumpur'],
-]);
-
-test('the time zone and locale can be updated', function (): void {
-    $user = User::factory()->create(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-MY']);
-
-    $this->actingAs($user);
-
-    Livewire::test(Profile::class)
-        ->set('timezone', 'Asia/Tokyo')
-        ->set('locale', 'en-GB')
-        ->call('updateProfileInformation')
-        ->assertHasNoErrors();
-
-    expect([$user->refresh()->timezone, $user->locale])->toBe(['Asia/Tokyo', 'en-GB']);
-});
-
-test('an unknown time zone or locale is rejected', function (string $field, string $value): void {
-    $this->actingAs(User::factory()->create());
-
-    Livewire::test(Profile::class)
-        ->set($field, $value)
-        ->call('updateProfileInformation')
-        ->assertHasErrors([$field]);
-})->with([
-    'time zone' => ['timezone', 'Mars/Olympus'],
-    'locale' => ['locale', 'fr-FR'],
-]);
-
-test('the profile shows how dates look with the chosen time zone and locale', function (): void {
-    $this->travelTo(CarbonImmutable::parse('2026-10-26 06:30', 'UTC'));
-    $this->actingAs(User::factory()->create());
-
-    Livewire::test(Profile::class)
-        ->set('timezone', 'Asia/Kuala_Lumpur')
-        ->set('locale', 'en-GB')
-        ->assertSee('Dates and times look like this: 26 Oct 2026, 14:30');
-});
-
-test('the date and time formats are named in the language of the app', function (): void {
-    $this->actingAs(User::factory()->create());
-
-    Livewire::test(Profile::class)
-        ->assertSee('Date and time format')
-        ->assertSee('Malay (Malaysia)')
-        ->assertDontSee('Melayu (Malaysia)');
 });
 
 test('user can delete their account', function (): void {
@@ -112,7 +55,7 @@ test('user can delete their account', function (): void {
 
     $response = Livewire::test('settings.delete-user-form')
         ->set('password', 'password')
-        ->call('deleteUser');
+        ->call('delete');
 
     $response
         ->assertHasNoErrors()
@@ -129,19 +72,31 @@ test('correct password must be provided to delete account', function (): void {
 
     $response = Livewire::test('settings.delete-user-form')
         ->set('password', 'wrong-password')
-        ->call('deleteUser');
+        ->call('delete');
 
     $response->assertHasErrors(['password']);
 
     expect($user->fresh())->not->toBeNull();
 });
 
+test('the delete account form shows only once the email is verified', function (): void {
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(UserInformation::class)->assertDontSeeLivewire('settings.delete-user-form');
+
+    $user->markEmailAsVerified();
+
+    Livewire::test(UserInformation::class)->assertSeeLivewire('settings.delete-user-form');
+});
+
 test('the email is stored in lowercase', function (): void {
     $this->actingAs(User::factory()->create());
 
-    Livewire::test(Profile::class)
+    Livewire::test(UserInformation::class)
         ->set('email', 'Alice@Example.COM')
-        ->call('updateProfileInformation')
+        ->call('save')
         ->assertHasNoErrors();
 
     expect(User::query()->where('email', 'alice@example.com')->exists())->toBeTrue()
@@ -152,9 +107,9 @@ test('an email that differs from another user only in case is taken', function (
     User::factory()->create(['email' => 'bob@example.com']);
     $this->actingAs(User::factory()->create());
 
-    Livewire::test(Profile::class)
+    Livewire::test(UserInformation::class)
         ->set('email', 'Bob@Example.com')
-        ->call('updateProfileInformation')
+        ->call('save')
         ->assertHasErrors(['email' => 'unique']);
 });
 
@@ -162,7 +117,7 @@ test('the verification email can be sent six times a minute', function (): void 
     Notification::fake();
     $this->actingAs($user = User::factory()->unverified()->create());
 
-    $component = Livewire::test(Profile::class);
+    $component = Livewire::test(UserInformation::class);
 
     foreach (range(1, 7) as $attempt) {
         $component->call('resendVerificationNotification');

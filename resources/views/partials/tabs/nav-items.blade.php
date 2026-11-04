@@ -3,7 +3,7 @@
         $disabled = $tab->isDisabled();
         $tooltip = $tab->resolvedTooltip($disabled);
         $key = 'tab-'.$tab->slug();
-        $isCurrent = $tab->slug() === $currentTab?->slug();
+        $current = $tab->slug() === $currentTab?->slug();
     @endphp
 
     @if($tooltip)
@@ -13,8 +13,8 @@
         :component="$item"
         :href="$disabled ? null : $tab->resolvedUrl()"
         :as="$disabled ? 'div' : null"
-        :current="$isCurrent"
-        :aria-current="$isCurrent ? 'page' : null"
+        :current="$current"
+        :aria-current="$current ? 'page' : null"
         :icon="$tab->resolvedIcon()"
         :badge="$tab->resolvedBadge()"
         :badge-color="$tab->resolvedBadgeColor()"

@@ -1,6 +1,6 @@
 @php
     $key = $node['key'];
-    $isResource = $node['kind'] === 'resource';
+    $resource = $node['kind'] === 'resource';
 @endphp
 
 <div x-show="nodeShown(@js($key))" data-node="{{ $key }}">
@@ -15,7 +15,7 @@
             <flux:icon.chevron-right variant="micro" class="size-3.5 transition-transform" x-bind:class="opened({{ Js::from($key) }}) && 'rotate-90'" />
         </button>
 
-        @if($isResource)
+        @if($resource)
             <button
                 type="button"
                 role="checkbox"
@@ -40,8 +40,8 @@
             x-on:click="toggleOpen(@js($key))"
             @class([
                 'cursor-pointer font-semibold',
-                'text-zinc-800 dark:text-zinc-100' => $isResource,
-                'text-zinc-600 dark:text-zinc-300' => ! $isResource,
+                'text-zinc-800 dark:text-zinc-100' => $resource,
+                'text-zinc-600 dark:text-zinc-300' => ! $resource,
             ])
         >
             {{ $node['label'] }}
@@ -50,7 +50,7 @@
         <span class="ms-auto text-xs text-zinc-500 dark:text-zinc-400" x-text="countText(@js($key))"></span>
     </div>
 
-    @if($isResource)
+    @if($resource)
         <div x-show="opened(@js($key))">
             @include('livewire.pages.admin.controls.partials.permission-chips', ['permissions' => $node['permissions'], 'class' => 'ps-5.5'])
         </div>

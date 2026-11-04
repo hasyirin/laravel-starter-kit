@@ -34,7 +34,7 @@
             </flux:button>
 
             @if(filled($recoveryCodes))
-                <flux:button x-show="showRecoveryCodes" icon="arrow-path" variant="filled" wire:click="regenerateRecoveryCodes">
+                <flux:button x-show="showRecoveryCodes" icon="arrow-path" variant="filled" wire:click="regenerate">
                     {{ __('user/settings.recovery_codes.regenerate') }}
                 </flux:button>
             @endif

@@ -74,14 +74,14 @@ class Show extends Page
         $this->notifySaved((string) __('user/users.user'), created: false);
     }
 
-    public function verifyEmail(VerifyUserEmail $verifyUserEmail): void
+    public function verifyEmail(): void
     {
         $this->authorize('update', $this->user);
 
         /** @var User $actor */
         $actor = auth()->user();
 
-        $verifyUserEmail->execute($actor, $this->user);
+        VerifyUserEmail::make()->execute($actor, $this->user);
 
         $this->dispatch('modal-close', name: 'verify-email');
     }

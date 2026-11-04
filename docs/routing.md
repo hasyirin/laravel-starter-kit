@@ -96,4 +96,4 @@ The Horizon dashboard is at `/admin/horizon`. Set `HORIZON_PATH` to move it. Hor
 ## Rules
 
 - **Give each URL one route.** Without the route cache, the last route for a URL wins. With the route cache, the first one wins, and `php artisan optimize` turns the cache on. So a second route for the same URL can work in development and fail in production.
-- **In the internal and admin areas, start a redirect target with `/`.** In `routes/internal.php`, `Route::redirect('settings', 'settings/profile')` sends the browser to `/internal/settings/profile`, because the browser reads a target without `/` relative to the current URL. Write `Route::redirect('settings', '/settings/profile')`.
+- **In the internal and admin areas, start a redirect target with `/`.** In `routes/internal.php`, `Route::redirect('settings', 'settings/user-information')` sends the browser to `/internal/settings/user-information`, because the browser reads a target without `/` relative to the current URL. Write `Route::redirect('settings', '/settings/user-information')`.

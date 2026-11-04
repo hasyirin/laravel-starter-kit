@@ -7,7 +7,7 @@ namespace App\Livewire\Forms\Admin;
 use App\Domain\Shared\Permission\Support\PermissionTree;
 use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Actions\UpdateUser;
-use App\Domain\User\Concerns\ProfileValidationRules;
+use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Models\User;
 use App\Livewire\Form;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -18,7 +18,7 @@ use Livewire\Attributes\Locked;
 
 class UserForm extends Form
 {
-    use ProfileValidationRules;
+    use UserInformationValidationRules;
 
     #[Locked]
     public ?User $user = null;
@@ -102,7 +102,7 @@ class UserForm extends Form
     public function rules(): array
     {
         return [
-            ...$this->profileRules($this->user?->id),
+            ...$this->userInformationRules($this->user?->id),
             'password' => ['nullable', Rule::requiredIf(! $this->user instanceof User), 'string', Password::default(), 'confirmed'],
             'organization_id' => [
                 'nullable',

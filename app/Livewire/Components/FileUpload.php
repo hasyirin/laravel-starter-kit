@@ -124,7 +124,7 @@ class FileUpload extends Component
                 return true;
             }
 
-            $this->pendingFile($item)?->delete();
+            $this->pending($item)?->delete();
 
             return false;
         }));
@@ -219,7 +219,7 @@ class FileUpload extends Component
             };
         }
 
-        $file = $this->pendingFile($item);
+        $file = $this->pending($item);
         $url = $file?->isPreviewable() ? $file->temporaryUrl() : null;
 
         return is_string($url) ? $url : null;
@@ -228,7 +228,7 @@ class FileUpload extends Component
     /**
      * @param  array{uuid: string, name: string, size: int, mime_type: string, preview?: bool, upload?: ?string}  $item
      */
-    private function pendingFile(array $item): ?TemporaryUploadedFile
+    private function pending(array $item): ?TemporaryUploadedFile
     {
         $file = isset($item['upload']) ? TemporaryUploadedFile::unserializeFromLivewireRequest($item['upload']) : null;
 

@@ -56,6 +56,7 @@ test('a listener of a repeat act sees the profile of the new actor', function ()
 });
 
 test('the audit log of a repeat act keeps the profile of the new actor', function (): void {
+    $this->freezeTime();
     $resource = User::factory()->create();
     $old = Profile::factory()->create();
     Actor::act($resource, Act::Prepare, $old->user);

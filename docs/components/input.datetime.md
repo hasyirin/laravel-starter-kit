@@ -27,7 +27,7 @@ With `time="input"`, the user types the exact minute and then confirms with the 
 - So the property is a real moment: save it, compare it with `now()`, or validate it with `after:now` as usual.
 - Keep the app time zone on one without daylight saving, such as UTC or Asia/Kuala_Lumpur. The property holds no offset. In a zone with daylight saving, one hour repeats when the clocks go back. The app can save a time in that hour as either of the two times. Which one it saves depends on the zone.
 - Limits move to the time zone of the user too. This applies to a Carbon value, `now`, or `today` in `min`, `max`, or `open-to`, and to Carbon values in `unavailable`. A string with a date or a time stays as it is, in the time zone of the user.
-- Each user has a time zone in the profile settings. A new user gets the time zone of their browser.
+- Each user has a time zone in their preferences. A new user gets the time zone of their browser.
 
 ## List of Times
 

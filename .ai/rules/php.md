@@ -22,3 +22,6 @@ Name a boolean variable or parameter with the plain word, such as `$self`, `$unc
 - The plain word is already in use, by a fluent setter of the same name (`disabled()` sets the state, so `isDisabled()` reads it) or by a property.
 - The method overrides a framework or package method, such as `hasRole()`.
 - The method tests its argument, such as `isDate($value)`. Without the prefix, `date($value)` reads like it returns a date.
+
+## Name methods short, without repeating the class
+Give each method and function the shortest name that is clear in its class. Leave out the words that the class name already says: `DeleteUserForm::delete()`, not `deleteUser()`, and `Preferences::save()`, not `updatePreferences()`. Add a noun only when the class does several things, such as `Security::updatePassword()` and `deletePasskey()`. Keep a name that a framework or contract sets, such as a Livewire hook or `toResponse()`. A trait method becomes part of other classes, so name it for them, such as `userInformationRules()`. A global function, such as a helper in a Pest test file, keeps the words that make it unique.

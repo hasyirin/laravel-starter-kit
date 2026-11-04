@@ -117,7 +117,7 @@ test('an item is active only on its own route', function (string $current, bool 
 test('an item is active on every route that its active pattern matches', function (): void {
     request()->setRouteResolver(fn () => resolve(Router::class)->getRoutes()->getByName('appearance.edit'));
 
-    $item = Item::make(label: 'Settings', route: 'profile.edit', active: '*.edit');
+    $item = Item::make(label: 'Settings', route: 'user-information.edit', active: '*.edit');
 
     expect($item->active())->toBeTrue();
 });
@@ -126,7 +126,7 @@ test('an item with children is active only when one of its children is', functio
     request()->setRouteResolver(fn () => resolve(Router::class)->getRoutes()->getByName($current));
 
     $item = Item::make(label: 'Settings', children: [
-        Item::make(label: 'Profile', route: 'profile.edit'),
+        Item::make(label: 'User information', route: 'user-information.edit'),
         Item::make(label: 'Appearance', route: 'appearance.edit'),
     ]);
 

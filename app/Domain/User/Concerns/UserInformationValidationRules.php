@@ -9,14 +9,14 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
 
-trait ProfileValidationRules
+trait UserInformationValidationRules
 {
     /**
-     * Get the validation rules used to validate user profiles.
+     * Get the validation rules used to validate user information.
      *
      * @return array<string, array<int, Unique|ValidationRule|array<mixed>|string>>
      */
-    protected function profileRules(?int $userId = null): array
+    protected function userInformationRules(?int $userId = null): array
     {
         return [
             'name' => $this->nameRules(),

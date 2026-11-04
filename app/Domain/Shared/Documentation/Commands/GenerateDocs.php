@@ -27,7 +27,7 @@ class GenerateDocs extends Command
         $store = config()->string('cache.default');
 
         try {
-            $this->useDocsDatabase();
+            $this->useDatabase();
 
             return $this->generate();
         } finally {
@@ -37,7 +37,7 @@ class GenerateDocs extends Command
         }
     }
 
-    private function useDocsDatabase(): void
+    private function useDatabase(): void
     {
         config([
             'database.connections.docs' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '', 'foreign_key_constraints' => true],

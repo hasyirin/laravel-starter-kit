@@ -49,8 +49,8 @@ class NoteModal extends RecordModal
     {
         return <<<'BLADE'
             <div>
-                <flux:modal wire:model="open" data-note-modal>
-                    @if ($open)
+                <flux:modal wire:model="showing" data-note-modal>
+                    @if ($showing)
                         <form wire:submit="save" data-note-form>
                             <input wire:model="title" data-note-title />
                             @error('title') <p data-note-error>{{ $message }}</p> @enderror

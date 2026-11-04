@@ -2,8 +2,8 @@
 @use(App\Domain\Shared\Common\Support\AuditLog)
 
 <div>
-    <flux:modal wire:model="open" class="md:min-w-xl">
-        @if($open && $this->entry)
+    <flux:modal wire:model="showing" class="md:min-w-xl">
+        @if($showing && $this->entry)
             @php($entry = $this->entry)
             @php($changes = AuditLog::changes($entry))
 

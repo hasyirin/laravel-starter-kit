@@ -1,8 +1,8 @@
 <div>
     <flux:button wire:click="show">{{ __('docs.examples.modal.open') }}</flux:button>
 
-    <flux:modal wire:model="open" class="md:min-w-md">
-        @if($open)
+    <flux:modal wire:model="showing" class="md:min-w-md">
+        @if($showing)
             <form wire:submit="save" class="space-y-6">
                 <flux:heading size="lg">{{ __('docs.examples.modal.open') }}</flux:heading>
 

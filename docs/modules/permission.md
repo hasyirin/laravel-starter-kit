@@ -36,6 +36,7 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `admin.controls.roles.update`             | ✓                   |
 | `admin.controls.roles.update-permissions` | ✓                   |
 | `admin.controls.roles.delete`             | ✓                   |
+| `admin.controls.roles.view-audit-log`     | ✓                   |
 | `admin.controls.users.view-any`           | ✓                   |
 | `admin.controls.users.view`               | ✓                   |
 | `admin.controls.users.create`             | ✓                   |
@@ -43,7 +44,7 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `admin.controls.users.update-permissions` | ✓                   |
 | `admin.controls.users.update-roles`       | ✓                   |
 | `admin.controls.users.delete`             | ✓                   |
-| `admin.controls.users.view-activities`    | ✓                   |
+| `admin.controls.users.view-audit-log`     | ✓                   |
 
 A role with `bypass-authorization` passes every check.
 
@@ -54,6 +55,29 @@ A role with `bypass-authorization` passes every check.
 The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing test fails the build, so each rule is true.
 
 <!-- generated:test-rules path="tests/Feature/Domain/Shared/Permission" -->
+
+### CreateRole
+
+- a new role gets the web guard and its permissions
+- a new role is logged once with its permissions
+- bypass-authorization cannot be given without bypass
+- bypass-authorization can be given with bypass
+
+### DeleteRole
+
+- a role is deleted
+- a role with bypass-authorization cannot be deleted without bypass
+
+### UpdateRole
+
+- the name and the permissions change in one logged update
+- a change to the permissions alone is logged
+- nothing is logged when nothing changes
+- the permissions stay when they are not given
+- a role with bypass-authorization cannot be changed without bypass
+- bypass-authorization cannot be added without bypass
+- bypass-authorization cannot be removed from a role that you hold
+- bypass-authorization can be removed from another role with bypass
 
 ### HasFrozenRoles
 
@@ -82,7 +106,8 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 - a new role is not a system role
 - the label of a system role is translated
 - the label of a role that is not a system role is its name
-- role changes are recorded in the activity log
+- role changes are recorded in the audit log
+- a role knows when a profile holds it
 - is_system cannot be mass assigned
 - a system role cannot be renamed
 - a system role cannot be deleted
@@ -101,7 +126,9 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 - view any needs the view-any permission
 - view needs the view-any or view permission
 - having a role does not let a user view it
+- viewing a type needs the view permission for that type
 - create needs the create permission
+- creating a type needs the update permission for that type
 - update needs the update permission
 - the name of a system role cannot be updated
 - updating a type needs the update permission for that type

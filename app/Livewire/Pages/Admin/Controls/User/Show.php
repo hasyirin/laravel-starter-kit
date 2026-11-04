@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Admin\Controls\User;
 
+use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Actions\VerifyUserEmail;
 use App\Domain\User\Models\User;
 use App\Livewire\Concerns\CanBeDisabled;
@@ -11,20 +12,28 @@ use App\Livewire\Pages\Admin\Controls\User\Concerns\InteractsWithUserForm;
 use App\Livewire\Pages\Shared\Page;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 
 class Show extends Page
 {
     use CanBeDisabled;
     use InteractsWithUserForm;
 
+    #[Locked]
     public User $user;
 
-    public function mount(User $user): void
-    {
-        $this->authorize('view', $user);
+    #[Locked]
+    public ?Role $role = null;
 
-        $this->user = $user;
-        $this->form->set($user);
+    public function mount(): void
+    {
+        $this->authorize('view', $this->user);
+
+        if ($this->role instanceof Role) {
+            $this->authorize('view', $this->role);
+        }
+
+        $this->form->set($this->user);
     }
 
     public function isDisabled(?string $part = null): bool

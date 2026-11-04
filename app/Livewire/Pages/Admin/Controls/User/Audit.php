@@ -7,27 +7,20 @@ namespace App\Livewire\Pages\Admin\Controls\User;
 use App\Domain\User\Models\User;
 use App\Livewire\Component;
 use Illuminate\Contracts\View\View;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 
 class Audit extends Component
 {
     #[Locked]
-    public int $userId;
+    public User $user;
 
     #[Url]
     public string $direction = 'by';
 
     public function mount(): void
     {
-        $this->authorize('view', [$this->user, 'activities']);
-    }
-
-    #[Computed]
-    public function user(): User
-    {
-        return User::query()->findOrFail($this->userId);
+        $this->authorize('view', [$this->user, 'audit-log']);
     }
 
     public function render(): View

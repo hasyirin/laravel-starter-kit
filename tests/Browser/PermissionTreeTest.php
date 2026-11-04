@@ -58,7 +58,7 @@ test('ticking a resource box ticks all of its actions', function (): void {
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         tree().querySelector('[data-node="admin.controls.roles"] [data-resource-box]').click();
 
-        return await until(() => chips('admin.controls.roles').length === 6 && chips('admin.controls.roles').every(ticked));
+        return await until(() => chips('admin.controls.roles').length === 7 && chips('admin.controls.roles').every(ticked));
         SCRIPT)))->toBeTrue();
 
     $page->assertNoJavaScriptErrors();

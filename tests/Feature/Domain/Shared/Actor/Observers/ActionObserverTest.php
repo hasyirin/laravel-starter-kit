@@ -55,7 +55,7 @@ test('a listener of a repeat act sees the profile of the new actor', function ()
     expect($seen)->toBe($profile->id);
 });
 
-test('the activity log of a repeat act keeps the profile of the new actor', function (): void {
+test('the audit log of a repeat act keeps the profile of the new actor', function (): void {
     $resource = User::factory()->create();
     $old = Profile::factory()->create();
     Actor::act($resource, Act::Prepare, $old->user);

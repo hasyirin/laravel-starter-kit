@@ -29,11 +29,12 @@ test('seeding leaves out permissions that match an except pattern', function ():
         'admin.controls.roles.update-permissions',
         'admin.controls.roles.view',
         'admin.controls.roles.view-any',
+        'admin.controls.roles.view-audit-log',
         'admin.controls.users.create',
         'admin.controls.users.update',
         'admin.controls.users.view',
-        'admin.controls.users.view-activities',
         'admin.controls.users.view-any',
+        'admin.controls.users.view-audit-log',
     ]);
 });
 

@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\User\Support;
+namespace App\Domain\Shared\Common\Support;
 
-use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Preferences;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Collection;
@@ -19,26 +18,13 @@ use ReflectionNamedType;
 use Spatie\Activitylog\Enums\ActivityEvent;
 use Spatie\Activitylog\Models\Activity;
 
-class UserActivities
+class AuditLog
 {
     private const array NAME_ATTRIBUTES = ['label', 'name', 'title', 'email'];
 
     private const array DATE_CASTS = ['date', 'immutable_date'];
 
     private const array DATETIME_CASTS = ['datetime', 'immutable_datetime', 'custom_datetime', 'immutable_custom_datetime', 'timestamp'];
-
-    /**
-     * @return Builder<Activity>
-     */
-    public static function query(User $user, string $direction): Builder
-    {
-        return self::involving($user, by: $direction !== 'on', on: $direction === 'on')->latest('id');
-    }
-
-    public static function find(User $user, int $id): Activity
-    {
-        return self::involving($user, by: true, on: true)->findOrFail($id);
-    }
 
     /**
      * @param  Builder<Activity>  $query
@@ -87,18 +73,18 @@ class UserActivities
     public static function events(): array
     {
         return collect(ActivityEvent::cases())
-            ->mapWithKeys(fn (ActivityEvent $event): array => [$event->value => (string) __("user/users.audit.events.$event->value")])
+            ->mapWithKeys(fn (ActivityEvent $event): array => [$event->value => (string) __("common/audit.events.$event->value")])
             ->all();
     }
 
-    public static function eventLabel(Activity $activity): string
+    public static function eventLabel(Activity $entry): string
     {
-        return self::events()[$activity->event ?? ''] ?? $activity->description;
+        return self::events()[$entry->event ?? ''] ?? $entry->description;
     }
 
     public static function typeLabel(string $type): string
     {
-        $key = "user/users.audit.subjects.$type";
+        $key = "common/audit.subjects.$type";
 
         if (! trans()->has($key)) {
             return str($type)->headline()->value();
@@ -107,26 +93,26 @@ class UserActivities
         return (string) __($key);
     }
 
-    public static function subjectLabel(Activity $activity): string
+    public static function subjectLabel(Activity $entry): string
     {
-        return self::typeLabel((string) $activity->subject_type).' '.(self::recordName($activity->subject) ?? '#'.$activity->subject_id);
+        return self::typeLabel((string) $entry->subject_type).' '.(self::recordName($entry->subject) ?? '#'.$entry->subject_id);
     }
 
-    public static function causerName(Activity $activity): ?string
+    public static function causerName(Activity $entry): ?string
     {
-        if (! $activity->causer instanceof User) {
+        if (! $entry->causer instanceof User) {
             return null;
         }
 
-        return $activity->causer->name;
+        return $entry->causer->name;
     }
 
-    public static function summary(Activity $activity): string
+    public static function summary(Activity $entry): string
     {
         return collect([
-            self::eventLabel($activity),
-            self::causerName($activity),
-            Preferences::current()->datetime($activity->created_at),
+            self::eventLabel($entry),
+            self::causerName($entry),
+            Preferences::current()->datetime($entry->created_at),
         ])
             ->filter()
             ->implode(' · ');
@@ -146,9 +132,9 @@ class UserActivities
     /**
      * @return Collection<int, string>
      */
-    public static function fieldLabels(Activity $activity): Collection
+    public static function fieldLabels(Activity $entry): Collection
     {
-        [$old, $new] = self::changeSets($activity);
+        [$old, $new] = self::changeSets($entry);
 
         return self::fieldsOf($old, $new)->map(fn (string $field): string => self::fieldLabel($field));
     }
@@ -156,42 +142,21 @@ class UserActivities
     /**
      * @return Collection<int, array{field: string, old: string, new: string}>
      */
-    public static function changes(Activity $activity): Collection
+    public static function changes(Activity $entry): Collection
     {
-        [$old, $new] = self::changeSets($activity);
-        $model = self::subjectModel($activity);
+        [$old, $new] = self::changeSets($entry);
+        $model = self::subjectModel($entry);
 
         return self::fieldsOf($old, $new)
             ->map(fn (string $field): array => self::change($model, $field, $old[$field] ?? null, $new[$field] ?? null));
     }
 
     /**
-     * @return Builder<Activity>
-     */
-    private static function involving(User $user, bool $by, bool $on): Builder
-    {
-        return Activity::query()
-            ->with(['causer', 'subject' => fn (MorphTo $subject): MorphTo => $subject->morphWith([Profile::class => ['user']])])
-            ->where(function (Builder $query) use ($user, $by, $on): void {
-                if ($by) {
-                    $query->orWhere(fn (Builder $query): Builder => $query->whereMorphedTo('causer', $user));
-                }
-
-                if ($on) {
-                    $query->orWhere(fn (Builder $query): Builder => $query->whereMorphedTo('subject', $user))
-                        ->orWhere(fn (Builder $query): Builder => $query
-                            ->where('subject_type', new Profile()->getMorphClass())
-                            ->whereIn('subject_id', Profile::query()->select('id')->whereBelongsTo($user)));
-                }
-            });
-    }
-
-    /**
      * @return array{0: array<array-key, mixed>, 1: array<array-key, mixed>}
      */
-    private static function changeSets(Activity $activity): array
+    private static function changeSets(Activity $entry): array
     {
-        $changes = $activity->attribute_changes?->toArray() ?? [];
+        $changes = $entry->attribute_changes?->toArray() ?? [];
 
         return [
             is_array($changes['old'] ?? null) ? $changes['old'] : [],
@@ -217,6 +182,17 @@ class UserActivities
      */
     private static function change(?Model $model, string $field, mixed $old, mixed $new): array
     {
+        if (self::isList($old) && self::isList($new)) {
+            $old = collect($old);
+            $new = collect($new);
+
+            return [
+                'field' => self::fieldLabel($field),
+                'old' => $old->diff($new)->implode(', '),
+                'new' => $new->diff($old)->implode(', '),
+            ];
+        }
+
         $names = self::relatedNames($model, $field, [$old, $new]);
 
         return [
@@ -226,9 +202,17 @@ class UserActivities
         ];
     }
 
-    private static function subjectModel(Activity $activity): ?Model
+    /**
+     * @phpstan-assert-if-true list<scalar>|null $value
+     */
+    private static function isList(mixed $value): bool
     {
-        $class = Relation::getMorphedModel((string) $activity->subject_type);
+        return $value === null || (is_array($value) && array_is_list($value) && collect($value)->every(fn (mixed $item): bool => is_scalar($item)));
+    }
+
+    private static function subjectModel(Activity $entry): ?Model
+    {
+        $class = Relation::getMorphedModel((string) $entry->subject_type);
 
         if ($class === null) {
             return null;
@@ -330,7 +314,7 @@ class UserActivities
     {
         return match (true) {
             $value === null => '',
-            is_bool($value) => (string) __($value ? 'user/users.audit.yes' : 'user/users.audit.no'),
+            is_bool($value) => (string) __($value ? 'common/audit.yes' : 'common/audit.no'),
             $names !== null && (is_int($value) || is_string($value)) => $names[(string) $value] ?? '#'.$value,
             is_string($value) && self::isDate($model, $field) => (string) Preferences::current()->calendarDate(CarbonImmutable::parse($value)),
             is_string($value) && self::isDateTime($model, $field) => (string) Preferences::current()->datetime(CarbonImmutable::parse($value)),

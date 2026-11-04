@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Layouts\Admin;
 
+use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\User;
 use App\Livewire\Components\Navigation;
 use App\Livewire\Components\Navigation\Group;
@@ -20,6 +21,7 @@ class Sidebar extends Navigation
             Group::make(label: (string) __('navigation.administration'), items: [
                 Item::make(label: (string) __('navigation.controls'), icon: 'adjustments-horizontal', children: [
                     Item::make(label: (string) __('navigation.users'), icon: 'users', route: 'admin.controls.users.index', active: 'admin.controls.users.*', accessible: ['viewAny', User::class]),
+                    Item::make(label: (string) __('navigation.roles'), icon: 'shield-check', route: 'admin.controls.roles.index', active: 'admin.controls.roles.*', accessible: ['viewAny', Role::class]),
                 ]),
             ]),
             Spacer::make(),

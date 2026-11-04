@@ -6,7 +6,7 @@ namespace App\Domain\Shared\Permission\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\Shared\Permission\Models\Role;
-use App\Domain\Shared\Permission\Support\RoleActivity;
+use App\Domain\Shared\Permission\Support\RoleAuditLog;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Spatie\Activitylog\Enums\ActivityEvent;
@@ -32,7 +32,7 @@ class CreateRole
             $role->enableLogging();
             $role->syncPermissions($permissions ?? []);
 
-            RoleActivity::log($role, ActivityEvent::Created, [], RoleActivity::snapshot($role));
+            RoleAuditLog::log($role, ActivityEvent::Created, [], RoleAuditLog::snapshot($role));
 
             return $role;
         });

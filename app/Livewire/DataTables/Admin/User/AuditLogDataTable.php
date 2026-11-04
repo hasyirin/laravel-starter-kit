@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Livewire\DataTables\Admin\User;
 
 use App\Domain\User\Models\User;
-use App\Domain\User\Support\UserActivities;
-use App\Livewire\DataTables\Admin\ActivityDataTable as DataTable;
-use App\Livewire\Pages\Admin\Controls\User\ActivityModal;
+use App\Domain\User\Support\UserAuditLog;
+use App\Livewire\DataTables\Admin\AuditLogDataTable as DataTable;
+use App\Livewire\Pages\Admin\Controls\User\AuditEntryModal;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Defer;
 use Livewire\Attributes\Locked;
 use Spatie\Activitylog\Models\Activity;
 
 #[Defer]
-class ActivityDataTable extends DataTable
+class AuditLogDataTable extends DataTable
 {
     #[Locked]
     public User $user;
@@ -24,7 +24,7 @@ class ActivityDataTable extends DataTable
 
     public function mount(): void
     {
-        $this->authorize('view', [$this->user, 'activities']);
+        $this->authorize('view', [$this->user, 'audit-log']);
     }
 
     /**
@@ -32,12 +32,12 @@ class ActivityDataTable extends DataTable
      */
     protected function query(): Builder
     {
-        return UserActivities::query($this->user, $this->direction);
+        return UserAuditLog::query($this->user, $this->direction);
     }
 
     protected function modal(): string
     {
-        return ActivityModal::class;
+        return AuditEntryModal::class;
     }
 
     protected function showsCauser(): bool

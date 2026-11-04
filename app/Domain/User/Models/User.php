@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\User\Models;
 
 use App\Domain\Shared\Actor\Contracts\Models\HasActorName;
-use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
@@ -49,7 +49,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
 
     use HasProfile;
     use HasRoles;
-    use InteractsWithActivityLogs;
+    use InteractsWithAuditLog;
     use InteractsWithMedia;
     use InteractsWithTimestamps;
     use SoftDeletes;

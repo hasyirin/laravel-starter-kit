@@ -1,17 +1,17 @@
 @use(App\Domain\User\Models\Profile)
-@use(App\Domain\Shared\Common\Support\Activities)
+@use(App\Domain\Shared\Common\Support\AuditLog)
 
 <div>
     <flux:modal wire:model="open" class="md:min-w-xl">
-        @if($open && $this->activity)
-            @php($activity = $this->activity)
-            @php($changes = Activities::changes($activity))
+        @if($open && $this->entry)
+            @php($entry = $this->entry)
+            @php($changes = AuditLog::changes($entry))
 
             <div class="space-y-6">
                 <div>
-                    <flux:heading size="lg">{{ Activities::subjectLabel($activity) }}</flux:heading>
+                    <flux:heading size="lg">{{ AuditLog::subjectLabel($entry) }}</flux:heading>
 
-                    <flux:subheading>{{ Activities::summary($activity) }}</flux:subheading>
+                    <flux:subheading>{{ AuditLog::summary($entry) }}</flux:subheading>
                 </div>
 
                 @if($changes->isEmpty())
@@ -36,12 +36,12 @@
                     </flux:table>
                 @endif
 
-                @if($activity->subject instanceof Profile)
+                @if($entry->subject instanceof Profile)
                     <div class="space-y-2">
                         <flux:heading>{{ __('user/users.roles') }}</flux:heading>
 
                         <div class="flex flex-wrap gap-2">
-                            @forelse($activity->subject->roles as $role)
+                            @forelse($entry->subject->roles as $role)
                                 <flux:badge size="sm" wire:key="role-{{ $role->id }}">{{ $role->label }}</flux:badge>
                             @empty
                                 <flux:text>{{ __('common/audit.none') }}</flux:text>
@@ -53,7 +53,7 @@
                         <flux:heading>{{ __('user/users.permissions.heading') }}</flux:heading>
 
                         <div class="flex flex-wrap gap-2">
-                            @forelse($activity->subject->permissions as $permission)
+                            @forelse($entry->subject->permissions as $permission)
                                 <flux:badge size="sm" wire:key="permission-{{ $permission->id }}">{{ $permission->name }}</flux:badge>
                             @empty
                                 <flux:text>{{ __('common/audit.none') }}</flux:text>

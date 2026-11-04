@@ -39,7 +39,7 @@ return [
                     'update' => 'admin.controls.roles.update',
                     'update-permissions' => 'admin.controls.roles.update-permissions',
                     'delete' => 'admin.controls.roles.delete',
-                    'view-activities' => 'admin.controls.roles.view-activities',
+                    'view-audit-log' => 'admin.controls.roles.view-audit-log',
                 ],
                 'users' => [
                     'view-any' => 'admin.controls.users.view-any',
@@ -49,7 +49,7 @@ return [
                     'update-permissions' => 'admin.controls.users.update-permissions',
                     'update-roles' => 'admin.controls.users.update-roles',
                     'delete' => 'admin.controls.users.delete',
-                    'view-activities' => 'admin.controls.users.view-activities',
+                    'view-audit-log' => 'admin.controls.users.view-audit-log',
                 ],
             ],
         ],

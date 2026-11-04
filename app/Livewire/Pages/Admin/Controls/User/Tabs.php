@@ -35,7 +35,7 @@ class Tabs extends Component
                 ->label((string) __('user/users.tabs.audit'))
                 ->content(Audit::class)
                 ->params(['user' => $this->user])
-                ->visible(fn (): bool => $this->can('view', [$this->user, 'activities'])),
+                ->visible(fn (): bool => $this->can('view', [$this->user, 'audit-log'])),
         ];
     }
 

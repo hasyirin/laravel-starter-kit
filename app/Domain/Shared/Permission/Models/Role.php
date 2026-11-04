@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Permission\Models;
 
-use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\Shared\Permission\Observers\RoleObserver;
 use App\Domain\User\Models\Profile;
@@ -23,7 +23,7 @@ use LogicException;
 #[ObservedBy(RoleObserver::class)]
 class Role extends \Spatie\Permission\Models\Role
 {
-    use InteractsWithActivityLogs;
+    use InteractsWithAuditLog;
     use InteractsWithTimestamps;
 
     protected $fillable = [

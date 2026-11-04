@@ -25,12 +25,12 @@ test('a new role gets the web guard and its permissions', function (): void {
 test('a new role is logged once with its permissions', function (): void {
     $role = CreateRole::make()->execute($this->actor, 'editor', ['admin.controls.users.view', 'admin.access']);
 
-    $activity = Activity::query()->where('subject_type', 'role')->sole();
+    $entry = Activity::query()->where('subject_type', 'role')->sole();
 
-    expect($activity->event)->toBe('created')
-        ->and($activity->subject?->is($role))->toBeTrue()
-        ->and($activity->causer?->is($this->actor))->toBeTrue()
-        ->and($activity->attribute_changes?->get('attributes'))->toMatchArray([
+    expect($entry->event)->toBe('created')
+        ->and($entry->subject?->is($role))->toBeTrue()
+        ->and($entry->causer?->is($this->actor))->toBeTrue()
+        ->and($entry->attribute_changes?->get('attributes'))->toMatchArray([
             'name' => 'editor',
             'permissions' => ['admin.access', 'admin.controls.users.view'],
         ]);

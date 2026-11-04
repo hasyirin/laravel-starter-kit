@@ -26,7 +26,7 @@ test('the passkeys tab is the default tab when passkeys are on', function (): vo
 });
 
 test('the tab is kept in the URL', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.view-activities');
+    $this->admin->givePermissionTo('admin.controls.users.view-audit-log');
 
     Livewire::withQueryParams(['tab' => 'audit'])
         ->test(Tabs::class, ['user' => $this->subject])
@@ -42,7 +42,7 @@ test('the show page mounts the tabs below the form', function (): void {
 
 test('the passkeys tab is hidden when passkeys are off', function (): void {
     config()->set('fortify.features', []);
-    $this->admin->givePermissionTo('admin.controls.users.view-activities');
+    $this->admin->givePermissionTo('admin.controls.users.view-audit-log');
 
     expect(Features::canManagePasskeys())->toBeFalse();
 
@@ -51,8 +51,8 @@ test('the passkeys tab is hidden when passkeys are off', function (): void {
         ->assertDontSee(__('user/users.tabs.passkeys'));
 });
 
-test('the audit tab shows with view-activities', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.view-activities');
+test('the audit tab shows with view-audit-log', function (): void {
+    $this->admin->givePermissionTo('admin.controls.users.view-audit-log');
 
     Livewire::test(Tabs::class, ['user' => $this->subject])
         ->call('switchTab', 'audit')
@@ -60,7 +60,7 @@ test('the audit tab shows with view-activities', function (): void {
         ->assertSeeLivewire(Audit::class);
 });
 
-test('the audit tab is hidden without view-activities', function (): void {
+test('the audit tab is hidden without view-audit-log', function (): void {
     Livewire::test(Tabs::class, ['user' => $this->subject])
         ->assertDontSee(__('user/users.tabs.audit'));
 });

@@ -133,24 +133,24 @@ test('a role that carries bypass-authorization puts its holder out of reach of a
     expect($this->user->can('update', $this->other->fresh()))->toBeFalse();
 });
 
-test('viewing the activities of a user needs view-activities', function (): void {
+test('viewing the audit log of a user needs view-audit-log', function (): void {
     $this->user->givePermissionTo('admin.controls.users.view');
 
-    expect($this->user->can('view', [$this->other, 'activities']))->toBeFalse()
-        ->and($this->user->can('view', [$this->user, 'activities']))->toBeFalse();
+    expect($this->user->can('view', [$this->other, 'audit-log']))->toBeFalse()
+        ->and($this->user->can('view', [$this->user, 'audit-log']))->toBeFalse();
 
-    $this->user->givePermissionTo('admin.controls.users.view-activities');
+    $this->user->givePermissionTo('admin.controls.users.view-audit-log');
 
-    expect($this->user->can('view', [$this->other, 'activities']))->toBeTrue()
-        ->and($this->user->can('view', [$this->user, 'activities']))->toBeTrue();
+    expect($this->user->can('view', [$this->other, 'audit-log']))->toBeTrue()
+        ->and($this->user->can('view', [$this->user, 'audit-log']))->toBeTrue();
 });
 
 test('a typed ability needs the base ability and the typed permission', function (): void {
-    $this->user->givePermissionTo('admin.controls.users.view-activities');
+    $this->user->givePermissionTo('admin.controls.users.view-audit-log');
 
-    expect($this->user->can('view', [$this->other, 'activities']))->toBeFalse();
+    expect($this->user->can('view', [$this->other, 'audit-log']))->toBeFalse();
 
     $this->user->givePermissionTo('admin.controls.users.view');
 
-    expect($this->user->can('view', [$this->other, 'activities']))->toBeTrue();
+    expect($this->user->can('view', [$this->other, 'audit-log']))->toBeTrue();
 });

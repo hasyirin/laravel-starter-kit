@@ -36,7 +36,7 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `admin.controls.roles.update`             | ✓                   |
 | `admin.controls.roles.update-permissions` | ✓                   |
 | `admin.controls.roles.delete`             | ✓                   |
-| `admin.controls.roles.view-activities`    | ✓                   |
+| `admin.controls.roles.view-audit-log`     | ✓                   |
 | `admin.controls.users.view-any`           | ✓                   |
 | `admin.controls.users.view`               | ✓                   |
 | `admin.controls.users.create`             | ✓                   |
@@ -44,7 +44,7 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `admin.controls.users.update-permissions` | ✓                   |
 | `admin.controls.users.update-roles`       | ✓                   |
 | `admin.controls.users.delete`             | ✓                   |
-| `admin.controls.users.view-activities`    | ✓                   |
+| `admin.controls.users.view-audit-log`     | ✓                   |
 
 A role with `bypass-authorization` passes every check.
 
@@ -106,7 +106,7 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 - a new role is not a system role
 - the label of a system role is translated
 - the label of a role that is not a system role is its name
-- role changes are recorded in the activity log
+- role changes are recorded in the audit log
 - a role knows when a profile holds it
 - is_system cannot be mass assigned
 - a system role cannot be renamed

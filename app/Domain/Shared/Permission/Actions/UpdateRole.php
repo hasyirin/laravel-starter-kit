@@ -6,7 +6,7 @@ namespace App\Domain\Shared\Permission\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\Shared\Permission\Models\Role;
-use App\Domain\Shared\Permission\Support\RoleActivity;
+use App\Domain\Shared\Permission\Support\RoleAuditLog;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
@@ -26,8 +26,8 @@ class UpdateRole
         return $role->getConnection()->transaction(function () use ($actor, $role, $name, $permissions): Role {
             $role->newQuery()->whereKey($role->getKey())->lockForUpdate()->first();
 
-            $old = RoleActivity::snapshot($role);
-            $current = RoleActivity::permissionNames($role);
+            $old = RoleAuditLog::snapshot($role);
+            $current = RoleAuditLog::permissionNames($role);
 
             $this->guard($actor, $role, $current, collect($permissions ?? $current->all()));
 
@@ -42,7 +42,7 @@ class UpdateRole
                 $role->syncPermissions($permissions);
             }
 
-            RoleActivity::log($role, ActivityEvent::Updated, $old, RoleActivity::snapshot($role));
+            RoleAuditLog::log($role, ActivityEvent::Updated, $old, RoleAuditLog::snapshot($role));
 
             return $role;
         });

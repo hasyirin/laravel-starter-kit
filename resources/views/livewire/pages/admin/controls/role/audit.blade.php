@@ -1,5 +1,5 @@
 <div>
-    <livewire:data-tables.admin.role.activity-data-table :$role />
+    <livewire:data-tables.admin.role.audit-log-data-table :$role />
 
-    <livewire:pages.admin.controls.role.activity-modal :$role />
+    <livewire:pages.admin.controls.role.audit-entry-modal :$role />
 </div>

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Spatie\Activitylog\Models\Activity;
 
-class UserActivities
+class UserAuditLog
 {
     /**
      * @return Builder<Activity>

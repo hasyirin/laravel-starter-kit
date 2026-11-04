@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 use Spatie\Activitylog\Enums\ActivityEvent;
 use Spatie\Activitylog\Support\ChangeDetector;
 
-class RoleActivity
+class RoleAuditLog
 {
     /**
      * @return array<array-key, mixed>

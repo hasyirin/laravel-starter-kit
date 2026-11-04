@@ -39,7 +39,7 @@ test('an explicit sort order is kept', function (): void {
     expect($item->sort_order)->toBe(10);
 });
 
-test('the activity log records fillable changes but not hidden ones', function (): void {
+test('the audit log records fillable changes but not hidden ones', function (): void {
     $item = Item::query()->create(['group' => 'a', 'name' => 'First', 'secret' => 'hunter2']);
 
     $item->update(['name' => 'Renamed', 'secret' => 'changed']);
@@ -50,7 +50,7 @@ test('the activity log records fillable changes but not hidden ones', function (
         ->and($changes?->get('old'))->toBe(['name' => 'First']);
 });
 
-test('the activity log records columns that are not fillable', function (): void {
+test('the audit log records columns that are not fillable', function (): void {
     $item = Item::query()->create(['group' => 'a', 'name' => 'First']);
 
     $item->forceFill(['status' => 'approved'])->save();
@@ -61,7 +61,7 @@ test('the activity log records columns that are not fillable', function (): void
         ->and($changes?->get('old'))->toBe(['status' => null]);
 });
 
-test('the activity log leaves out the key and the timestamps', function (): void {
+test('the audit log leaves out the key and the timestamps', function (): void {
     $item = Item::query()->create(['group' => 'a', 'name' => 'First']);
     $item->delete();
 

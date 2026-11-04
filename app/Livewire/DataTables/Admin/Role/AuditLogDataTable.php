@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace App\Livewire\DataTables\Admin\Role;
 
 use App\Domain\Shared\Permission\Models\Role;
-use App\Livewire\DataTables\Admin\ActivityDataTable as DataTable;
-use App\Livewire\Pages\Admin\Controls\Role\ActivityModal;
+use App\Livewire\DataTables\Admin\AuditLogDataTable as DataTable;
+use App\Livewire\Pages\Admin\Controls\Role\AuditEntryModal;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Defer;
 use Livewire\Attributes\Locked;
 use Spatie\Activitylog\Models\Activity;
 
 #[Defer]
-class ActivityDataTable extends DataTable
+class AuditLogDataTable extends DataTable
 {
     #[Locked]
     public Role $role;
 
     public function mount(): void
     {
-        $this->authorize('view', [$this->role, 'activities']);
+        $this->authorize('view', [$this->role, 'audit-log']);
     }
 
     /**
@@ -33,7 +33,7 @@ class ActivityDataTable extends DataTable
 
     protected function modal(): string
     {
-        return ActivityModal::class;
+        return AuditEntryModal::class;
     }
 
     protected function showsSubject(): bool

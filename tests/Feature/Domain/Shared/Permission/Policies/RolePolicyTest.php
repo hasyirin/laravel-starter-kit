@@ -39,11 +39,11 @@ test('having a role does not let a user view it', function (): void {
 test('viewing a type needs the view permission for that type', function (): void {
     $this->user->givePermissionTo('admin.controls.roles.view');
 
-    expect($this->user->can('view', [$this->role, 'activities']))->toBeFalse();
+    expect($this->user->can('view', [$this->role, 'audit-log']))->toBeFalse();
 
-    $this->user->givePermissionTo('admin.controls.roles.view-activities');
+    $this->user->givePermissionTo('admin.controls.roles.view-audit-log');
 
-    expect($this->user->can('view', [$this->role, 'activities']))->toBeTrue();
+    expect($this->user->can('view', [$this->role, 'audit-log']))->toBeTrue();
 });
 
 test('create needs the create permission', function (): void {

@@ -7,7 +7,7 @@ namespace App\Domain\Shared\Actor\Models;
 use App\Domain\Shared\Actor\Contracts\Models\HasActorName;
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Actor\Observers\ActionObserver;
-use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
@@ -35,7 +35,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 #[ObservedBy(ActionObserver::class)]
 class Action extends \Hasyirin\Actor\Models\Action
 {
-    use InteractsWithActivityLogs;
+    use InteractsWithAuditLog;
     use InteractsWithTimestamps;
 
     protected $fillable = [

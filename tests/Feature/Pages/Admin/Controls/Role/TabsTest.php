@@ -31,11 +31,11 @@ test('the users tab shows with view-any on users', function (): void {
         ->assertSeeLivewire(UserDataTable::class);
 });
 
-test('the audit tab shows with view-activities', function (): void {
+test('the audit tab shows with view-audit-log', function (): void {
     Livewire::test(Tabs::class, ['role' => $this->role])
         ->assertDontSee(__('permission/roles.tabs.audit'));
 
-    $this->admin->givePermissionTo('admin.controls.roles.view-activities');
+    $this->admin->givePermissionTo('admin.controls.roles.view-audit-log');
 
     $this->admin->givePermissionTo('admin.controls.users.view-any');
 

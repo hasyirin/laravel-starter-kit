@@ -35,7 +35,7 @@ class Tabs extends Component
                 ->label((string) __('permission/roles.tabs.audit'))
                 ->content(Audit::class)
                 ->params(['role' => $this->role])
-                ->visible(fn (): bool => $this->can('view', [$this->role, 'activities'])),
+                ->visible(fn (): bool => $this->can('view', [$this->role, 'audit-log'])),
         ];
     }
 

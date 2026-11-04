@@ -20,7 +20,7 @@ class Audit extends Component
 
     public function mount(): void
     {
-        $this->authorize('view', [$this->user, 'activities']);
+        $this->authorize('view', [$this->user, 'audit-log']);
     }
 
     public function render(): View

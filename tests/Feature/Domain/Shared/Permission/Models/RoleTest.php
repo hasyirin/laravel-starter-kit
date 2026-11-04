@@ -26,15 +26,15 @@ test('the label of a role that is not a system role is its name', function (): v
     expect(Role::query()->create(['name' => 'editor'])->label)->toBe('editor');
 });
 
-test('role changes are recorded in the activity log', function (): void {
+test('role changes are recorded in the audit log', function (): void {
     $role = Role::query()->create(['name' => 'editor']);
 
     $role->update(['name' => 'author']);
 
-    $activity = Activity::query()->where('event', 'updated')->sole();
+    $entry = Activity::query()->where('event', 'updated')->sole();
 
-    expect($activity->subject_type)->toBe('role')
-        ->and($activity->attribute_changes?->get('attributes'))->toBe(['name' => 'author']);
+    expect($entry->subject_type)->toBe('role')
+        ->and($entry->attribute_changes?->get('attributes'))->toBe(['name' => 'author']);
 });
 
 test('a role knows when a profile holds it', function (): void {

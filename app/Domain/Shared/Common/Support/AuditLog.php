@@ -18,7 +18,7 @@ use ReflectionNamedType;
 use Spatie\Activitylog\Enums\ActivityEvent;
 use Spatie\Activitylog\Models\Activity;
 
-class Activities
+class AuditLog
 {
     private const array NAME_ATTRIBUTES = ['label', 'name', 'title', 'email'];
 
@@ -77,9 +77,9 @@ class Activities
             ->all();
     }
 
-    public static function eventLabel(Activity $activity): string
+    public static function eventLabel(Activity $entry): string
     {
-        return self::events()[$activity->event ?? ''] ?? $activity->description;
+        return self::events()[$entry->event ?? ''] ?? $entry->description;
     }
 
     public static function typeLabel(string $type): string
@@ -93,26 +93,26 @@ class Activities
         return (string) __($key);
     }
 
-    public static function subjectLabel(Activity $activity): string
+    public static function subjectLabel(Activity $entry): string
     {
-        return self::typeLabel((string) $activity->subject_type).' '.(self::recordName($activity->subject) ?? '#'.$activity->subject_id);
+        return self::typeLabel((string) $entry->subject_type).' '.(self::recordName($entry->subject) ?? '#'.$entry->subject_id);
     }
 
-    public static function causerName(Activity $activity): ?string
+    public static function causerName(Activity $entry): ?string
     {
-        if (! $activity->causer instanceof User) {
+        if (! $entry->causer instanceof User) {
             return null;
         }
 
-        return $activity->causer->name;
+        return $entry->causer->name;
     }
 
-    public static function summary(Activity $activity): string
+    public static function summary(Activity $entry): string
     {
         return collect([
-            self::eventLabel($activity),
-            self::causerName($activity),
-            Preferences::current()->datetime($activity->created_at),
+            self::eventLabel($entry),
+            self::causerName($entry),
+            Preferences::current()->datetime($entry->created_at),
         ])
             ->filter()
             ->implode(' · ');
@@ -132,9 +132,9 @@ class Activities
     /**
      * @return Collection<int, string>
      */
-    public static function fieldLabels(Activity $activity): Collection
+    public static function fieldLabels(Activity $entry): Collection
     {
-        [$old, $new] = self::changeSets($activity);
+        [$old, $new] = self::changeSets($entry);
 
         return self::fieldsOf($old, $new)->map(fn (string $field): string => self::fieldLabel($field));
     }
@@ -142,10 +142,10 @@ class Activities
     /**
      * @return Collection<int, array{field: string, old: string, new: string}>
      */
-    public static function changes(Activity $activity): Collection
+    public static function changes(Activity $entry): Collection
     {
-        [$old, $new] = self::changeSets($activity);
-        $model = self::subjectModel($activity);
+        [$old, $new] = self::changeSets($entry);
+        $model = self::subjectModel($entry);
 
         return self::fieldsOf($old, $new)
             ->map(fn (string $field): array => self::change($model, $field, $old[$field] ?? null, $new[$field] ?? null));
@@ -154,9 +154,9 @@ class Activities
     /**
      * @return array{0: array<array-key, mixed>, 1: array<array-key, mixed>}
      */
-    private static function changeSets(Activity $activity): array
+    private static function changeSets(Activity $entry): array
     {
-        $changes = $activity->attribute_changes?->toArray() ?? [];
+        $changes = $entry->attribute_changes?->toArray() ?? [];
 
         return [
             is_array($changes['old'] ?? null) ? $changes['old'] : [],
@@ -210,9 +210,9 @@ class Activities
         return $value === null || (is_array($value) && array_is_list($value) && collect($value)->every(fn (mixed $item): bool => is_scalar($item)));
     }
 
-    private static function subjectModel(Activity $activity): ?Model
+    private static function subjectModel(Activity $entry): ?Model
     {
-        $class = Relation::getMorphedModel((string) $activity->subject_type);
+        $class = Relation::getMorphedModel((string) $entry->subject_type);
 
         if ($class === null) {
             return null;

@@ -22,14 +22,14 @@ beforeEach(function (): void {
 test('the name and the permissions change in one logged update', function (): void {
     UpdateRole::make()->execute($this->actor, $this->role, 'author', ['admin.controls.users.view', 'admin.access']);
 
-    $activity = Activity::query()->sole();
+    $entry = Activity::query()->sole();
 
     expect($this->role->fresh()?->name)->toBe('author')
         ->and($this->role->fresh()?->getPermissionNames()->sort()->values()->all())->toBe(['admin.access', 'admin.controls.users.view'])
-        ->and($activity->event)->toBe('updated')
-        ->and($activity->causer?->is($this->actor))->toBeTrue()
-        ->and($activity->attribute_changes?->get('old'))->toBe(['name' => 'editor', 'permissions' => ['admin.access']])
-        ->and($activity->attribute_changes?->get('attributes'))->toBe(['name' => 'author', 'permissions' => ['admin.access', 'admin.controls.users.view']]);
+        ->and($entry->event)->toBe('updated')
+        ->and($entry->causer?->is($this->actor))->toBeTrue()
+        ->and($entry->attribute_changes?->get('old'))->toBe(['name' => 'editor', 'permissions' => ['admin.access']])
+        ->and($entry->attribute_changes?->get('attributes'))->toBe(['name' => 'author', 'permissions' => ['admin.access', 'admin.controls.users.view']]);
 });
 
 test('a change to the permissions alone is logged', function (): void {

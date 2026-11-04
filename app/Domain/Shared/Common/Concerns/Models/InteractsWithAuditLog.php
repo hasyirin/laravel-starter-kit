@@ -7,7 +7,7 @@ namespace App\Domain\Shared\Common\Concerns\Models;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-trait InteractsWithActivityLogs
+trait InteractsWithAuditLog
 {
     use LogsActivity;
 

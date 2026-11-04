@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace App\Livewire\Pages\Admin\Controls\Role;
 
 use App\Domain\Shared\Permission\Models\Role;
-use App\Livewire\Pages\Admin\Controls\ActivityModal as Modal;
+use App\Livewire\Pages\Admin\Controls\AuditEntryModal as Modal;
 use Livewire\Attributes\Locked;
 use Spatie\Activitylog\Models\Activity;
 
-class ActivityModal extends Modal
+class AuditEntryModal extends Modal
 {
     #[Locked]
     public Role $role;
 
-    protected function authorizeActivities(): void
+    protected function authorizeAuditLog(): void
     {
-        $this->authorize('view', [$this->role, 'activities']);
+        $this->authorize('view', [$this->role, 'audit-log']);
     }
 
     protected function find(int $id): Activity

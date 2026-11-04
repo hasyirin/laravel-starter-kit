@@ -20,19 +20,19 @@ beforeEach(function (): void {
 });
 
 test('the users tab shows with view-any on users', function (): void {
-    Livewire::test(Tabs::class, ['roleId' => $this->role->id])
+    Livewire::test(Tabs::class, ['role' => $this->role])
         ->assertDontSee(__('permission/roles.tabs.users'))
         ->assertDontSeeLivewire(UserDataTable::class);
 
     $this->admin->givePermissionTo('admin.controls.users.view-any');
 
-    Livewire::test(Tabs::class, ['roleId' => $this->role->id])
+    Livewire::test(Tabs::class, ['role' => $this->role])
         ->assertSet('tab', '')
         ->assertSeeLivewire(UserDataTable::class);
 });
 
 test('the audit tab shows with view-activities', function (): void {
-    Livewire::test(Tabs::class, ['roleId' => $this->role->id])
+    Livewire::test(Tabs::class, ['role' => $this->role])
         ->assertDontSee(__('permission/roles.tabs.audit'));
 
     $this->admin->givePermissionTo('admin.controls.roles.view-activities');
@@ -40,7 +40,7 @@ test('the audit tab shows with view-activities', function (): void {
     $this->admin->givePermissionTo('admin.controls.users.view-any');
 
     Livewire::withQueryParams(['tab' => 'audit'])
-        ->test(Tabs::class, ['roleId' => $this->role->id])
+        ->test(Tabs::class, ['role' => $this->role])
         ->assertSet('tab', 'audit')
         ->assertSeeLivewire(Audit::class);
 });

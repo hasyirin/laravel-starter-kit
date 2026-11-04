@@ -13,7 +13,6 @@ use Filament\Actions\Action;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Defer;
 use Livewire\Attributes\Locked;
 
@@ -21,18 +20,12 @@ use Livewire\Attributes\Locked;
 class UserDataTable extends DataTable
 {
     #[Locked]
-    public int $roleId;
+    public Role $role;
 
     public function mount(): void
     {
         $this->authorize('view', $this->role);
         $this->authorize('viewAny', User::class);
-    }
-
-    #[Computed]
-    public function role(): Role
-    {
-        return Role::query()->findOrFail($this->roleId);
     }
 
     /**

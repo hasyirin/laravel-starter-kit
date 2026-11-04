@@ -9,7 +9,6 @@ use App\Domain\User\Support\UserActivities;
 use App\Livewire\DataTables\Admin\ActivityDataTable as DataTable;
 use App\Livewire\Pages\Admin\Controls\User\ActivityModal;
 use Illuminate\Database\Eloquent\Builder;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Defer;
 use Livewire\Attributes\Locked;
 use Spatie\Activitylog\Models\Activity;
@@ -18,7 +17,7 @@ use Spatie\Activitylog\Models\Activity;
 class ActivityDataTable extends DataTable
 {
     #[Locked]
-    public int $userId;
+    public User $user;
 
     #[Locked]
     public string $direction = 'by';
@@ -26,12 +25,6 @@ class ActivityDataTable extends DataTable
     public function mount(): void
     {
         $this->authorize('view', [$this->user, 'activities']);
-    }
-
-    #[Computed]
-    public function user(): User
-    {
-        return User::query()->findOrFail($this->userId);
     }
 
     /**

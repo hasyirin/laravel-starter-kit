@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 function activityTable(User $user, string $direction): Testable
 {
-    return Livewire::test(ActivityDataTable::class, ['userId' => $user->id, 'direction' => $direction]);
+    return Livewire::test(ActivityDataTable::class, ['user' => $user, 'direction' => $direction]);
 }
 
 function renameAs(User $causer, User $user, string $name): Activity
@@ -122,7 +122,7 @@ test('the audit tab needs view-activities', function (string $component, array $
     $this->admin->revokePermissionTo('admin.controls.users.view-activities');
     $this->actingAs($this->admin);
 
-    Livewire::test($component, ['userId' => $this->subject->id, ...$params])->assertForbidden();
+    Livewire::test($component, ['user' => $this->subject, ...$params])->assertForbidden();
 })->with([
     'the tab' => [Audit::class, []],
     'the table' => [ActivityDataTable::class, ['direction' => 'by']],
@@ -133,7 +133,7 @@ test('the switch is kept in the URL', function (): void {
     $this->actingAs($this->admin);
 
     Livewire::withQueryParams(['direction' => 'on'])
-        ->test(Audit::class, ['userId' => $this->subject->id])
+        ->test(Audit::class, ['user' => $this->subject])
         ->assertSet('direction', 'on')
         ->assertSeeLivewire(ActivityDataTable::class);
 });
@@ -149,7 +149,7 @@ test('a row click opens the modal with the activity', function (): void {
 test('the modal shows each changed field with its old and new value', function (): void {
     $activity = renameAs($this->admin, $this->subject, 'Sam Renamed');
 
-    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+    Livewire::test(ActivityModal::class, ['user' => $this->subject])
         ->call('show', $activity->id)
         ->assertSet('open', true)
         ->assertSeeInOrder(['Name', 'Sam Subject', 'Sam Renamed']);
@@ -161,7 +161,7 @@ test('a profile entry shows the roles of that profile', function (): void {
     Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('admin.access')->create();
     $activity = Activity::query()->latest('id')->firstOrFail();
 
-    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+    Livewire::test(ActivityModal::class, ['user' => $this->subject])
         ->call('show', $activity->id)
         ->assertSee('editor')
         ->assertSee('admin.access');
@@ -175,7 +175,7 @@ test('a profile entry shows field labels and the names of related records', func
 
     activityTable($this->subject, 'on')->assertSee('Organization');
 
-    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+    Livewire::test(ActivityModal::class, ['user' => $this->subject])
         ->call('show', $activity->id)
         ->assertSeeInOrder(['Organization', 'Acme Holdings'])
         ->assertSeeInOrder(['User', 'Sam Subject'])
@@ -193,7 +193,7 @@ test('the modal shows dates for the viewer and booleans as yes or no', function 
         'attribute_changes' => ['attributes' => ['email_verified_at' => $verifiedAt->toJSON(), 'is_owner' => true], 'old' => ['email_verified_at' => null, 'is_owner' => false]],
     ]);
 
-    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+    Livewire::test(ActivityModal::class, ['user' => $this->subject])
         ->call('show', $activity->id)
         ->assertSee(Preferences::current()->datetime($verifiedAt))
         ->assertSeeInOrder(['No', 'Yes']);
@@ -209,7 +209,7 @@ test('the modal shows a list as the items that were removed and added', function
         'attribute_changes' => ['attributes' => ['permissions' => ['admin.access', 'internal.access']], 'old' => ['permissions' => ['admin.access', 'admin.horizon.view']]],
     ]);
 
-    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+    Livewire::test(ActivityModal::class, ['user' => $this->subject])
         ->call('show', $activity->id)
         ->assertSeeInOrder(['Permissions', 'admin.horizon.view', 'internal.access'])
         ->assertDontSee('admin.access');
@@ -218,7 +218,7 @@ test('the modal shows a list as the items that were removed and added', function
 test('the modal refuses an activity that does not involve the user', function (): void {
     $activity = renameAs($this->admin, $this->other, 'Olive Renamed');
 
-    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+    Livewire::test(ActivityModal::class, ['user' => $this->subject])
         ->call('show', $activity->id)
         ->assertNotFound();
 });

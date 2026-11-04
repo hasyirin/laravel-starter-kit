@@ -6,20 +6,13 @@ namespace App\Livewire\Pages\Admin\Controls\Role;
 
 use App\Domain\Shared\Permission\Models\Role;
 use App\Livewire\Pages\Admin\Controls\ActivityModal as Modal;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityModal extends Modal
 {
     #[Locked]
-    public int $roleId;
-
-    #[Computed]
-    public function role(): Role
-    {
-        return Role::query()->findOrFail($this->roleId);
-    }
+    public Role $role;
 
     protected function authorizeActivities(): void
     {

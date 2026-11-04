@@ -29,7 +29,7 @@ test('the list shows the users with the role in their active profile or directly
     Profile::factory()->for($formerly)->withRoles('editor')->create(['created_at' => now()->subDay()]);
     Profile::factory()->for($formerly)->create();
 
-    Livewire::test(UserDataTable::class, ['roleId' => $this->role->id])
+    Livewire::test(UserDataTable::class, ['role' => $this->role])
         ->assertCanSeeTableRecords([$viaProfile, $direct])
         ->assertCanNotSeeTableRecords([$formerly, $this->admin]);
 });
@@ -37,14 +37,14 @@ test('the list shows the users with the role in their active profile or directly
 test('the table needs view-any on users', function (): void {
     $this->admin->revokePermissionTo('admin.controls.users.view-any');
 
-    Livewire::test(UserDataTable::class, ['roleId' => $this->role->id])->assertForbidden();
+    Livewire::test(UserDataTable::class, ['role' => $this->role])->assertForbidden();
 });
 
 test('the row click opens the user under the role', function (): void {
     $user = User::factory()->create();
     $user->assignRole($this->role);
 
-    Livewire::test(UserDataTable::class, ['roleId' => $this->role->id])
+    Livewire::test(UserDataTable::class, ['role' => $this->role])
         ->callAction(TestAction::make('view')->table($user))
         ->assertRedirect(route('admin.controls.roles.users.show', [$this->role, $user]));
 });

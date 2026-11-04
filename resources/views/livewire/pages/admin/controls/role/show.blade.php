@@ -9,6 +9,6 @@
     @include('livewire.pages.admin.controls.role.partials.details', ['submit' => __('common/buttons.update')])
 
     <div class="mt-10">
-        <livewire:pages.admin.controls.role.tabs :role-id="$role->id" />
+        <livewire:pages.admin.controls.role.tabs :$role />
     </div>
 </flux:main>

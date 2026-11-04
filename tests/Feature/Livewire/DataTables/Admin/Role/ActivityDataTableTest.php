@@ -27,7 +27,7 @@ test('the list shows only the changes to the role, with who made them', function
     $onRole = Activity::query()->whereMorphedTo('subject', $this->role)->latest('id')->firstOrFail();
     $onOther = Activity::query()->whereMorphedTo('subject', $this->other)->firstOrFail();
 
-    Livewire::test(ActivityDataTable::class, ['roleId' => $this->role->id])
+    Livewire::test(ActivityDataTable::class, ['role' => $this->role])
         ->assertCanSeeTableRecords([$onRole])
         ->assertCanNotSeeTableRecords([$onOther])
         ->assertSee('Ada Admin');
@@ -36,7 +36,7 @@ test('the list shows only the changes to the role, with who made them', function
 test('the audit needs view-activities', function (string $component): void {
     $this->admin->revokePermissionTo('admin.controls.roles.view-activities');
 
-    Livewire::test($component, ['roleId' => $this->role->id])->assertForbidden();
+    Livewire::test($component, ['role' => $this->role])->assertForbidden();
 })->with([ActivityDataTable::class, ActivityModal::class]);
 
 test('a row click opens the modal with the permissions that were removed and added', function (): void {
@@ -44,11 +44,11 @@ test('a row click opens the modal with the permissions that were removed and add
     UpdateRole::make()->execute($this->admin, $this->role, null, ['internal.access']);
     $activity = Activity::query()->whereMorphedTo('subject', $this->role)->latest('id')->firstOrFail();
 
-    Livewire::test(ActivityDataTable::class, ['roleId' => $this->role->id])
+    Livewire::test(ActivityDataTable::class, ['role' => $this->role])
         ->callAction(TestAction::make('view')->table($activity))
         ->assertDispatchedTo(ActivityModal::class, 'show', id: $activity->id);
 
-    Livewire::test(ActivityModal::class, ['roleId' => $this->role->id])
+    Livewire::test(ActivityModal::class, ['role' => $this->role])
         ->call('show', $activity->id)
         ->assertSeeInOrder(['Permissions', 'admin.horizon.view', 'internal.access']);
 });
@@ -56,7 +56,7 @@ test('a row click opens the modal with the permissions that were removed and add
 test('the modal refuses an activity on another role', function (): void {
     $activity = Activity::query()->whereMorphedTo('subject', $this->other)->firstOrFail();
 
-    Livewire::test(ActivityModal::class, ['roleId' => $this->role->id])
+    Livewire::test(ActivityModal::class, ['role' => $this->role])
         ->call('show', $activity->id)
         ->assertNotFound();
 });

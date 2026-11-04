@@ -1,0 +1,49 @@
+# deploy/vector/install.sh fills in the ${...} values and writes the result to /etc/vector/conf.d/<app>.yaml.
+sources:
+  ${APP_NAME}_laravel:
+    type: file
+    include:
+      - "${APP_PATH}/storage/logs/json/*.json"
+
+transforms:
+  ${APP_NAME}_parsed:
+    type: remap
+    inputs:
+      - ${APP_NAME}_laravel
+    source: |
+      record, error = parse_json(.message)
+      if error == null && is_object(record) {
+        host = .host
+        file = .file
+        . = object!(record)
+        .host = host
+        .file = file
+        logged_at, error = parse_timestamp(.datetime, "%+")
+        if error == null {
+          ._timestamp = to_unix_timestamp(logged_at, unit: "microseconds")
+        }
+      }
+      .app = "${APP_NAME}"
+
+sinks:
+  ${APP_NAME}_openobserve:
+    type: http
+    inputs:
+      - ${APP_NAME}_parsed
+    uri: "${OPENOBSERVE_URL}/api/${OPENOBSERVE_ORG}/${OPENOBSERVE_STREAM}/_json"
+    method: post
+    auth:
+      strategy: basic
+      user: "${OPENOBSERVE_USER}"
+      password: "${OPENOBSERVE_PASSWORD}"
+    compression: gzip
+    encoding:
+      codec: json
+      timestamp_format: rfc3339
+    healthcheck:
+      enabled: true
+      uri: "${OPENOBSERVE_URL}/healthz"
+    buffer:
+      type: disk
+      max_size: 268435488
+      when_full: block

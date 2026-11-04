@@ -19,7 +19,7 @@ class DeleteUserForm extends Component
     /**
      * Delete the currently authenticated user.
      */
-    public function deleteUser(Logout $logout, DeleteUser $deleteUser): void
+    public function delete(Logout $logout, DeleteUser $deleteUser): void
     {
         $this->validate([
             'password' => $this->currentPasswordRules(),

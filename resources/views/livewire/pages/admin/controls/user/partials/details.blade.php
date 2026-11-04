@@ -5,7 +5,7 @@
 <x-card.group form wire:submit="save" :$disabled>
     <x-card accordion body="divided" body-class="grid gap-6 sm:grid-cols-2">
         <x-slot:heading level="2">
-            {{ __('user/users.details') }}
+            {{ __('user/users.user_information') }}
         </x-slot:heading>
 
         <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required />
@@ -49,7 +49,7 @@
 
     <x-card accordion body="divided" body-class="grid gap-6 sm:grid-cols-2">
         <x-slot:heading level="2">
-            {{ __('user/users.organization_details') }}
+            {{ __('user/users.placement') }}
         </x-slot:heading>
 
         <x-select wire:model.live="form.organization_id" :label="__('user/users.organization')" :options="$this->organizations" clearable />

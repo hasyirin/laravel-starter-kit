@@ -6,10 +6,10 @@ paths:
 # Livewire
 
 ## Use short translation keys
-Translate UI text with short keys from PHP files under `lang/en/`, such as `__('user/settings.profile.updated')`, never JSON sentence keys. Put shared labels in `lang/en/common/` (`buttons.php`, `inputs.php`).
+Translate UI text with short keys from PHP files under `lang/en/`, such as `__('user/settings.user_information.updated')`, never JSON sentence keys. Put shared labels in `lang/en/common/` (`buttons.php`, `inputs.php`).
 
 ## Keep components thin
-A component authorizes the user and starts the work. Then it shows the result: a toast, a redirect, or state for the view. If the component has a form object, call the form's `save()`. If not, validate the input and call an Action: inject it into the component method, for example `public function updateProfileInformation(UpdateProfile $updateProfile): void`, and call its `execute()`. Do not write models or apply domain rules in a component. Reading data for the view is fine.
+A component authorizes the user and starts the work. Then it shows the result: a toast, a redirect, or state for the view. If the component has a form object, call the form's `save()`. If not, validate the input and call an Action: inject it into the component method, for example `public function save(UpdateUserInformation $updateUserInformation): void`, and call its `execute()`. Do not write models or apply domain rules in a component. Reading data for the view is fine.
 
 ## Build forms with set() and save()
 Extend `App\Livewire\Form`. Put a form in `app/Livewire/Forms/<Area>/<Model>Form.php`. Give it typed properties and a `rules()` method; do not use `#[Validate]`. Use one form for create and edit:

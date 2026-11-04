@@ -16,4 +16,4 @@ Route::prefix('controls')->name('controls.')->group(function (): void {
     Route::livewire('users/{user}', Show::class)->name('users.show');
 });
 
-Route::redirect('settings', '/settings/profile')->name('settings');
+Route::redirect('settings', '/settings/user-information')->name('settings');

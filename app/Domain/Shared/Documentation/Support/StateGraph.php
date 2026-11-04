@@ -122,7 +122,7 @@ class StateGraph
 
     public function permission(string $step): ?string
     {
-        $policy = Gate::getPolicyFor($this->model);
+        $policy = $this->policy();
         $permission = $policy instanceof Policy ? config($policy->path($step)) : null;
 
         return is_string($permission) ? $permission : null;

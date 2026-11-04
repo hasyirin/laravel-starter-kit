@@ -84,12 +84,4 @@ class UserInformation extends Component
 
         return $user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail();
     }
-
-    #[Computed]
-    public function showDeleteUser(): bool
-    {
-        $user = auth()->user();
-
-        return ! $user instanceof MustVerifyEmail || $user->hasVerifiedEmail();
-    }
 }

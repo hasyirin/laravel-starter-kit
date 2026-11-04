@@ -28,8 +28,8 @@
             </div>
         </form>
 
-        @if($this->showDeleteUser)
+        @unless($this->unverified)
             <livewire:settings.delete-user-form />
-        @endif
+        @endunless
     </x-settings.layout>
 </flux:main>

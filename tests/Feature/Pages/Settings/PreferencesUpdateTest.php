@@ -13,6 +13,12 @@ test('the preferences page is displayed', function (): void {
     $this->get('/settings/preferences')->assertOk();
 });
 
+test('a user with an unverified email can open the preferences page', function (): void {
+    $this->actingAs(User::factory()->unverified()->create());
+
+    $this->get(route('preferences.edit'))->assertOk();
+});
+
 test('the time zone and locale start at the ones of the user, or else at the config', function (?string $timezone, string $expected): void {
     config(['system.timezone' => 'Asia/Kuala_Lumpur']);
 

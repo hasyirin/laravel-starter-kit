@@ -79,6 +79,18 @@ test('correct password must be provided to delete account', function (): void {
     expect($user->fresh())->not->toBeNull();
 });
 
+test('the delete account form shows only once the email is verified', function (): void {
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(UserInformation::class)->assertDontSeeLivewire('settings.delete-user-form');
+
+    $user->markEmailAsVerified();
+
+    Livewire::test(UserInformation::class)->assertSeeLivewire('settings.delete-user-form');
+});
+
 test('the email is stored in lowercase', function (): void {
     $this->actingAs(User::factory()->create());
 

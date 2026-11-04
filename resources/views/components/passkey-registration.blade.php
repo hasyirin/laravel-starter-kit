@@ -77,10 +77,10 @@
 
     <template x-if="supported && showForm">
         <div class="space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
-            <flux:input
-                label="{{ __('user/passkeys.add.name') }}"
+            <x-input
+                :label="__('user/passkeys.add.name')"
                 x-model="name"
-                placeholder="{{ __('user/passkeys.add.name_placeholder') }}"
+                :placeholder="__('user/passkeys.add.name_placeholder')"
                 x-on:keydown.enter.prevent="register()"
                 x-ref="passkeyNameInput"
                 x-init="$nextTick(() => $refs.passkeyNameInput?.focus())"

@@ -158,6 +158,9 @@ test('the first paint has no fade and a new panel fades in', function (): void {
     expect($page->script(tabsScript(<<<'SCRIPT'
         const noFadeAtFirst = getComputedStyle(panel('keep-alive', 'profile')).animationDuration === '0s';
 
+        // The first click gives every panel a fade of 150ms. A fade that started less than 150ms before it runs again.
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
         slowNetwork(300);
         tab('keep-alive', 'notes').click();
         await tick();
@@ -166,8 +169,8 @@ test('the first paint has no fade and a new panel fades in', function (): void {
         await until(() => shown('keep-alive', 'notes'));
         const style = getComputedStyle(panel('keep-alive', 'notes'));
 
-        return noFadeAtFirst && leavingPanelStill && style.animationName === 'tab-enter' && style.animationDuration === '0.15s';
-        SCRIPT)))->toBeTrue();
+        return { noFadeAtFirst, leavingPanelStill, fadesIn: style.animationName === 'tab-enter' && style.animationDuration === '0.15s' };
+        SCRIPT)))->toBe(['noFadeAtFirst' => true, 'leavingPanelStill' => true, 'fadesIn' => true]);
 });
 
 test('only a slow switch dims the content', function (int $milliseconds, bool $dims): void {

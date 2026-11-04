@@ -1,4 +1,4 @@
-<div class="space-y-6 rounded-xl border border-zinc-200 py-6 shadow-sm dark:border-white/10" wire:cloak x-data="{ showRecoveryCodes: false }">
+<div class="space-y-6 rounded-xl border border-zinc-200 py-6 shadow-sm dark:border-white/10" wire:cloak x-data="{ showing: false }">
     <div class="space-y-2 px-6">
         <div class="flex items-center gap-2">
             <flux:icon.lock-closed variant="outline" class="size-4" />
@@ -10,11 +10,11 @@
     <div class="px-6">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <flux:button
-                x-show="!showRecoveryCodes"
+                x-show="!showing"
                 icon="eye"
                 icon:variant="outline"
                 variant="primary"
-                @click="showRecoveryCodes = true"
+                @click="showing = true"
                 aria-expanded="false"
                 aria-controls="recovery-codes-section"
             >
@@ -22,11 +22,11 @@
             </flux:button>
 
             <flux:button
-                x-show="showRecoveryCodes"
+                x-show="showing"
                 icon="eye-slash"
                 icon:variant="outline"
                 variant="primary"
-                @click="showRecoveryCodes = false"
+                @click="showing = false"
                 aria-expanded="true"
                 aria-controls="recovery-codes-section"
             >
@@ -34,13 +34,13 @@
             </flux:button>
 
             @if(filled($recoveryCodes))
-                <flux:button x-show="showRecoveryCodes" icon="arrow-path" variant="filled" wire:click="regenerate">
+                <flux:button x-show="showing" icon="arrow-path" variant="filled" wire:click="regenerate">
                     {{ __('user/settings.recovery_codes.regenerate') }}
                 </flux:button>
             @endif
         </div>
 
-        <div x-show="showRecoveryCodes" x-transition id="recovery-codes-section" class="relative overflow-hidden" x-bind:aria-hidden="!showRecoveryCodes">
+        <div x-show="showing" x-transition id="recovery-codes-section" class="relative overflow-hidden" x-bind:aria-hidden="!showing">
             <div class="mt-3 space-y-3">
                 @error('recoveryCodes')
                     <flux:callout variant="danger" icon="x-circle" heading="{{$message}}" />

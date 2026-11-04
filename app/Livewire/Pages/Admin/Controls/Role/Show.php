@@ -30,7 +30,7 @@ class Show extends Page
     {
         return $this->disabled === true
             || $this->cannot('update', $this->role)
-            || ($this->role->checkPermissionTo($this->bypassPermission()) && ! $this->actorHasBypass());
+            || ($this->role->checkPermissionTo($this->bypassPermission()) && ! $this->actorBypasses());
     }
 
     public function editable(string $part): bool

@@ -23,5 +23,7 @@ Name a boolean variable or parameter with the plain word, such as `$self`, `$unc
 - The method overrides a framework or package method, such as `hasRole()`.
 - The method tests its argument, such as `isDate($value)`. Without the prefix, `date($value)` reads like it returns a date.
 
+Start a flag that shows a modal or another part of the page with `showing`. Then name the part, such as `$showingDeleteModal` or `$showingVerificationStep`. If the class name already names the part, such as `DeleteModal`, write only `$showing`. The name then does not repeat the class. Do not write `$deleteOpen` or `$verifying`: the first does not say what opens, and the second reads like a process.
+
 ## Name methods short, without repeating the class
 Give each method and function the shortest name that is clear in its class. Leave out the words that the class name already says: `DeleteUserForm::delete()`, not `deleteUser()`, and `Preferences::save()`, not `updatePreferences()`. Add a noun only when the class does several things, such as `Security::updatePassword()` and `deletePasskey()`. Keep a name that a framework or contract sets, such as a Livewire hook or `toResponse()`. A trait method becomes part of other classes, so name it for them, such as `userInformationRules()`. A global function, such as a helper in a Pest test file, keeps the words that make it unique.

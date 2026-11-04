@@ -8,7 +8,7 @@
     'actions' => null,
     'badge' => null,
     'required' => false,
-    'showValue' => true,
+    'withValue' => true,
     'inputClass' => null,
     'noErrorMessage' => false,
 ])
@@ -17,7 +17,7 @@
     $attributes = $attributes->merge(['disabled' => $disabled]);
     $descriptionTrailing ??= $attributes->pluck('description:trailing');
     $name = $attributes->whereStartsWith('wire:model')->first() ?? $attributes->get('name');
-    $showsValue = $showValue && $hint === null;
+    $showsValue = $withValue && $hint === null;
     $valueHint = new \Illuminate\Support\HtmlString('<span class="tabular-nums" x-text="text" data-input-slider-value></span>');
 @endphp
 

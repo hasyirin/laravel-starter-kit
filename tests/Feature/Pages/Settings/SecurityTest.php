@@ -163,7 +163,7 @@ test('enabling two factor shows the setup for a new secret', function (): void {
 
     $component
         ->assertHasNoErrors()
-        ->assertSet('showModal', true)
+        ->assertSet('showingSetupModal', true)
         ->assertSet('manualSetupKey', decrypt($user->refresh()->two_factor_secret))
         ->assertNotSet('qrCodeSvg', '')
         ->assertSet('twoFactorEnabled', false);
@@ -179,7 +179,7 @@ test('a valid code turns two factor on', function (): void {
 
     $component
         ->assertHasNoErrors()
-        ->assertSet('showModal', false)
+        ->assertSet('showingSetupModal', false)
         ->assertSet('twoFactorEnabled', true);
     expect($user->refresh()->hasEnabledTwoFactorAuthentication())->toBeTrue();
 });
@@ -223,7 +223,7 @@ test('removing a passkey deletes it and drops it from the list', function (): vo
     $component->call('deletePasskey');
 
     $component
-        ->assertSet('showDeleteModal', false)
+        ->assertSet('showingDeleteModal', false)
         ->assertDontSee('Work laptop');
     $this->assertModelMissing($passkey);
 });

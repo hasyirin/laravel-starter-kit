@@ -4,36 +4,36 @@
             class="relative h-auto w-full"
             x-cloak
             x-data="{
-                showRecoveryInput: @js($errors->has('recovery_code')),
+                showingRecoveryInput: @js($errors->has('recovery_code')),
                 code: '',
                 recovery_code: '',
                 focusOtp() {
                     this.$nextTick(() => this.$refs.otp?.querySelector('input')?.focus());
                 },
                 init() {
-                    if (! this.showRecoveryInput) {
+                    if (! this.showingRecoveryInput) {
                         this.focusOtp();
                     }
                 },
                 toggleInput() {
-                    this.showRecoveryInput = !this.showRecoveryInput;
+                    this.showingRecoveryInput = !this.showingRecoveryInput;
 
                     this.code = '';
                     this.recovery_code = '';
 
                     $nextTick(() => {
-                        this.showRecoveryInput
+                        this.showingRecoveryInput
                             ? this.$refs.recovery_code?.focus()
                             : this.focusOtp();
                     });
                 },
             }"
         >
-            <div x-show="!showRecoveryInput">
+            <div x-show="!showingRecoveryInput">
                 <x-auth-header :title="__('auth/two-factor-challenge.code.heading')" :description="__('auth/two-factor-challenge.code.description')" />
             </div>
 
-            <div x-show="showRecoveryInput">
+            <div x-show="showingRecoveryInput">
                 <x-auth-header :title="__('auth/two-factor-challenge.recovery.heading')" :description="__('auth/two-factor-challenge.recovery.description')" />
             </div>
 
@@ -41,19 +41,19 @@
                 @csrf
 
                 <div class="space-y-5 text-center">
-                    <div x-show="!showRecoveryInput">
+                    <div x-show="!showingRecoveryInput">
                         <div class="my-5 flex items-center justify-center" x-ref="otp">
                             <flux:otp x-model="code" length="6" name="code" label="OTP Code" label:sr-only class="mx-auto" />
                         </div>
                     </div>
 
-                    <div x-show="showRecoveryInput">
+                    <div x-show="showingRecoveryInput">
                         <div class="my-5">
                             <flux:input
                                 type="text"
                                 name="recovery_code"
                                 x-ref="recovery_code"
-                                x-bind:required="showRecoveryInput"
+                                x-bind:required="showingRecoveryInput"
                                 autocomplete="one-time-code"
                                 x-model="recovery_code"
                             />
@@ -70,8 +70,8 @@
                 <div class="mt-5 space-x-0.5 text-center text-sm leading-5">
                     <span class="opacity-50">{{ __('auth/two-factor-challenge.or_you_can') }}</span>
                     <div class="inline cursor-pointer font-medium underline opacity-80">
-                        <span x-show="!showRecoveryInput" @click="toggleInput()">{{ __('auth/two-factor-challenge.use_recovery_code') }}</span>
-                        <span x-show="showRecoveryInput" @click="toggleInput()">{{ __('auth/two-factor-challenge.use_authentication_code') }}</span>
+                        <span x-show="!showingRecoveryInput" @click="toggleInput()">{{ __('auth/two-factor-challenge.use_recovery_code') }}</span>
+                        <span x-show="showingRecoveryInput" @click="toggleInput()">{{ __('auth/two-factor-challenge.use_authentication_code') }}</span>
                     </div>
                 </div>
             </form>

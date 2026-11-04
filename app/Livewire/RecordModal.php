@@ -76,14 +76,12 @@ abstract class RecordModal extends Modal
 
         $this->validate();
 
-        $wasCreated = ! $this->record->exists;
-
         $this->persist();
+
+        $this->notifySaved(static::label(), created: $this->recordId === null);
 
         $this->recordId = null;
         unset($this->record);
-
-        $this->notifySaved(static::label(), $wasCreated);
 
         $this->dispatch(static::event());
 

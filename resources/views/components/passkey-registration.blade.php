@@ -5,7 +5,7 @@
 <div
     x-data="{
         supported: false,
-        showForm: false,
+        formOpen: false,
         name: '',
         loading: false,
         error: null,
@@ -48,7 +48,7 @@
             try {
                 await window.Passkeys.register({ name: this.name });
                 this.name = '';
-                this.showForm = false;
+                this.formOpen = false;
                 await $wire.loadPasskeys();
             } catch (e) {
                 if (e.constructor?.name !== 'UserCancelledError') {
@@ -59,7 +59,7 @@
             }
         },
         cancel() {
-            this.showForm = false;
+            this.formOpen = false;
             this.name = '';
             this.error = null;
         },
@@ -69,13 +69,13 @@
         <flux:text>{{ __('user/passkeys.unsupported') }}</flux:text>
     </template>
 
-    <template x-if="supported && !showForm">
+    <template x-if="supported && !formOpen">
         <div>
-            <flux:button variant="primary" icon="plus" x-on:click="showForm = true">{{ __('user/passkeys.add.button') }}</flux:button>
+            <flux:button variant="primary" icon="plus" x-on:click="formOpen = true">{{ __('user/passkeys.add.button') }}</flux:button>
         </div>
     </template>
 
-    <template x-if="supported && showForm">
+    <template x-if="supported && formOpen">
         <div class="space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
             <flux:input
                 label="{{ __('user/passkeys.add.name') }}"

@@ -6,7 +6,7 @@ namespace App\Livewire\Concerns;
 
 trait ConfirmsPassword
 {
-    protected function passwordIsConfirmed(): bool
+    protected function passwordConfirmed(): bool
     {
         $confirmedAt = session('auth.password_confirmed_at');
 

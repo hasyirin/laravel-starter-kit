@@ -63,11 +63,11 @@ class UserForm extends Form
         $this->position_id = $profile?->position_id;
 
         $bypassPermission = config()->string('system.permissions.bypass-authorization');
-        $actorHasBypass = $this->actor()->checkPermissionTo($bypassPermission);
+        $actorBypasses = $this->actor()->checkPermissionTo($bypassPermission);
 
         $this->roles = $this->names($profile?->getRoleNames())->all();
         $this->permissions = $this->names($profile?->getPermissionNames())
-            ->reject(fn (string $name): bool => $name === $bypassPermission && ! $actorHasBypass)
+            ->reject(fn (string $name): bool => $name === $bypassPermission && ! $actorBypasses)
             ->values()
             ->all();
 

@@ -202,7 +202,7 @@ test('confirming two factor asks for the password again after the confirmation e
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
     $component = Livewire::test(Security::class)->call('enable');
     $code = resolve(Google2FA::class)->getCurrentOtp(decrypt($user->refresh()->two_factor_secret));
-    session()->put('auth.password_confirmed_at', time() - config()->integer('auth.password_timeout') - 1);
+    $this->travel(config()->integer('auth.password_timeout') + 1)->seconds();
 
     $component->set('code', $code)->call('confirmTwoFactor');
 

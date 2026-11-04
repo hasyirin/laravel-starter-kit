@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
+use Tests\Fixtures\Livewire\ChecklistModal;
 use Tests\Fixtures\Livewire\NoteModal;
 use Tests\Fixtures\Models\Note;
 use Tests\Fixtures\Models\Notebook;
@@ -26,6 +27,7 @@ beforeEach(function (): void {
         $table->id();
         $table->foreignId('notebook_id');
         $table->string('title');
+        $table->string('type')->nullable();
         $table->boolean('hidden')->default(false);
         $table->boolean('locked')->default(false);
         $table->timestamps();
@@ -120,6 +122,20 @@ test('saving a new record creates it under the parent, tells the page, and close
         ->assertSet('showing', false);
 
     expect($notebook->notes()->sole()->title)->toBe('Leak');
+});
+
+test('a child-record form saves a new record with its parent and its fixed type', function (): void {
+    $notebook = Notebook::query()->create();
+
+    Livewire::test(ChecklistModal::class, ['notebook' => $notebook])
+        ->call('show')
+        ->set('form.title', 'Groceries')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $note = $notebook->notes()->sole();
+    expect($note->title)->toBe('Groceries')
+        ->and($note->type)->toBe('checklist');
 });
 
 test('saving a record updates it and shows the updated toast', function (): void {

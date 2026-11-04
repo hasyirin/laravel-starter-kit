@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $notebook_id
  * @property string $title
+ * @property string|null $type
  * @property bool $hidden
  * @property bool $locked
  * @property Notebook $notebook

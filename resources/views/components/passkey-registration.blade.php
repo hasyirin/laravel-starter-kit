@@ -88,12 +88,12 @@
 
             <p x-show="error" x-text="error" x-cloak class="text-sm text-red-600 dark:text-red-400"></p>
 
-            <div class="flex gap-2">
+            <div class="flex justify-end gap-2">
+                <flux:button variant="ghost" x-on:click="cancel()">{{ __('common/buttons.cancel') }}</flux:button>
                 <flux:button variant="primary" x-on:click="register()" x-bind:disabled="loading || !name.trim()">
                     <span x-show="!loading">{{ __('user/passkeys.add.submit') }}</span>
                     <span x-show="loading" x-cloak>{{ __('user/passkeys.add.loading') }}</span>
                 </flux:button>
-                <flux:button variant="ghost" x-on:click="cancel()">{{ __('common/buttons.cancel') }}</flux:button>
             </div>
         </div>
     </template>

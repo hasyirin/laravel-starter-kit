@@ -15,7 +15,7 @@
                 :description-trailing="$this->example === null ? null : __('user/settings.preferences.example', ['example' => $this->example])"
             />
 
-            <div class="flex items-center gap-4">
+            <div class="flex justify-end gap-2">
                 <flux:button variant="primary" type="submit">{{ __('common/buttons.save') }}</flux:button>
             </div>
         </form>

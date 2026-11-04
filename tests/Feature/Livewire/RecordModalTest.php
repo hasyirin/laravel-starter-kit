@@ -49,7 +49,7 @@ test('showing a record opens the modal and fills the form', function (): void {
 
     Livewire::test(NoteModal::class, ['notebook' => $notebook])
         ->call('show', $note->id)
-        ->assertSet('open', true)
+        ->assertSet('showing', true)
         ->assertSet('recordId', $note->id)
         ->assertSet('title', 'Leak')
         ->assertSeeHtml('data-note-form');
@@ -100,7 +100,7 @@ test('a closed modal keeps no check on a record that was deleted', function (): 
 
     $modal = Livewire::test(NoteModal::class, ['notebook' => $notebook])
         ->call('show', $note->id)
-        ->set('open', false);
+        ->set('showing', false);
 
     $note->forceDelete();
 
@@ -117,7 +117,7 @@ test('saving a new record creates it under the parent, tells the page, and close
         ->assertHasNoErrors()
         ->assertDispatched(NoteModal::event())
         ->assertDispatched('toast-show', savedToast('common/records.created'))
-        ->assertSet('open', false);
+        ->assertSet('showing', false);
 
     expect($notebook->notes()->sole()->title)->toBe('Leak');
 });
@@ -140,7 +140,7 @@ test('invalid input keeps the modal open and the errors are gone on reopen', fun
         ->call('show')
         ->call('save')
         ->assertHasErrors('title')
-        ->assertSet('open', true)
+        ->assertSet('showing', true)
         ->assertNotDispatched(NoteModal::event())
         ->call('show')
         ->assertHasNoErrors();
@@ -166,7 +166,7 @@ test('saving a closed modal gives 403', function (): void {
     Livewire::test(NoteModal::class, ['notebook' => $notebook])
         ->call('show', $note->id)
         ->set('title', 'Crack')
-        ->set('open', false)
+        ->set('showing', false)
         ->call('save')
         ->assertForbidden();
 
@@ -189,8 +189,8 @@ test('a second save after the modal closed adds no record', function (): void {
 
 test('the browser cannot open the form without the show checks', function (): void {
     Livewire::test(NoteModal::class, ['notebook' => Notebook::query()->create(['accepts_notes' => false])])
-        ->set('open', true)
-        ->assertSet('open', false)
+        ->set('showing', true)
+        ->assertSet('showing', false)
         ->assertDontSeeHtml('data-note-form');
 });
 

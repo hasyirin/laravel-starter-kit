@@ -14,7 +14,7 @@
     'decimals' => 2,
     'comma' => ',',
     'separator' => '.',
-    'disableNegatives' => false,
+    'unsigned' => false,
     'default' => null,
     'defaultLabel' => null,
     'inputClass' => null,
@@ -41,11 +41,11 @@
 
     // Flux echoes the mask with {{ }}, so an HtmlString keeps its quotes from being escaped twice.
     $mask = new \Illuminate\Support\HtmlString(
-        '$money('.($disableNegatives ? "\$input.replace(/-/g, '')" : '$input').', '.\Illuminate\Support\Js::from($separator).', '.\Illuminate\Support\Js::from($comma).', '.$decimals.')',
+        '$money('.($unsigned ? "\$input.replace(/-/g, '')" : '$input').', '.\Illuminate\Support\Js::from($separator).', '.\Illuminate\Support\Js::from($comma).', '.$decimals.')',
     );
 
     $inputmode = match (true) {
-        ! $disableNegatives => null,
+        ! $unsigned => null,
         $decimals > 0 => 'decimal',
         default => 'numeric',
     };
@@ -64,7 +64,7 @@
     :$name
     :$noErrorMessage
     x-data="numberField"
-    :data-number="json_encode(['decimals' => $decimals, 'comma' => $comma, 'separator' => $separator, 'disableNegatives' => (bool) $disableNegatives])"
+    :data-number="json_encode(['decimals' => $decimals, 'comma' => $comma, 'separator' => $separator, 'unsigned' => (bool) $unsigned])"
     :data-input-default="$hasDefault ? (string) $default : null"
     :data-input-model="$model"
     {{ $attributes->only('class') }}

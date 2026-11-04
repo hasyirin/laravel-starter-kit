@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use App\Domain\User\Models\User;
 use App\Livewire\Settings\Security;
+use App\Livewire\Settings\TwoFactor\RecoveryCodes;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Features;
 use Livewire\Livewire;
+use PragmaRX\Google2FA\Google2FA;
 
 beforeEach(function (): void {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
@@ -151,4 +153,129 @@ test('a recently confirmed password lets the security page disable two factor', 
     Livewire::test(Security::class)->call('disable')->assertNoRedirect();
 
     expect($user->refresh()->two_factor_secret)->toBeNull();
+});
+
+test('enabling two factor shows the setup for a new secret', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+
+    $component = Livewire::test(Security::class)->call('enable');
+
+    $component
+        ->assertHasNoErrors()
+        ->assertSet('showingSetupModal', true)
+        ->assertSet('manualSetupKey', decrypt($user->refresh()->two_factor_secret))
+        ->assertNotSet('qrCodeSvg', '')
+        ->assertSet('twoFactorEnabled', false);
+});
+
+test('a valid code turns two factor on', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+    $component = Livewire::test(Security::class)->call('enable');
+    $code = resolve(Google2FA::class)->getCurrentOtp(decrypt($user->refresh()->two_factor_secret));
+
+    $component->set('code', $code)->call('confirmTwoFactor');
+
+    $component
+        ->assertHasNoErrors()
+        ->assertSet('showingSetupModal', false)
+        ->assertSet('twoFactorEnabled', true);
+    expect($user->refresh()->hasEnabledTwoFactorAuthentication())->toBeTrue();
+});
+
+test('a code that does not match the secret leaves two factor off', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+    $component = Livewire::test(Security::class)->call('enable');
+
+    $component->set('code', 'abcdef')->call('confirmTwoFactor');
+
+    $component
+        ->assertHasErrors(['code' => 'The provided two factor authentication code was invalid.'])
+        ->assertSet('twoFactorEnabled', false);
+    expect($user->refresh()->hasEnabledTwoFactorAuthentication())->toBeFalse();
+});
+
+test('confirming two factor asks for the password again after the confirmation expires', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+    $component = Livewire::test(Security::class)->call('enable');
+    $code = resolve(Google2FA::class)->getCurrentOtp(decrypt($user->refresh()->two_factor_secret));
+    session()->put('auth.password_confirmed_at', time() - config()->integer('auth.password_timeout') - 1);
+
+    $component->set('code', $code)->call('confirmTwoFactor');
+
+    $component->assertRedirect(route('password.confirm'));
+    expect($user->refresh()->hasEnabledTwoFactorAuthentication())->toBeFalse();
+});
+
+test('removing a passkey deletes it and drops it from the list', function (): void {
+    $user = User::factory()->create();
+    $passkey = $user->passkeys()->create([
+        'name' => 'Work laptop',
+        'credential_id' => str()->random(32),
+        'credential' => ['id' => 'credential'],
+    ]);
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+    $component = Livewire::test(Security::class)->call('confirmDelete', $passkey->id);
+
+    $component->call('deletePasskey');
+
+    $component
+        ->assertSet('showingDeleteModal', false)
+        ->assertDontSee('Work laptop');
+    $this->assertModelMissing($passkey);
+});
+
+test('removing a passkey asks for the password again after the confirmation expires', function (): void {
+    $user = User::factory()->create();
+    $passkey = $user->passkeys()->create([
+        'name' => 'Work laptop',
+        'credential_id' => str()->random(32),
+        'credential' => ['id' => 'credential'],
+    ]);
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time() - config()->integer('auth.password_timeout') - 1]);
+    $component = Livewire::test(Security::class)->call('confirmDelete', $passkey->id);
+
+    $component->call('deletePasskey');
+
+    $component->assertRedirect(route('password.confirm'));
+    $this->assertModelExists($passkey);
+});
+
+test('removing the passkey of another user gives 404', function (): void {
+    $passkey = User::factory()->create()->passkeys()->create([
+        'name' => 'Work laptop',
+        'credential_id' => str()->random(32),
+        'credential' => ['id' => 'credential'],
+    ]);
+    $this->actingAs(User::factory()->create())->withSession(['auth.password_confirmed_at' => time()]);
+
+    $component = Livewire::test(Security::class)->call('confirmDelete', $passkey->id);
+
+    $component->assertNotFound();
+    $this->assertModelExists($passkey);
+});
+
+test('regenerating recovery codes replaces the old codes', function (): void {
+    $user = User::factory()->withTwoFactor()->create();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+
+    $component = Livewire::test(RecoveryCodes::class)->call('regenerate');
+
+    $component->assertSet('recoveryCodes', $user->refresh()->recoveryCodes());
+
+    expect($user->recoveryCodes())->not->toContain('recovery-code-1');
+});
+
+test('regenerating recovery codes asks for the password again after the confirmation expires', function (): void {
+    $user = User::factory()->withTwoFactor()->create();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time() - config()->integer('auth.password_timeout') - 1]);
+
+    $component = Livewire::test(RecoveryCodes::class)->call('regenerate');
+
+    $component->assertRedirect(route('password.confirm'));
+
+    expect($user->refresh()->recoveryCodes())->toBe(['recovery-code-1']);
 });

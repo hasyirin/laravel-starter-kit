@@ -80,7 +80,7 @@ trait InteractsWithUserForm
             ->orderBy('name')
             ->get();
 
-        if ($this->actorHasBypass()) {
+        if ($this->actorBypasses()) {
             return $roles;
         }
 
@@ -178,7 +178,7 @@ trait InteractsWithUserForm
      */
     private function visiblePermissions(Collection $names): Collection
     {
-        if ($this->actorHasBypass()) {
+        if ($this->actorBypasses()) {
             return $names;
         }
 
@@ -192,7 +192,7 @@ trait InteractsWithUserForm
         return $this->form->user?->is($this->actor()) ?? false;
     }
 
-    private function actorHasBypass(): bool
+    private function actorBypasses(): bool
     {
         return $this->actor()->checkPermissionTo($this->bypassPermission());
     }

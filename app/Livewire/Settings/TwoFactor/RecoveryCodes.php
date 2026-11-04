@@ -32,7 +32,7 @@ class RecoveryCodes extends Component
      */
     public function regenerate(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 

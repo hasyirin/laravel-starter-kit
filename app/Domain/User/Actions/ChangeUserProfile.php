@@ -34,9 +34,9 @@ class ChangeUserProfile
 
             $user->unsetRelation('profile');
 
-            $actorHasBypass = $actor->checkPermissionTo($this->bypassPermission());
+            $actorBypasses = $actor->checkPermissionTo($this->bypassPermission());
 
-            throw_if(! $actorHasBypass && $user->checkPermissionTo($this->bypassPermission()), AuthorizationException::class);
+            throw_if(! $actorBypasses && $user->checkPermissionTo($this->bypassPermission()), AuthorizationException::class);
 
             $current = $user->profile()->first();
             $currentPlacement = $this->placementOf($current?->only(self::PLACEMENT_KEYS) ?? []);
@@ -53,8 +53,8 @@ class ChangeUserProfile
                 ->pluck('name'));
 
             $self = $actor->is($user);
-            $this->guardProtected($actorHasBypass, $self, $newRoles, $currentRoles, $bypassRoles);
-            $this->guardProtected($actorHasBypass, $self, $newPermissions, $currentPermissions, collect([$this->bypassPermission()]));
+            $this->guardProtected($actorBypasses, $self, $newRoles, $currentRoles, $bypassRoles);
+            $this->guardProtected($actorBypasses, $self, $newPermissions, $currentPermissions, collect([$this->bypassPermission()]));
 
             $unchanged = $current instanceof Profile
                 && $newPlacement === $currentPlacement
@@ -85,12 +85,12 @@ class ChangeUserProfile
      *
      * @throws AuthorizationException
      */
-    private function guardProtected(bool $actorHasBypass, bool $self, Collection $new, Collection $current, Collection $protected): void
+    private function guardProtected(bool $actorBypasses, bool $self, Collection $new, Collection $current, Collection $protected): void
     {
         $added = $new->intersect($protected)->diff($current);
         $removed = $current->intersect($protected)->diff($new);
 
-        throw_if($added->isNotEmpty() && ! $actorHasBypass, AuthorizationException::class);
+        throw_if($added->isNotEmpty() && ! $actorBypasses, AuthorizationException::class);
 
         throw_if($removed->isNotEmpty() && $self, AuthorizationException::class);
     }

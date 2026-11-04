@@ -27,12 +27,12 @@ function format(value, { decimals, comma, separator }) {
     return decimals > 0 ? whole + separator + fraction.padEnd(decimals, '0') : whole;
 }
 
-function unformat(value, { comma, separator, disableNegatives }) {
+function unformat(value, { comma, separator, unsigned }) {
     let text = comma === '' ? value : value.replaceAll(comma, '');
 
     text = text.replace(separator, '.');
 
-    return disableNegatives ? text.replace(/-/g, '') : text;
+    return unsigned ? text.replace(/-/g, '') : text;
 }
 
 function same(left, right) {

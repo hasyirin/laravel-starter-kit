@@ -57,10 +57,10 @@ class UpdateRole
     private function guard(User $actor, Role $role, Collection $current, Collection $new): void
     {
         $bypassPermission = config()->string('system.permissions.bypass-authorization');
-        $actorHasBypass = $actor->checkPermissionTo($bypassPermission);
+        $actorBypasses = $actor->checkPermissionTo($bypassPermission);
         $granted = $current->contains($bypassPermission);
 
-        throw_if(! $actorHasBypass && ($granted || $new->contains($bypassPermission)), AuthorizationException::class);
+        throw_if(! $actorBypasses && ($granted || $new->contains($bypassPermission)), AuthorizationException::class);
 
         throw_if($granted && $new->doesntContain($bypassPermission) && $actor->hasRole($role), AuthorizationException::class);
     }

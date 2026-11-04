@@ -65,25 +65,23 @@ abstract class RecordModal extends Modal
     public function isDisabled(?string $part = null): bool
     {
         return parent::isDisabled($part)
-            || ($this->open && $this->cannot($this->record->exists ? 'update' : 'create', $this->record));
+            || ($this->showing && $this->cannot($this->record->exists ? 'update' : 'create', $this->record));
     }
 
     public function save(): void
     {
-        abort_unless($this->open, 403);
+        abort_unless($this->showing, 403);
 
         $this->ensureEnabled();
 
         $this->validate();
 
-        $wasCreated = ! $this->record->exists;
-
         $this->persist();
+
+        $this->notifySaved(static::label(), created: $this->recordId === null);
 
         $this->recordId = null;
         unset($this->record);
-
-        $this->notifySaved(static::label(), $wasCreated);
 
         $this->dispatch(static::event());
 

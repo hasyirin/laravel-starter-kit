@@ -49,7 +49,7 @@ export default function permissionTree() {
         open: new Set(),
         search: '',
         onlyGranted: false,
-        expandAll: false,
+        allOpen: false,
         readOnly: true,
 
         init() {
@@ -194,7 +194,7 @@ export default function permissionTree() {
         },
 
         opened(key) {
-            return this.expandAll || this.query !== '' || this.open.has(key);
+            return this.allOpen || this.query !== '' || this.open.has(key);
         },
 
         toggleOpen(key) {

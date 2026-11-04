@@ -23,7 +23,7 @@
 
         <x-switch x-on:change="onlyGranted = $event.target.checked" :label="__('user/users.permissions.only_granted')" />
 
-        <x-switch x-on:change="expandAll = $event.target.checked" :label="__('user/users.permissions.expand_all')" />
+        <x-switch x-on:change="allOpen = $event.target.checked" :label="__('user/users.permissions.expand_all')" />
     </div>
 
     <div class="[&_mark]:rounded-xs [&_mark]:bg-yellow-200 [&_mark]:text-inherit dark:[&_mark]:bg-yellow-500/40 mt-6 text-sm">

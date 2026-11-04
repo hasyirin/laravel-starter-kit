@@ -5,7 +5,7 @@ How the engineering skills should consume this repo's domain documentation when 
 ## Before exploring, read these
 
 - **GLOSSARY.md** at the repo root.
-- **docs/adr/**: read the ADRs that touch the area you are about to work in.
+- **`docs/adr/`**: read the ADRs that touch the area you are about to work in.
 
 If one of these does not exist, **proceed silently**. Do not flag its absence, and do not suggest creating it upfront. The `/domain-modeling` skill creates these files lazily, when a term or a decision gets resolved. `/grill-with-docs` and `/improve-codebase-architecture` run that skill.
 

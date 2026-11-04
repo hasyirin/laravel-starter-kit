@@ -104,13 +104,19 @@
             {{ __('user/users.permissions.heading') }}
         </x-slot:heading>
 
-        @include('livewire.pages.admin.controls.user.partials.permission-tree')
+        @include('livewire.pages.admin.controls.partials.permission-tree')
     </x-card>
 
     <x-card body="divided">
         <x-slot:footer>
             <flux:card.actions>
-                <flux:button :href="route('admin.controls.users.index')" variant="subtle" wire:navigate>{{ __('common/buttons.back') }}</flux:button>
+                <flux:button
+                    :href="isset($role) ? route('admin.controls.roles.show', $role) : route('admin.controls.users.index')"
+                    variant="subtle"
+                    wire:navigate
+                >
+                    {{ __('common/buttons.back') }}
+                </flux:button>
 
                 @unless($disabled)
                     <flux:button variant="primary" type="submit">{{ $submit }}</flux:button>

@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Admin\Controls\User;
 
-use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\UserActivities;
-use App\Livewire\Modal;
-use Illuminate\Contracts\View\View;
+use App\Livewire\Pages\Admin\Controls\ActivityModal as Modal;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
-use Livewire\Attributes\On;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityModal extends Modal
@@ -19,51 +16,19 @@ class ActivityModal extends Modal
     #[Locked]
     public int $userId;
 
-    #[Locked]
-    public ?int $activityId = null;
-
-    public function mount(): void
-    {
-        $this->authorize('view', [$this->user, 'activities']);
-    }
-
-    #[On('show')]
-    public function show(?int $id = null): void
-    {
-        $this->authorize('view', [$this->user, 'activities']);
-
-        $this->activityId = $id;
-        unset($this->activity);
-
-        abort_unless($this->activity instanceof Activity, 404);
-
-        parent::show();
-    }
-
     #[Computed]
     public function user(): User
     {
         return User::query()->findOrFail($this->userId);
     }
 
-    #[Computed]
-    public function activity(): ?Activity
+    protected function authorizeActivities(): void
     {
-        if ($this->activityId === null) {
-            return null;
-        }
-
-        $activity = UserActivities::find($this->user, $this->activityId);
-
-        if ($activity->subject instanceof Profile) {
-            $activity->subject->loadMissing(['roles', 'permissions']);
-        }
-
-        return $activity;
+        $this->authorize('view', [$this->user, 'activities']);
     }
 
-    public function render(): View
+    protected function find(int $id): Activity
     {
-        return view('livewire.pages.admin.controls.user.activity-modal');
+        return UserActivities::find($this->user, $id);
     }
 }

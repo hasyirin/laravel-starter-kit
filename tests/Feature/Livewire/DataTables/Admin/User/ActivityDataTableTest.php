@@ -199,6 +199,22 @@ test('the modal shows dates for the viewer and booleans as yes or no', function 
         ->assertSeeInOrder(['No', 'Yes']);
 });
 
+test('the modal shows a list as the items that were removed and added', function (): void {
+    $this->actingAs($this->admin);
+    $activity = Activity::query()->create([
+        'description' => 'updated',
+        'event' => 'updated',
+        'subject_type' => 'user',
+        'subject_id' => $this->subject->id,
+        'attribute_changes' => ['attributes' => ['permissions' => ['admin.access', 'internal.access']], 'old' => ['permissions' => ['admin.access', 'admin.horizon.view']]],
+    ]);
+
+    Livewire::test(ActivityModal::class, ['userId' => $this->subject->id])
+        ->call('show', $activity->id)
+        ->assertSeeInOrder(['Permissions', 'admin.horizon.view', 'internal.access'])
+        ->assertDontSee('admin.access');
+});
+
 test('the modal refuses an activity that does not involve the user', function (): void {
     $activity = renameAs($this->admin, $this->other, 'Olive Renamed');
 

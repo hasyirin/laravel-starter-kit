@@ -19,6 +19,9 @@ Extend `App\Livewire\Form`. Put a form in `app/Livewire/Forms/<Area>/<Model>Form
 - Mark each property that the user does not type with `#[Locked]`, such as the record and any flag that changes the rules. A browser can change any other public property.
 - Do not put a `disabled` flag on a form. Disable the component with `CanBeDisabled`, and check a part that the user can or cannot change with the policy in `save()`.
 
+## Take route values as locked properties
+Give a page component a typed public property for each route parameter, such as `#[Locked] public Role $role;`. Livewire fills it before `mount()`, so do not add the value as a `mount()` parameter or copy it in `mount()`. Use `mount()` only to authorize and to fill the form. Mark every route property with `#[Locked]`, because a browser can change any other public property. Injecting an Action into `mount()` is fine.
+
 ## Run workflow steps with the component's transitionTo()
 Run a state step with the component's `$this->transitionTo($model->state, Paid::class)` from `App\Livewire\Component`, not with `authorize()` and the state's `transitionTo()`. It checks the permission. The `exception()` hook of the base component turns any failed step into a Flux toast. This includes a step that an Action runs, so do not catch step exceptions in a component. If a component defines its own `exception()`, call `parent::exception($e, $stopPropagation)` first.
 

@@ -1,27 +1,27 @@
 @use(App\Domain\User\Models\Profile)
-@use(App\Domain\User\Support\UserActivities)
+@use(App\Domain\Shared\Common\Support\Activities)
 
 <div>
     <flux:modal wire:model="open" class="md:min-w-xl">
         @if($open && $this->activity)
             @php($activity = $this->activity)
-            @php($changes = UserActivities::changes($activity))
+            @php($changes = Activities::changes($activity))
 
             <div class="space-y-6">
                 <div>
-                    <flux:heading size="lg">{{ UserActivities::subjectLabel($activity) }}</flux:heading>
+                    <flux:heading size="lg">{{ Activities::subjectLabel($activity) }}</flux:heading>
 
-                    <flux:subheading>{{ UserActivities::summary($activity) }}</flux:subheading>
+                    <flux:subheading>{{ Activities::summary($activity) }}</flux:subheading>
                 </div>
 
                 @if($changes->isEmpty())
-                    <flux:text>{{ __('user/users.audit.no_changes') }}</flux:text>
+                    <flux:text>{{ __('common/audit.no_changes') }}</flux:text>
                 @else
                     <flux:table>
                         <flux:table.columns>
-                            <flux:table.column>{{ __('user/users.audit.field') }}</flux:table.column>
-                            <flux:table.column>{{ __('user/users.audit.old') }}</flux:table.column>
-                            <flux:table.column>{{ __('user/users.audit.new') }}</flux:table.column>
+                            <flux:table.column>{{ __('common/audit.field') }}</flux:table.column>
+                            <flux:table.column>{{ __('common/audit.old') }}</flux:table.column>
+                            <flux:table.column>{{ __('common/audit.new') }}</flux:table.column>
                         </flux:table.columns>
 
                         <flux:table.rows>
@@ -44,7 +44,7 @@
                             @forelse($activity->subject->roles as $role)
                                 <flux:badge size="sm" wire:key="role-{{ $role->id }}">{{ $role->label }}</flux:badge>
                             @empty
-                                <flux:text>{{ __('user/users.audit.none') }}</flux:text>
+                                <flux:text>{{ __('common/audit.none') }}</flux:text>
                             @endforelse
                         </div>
                     </div>
@@ -56,7 +56,7 @@
                             @forelse($activity->subject->permissions as $permission)
                                 <flux:badge size="sm" wire:key="permission-{{ $permission->id }}">{{ $permission->name }}</flux:badge>
                             @empty
-                                <flux:text>{{ __('user/users.audit.none') }}</flux:text>
+                                <flux:text>{{ __('common/audit.none') }}</flux:text>
                             @endforelse
                         </div>
                     </div>

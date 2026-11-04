@@ -37,6 +37,16 @@ test('role changes are recorded in the activity log', function (): void {
         ->and($activity->attribute_changes?->get('attributes'))->toBe(['name' => 'author']);
 });
 
+test('a role knows when a profile holds it', function (): void {
+    $role = Role::query()->create(['name' => 'editor']);
+
+    expect($role->assignedToProfiles())->toBeFalse();
+
+    Profile::factory()->for(User::factory())->withRoles('editor')->create();
+
+    expect($role->assignedToProfiles())->toBeTrue();
+});
+
 test('is_system cannot be mass assigned', function (): void {
     Role::query()->create(['name' => 'editor', 'is_system' => true]);
 })->throws(MassAssignmentException::class);

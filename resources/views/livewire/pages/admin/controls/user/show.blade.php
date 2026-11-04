@@ -1,5 +1,17 @@
 <flux:main container>
-    <x-breadcrumbs :items="[['label' => __('user/users.title'), 'href' => route('admin.controls.users.index')], ['label' => $user->email]]" class="mb-6" />
+    @isset($role)
+        <x-breadcrumbs
+            :items="[
+                ['label' => __('permission/roles.title'), 'href' => route('admin.controls.roles.index')],
+                ['label' => $role->label, 'href' => route('admin.controls.roles.show', $role)],
+                ['label' => __('permission/roles.tabs.users'), 'href' => route('admin.controls.roles.show', ['role' => $role, 'tab' => 'users'])],
+                ['label' => $user->email],
+            ]"
+            class="mb-6"
+        />
+    @else
+        <x-breadcrumbs :items="[['label' => __('user/users.title'), 'href' => route('admin.controls.users.index')], ['label' => $user->email]]" class="mb-6" />
+    @endisset
 
     <div class="mb-6 flex items-center gap-4">
         <flux:avatar size="lg" :name="$user->name" :initials="$user->initials()" />

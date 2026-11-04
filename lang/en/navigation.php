@@ -13,6 +13,7 @@ return [
     'administration' => 'Administration',
     'controls' => 'Controls',
     'users' => 'Users',
+    'roles' => 'Roles',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',
         'home' => 'Home',

@@ -17,14 +17,14 @@ class RolePolicy extends Policy
         return $this->hasPermission($user, 'view-any');
     }
 
-    public function view(User $user, Role $role): bool
+    public function view(User $user, Role $role, ?string $type = null): bool
     {
-        return $this->hasAnyPermission($user, 'view-any', 'view');
+        return $this->hasAnyPermission($user, 'view-any', 'view') && $this->hasTypedPermission($user, 'view', $type);
     }
 
-    public function create(User $user): bool
+    public function create(User $user, ?string $type = null): bool
     {
-        return $this->hasPermission($user, 'create');
+        return $this->hasPermission($user, 'create') && $this->hasTypedPermission($user, 'update', $type);
     }
 
     public function update(User $user, Role $role, ?string $type = null): bool

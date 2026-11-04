@@ -71,7 +71,7 @@ class Role extends \Spatie\Permission\Models\Role
         return parent::relationForModel($modelClass);
     }
 
-    private function assignedToProfiles(): bool
+    public function assignedToProfiles(): bool
     {
         return parent::relationForModel(Profile::class)->exists();
     }

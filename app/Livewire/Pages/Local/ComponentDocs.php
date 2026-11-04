@@ -22,11 +22,9 @@ class ComponentDocs extends Page
     /** @var array<string, mixed> */
     public array $form = [];
 
-    public function mount(?string $page = null): void
+    public function mount(): void
     {
-        abort_unless($page === null || $this->documents()->has($page), 404);
-
-        $this->page = $page;
+        abort_unless($this->page === null || $this->documents()->has($this->page), 404);
     }
 
     public function render(): View

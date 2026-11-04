@@ -59,3 +59,6 @@ Check the edge cases first and return early, so the main path stays at the lowes
 
 ## Name booleans without is
 Follow the naming rule of `.ai/rules/php.md` in JavaScript, Alpine, and Blade too. Name a boolean variable, parameter, or method with the plain word, such as `ticked(name)` or `selected`, not `isTicked(name)` or `isSelected`. Keep the `is` or `has` prefix for the same cases: the plain word is in use, the code overrides a browser or library name such as `event.isComposing`, or a function tests its argument, such as `isModifiedClick(event)`. If the plain word is in use, choose another plain word, for example `opened(key)` next to the `open` set.
+
+## Name functions short, without repeating the component
+Follow the method naming rule of `.ai/rules/php.md` in JavaScript too, with the file or component in place of the class. Keep the component name in an `Alpine.data()` name, such as `numberField`, because the name is global. The markup inside an Alpine component sees its data and methods. If a short name could hide an outer component's name, keep the component name in it, such as `cardOpen` in `card.js`.

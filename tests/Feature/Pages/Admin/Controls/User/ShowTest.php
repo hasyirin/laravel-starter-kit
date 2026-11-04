@@ -134,6 +134,11 @@ test('the browser cannot change the user of the form', function (): void {
         ->set('form.user', $this->admin->id);
 })->throws(CannotUpdateLockedPropertyException::class);
 
+test('the browser cannot change the user of the page', function (): void {
+    Livewire::test(Show::class, ['user' => $this->subject])
+        ->set('user', $this->admin->id);
+})->throws(CannotUpdateLockedPropertyException::class);
+
 test('saving keeps the roles of the profile', function (): void {
     $role = Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
     Profile::factory()->for($this->subject)->withRoles($role)->create();
@@ -452,4 +457,20 @@ test('the show page opens without a tab bar when no tab is available', function 
         ->assertOk()
         ->assertSeeLivewire(Tabs::class)
         ->assertDontSeeHtml('data-tab=');
+});
+
+test('a user opened from a role leads back to the role', function (): void {
+    $this->admin->givePermissionTo('admin.controls.roles.view');
+    $role = Role::query()->create(['name' => 'editor']);
+
+    $this->get(route('admin.controls.roles.users.show', [$role, $this->subject]))
+        ->assertOk()
+        ->assertSeeInOrder([route('admin.controls.roles.index'), route('admin.controls.roles.show', $role), route('admin.controls.roles.show', ['role' => $role, 'tab' => 'users']), $this->subject->email])
+        ->assertDontSee(route('admin.controls.users.index'));
+});
+
+test('a user opened from a role needs view on the role', function (): void {
+    $role = Role::query()->create(['name' => 'editor']);
+
+    $this->get(route('admin.controls.roles.users.show', [$role, $this->subject]))->assertForbidden();
 });

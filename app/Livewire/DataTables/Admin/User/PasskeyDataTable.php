@@ -16,7 +16,6 @@ use Flux\Flux;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Passkeys\Passkey;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Defer;
 use Livewire\Attributes\Locked;
 
@@ -24,7 +23,7 @@ use Livewire\Attributes\Locked;
 class PasskeyDataTable extends DataTable
 {
     #[Locked]
-    public int $userId;
+    public User $user;
 
     public function mount(): void
     {
@@ -74,12 +73,6 @@ class PasskeyDataTable extends DataTable
                     Flux::toast(variant: 'success', text: __('user/users.passkeys_tab.revoked'));
                 }),
         ];
-    }
-
-    #[Computed]
-    public function user(): User
-    {
-        return User::query()->findOrFail($this->userId);
     }
 
     private function actor(): User

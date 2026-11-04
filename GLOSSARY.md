@@ -25,3 +25,13 @@ _Avoid_: Current profile, latest profile
 
 **Placement**:
 The organization, branch, department, and position on a profile.
+
+### Audit
+
+**Audit log**:
+The record of every change to the app's records, with who made each change and when.
+_Avoid_: Activity, activity log, history
+
+**Audit entry**:
+One change in the audit log: the record, the event, the user who made it, and the old and new values.
+_Avoid_: Activity, log entry

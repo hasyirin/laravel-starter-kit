@@ -52,14 +52,14 @@
 
     @if($resource)
         <div x-show="opened(@js($key))">
-            @include('livewire.pages.admin.controls.user.partials.permission-chips', ['permissions' => $node['permissions'], 'class' => 'ps-5.5'])
+            @include('livewire.pages.admin.controls.partials.permission-chips', ['permissions' => $node['permissions'], 'class' => 'ps-5.5'])
         </div>
     @else
         <div x-show="opened(@js($key))" class="ms-1.5 border-s border-zinc-200 ps-4 dark:border-zinc-700">
-            @include('livewire.pages.admin.controls.user.partials.permission-chips', ['permissions' => $node['permissions'], 'class' => 'ps-5.5'])
+            @include('livewire.pages.admin.controls.partials.permission-chips', ['permissions' => $node['permissions'], 'class' => 'ps-5.5'])
 
             @foreach($node['children'] as $child)
-                @include('livewire.pages.admin.controls.user.partials.permission-node', ['node' => $child])
+                @include('livewire.pages.admin.controls.partials.permission-node', ['node' => $child])
             @endforeach
         </div>
     @endif

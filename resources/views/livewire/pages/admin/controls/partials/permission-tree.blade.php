@@ -27,10 +27,10 @@
     </div>
 
     <div class="[&_mark]:rounded-xs [&_mark]:bg-yellow-200 [&_mark]:text-inherit dark:[&_mark]:bg-yellow-500/40 mt-6 text-sm">
-        @include('livewire.pages.admin.controls.user.partials.permission-chips', ['permissions' => $this->permissionTree['permissions'], 'class' => null])
+        @include('livewire.pages.admin.controls.partials.permission-chips', ['permissions' => $this->permissionTree['permissions'], 'class' => null])
 
         @foreach($this->permissionTree['children'] as $node)
-            @include('livewire.pages.admin.controls.user.partials.permission-node', ['node' => $node])
+            @include('livewire.pages.admin.controls.partials.permission-node', ['node' => $node])
         @endforeach
     </div>
 </div>

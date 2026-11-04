@@ -32,7 +32,7 @@ function createPasskey(User $user, string $name = 'Laptop'): Passkey
 
 function passkeyTable(User $user): Testable
 {
-    return Livewire::test(PasskeyDataTable::class, ['userId' => $user->id]);
+    return Livewire::test(PasskeyDataTable::class, ['user' => $user]);
 }
 
 test('the passkeys tab lists the passkeys of the user', function (): void {

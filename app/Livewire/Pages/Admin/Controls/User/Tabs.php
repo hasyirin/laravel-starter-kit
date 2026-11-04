@@ -11,7 +11,6 @@ use App\Livewire\Concerns\InteractsWithTabs;
 use App\Livewire\DataTables\Admin\User\PasskeyDataTable;
 use Illuminate\Contracts\View\View;
 use Laravel\Fortify\Features;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 
 class Tabs extends Component
@@ -19,7 +18,7 @@ class Tabs extends Component
     use InteractsWithTabs;
 
     #[Locked]
-    public int $userId;
+    public User $user;
 
     /**
      * @return list<Tab>
@@ -30,20 +29,14 @@ class Tabs extends Component
             Tab::make('passkeys')
                 ->label((string) __('user/users.tabs.passkeys'))
                 ->content(PasskeyDataTable::class)
-                ->params(['userId' => $this->userId])
+                ->params(['user' => $this->user])
                 ->visible(Features::canManagePasskeys()),
             Tab::make('audit')
                 ->label((string) __('user/users.tabs.audit'))
                 ->content(Audit::class)
-                ->params(['userId' => $this->userId])
-                ->visible(fn (): bool => $this->can('view', [$this->user, 'activities'])),
+                ->params(['user' => $this->user])
+                ->visible(fn (): bool => $this->can('view', [$this->user, 'audit-log'])),
         ];
-    }
-
-    #[Computed]
-    public function user(): User
-    {
-        return User::query()->findOrFail($this->userId);
     }
 
     public function render(): View

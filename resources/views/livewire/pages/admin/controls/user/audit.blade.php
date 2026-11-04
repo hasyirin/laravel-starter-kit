@@ -7,7 +7,7 @@
         :options="['by' => __('user/users.audit.by'), 'on' => __('user/users.audit.on')]"
     />
 
-    <livewire:data-tables.admin.user.activity-data-table :user-id="$userId" :$direction :wire:key="'activities-'.$direction" />
+    <livewire:data-tables.admin.user.audit-log-data-table :$user :$direction :wire:key="'audit-log-'.$direction" />
 
-    <livewire:pages.admin.controls.user.activity-modal :user-id="$userId" />
+    <livewire:pages.admin.controls.user.audit-entry-modal :$user />
 </div>

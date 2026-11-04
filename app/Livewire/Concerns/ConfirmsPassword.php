@@ -10,7 +10,7 @@ trait ConfirmsPassword
     {
         $confirmedAt = session('auth.password_confirmed_at');
 
-        if (is_int($confirmedAt) && time() - $confirmedAt <= config()->integer('auth.password_timeout')) {
+        if (is_int($confirmedAt) && now()->unix() - $confirmedAt <= config()->integer('auth.password_timeout')) {
             return true;
         }
 

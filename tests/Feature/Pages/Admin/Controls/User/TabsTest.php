@@ -44,7 +44,7 @@ test('the passkeys tab is hidden when passkeys are off', function (): void {
     config()->set('fortify.features', []);
     $this->admin->givePermissionTo('admin.controls.users.view-audit-log');
 
-    expect(Features::canManagePasskeys())->toBeFalse();
+    expect(Features::enabled(Features::passkeys()))->toBeFalse();
 
     Livewire::test(Tabs::class, ['user' => $this->subject])
         ->assertDontSeeLivewire(PasskeyDataTable::class)

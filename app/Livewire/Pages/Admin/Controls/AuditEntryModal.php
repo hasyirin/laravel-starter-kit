@@ -17,19 +17,19 @@ abstract class AuditEntryModal extends Modal
     #[Locked]
     public ?int $entryId = null;
 
-    abstract protected function authorizeAuditLog(): void;
+    abstract protected function authorizeLog(): void;
 
     abstract protected function find(int $id): Activity;
 
     public function mount(): void
     {
-        $this->authorizeAuditLog();
+        $this->authorizeLog();
     }
 
     #[On('show')]
     public function show(?int $id = null): void
     {
-        $this->authorizeAuditLog();
+        $this->authorizeLog();
 
         $this->entryId = $id;
         unset($this->entry);

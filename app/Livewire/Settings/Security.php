@@ -37,9 +37,6 @@ class Security extends Component
     public string $password_confirmation = '';
 
     #[Locked]
-    public bool $canManageTwoFactor = false;
-
-    #[Locked]
     public bool $twoFactorEnabled = false;
 
     #[Locked]
@@ -57,9 +54,6 @@ class Security extends Component
 
     #[Validate('required|string|size:6', onUpdate: false)]
     public string $code = '';
-
-    #[Locked]
-    public bool $canManagePasskeys = false;
 
     /**
      * @var array<int, array{id: int, name: string, authenticator: string|null, created_at_diff: string|null, last_used_at_diff: string|null}>
@@ -80,9 +74,7 @@ class Security extends Component
      */
     public function mount(): void
     {
-        $this->canManageTwoFactor = Features::canManageTwoFactorAuthentication();
-
-        if ($this->canManageTwoFactor) {
+        if (Features::enabled(Features::twoFactorAuthentication())) {
             /** @var User $user */
             $user = auth()->user();
 
@@ -94,9 +86,7 @@ class Security extends Component
             $this->requiresConfirmation = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
         }
 
-        $this->canManagePasskeys = Features::canManagePasskeys();
-
-        if ($this->canManagePasskeys) {
+        if (Features::enabled(Features::passkeys())) {
             $this->loadPasskeys();
         }
     }

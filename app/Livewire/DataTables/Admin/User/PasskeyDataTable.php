@@ -64,7 +64,7 @@ class PasskeyDataTable extends DataTable
                 ->requiresConfirmation()
                 ->modalHeading((string) __('user/users.passkeys_tab.revoke_heading'))
                 ->modalSubmitActionLabel((string) __('user/users.passkeys_tab.revoke'))
-                ->visible(fn (): bool => $this->canRevoke())
+                ->visible(fn (): bool => $this->revocable())
                 ->action(function (Passkey $passkey, RevokeUserPasskey $revokeUserPasskey): void {
                     $this->authorize('update', $this->user);
 
@@ -83,7 +83,7 @@ class PasskeyDataTable extends DataTable
         return $actor;
     }
 
-    private function canRevoke(): bool
+    private function revocable(): bool
     {
         return $this->can('update', $this->user) && ! $this->actor()->is($this->user);
     }

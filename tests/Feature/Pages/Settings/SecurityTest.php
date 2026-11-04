@@ -59,6 +59,22 @@ test('security settings page renders without two factor when feature is disabled
         ->assertDontSee('Two-factor authentication');
 });
 
+test('the security page lists the passkeys of the user', function (): void {
+    $user = User::factory()->create();
+    $user->passkeys()->create([
+        'name' => 'Work laptop',
+        'credential_id' => str()->random(32),
+        'credential' => ['id' => 'credential'],
+    ]);
+
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('security.edit'))
+        ->assertOk()
+        ->assertSee('Work laptop')
+        ->assertDontSee('No passkeys yet');
+});
+
 test('two factor authentication disabled when confirmation abandoned between requests', function (): void {
     $user = User::factory()->create();
 

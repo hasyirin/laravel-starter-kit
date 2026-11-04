@@ -29,7 +29,7 @@ class UserPolicy extends Policy
 
     public function update(User $user, User $model, ?string $type = null): bool
     {
-        if (! $this->hasPermission($user, 'update') || ! $this->canReach($user, $model)) {
+        if (! $this->hasPermission($user, 'update') || ! $this->reaches($user, $model)) {
             return false;
         }
 
@@ -46,10 +46,10 @@ class UserPolicy extends Policy
             return false;
         }
 
-        return $this->canReach($user, $model);
+        return $this->reaches($user, $model);
     }
 
-    private function canReach(User $user, User $model): bool
+    private function reaches(User $user, User $model): bool
     {
         return ! $model->checkPermissionTo(config()->string('system.permissions.bypass-authorization'))
             || $user->checkPermissionTo(config()->string('system.permissions.bypass-authorization'));

@@ -1,3 +1,5 @@
+@use(Laravel\Fortify\Features)
+
 <flux:main>
     @include('partials.settings-heading')
 
@@ -37,7 +39,7 @@
             </div>
         </form>
 
-        @if($canManageTwoFactor)
+        @if(Features::enabled(Features::twoFactorAuthentication()))
             <section class="mt-12">
                 <flux:heading>{{ __('user/settings.two_factor.heading') }}</flux:heading>
 
@@ -63,7 +65,7 @@
             </section>
         @endif
 
-        @if($canManageTwoFactor)
+        @if(Features::enabled(Features::twoFactorAuthentication()))
             <flux:modal name="two-factor-setup-modal" class="max-w-md md:min-w-md" @close="closeModal" wire:model="showModal">
                 <div class="space-y-6">
                     <div class="flex flex-col items-center space-y-4">
@@ -197,7 +199,7 @@
             </flux:modal>
         @endif
 
-        @if($canManagePasskeys)
+        @if(Features::enabled(Features::passkeys()))
             <section class="mt-12">
                 <flux:heading>{{ __('user/passkeys.heading') }}</flux:heading>
                 <flux:subheading>{{ __('user/passkeys.description') }}</flux:subheading>

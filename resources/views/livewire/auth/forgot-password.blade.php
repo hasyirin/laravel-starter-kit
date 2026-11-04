@@ -9,7 +9,7 @@
             @csrf
 
             <!-- Email Address -->
-            <flux:input name="email" :label="__('common/inputs.email_address')" type="email" required autofocus placeholder="email@example.com" />
+            <x-input name="email" :label="__('common/inputs.email_address')" type="email" required autofocus placeholder="email@example.com" />
 
             <flux:button variant="primary" type="submit" class="w-full" data-test="email-password-reset-link-button">
                 {{ __('auth/forgot-password.submit') }}

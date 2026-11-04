@@ -8,7 +8,7 @@
         <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
             @csrf
             <!-- Name -->
-            <flux:input
+            <x-input
                 name="name"
                 :label="__('common/inputs.name')"
                 :value="old('name')"
@@ -20,7 +20,7 @@
             />
 
             <!-- Email Address -->
-            <flux:input
+            <x-input
                 name="email"
                 :label="__('common/inputs.email_address')"
                 :value="old('email')"
@@ -31,27 +31,23 @@
             />
 
             <!-- Password -->
-            <flux:input
+            <x-input.password
                 name="password"
                 :label="__('common/inputs.password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 :placeholder="__('common/inputs.password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
 
             <!-- Confirm Password -->
-            <flux:input
+            <x-input.password
                 name="password_confirmation"
                 :label="__('common/inputs.confirm_password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 :placeholder="__('common/inputs.confirm_password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
 
             <div class="flex items-center justify-end">

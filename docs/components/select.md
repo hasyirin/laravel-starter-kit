@@ -74,6 +74,20 @@ Each component shows the parts of an option that its look has room for:
 
 In the default variant of a radio or checkbox group, Flux also puts the label in an HTML attribute. So that variant shows an HTML label as text.
 
+### Groups
+
+A list in place of a label makes a group. The key is the label of the group, and the list takes the forms above.
+
+```blade
+<x-select label="Time zone" wire:model="form.timezone" placeholder="Choose a time zone" :options="[
+    'UTC' => 'UTC',
+    'Asia' => ['Asia/Kuala_Lumpur' => 'Kuala Lumpur', 'Asia/Tokyo' => 'Tokyo'],
+    'Europe' => ['Europe/London' => 'London', 'Europe/Paris' => 'Paris'],
+]" />
+```
+
+One list can mix options and groups, and they keep their order. If all the options of a group are hidden, the select leaves out the group. Only `<x-select>` takes groups.
+
 ### Options in the Slot
 
 The slot takes Flux options, after the options of `options`. Use it for anything that an option object does not cover. Examples are a create option, an avatar, or `keywords` for the search.

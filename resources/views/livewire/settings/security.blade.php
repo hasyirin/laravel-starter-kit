@@ -106,7 +106,16 @@
                                 x-data
                                 x-init="$nextTick(() => $el.querySelector('input')?.focus())"
                             >
-                                <flux:otp name="code" wire:model="code" length="6" label="OTP Code" label:sr-only class="mx-auto" />
+                                <x-field name="code">
+                                    <flux:otp
+                                        name="code"
+                                        wire:model="code"
+                                        length="6"
+                                        :aria-label="__('common/inputs.otp_code')"
+                                        class="mx-auto"
+                                        data-input-control
+                                    />
+                                </x-field>
                             </div>
 
                             <div class="flex items-center space-x-3">

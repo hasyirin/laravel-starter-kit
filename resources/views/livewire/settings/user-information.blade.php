@@ -5,10 +5,10 @@
 
     <x-settings.layout :heading="__('user/settings.user_information.heading')">
         <form wire:submit="save" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('common/inputs.name')" type="text" required autofocus autocomplete="name" />
+            <x-input wire:model="name" :label="__('common/inputs.name')" type="text" required autofocus autocomplete="name" />
 
             <div>
-                <flux:input wire:model="email" :label="__('common/inputs.email')" type="email" required autocomplete="email" />
+                <x-input wire:model="email" :label="__('common/inputs.email')" type="email" required autocomplete="email" />
 
                 @if($this->unverified)
                     <div>

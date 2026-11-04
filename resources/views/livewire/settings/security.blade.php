@@ -7,31 +7,20 @@
 
     <x-settings.layout :heading="__('user/settings.password.heading')">
         <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
-            <flux:input
-                wire:model="current_password"
-                :label="__('common/inputs.current_password')"
-                type="password"
-                required
-                autocomplete="current-password"
-                viewable
-            />
-            <flux:input
+            <x-input.password wire:model="current_password" :label="__('common/inputs.current_password')" required autocomplete="current-password" />
+            <x-input.password
                 wire:model="password"
                 :label="__('common/inputs.new_password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
-            <flux:input
+            <x-input.password
                 wire:model="password_confirmation"
                 :label="__('common/inputs.confirm_password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
 
             <div class="flex items-center gap-4">

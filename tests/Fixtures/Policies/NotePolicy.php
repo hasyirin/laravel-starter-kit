@@ -23,4 +23,9 @@ class NotePolicy
     {
         return ! $note->locked;
     }
+
+    public function delete(User $user, Note $note): bool
+    {
+        return ! $note->locked;
+    }
 }

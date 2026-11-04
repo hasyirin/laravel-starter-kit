@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Documentation\Sections;
 
+use App\Domain\Shared\Common\Policies\Policy;
 use App\Domain\Shared\Documentation\Contracts\Section;
 use App\Domain\Shared\Documentation\Support\MarkdownTable;
 use App\Domain\Shared\Documentation\Support\StateGraph;
@@ -24,7 +25,7 @@ class Transitions implements Section
                 $step['step'],
                 match (true) {
                     $permission !== null => "`{$permission}`",
-                    $graph->hasPolicy() => 'Not in config/system.php',
+                    $graph->policy() instanceof Policy => 'Not in config/system.php',
                     default => 'No policy',
                 },
                 $permission === null ? '' : implode(', ', $graph->roles($permission)),

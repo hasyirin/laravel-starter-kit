@@ -24,7 +24,7 @@ class Tabs extends Component
     public ?string $variant = null;
 
     #[Locked]
-    public bool $strip = true;
+    public bool $strip = false;
 
     #[Locked]
     public bool $nested = false;

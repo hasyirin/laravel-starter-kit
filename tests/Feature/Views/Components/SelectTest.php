@@ -47,6 +47,29 @@ test('an option object shows its icon, description, badge, and selected label, a
         ->and($document->querySelector('ui-option[value="legacy"]')?->hasAttribute('disabled'))->toBeTrue();
 });
 
+test('a nested list shows each group with its label, and keeps flat options outside the groups', function (string $variant, string $optionSelector, string $groupSelector, string $groupLabel): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-select label="Time zone" :$variant :$options />', ['variant' => $variant, 'options' => [
+        'UTC' => 'UTC',
+        'Asia' => ['Asia/Kuala_Lumpur' => 'Kuala Lumpur', 'Asia/Tokyo' => 'Tokyo'],
+        'Europe' => ['Europe/London' => 'London'],
+    ]]), LIBXML_NOERROR);
+
+    expect(array_map(fn (Element $option): array => [$option->closest($groupSelector)?->getAttribute($groupLabel), $option->getAttribute('value')], iterator_to_array($document->querySelectorAll($optionSelector))))
+        ->toBe([[null, 'UTC'], ['Asia', 'Asia/Kuala_Lumpur'], ['Asia', 'Asia/Tokyo'], ['Europe', 'Europe/London']]);
+})->with([
+    'a listbox' => ['listbox', 'ui-option[value]', '[data-flux-option-group]', 'aria-label'],
+    'a native select' => ['default', 'select[data-input-control] option[value]', 'optgroup', 'label'],
+]);
+
+test('a group whose options are all hidden is left out', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-select label="Time zone" variant="default" :$options />', ['options' => [
+        'Asia' => [Option::make('Asia/Kuala_Lumpur')->label('Kuala Lumpur')->hidden()],
+        'Europe' => ['Europe/London' => 'London'],
+    ]]), LIBXML_NOERROR);
+
+    expect(array_map(fn (Element $group): string => $group->getAttribute('label'), iterator_to_array($document->querySelectorAll('optgroup'))))->toBe(['Europe']);
+});
+
 test('search-model needs the listbox', function (string $variant): void {
     expect(fn () => $this->blade("<x-select label=\"User\" variant=\"{$variant}\" search-model=\"search\" />"))->toThrow(ViewException::class, 'search-model needs the listbox variant');
 })->with(['combobox', 'default']);
@@ -80,6 +103,14 @@ test('default-label replaces the label of the default checkbox, which is disable
 
     expect(trim($document->querySelector('ui-checkbox + [data-flux-label]')?->textContent ?? ''))->toBe('Same as the office')
         ->and($document->querySelector('ui-checkbox')?->hasAttribute('disabled'))->toBeTrue();
+});
+
+test('a default finds its option inside a group', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-select label="Time zone" :$options default="Asia/Kuala_Lumpur" />', ['options' => [
+        'Asia' => ['Asia/Kuala_Lumpur' => 'Kuala Lumpur'],
+    ]]), LIBXML_NOERROR);
+
+    expect(trim($document->querySelector('ui-checkbox + [data-flux-label]')?->textContent ?? ''))->toBe('Use the default: Kuala Lumpur');
 });
 
 test('a select shows the error of its property and marks its button invalid', function (): void {

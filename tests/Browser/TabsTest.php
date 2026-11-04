@@ -165,8 +165,8 @@ test('the first paint has no fade and a new panel fades in', function (): void {
         await until(() => shown('keep-alive', 'notes'));
         const style = getComputedStyle(panel('keep-alive', 'notes'));
 
-        return noFadeAtFirst && leavingPanelStill && style.animationName === 'tab-enter' && style.animationDuration === '0.15s';
-        SCRIPT)))->toBeTrue();
+        return { noFadeAtFirst, leavingPanelStill, fadesIn: style.animationName === 'tab-enter' && style.animationDuration === '0.15s' };
+        SCRIPT)))->toBe(['noFadeAtFirst' => true, 'leavingPanelStill' => true, 'fadesIn' => true]);
 });
 
 test('only a slow switch dims the content', function (int $milliseconds, bool $dims): void {

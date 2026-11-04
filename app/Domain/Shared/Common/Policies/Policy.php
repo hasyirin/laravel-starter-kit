@@ -44,6 +44,11 @@ abstract class Policy
         return $user->hasPermissionTo(config()->string($this->path($action)));
     }
 
+    protected function hasTypedPermission(User $user, string $ability, ?string $type): bool
+    {
+        return $type === null || $this->hasPermission($user, "$ability-$type");
+    }
+
     /**
      * @param  string|array<array-key, string>|Arrayable<array-key, string>  ...$actions
      */

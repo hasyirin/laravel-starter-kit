@@ -30,11 +30,20 @@ test('view needs the view-any or view permission', function (string $permission)
     expect($this->user->can('view', $this->role))->toBeTrue();
 })->with(['admin.controls.roles.view-any', 'admin.controls.roles.view']);
 
-test('a user can view a role they have', function (): void {
+test('having a role does not let a user view it', function (): void {
     $this->user->assignRole($this->role);
 
-    expect($this->user->can('view', $this->role))->toBeTrue()
-        ->and($this->user->can('view', $this->system))->toBeFalse();
+    expect($this->user->can('view', $this->role))->toBeFalse();
+});
+
+test('viewing a type needs the view permission for that type', function (): void {
+    $this->user->givePermissionTo('admin.controls.roles.view');
+
+    expect($this->user->can('view', [$this->role, 'audit-log']))->toBeFalse();
+
+    $this->user->givePermissionTo('admin.controls.roles.view-audit-log');
+
+    expect($this->user->can('view', [$this->role, 'audit-log']))->toBeTrue();
 });
 
 test('create needs the create permission', function (): void {
@@ -43,6 +52,16 @@ test('create needs the create permission', function (): void {
     $this->user->givePermissionTo('admin.controls.roles.create');
 
     expect($this->user->can('create', Role::class))->toBeTrue();
+});
+
+test('creating a type needs the update permission for that type', function (): void {
+    $this->user->givePermissionTo('admin.controls.roles.create');
+
+    expect($this->user->can('create', [Role::class, 'permissions']))->toBeFalse();
+
+    $this->user->givePermissionTo('admin.controls.roles.update-permissions');
+
+    expect($this->user->can('create', [Role::class, 'permissions']))->toBeTrue();
 });
 
 test('update needs the update permission', function (): void {

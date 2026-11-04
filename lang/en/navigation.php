@@ -10,6 +10,10 @@ return [
     'admin' => 'Admin',
     'search' => 'Search',
     'settings' => 'Settings',
+    'administration' => 'Administration',
+    'controls' => 'Controls',
+    'users' => 'Users',
+    'roles' => 'Roles',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',
         'home' => 'Home',

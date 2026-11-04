@@ -1,9 +1,9 @@
 @foreach($tabs as $tab)
     @php
-        $isDisabled = $tab->isDisabled();
-        $tooltip = $tab->resolvedTooltip($isDisabled);
+        $disabled = $tab->isDisabled();
+        $tooltip = $tab->resolvedTooltip($disabled);
         $key = 'tab-'.$tab->slug();
-        $isCurrent = $tab->slug() === $currentTab?->slug();
+        $current = $tab->slug() === $currentTab?->slug();
     @endphp
 
     @if($tooltip)
@@ -11,15 +11,15 @@
     @endif
     <x-dynamic-component
         :component="$item"
-        :href="$isDisabled ? null : $tab->resolvedUrl()"
-        :as="$isDisabled ? 'div' : null"
-        :current="$isCurrent"
-        :aria-current="$isCurrent ? 'page' : null"
+        :href="$disabled ? null : $tab->resolvedUrl()"
+        :as="$disabled ? 'div' : null"
+        :current="$current"
+        :aria-current="$current ? 'page' : null"
         :icon="$tab->resolvedIcon()"
         :badge="$tab->resolvedBadge()"
         :badge-color="$tab->resolvedBadgeColor()"
-        :aria-disabled="$isDisabled ? 'true' : null"
-        :class="$isDisabled ? 'cursor-default opacity-50' : null"
+        :aria-disabled="$disabled ? 'true' : null"
+        :class="$disabled ? 'cursor-default opacity-50' : null"
         :wire:key="$tooltip ? null : $key"
         data-tab="{{ $tab->slug() }}"
     >

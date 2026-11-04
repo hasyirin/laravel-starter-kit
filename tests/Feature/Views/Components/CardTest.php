@@ -173,3 +173,59 @@ test('an accordion card without a heading renders as a plain card', function ():
     expect($document->querySelector('[data-flux-card]')?->hasAttribute('x-data'))->toBeFalse()
         ->and($document->querySelector('[data-flux-card-body]')?->hasAttribute('hidden'))->toBeFalse();
 });
+
+dataset('kit inputs', [
+    'input' => '<x-input label="Name" wire:model="name" %s />',
+    'password' => '<x-input.password label="Password" wire:model="password" %s />',
+    'number' => '<x-input.number label="Age" wire:model="age" %s />',
+    'date' => '<x-input.date label="Starts on" wire:model="starts_on" %s />',
+    'date and time' => '<x-input.datetime label="Starts at" wire:model="starts_at" %s />',
+    'time' => '<x-input.time label="Opens at" wire:model="opens_at" %s />',
+    'phone' => '<x-input.phone label="Phone" wire:model="phone" %s />',
+    'select' => '<x-select label="Country" wire:model="country" :options="[\'MY\' => \'Malaysia\']" %s />',
+    'autocomplete' => '<x-autocomplete label="State" wire:model="state" :options="[\'Johor\']" %s />',
+    'pillbox' => '<x-pillbox label="Tags" wire:model="tags" :options="[\'a\' => \'A\']" %s />',
+    'checkbox' => '<x-checkbox label="Agree" wire:model="agree" %s />',
+    'radio' => '<x-radio label="Plan" wire:model="plan" :options="[\'pro\' => \'Pro\']" %s />',
+    'switch' => '<x-switch label="Active" wire:model="active" %s />',
+    'slider' => '<x-slider label="Volume" wire:model="volume" %s />',
+    'textarea' => '<x-textarea label="Notes" wire:model="notes" %s />',
+    'editor' => '<x-editor label="Body" wire:model="body" %s />',
+]);
+
+function disabledElements(string $blade): int
+{
+    return HTMLDocument::createFromString((string) test()->blade($blade), LIBXML_NOERROR)->querySelectorAll('[disabled]:not([data-flux-card])')->length;
+}
+
+test('a disabled card disables the kit inputs inside it', function (string $input): void {
+    $enabled = disabledElements(sprintf($input, ''));
+    $disabled = disabledElements(sprintf($input, 'disabled'));
+
+    expect($disabled)->toBeGreaterThan($enabled)
+        ->and(disabledElements('<x-card disabled>'.sprintf($input, '').'</x-card>'))->toBe($disabled);
+})->with('kit inputs');
+
+test('an input keeps its own disabled inside a disabled card', function (string $input): void {
+    expect(disabledElements('<x-card disabled>'.sprintf($input, ':disabled="false"').'</x-card>'))->toBe(disabledElements(sprintf($input, '')));
+})->with('kit inputs');
+
+test('a card that is not disabled leaves its inputs enabled', function (): void {
+    expect(disabledElements('<x-card><x-input label="Name" wire:model="name" /></x-card>'))->toBe(0);
+});
+
+test('a disabled card puts no disabled attribute on its own element', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-card disabled>Street</x-card>'), LIBXML_NOERROR);
+
+    expect($document->querySelector('[data-flux-card]')?->hasAttribute('disabled'))->toBeFalse();
+});
+
+test('a disabled card disables a file upload inside it', function (): void {
+    $fileInputs = fn (string $blade): int => HTMLDocument::createFromString((string) $this->blade($blade), LIBXML_NOERROR)->querySelectorAll('input[type="file"]')->length;
+    $upload = '<x-file-upload label="Documents" wire:model="documents" rules="mimes:pdf" %s />';
+
+    expect($fileInputs(sprintf($upload, '')))->toBeGreaterThan(0)
+        ->and($fileInputs(sprintf($upload, 'disabled')))->toBe(0)
+        ->and($fileInputs('<x-card disabled>'.sprintf($upload, '').'</x-card>'))->toBe(0)
+        ->and($fileInputs('<x-card disabled>'.sprintf($upload, ':disabled="false"').'</x-card>'))->toBeGreaterThan(0);
+});

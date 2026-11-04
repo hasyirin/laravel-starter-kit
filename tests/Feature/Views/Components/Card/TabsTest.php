@@ -12,8 +12,16 @@ function cardTabsDocument(Testable $component): HTMLDocument
     return HTMLDocument::createFromString('<!doctype html>'.$component->html(), LIBXML_NOERROR);
 }
 
-test('card tabs default to a strip card with a segmented bar', function (): void {
+test('card tabs default to a segmented bar without a strip', function (): void {
     $document = cardTabsDocument(Livewire::test(CardTabsHost::class));
+
+    expect($document->querySelector('[data-tabs-strip]'))->toBeNull()
+        ->and($document->querySelector('[data-flux-card]'))->toBeNull()
+        ->and($document->querySelector('[data-flux-tabs]')?->classList->contains('bg-zinc-800/5'))->toBeTrue();
+});
+
+test('a strip puts the segmented bar in a strip card', function (): void {
+    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['strip' => true]));
 
     $strip = $document->querySelector('[data-tabs-strip] > [data-flux-card]');
 
@@ -28,7 +36,7 @@ test('card tabs default to a strip card with a segmented bar', function (): void
 });
 
 test('a navbar variant puts the navbar in the strip card', function (): void {
-    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['variant' => 'navbar']));
+    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['variant' => 'navbar', 'strip' => true]));
 
     $strip = $document->querySelector('[data-tabs-strip] > [data-flux-card]');
 
@@ -38,16 +46,8 @@ test('a navbar variant puts the navbar in the strip card', function (): void {
         ->and($document->querySelector('[data-flux-card] [data-flux-tabs]'))->toBeNull();
 });
 
-test('card tabs without a strip render the segmented bar bare', function (): void {
-    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['strip' => false]));
-
-    expect($document->querySelector('[data-tabs-strip]'))->toBeNull()
-        ->and($document->querySelector('[data-flux-card]'))->toBeNull()
-        ->and($document->querySelector('[data-flux-tabs]')?->classList->contains('bg-zinc-800/5'))->toBeTrue();
-});
-
 test('an underline variant without a strip renders the default bar bare', function (): void {
-    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['variant' => 'underline', 'strip' => false]));
+    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['variant' => 'underline']));
 
     $bar = $document->querySelector('[data-flux-tabs]');
 
@@ -57,7 +57,7 @@ test('an underline variant without a strip renders the default bar bare', functi
 });
 
 test('another variant goes to the Flux tabs bar', function (): void {
-    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['variant' => 'pills', 'strip' => false]));
+    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['variant' => 'pills']));
 
     $bar = $document->querySelector('[data-flux-tabs]');
 
@@ -72,10 +72,10 @@ test('the tab content renders outside the strip card in every look', function (a
         ->and($document->querySelector('[data-flux-card] [data-tab-content]'))->toBeNull()
         ->and($document->querySelector('[data-tab-content] [data-tab-panel="owner"]'))->not->toBeNull();
 })->with([
-    'strip segmented' => [[]],
-    'strip navbar' => [['variant' => 'navbar']],
-    'bare segmented' => [['strip' => false]],
-    'bare underline' => [['variant' => 'underline', 'strip' => false]],
+    'strip segmented' => [['strip' => true]],
+    'strip navbar' => [['variant' => 'navbar', 'strip' => true]],
+    'bare segmented' => [[]],
+    'bare underline' => [['variant' => 'underline']],
 ]);
 
 test('card tabs do not render the title or the description of a tab', function (): void {
@@ -85,13 +85,13 @@ test('card tabs do not render the title or the description of a tab', function (
 });
 
 test('a strip puts its content directly under the wrapper so the panels can join it', function (): void {
-    $document = cardTabsDocument(Livewire::test(CardTabsHost::class));
+    $document = cardTabsDocument(Livewire::test(CardTabsHost::class, ['strip' => true]));
 
     expect($document->querySelector('[data-tabs-strip] > [data-tab-content] > [data-tab-panel] > [wire\:id]'))->not->toBeNull();
 });
 
 test('card tabs put the attributes of the caller on the wrapper', function (): void {
-    $wrapper = cardTabsDocument(Livewire::test(CardTabsHost::class))->querySelector('[data-tabs-strip]');
+    $wrapper = cardTabsDocument(Livewire::test(CardTabsHost::class))->querySelector('#tabs-test-id');
 
     expect($wrapper?->getAttribute('id'))->toBe('tabs-test-id')
         ->and($wrapper?->classList->contains('tabs-test-class'))->toBeTrue();

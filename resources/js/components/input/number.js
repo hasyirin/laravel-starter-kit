@@ -27,15 +27,15 @@ function format(value, { decimals, comma, separator }) {
     return decimals > 0 ? whole + separator + fraction.padEnd(decimals, '0') : whole;
 }
 
-function unformat(value, { comma, separator, disableNegatives }) {
+function unformat(value, { comma, separator, unsigned }) {
     let text = comma === '' ? value : value.replaceAll(comma, '');
 
     text = text.replace(separator, '.');
 
-    return disableNegatives ? text.replace(/-/g, '') : text;
+    return unsigned ? text.replace(/-/g, '') : text;
 }
 
-function sameNumber(left, right) {
+function same(left, right) {
     const a = left === null || left === undefined ? '' : String(left);
     const b = right === null || right === undefined ? '' : String(right);
 
@@ -55,7 +55,7 @@ export default function numberField() {
             // JSON, because Blade trims attribute values and a space is a valid thousands separator.
             this.number = JSON.parse(number);
 
-            // wire:model sits on a hidden input that holds the plain number. Each event of the shown input is repeated on it, so every wire:model modifier works.
+            // wire:model sits on a hidden input that holds the plain number. This file repeats each event of the shown input on it, so every wire:model modifier works.
             this.$el.addEventListener('input', (event) => this.forward(event, new Event('input')));
             this.$el.addEventListener('change', (event) => this.forward(event, new Event('change')));
             this.$el.addEventListener('blur', (event) => this.forward(event, new Event('blur')), true);
@@ -98,7 +98,7 @@ export default function numberField() {
         show(value) {
             const control = this.control();
 
-            if (!sameNumber(unformat(control.value, this.number), value)) {
+            if (!same(unformat(control.value, this.number), value)) {
                 control.value = this.display(value);
             }
         },

@@ -1,3 +1,5 @@
+@aware(['disabled' => false])
+
 @props([
     'label' => null,
     'description' => null,
@@ -18,6 +20,7 @@
 ])
 
 @php
+    $attributes = $attributes->merge(['disabled' => $disabled]);
     $descriptionTrailing ??= $attributes->pluck('description:trailing');
 
     $model = $attributes->whereStartsWith('wire:model')->first();
@@ -27,7 +30,12 @@
         throw new \InvalidArgumentException("search-model needs the listbox variant, not [{$variant}].");
     }
 
-    $options = \App\Livewire\Components\Option::collect($options);
+    $sections = collect($options)
+        ->map(fn (mixed $option, int|string $key): array => is_iterable($option)
+            ? ['label' => (string) $key, 'options' => \App\Livewire\Components\Option::collect($option)]
+            : ['label' => null, 'options' => \App\Livewire\Components\Option::collect([$key => $option])])
+        ->reject(fn (array $section): bool => $section['options']->isEmpty());
+    $options = $sections->pluck('options')->collapse();
     $searchable = $searchModel !== null || ($searchable ?? $variant === 'listbox');
     $hasDefault = $default !== null;
 
@@ -71,20 +79,28 @@
             </x-slot:search>
         @endif
 
-        @foreach($options as $option)
-            <flux:select.option
-                :value="$option->value()"
-                :selected-label="$option->resolvedSelectedLabel()"
-                :description="$option->resolvedDescription()"
-                :icon="$variant === 'default' ? null : $option->resolvedIcon()"
-                :disabled="$option->isDisabled()"
-            >
-                {{ $option->resolvedLabel() }}
+        @foreach($sections as $section)
+            @if($section['label'] !== null)
+                <flux:select.group :label="$section['label']">
+            @endif
+            @foreach($section['options'] as $option)
+                <flux:select.option
+                    :value="$option->value()"
+                    :selected-label="$option->resolvedSelectedLabel()"
+                    :description="$option->resolvedDescription()"
+                    :icon="$variant === 'default' ? null : $option->resolvedIcon()"
+                    :disabled="$option->isDisabled()"
+                >
+                    {{ $option->resolvedLabel() }}
 
-                @if($variant !== 'default' && filled($option->resolvedBadge()))
-                    <flux:badge :color="$option->resolvedColor()" size="sm" class="ms-1.5">{{ $option->resolvedBadge() }}</flux:badge>
-                @endif
-            </flux:select.option>
+                    @if($variant !== 'default' && filled($option->resolvedBadge()))
+                        <flux:badge :color="$option->resolvedColor()" size="sm" class="ms-1.5">{{ $option->resolvedBadge() }}</flux:badge>
+                    @endif
+                </flux:select.option>
+            @endforeach
+            @if($section['label'] !== null)
+                </flux:select.group>
+            @endif
         @endforeach
 
         {{ $slot }}

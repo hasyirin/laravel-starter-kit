@@ -19,7 +19,7 @@ The kit changes these Flux defaults:
 | `selectable-header` | `true`                                   | `false`            |
 | `locale`            | The locale of the user                   | The browser locale |
 
-Each user picks a locale in the profile settings, and a new user gets the one of their browser. The kit default, `system.locale` in `config/system.php`, is `en-MY`: English month names, with the day before the month. Turn a default off with `:with-today="false"` or `:selectable-header="false"`.
+Each user picks a locale in their preferences, and a new user gets the one of their browser. The kit default, `system.locale` in `config/system.php`, is `en-MY`: English month names, with the day before the month. Turn a default off with `:with-today="false"` or `:selectable-header="false"`.
 
 ## Button
 

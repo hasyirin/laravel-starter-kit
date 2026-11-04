@@ -39,7 +39,7 @@ function hasOpenDialog(root) {
     return parts(root).some((part) => part.querySelector('dialog[open]'));
 }
 
-// Livewire's wire:navigate scrolls to the fragment without the browser's reveal of a part that is hidden until found, so a card
+// Livewire's wire:navigate scrolls to the fragment, but the browser does not reveal a part that is hidden until found. So a card
 // checks the fragment when it starts. Livewire starts the components again after each navigation.
 function fragmentTarget(root) {
     const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;

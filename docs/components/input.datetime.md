@@ -23,11 +23,11 @@ With `time="input"`, the user types the exact minute and then confirms with the 
 
 ## Time Zones
 
-- With the app time zone at its default, UTC, a user in Kuala Lumpur who picks 26 October, 2:30 pm, gives the property `2026-10-26 06:30`. With Asia/Kuala_Lumpur as the app time zone, the property gets `14:30`. When the property comes back from the server, the picker shows 2:30 pm again.
+- The app time zone is UTC by default. If a user in Kuala Lumpur picks 26 October, 2:30 pm, the property gets `2026-10-26 06:30`. With Asia/Kuala_Lumpur as the app time zone, the property gets `14:30`. When the property comes back from the server, the picker shows 2:30 pm again.
 - So the property is a real moment: save it, compare it with `now()`, or validate it with `after:now` as usual.
-- Keep the app time zone on one without daylight saving, such as UTC or Asia/Kuala_Lumpur. The property holds no offset, so in a zone with daylight saving, a time in the hour that repeats when the clocks go back can be saved as either of the two times, and which one depends on the zone.
-- Limits move to the time zone of the user too: a Carbon value, `now`, or `today` in `min`, `max`, or `open-to`, and Carbon values in `unavailable`. A string with a date or a time stays as it is, in the time zone of the user.
-- Each user has a time zone in the profile settings. A new user gets the time zone of their browser.
+- Keep the app time zone on one without daylight saving, such as UTC or Asia/Kuala_Lumpur. The property holds no offset. In a zone with daylight saving, one hour repeats when the clocks go back. The app can save a time in that hour as either of the two times. Which one it saves depends on the zone.
+- Limits move to the time zone of the user too. This applies to a Carbon value, `now`, or `today` in `min`, `max`, or `open-to`, and to Carbon values in `unavailable`. A string with a date or a time stays as it is, in the time zone of the user.
+- Each user has a time zone in their preferences. A new user gets the time zone of their browser.
 
 ## List of Times
 
@@ -55,7 +55,7 @@ With `time="input"`, the user types the exact minute and then confirms with the 
 
 ## Range
 
-`mode="range"` picks a start and an end, each with its own time. Type the property as `?Flux\DateTimeRange`. An array property gets `start` and `end` in the app time zone. Build a `Flux\DateTimeRange` in the app time zone too, for example from model dates or `now()`, because Flux sends its times without an offset.
+`mode="range"` picks a start and an end, each with its own time. Type the property as `?Flux\DateTimeRange`. An array property gets `start` and `end` in the app time zone. Flux sends its times without an offset. So build a `Flux\DateTimeRange` in the app time zone too, for example from model dates or `now()`.
 
 ```blade
 <x-input.datetime label="Maintenance window" wire:model="form.maintenance_window" mode="range" />

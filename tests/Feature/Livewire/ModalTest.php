@@ -10,11 +10,11 @@ test('a modal starts closed, opens on the show event, and closes', function (): 
     $this->actingAs(User::factory()->create());
 
     Livewire::test(NoticeModal::class)
-        ->assertSet('open', false)
+        ->assertSet('showing', false)
         ->dispatch('show')
-        ->assertSet('open', true)
+        ->assertSet('showing', true)
         ->call('close')
-        ->assertSet('open', false);
+        ->assertSet('showing', false);
 });
 
 test('opening a modal clears the errors of the last time', function (): void {
@@ -31,9 +31,9 @@ test('the browser can close a modal but cannot open it', function (): void {
     $this->actingAs(User::factory()->create());
 
     Livewire::test(NoticeModal::class)
-        ->set('open', true)
-        ->assertSet('open', false)
+        ->set('showing', true)
+        ->assertSet('showing', false)
         ->call('show')
-        ->set('open', false)
-        ->assertSet('open', false);
+        ->set('showing', false)
+        ->assertSet('showing', false);
 });

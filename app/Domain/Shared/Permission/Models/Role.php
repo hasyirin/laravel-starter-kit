@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Permission\Models;
 
-use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\Shared\Permission\Observers\RoleObserver;
 use App\Domain\User\Models\Profile;
@@ -23,7 +23,7 @@ use LogicException;
 #[ObservedBy(RoleObserver::class)]
 class Role extends \Spatie\Permission\Models\Role
 {
-    use InteractsWithActivityLogs;
+    use InteractsWithAuditLog;
     use InteractsWithTimestamps;
 
     protected $fillable = [
@@ -46,7 +46,7 @@ class Role extends \Spatie\Permission\Models\Role
     public function delete(): ?bool
     {
         throw_if($this->is_system, LogicException::class, 'System roles cannot be deleted.');
-        throw_if($this->isAssignedToProfiles(), LogicException::class, 'Roles assigned to profiles cannot be deleted.');
+        throw_if($this->assignedToProfiles(), LogicException::class, 'Roles assigned to profiles cannot be deleted.');
 
         return parent::delete();
     }
@@ -56,7 +56,7 @@ class Role extends \Spatie\Permission\Models\Role
      */
     public function syncModels(array|Collection|Model|int|string $models, ?string $modelClass = null): static
     {
-        throw_if($this->isAssignedToProfiles(), LogicException::class, 'The roles of a profile cannot be changed.');
+        throw_if($this->assignedToProfiles(), LogicException::class, 'The roles of a profile cannot be changed.');
 
         return $this->getConnection()->transaction(fn (): static => parent::syncModels($models, $modelClass));
     }
@@ -71,7 +71,7 @@ class Role extends \Spatie\Permission\Models\Role
         return parent::relationForModel($modelClass);
     }
 
-    private function isAssignedToProfiles(): bool
+    public function assignedToProfiles(): bool
     {
         return parent::relationForModel(Profile::class)->exists();
     }

@@ -1,11 +1,11 @@
-function markSelected(item, isSelected) {
+function markSelected(item, selected) {
     if (item.hasAttribute('data-flux-tab')) {
-        item.toggleAttribute('data-selected', isSelected);
-        item.setAttribute('aria-selected', String(isSelected));
+        item.toggleAttribute('data-selected', selected);
+        item.setAttribute('aria-selected', String(selected));
     } else {
-        item.toggleAttribute('data-current', isSelected);
+        item.toggleAttribute('data-current', selected);
 
-        if (isSelected) {
+        if (selected) {
             item.setAttribute('aria-current', 'page');
         } else {
             item.removeAttribute('aria-current');
@@ -77,7 +77,7 @@ export default function tabs() {
 
                 const click = ++latestClick;
                 const contents = ownElements(this.$wire.$el, '[data-tab-content]');
-                const setPending = (isPending) => contents.forEach((content) => content.toggleAttribute('data-tabs-pending', isPending));
+                const setPending = (pending) => contents.forEach((content) => content.toggleAttribute('data-tabs-pending', pending));
 
                 root.querySelectorAll('[data-tab]').forEach((other) => markSelected(other, other === item));
                 contents.forEach((content) => content.setAttribute('data-tabs-animate', ''));

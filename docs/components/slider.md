@@ -10,11 +10,11 @@ It takes every [field prop](field.md).
 
 ## Value
 
-The label row shows the value at its right end. The value follows the handle while the user drags it, and it also changes when Livewire sets the property. A `hint` takes its place, and `:show-value="false"` leaves it out.
+The label row shows the value at its right end. The value follows the handle while the user drags it, and it also changes when Livewire sets the property. A `hint` takes its place, and `:with-value="false"` leaves it out.
 
 ```blade
 <x-slider label="Brightness" wire:model="form.brightness" hint="Percent" />
-<x-slider label="Contrast" wire:model="form.contrast" :show-value="false" />
+<x-slider label="Contrast" wire:model="form.contrast" :with-value="false" />
 ```
 
 ## Limits and Steps
@@ -60,7 +60,7 @@ Put `flux:slider.tick` in the slot to mark values below the track. A tick with t
 | Prop          | Default | Description                                                                                                                 |
 |---------------|---------|-----------------------------------------------------------------------------------------------------------------------------|
 | Field props   |         | `label`, `required`, `badge`, `hint`, `description`, `description:trailing`, and `no-error-message`. See [Field](field.md). |
-| `show-value`  | `true`  | Shows the value at the end of the label row when the slider has no `hint`.                                                  |
+| `with-value`  | `true`  | Shows the value at the end of the label row when the slider has no `hint`.                                                  |
 | `input-class` |         | Classes for the slider.                                                                                                     |
 
 ### Slots

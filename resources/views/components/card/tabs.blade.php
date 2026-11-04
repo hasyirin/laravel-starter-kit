@@ -4,7 +4,7 @@
     'panels',
     'queryAs' => 'tab',
     'variant' => 'segmented',
-    'strip' => true,
+    'strip' => false,
     'orientation' => 'horizontal',
     'params' => [],
     'ariaLabel' => null,

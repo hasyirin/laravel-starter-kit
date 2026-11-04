@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Actor\Models;
 
+use App\Domain\Shared\Actor\Contracts\Models\HasActorName;
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Actor\Observers\ActionObserver;
-use App\Domain\Shared\Common\Concerns\Models\InteractsWithActivityLogs;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -33,7 +35,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 #[ObservedBy(ActionObserver::class)]
 class Action extends \Hasyirin\Actor\Models\Action
 {
-    use InteractsWithActivityLogs;
+    use InteractsWithAuditLog;
     use InteractsWithTimestamps;
 
     protected $fillable = [
@@ -70,5 +72,21 @@ class Action extends \Hasyirin\Actor\Models\Action
         return parent::actor()->constrain([
             User::class => fn (Builder $query): Builder => $query->withoutGlobalScope(SoftDeletingScope::class),
         ]);
+    }
+
+    /**
+     * @return Attribute<string|null, never>
+     */
+    protected function actorName(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->profile->name ?? ($this->actor instanceof HasActorName ? $this->actor->getActorName() : null));
+    }
+
+    /**
+     * @return Attribute<string|null, never>
+     */
+    protected function positionName(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->profile?->position?->name);
     }
 }

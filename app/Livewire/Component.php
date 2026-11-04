@@ -57,6 +57,13 @@ abstract class Component extends \Livewire\Component
         return true;
     }
 
+    protected function notifySaved(string $record, bool $created): void
+    {
+        $key = $created ? 'common/records.created' : 'common/records.updated';
+
+        Flux::toast(variant: 'success', text: __($key, ['record' => $record]));
+    }
+
     private function reloadChangedRecord(): void
     {
         Flux::toast(variant: 'warning', text: __('common/workflows.changed'));

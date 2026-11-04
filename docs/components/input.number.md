@@ -12,10 +12,10 @@ It takes every [field prop](field.md). `prefix`, `suffix`, `size`, `default`, `d
 
 The kit sets these on the shown `flux:input`:
 
-| Prop           | Kit default                                                                 | Flux default |
-|----------------|-----------------------------------------------------------------------------|--------------|
-| `mask:dynamic` | A money mask from `decimals`, `comma`, and `separator`                      | No mask      |
-| `inputmode`    | `decimal` with `disable-negatives`, or `numeric` when `decimals` is also `0` | Not set      |
+| Prop           | Kit default                                                         | Flux default |
+|----------------|---------------------------------------------------------------------|--------------|
+| `mask:dynamic` | A money mask from `decimals`, `comma`, and `separator`              | No mask      |
+| `inputmode`    | `decimal` with `unsigned`, or `numeric` when `decimals` is also `0` | Not set      |
 
 Its own props start at `decimals="2"`, `comma=","`, and `separator="."`, and the input accepts a minus sign.
 
@@ -41,15 +41,15 @@ The separators change only what the input shows. The property always gets a `.` 
 
 ## Negative Numbers
 
-The input accepts a minus sign. `disable-negatives` removes it. Phones then show a number keypad.
+The input accepts a minus sign. `unsigned` removes it. Phones then show a number keypad.
 
 ```blade
-<x-input.number label="Weight" wire:model="form.weight" suffix="kg" disable-negatives />
+<x-input.number label="Weight" wire:model="form.weight" suffix="kg" unsigned />
 ```
 
 ## Live Updates
 
-`wire:model` sits on a hidden input that holds the plain number. Each event of the shown input is repeated on the hidden input, so every modifier works. For example, `.live` sends the number while the user types, and `.blur` sends it when the user leaves the field.
+`wire:model` sits on a hidden input that holds the plain number. The kit repeats each event of the shown input on the hidden input, so every modifier works. For example, `.live` sends the number while the user types, and `.blur` sends it when the user leaves the field.
 
 ```blade
 <x-input.number label="Reading" wire:model.live="form.reading" suffix="mm" />
@@ -67,7 +67,7 @@ The checkbox shows the default with the separators and decimals of the field.
 
 - A string such as `"1234.50"`. An empty input gives `""`. Validate it with the `numeric` rule.
 - If the property has more decimals than `decimals`, the input shows it rounded. The property keeps its value until the user edits the input, also with `wire:model.blur`.
-- With `disable-negatives`, the user cannot type a minus sign. A negative value from the server still shows its minus sign.
+- With `unsigned`, the user cannot type a minus sign. A negative value from the server still shows its minus sign.
 - `min` and `max` have no effect, because the input is a text field. Validate the range on the server.
 
 ## Reference
@@ -80,7 +80,7 @@ The checkbox shows the default with the separators and decimals of the field.
 | `decimals`          | `2`     | The number of decimals.                                                               |
 | `comma`             | `,`     | The thousands separator. `""` turns it off.                                           |
 | `separator`         | `.`     | The decimal separator.                                                                |
-| `disable-negatives` | `false` | Removes the minus sign.                                                               |
+| `unsigned`          | `false` | Removes the minus sign.                                                               |
 | `prefix`            |         | Text in a box before the input.                                                       |
 | `suffix`            |         | Text in a box after the input.                                                        |
 | `size`              |         | `sm` (32 px) or `xs` (24 px). Without it, the input is 40 px high.                    |

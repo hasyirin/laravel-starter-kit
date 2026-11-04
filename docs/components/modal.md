@@ -6,12 +6,12 @@ A modal is a dialog in its own Livewire component. `App\Livewire\Modal` holds th
 <livewire:pages.local.examples.modal />
 ```
 
-A modal extends the base class. Its view binds the `open` property and puts the content in an `@if`, so the form and its option queries stay out of the page while the modal is closed:
+A modal extends the base class. Its view binds the `showing` property and puts the content in an `@if`. So while the modal is closed, the form and its option queries stay out of the page:
 
 ```html
 <div>
-    <flux:modal wire:model="open">
-        @if ($open)
+    <flux:modal wire:model="showing">
+        @if ($showing)
             <form wire:submit="save">...</form>
         @endif
     </flux:modal>
@@ -28,7 +28,7 @@ Send the `show` event to the class of the modal. Always use `to()`, because a `s
 $this->dispatch('show', id: $note->id)->to(NoteModal::class);
 ```
 
-`show()` opens the modal and clears old validation errors. `close()` closes it. Cancel, Esc, and a backdrop click close the dialog in the browser, and the next request sends the new state to the server. The browser can only close a modal: a change of `open` from the browser always ends as closed, so `show()` and its checks cannot be skipped.
+`show()` opens the modal and clears old validation errors. `close()` closes it. Cancel, Esc, and a backdrop click close the dialog in the browser, and the next request sends the new state to the server. The browser can only close a modal. A change of `showing` from the browser always ends as closed, so nobody can skip `show()` and its checks.
 
 ## Disabled
 
@@ -63,17 +63,67 @@ class NoteModal extends RecordModal
 
     protected function fillForm(): void
     {
-        $this->form->set($this->record);
+        $this->form->set($this->notebook, $this->record);
     }
 
     protected function persist(): void
     {
-        SaveNote::make()->execute($this->record, $this->form->values());
+        $this->form->save();
     }
 }
 ```
 
-- `query()` scopes every lookup, so an id from another parent gives 404. A new record comes from `make()` on the same query. A has-one or has-many relation sets the foreign key on the new record, so the policy can read the parent from it. A belongs-to-many or through relation does not, so override `isDisabled()` when the policy needs the parent.
+The form takes the parent first. Livewire cannot keep a new record until the next request. It gives back a fully empty model, without the parent key or any other value. So the Action sets the parent again on every save. It also sets every other value that the user does not enter, such as a type. Then `save()` on the model inserts a new record or updates an existing one:
+
+```php
+class NoteForm extends Form
+{
+    #[Locked]
+    public Notebook $notebook;
+
+    #[Locked]
+    public Note $note;
+
+    public string $title = '';
+
+    public function set(Notebook $notebook, Note $note): static
+    {
+        $this->notebook = $notebook;
+        $this->note = $note;
+        $this->title = $note->title ?? '';
+
+        return $this;
+    }
+
+    public function save(): Note
+    {
+        $this->validate();
+
+        return SaveNote::make()->execute($this->notebook, $this->note, $this->title);
+    }
+
+    public function rules(): array
+    {
+        return ['title' => ['required', 'string', 'max:255']];
+    }
+}
+
+class SaveNote
+{
+    use Actionable;
+
+    public function execute(Notebook $notebook, Note $note, string $title): Note
+    {
+        $note->notebook()->associate($notebook);
+        $note->title = $title;
+        $note->save();
+
+        return $note;
+    }
+}
+```
+
+- `query()` scopes every lookup, so an id from another parent gives 404. A new record comes from `make()` on the same query. A has-one or has-many relation sets the foreign key on the new record, so the policy can read the parent from it. A belongs-to-many or through relation does not. If the policy needs the parent there, override `isDisabled()`.
 - `show($id)` checks the `view` ability, or `create` for a new record.
 - `save()` needs an open modal and the `update` or `create` ability. It validates, calls `persist()`, shows a toast, dispatches the saved event, and closes the modal. A second save after the modal closes gives 403.
 - To go to another page after a save, call `redirect()` with `navigate: true` in `persist()`, so that the toast stays.
@@ -95,7 +145,7 @@ The toast uses `common/records.created` and `common/records.updated`. Use `commo
 
 | Member | Description |
 | --- | --- |
-| `open` | The open state. Bind it with `wire:model`. |
+| `showing` | True while the modal shows. Bind it with `wire:model`. |
 | `disabled` | A prop from the parent. The view gets `$disabled`. |
 | `Modal::show()` | Opens the modal and clears validation errors. It listens for the `show` event. |
 | `Modal::close()` | Closes the modal. |
@@ -109,6 +159,6 @@ The toast uses `common/records.created` and `common/records.updated`. Use `commo
 | `RecordModal::label()` | The name of the record, for the toast and heading. Required. |
 | `RecordModal::query()` | The scoped query for the records. Required. |
 | `RecordModal::fillForm()` | Fills the form from the record. Required. |
-| `RecordModal::persist()` | Saves the form to the record, with an Action. Required. |
+| `RecordModal::persist()` | Saves the record, usually with the form's `save()`. Required. |
 | `RecordModal::event()` | The name of the saved event. |
 | `RecordModal::save()` | Checks, validates, persists, and closes. |

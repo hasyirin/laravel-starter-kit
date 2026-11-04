@@ -6,19 +6,26 @@ return [
     'heading' => 'Settings',
 
     'nav' => [
-        'profile' => 'Profile',
+        'user_information' => 'User information',
+        'preferences' => 'Preferences',
         'security' => 'Security',
         'appearance' => 'Appearance',
     ],
 
-    'profile' => [
-        'title' => 'Profile settings',
-        'heading' => 'Profile',
+    'user_information' => [
+        'title' => 'User information settings',
+        'heading' => 'User information',
         'unverified' => 'Your email address is unverified.',
         'resend_verification' => 'Click here to re-send the verification email.',
         'verification_sent' => 'A new verification link has been sent to your email address.',
         'verification_throttled' => 'Too many verification emails. Try again in :seconds seconds.',
-        'updated' => 'Profile updated.',
+        'updated' => 'User information updated.',
+    ],
+
+    'preferences' => [
+        'title' => 'Preferences',
+        'heading' => 'Preferences',
+        'updated' => 'Preferences updated.',
         'example' => 'Dates and times look like this: :example',
     ],
 
@@ -38,6 +45,7 @@ return [
         'enable' => 'Enable 2FA',
         'disable' => 'Disable 2FA',
         'manual_entry' => 'or, enter the code manually',
+        'setup_key' => 'Setup key',
         'modal' => [
             'setup' => [
                 'title' => 'Enable two-factor authentication',

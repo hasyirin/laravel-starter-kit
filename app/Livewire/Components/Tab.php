@@ -66,7 +66,7 @@ final class Tab
 
     private ?string $url = null;
 
-    private bool $isDefault = false;
+    private bool $default = false;
 
     private function __construct(private readonly string $slug) {}
 
@@ -215,9 +215,9 @@ final class Tab
         return $this;
     }
 
-    public function markDefault(bool $isDefault = true): self
+    public function markDefault(bool $default = true): self
     {
-        $this->isDefault = $isDefault;
+        $this->default = $default;
 
         return $this;
     }
@@ -254,9 +254,9 @@ final class Tab
         return $this->badgeColor;
     }
 
-    public function resolvedTooltip(bool $isDisabled): ?string
+    public function resolvedTooltip(bool $disabled): ?string
     {
-        $tooltip = $isDisabled && $this->tooltipDisabled !== null ? $this->tooltipDisabled : $this->tooltipAlways;
+        $tooltip = $disabled && $this->tooltipDisabled !== null ? $this->tooltipDisabled : $this->tooltipAlways;
 
         return value($tooltip);
     }
@@ -271,12 +271,12 @@ final class Tab
         return (bool) value($this->disabled);
     }
 
-    public function isDefault(): bool
+    public function default(): bool
     {
-        return $this->isDefault;
+        return $this->default;
     }
 
-    public function isKeptAlive(): bool
+    public function keptAlive(): bool
     {
         return $this->keepAlive;
     }

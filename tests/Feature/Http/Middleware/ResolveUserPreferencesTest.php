@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Domain\User\Models\User;
 use Spatie\Activitylog\Models\Activity;
 
-test('a user without a time zone and locale gets the ones of their browser, without an activity log entry', function (): void {
+test('a user without a time zone and locale gets the ones of their browser, without an audit entry', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user)->withUnencryptedCookies(['timezone' => 'Asia/Tokyo', 'locale' => 'en-GB,en'])->get(route('dashboard'))->assertOk();

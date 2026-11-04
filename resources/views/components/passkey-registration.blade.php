@@ -5,7 +5,7 @@
 <div
     x-data="{
         supported: false,
-        showForm: false,
+        showingForm: false,
         name: '',
         loading: false,
         error: null,
@@ -48,7 +48,7 @@
             try {
                 await window.Passkeys.register({ name: this.name });
                 this.name = '';
-                this.showForm = false;
+                this.showingForm = false;
                 await $wire.loadPasskeys();
             } catch (e) {
                 if (e.name !== 'UserCancelledError') {
@@ -59,7 +59,7 @@
             }
         },
         cancel() {
-            this.showForm = false;
+            this.showingForm = false;
             this.name = '';
             this.error = null;
         },
@@ -69,18 +69,18 @@
         <flux:text>{{ __('user/passkeys.unsupported') }}</flux:text>
     </template>
 
-    <template x-if="supported && !showForm">
+    <template x-if="supported && !showingForm">
         <div>
-            <flux:button variant="primary" icon="plus" x-on:click="showForm = true">{{ __('user/passkeys.add.button') }}</flux:button>
+            <flux:button variant="primary" icon="plus" x-on:click="showingForm = true">{{ __('user/passkeys.add.button') }}</flux:button>
         </div>
     </template>
 
-    <template x-if="supported && showForm">
+    <template x-if="supported && showingForm">
         <div class="space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
-            <flux:input
-                label="{{ __('user/passkeys.add.name') }}"
+            <x-input
+                :label="__('user/passkeys.add.name')"
                 x-model="name"
-                placeholder="{{ __('user/passkeys.add.name_placeholder') }}"
+                :placeholder="__('user/passkeys.add.name_placeholder')"
                 x-on:keydown.enter.prevent="register()"
                 x-ref="passkeyNameInput"
                 x-init="$nextTick(() => $refs.passkeyNameInput?.focus())"
@@ -88,12 +88,12 @@
 
             <p x-show="error" x-text="error" x-cloak class="text-sm text-red-600 dark:text-red-400"></p>
 
-            <div class="flex gap-2">
+            <div class="flex justify-end gap-2">
+                <flux:button variant="ghost" x-on:click="cancel()">{{ __('common/buttons.cancel') }}</flux:button>
                 <flux:button variant="primary" x-on:click="register()" x-bind:disabled="loading || !name.trim()">
                     <span x-show="!loading">{{ __('user/passkeys.add.submit') }}</span>
                     <span x-show="loading" x-cloak>{{ __('user/passkeys.add.loading') }}</span>
                 </flux:button>
-                <flux:button variant="ghost" x-on:click="cancel()">{{ __('common/buttons.cancel') }}</flux:button>
             </div>
         </div>
     </template>

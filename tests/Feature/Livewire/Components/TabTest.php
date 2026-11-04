@@ -104,10 +104,10 @@ test('keep alive on view content throws', function (): void {
 test('keep alive and lazy default to off and turn on without an argument', function (): void {
     $tab = Tab::make('a');
 
-    expect($tab->isKeptAlive())->toBeFalse()
+    expect($tab->keptAlive())->toBeFalse()
         ->and($tab->isLazy())->toBeFalse()
-        ->and($tab->keepAlive()->isKeptAlive())->toBeTrue()
-        ->and($tab->keepAlive(false)->isKeptAlive())->toBeFalse()
+        ->and($tab->keepAlive()->keptAlive())->toBeTrue()
+        ->and($tab->keepAlive(false)->keptAlive())->toBeFalse()
         ->and($tab->lazy()->isLazy())->toBeTrue();
 });
 
@@ -125,9 +125,9 @@ test('a tab stores the text, the badge color, and the url it is given', function
 test('a tab is the default only when it is marked', function (): void {
     $tab = Tab::make('a');
 
-    expect($tab->isDefault())->toBeFalse()
-        ->and($tab->markDefault()->isDefault())->toBeTrue()
-        ->and($tab->markDefault(false)->isDefault())->toBeFalse();
+    expect($tab->default())->toBeFalse()
+        ->and($tab->markDefault()->default())->toBeTrue()
+        ->and($tab->markDefault(false)->default())->toBeFalse();
 });
 
 test('hidden, visible, and disabled turn on without an argument', function (): void {

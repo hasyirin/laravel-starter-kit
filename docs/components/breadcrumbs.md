@@ -22,7 +22,7 @@ The kit adds these to Flux:
 
 ## Conditional Items
 
-A null item is skipped, so a page can build its trail with a condition:
+The component skips a null item, so a page can build its trail with a condition:
 
 ```blade
 <x-breadcrumbs :items="[

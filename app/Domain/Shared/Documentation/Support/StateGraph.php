@@ -109,14 +109,20 @@ class StateGraph
         return $default === null ? null : $default::getMorphClass();
     }
 
-    public function hasPolicy(): bool
+    public function policy(): ?Policy
     {
-        return Gate::getPolicyFor($this->model) instanceof Policy;
+        $policy = Gate::getPolicyFor($this->model);
+
+        if (! $policy instanceof Policy) {
+            return null;
+        }
+
+        return $policy;
     }
 
     public function permission(string $step): ?string
     {
-        $policy = Gate::getPolicyFor($this->model);
+        $policy = $this->policy();
         $permission = $policy instanceof Policy ? config($policy->path($step)) : null;
 
         return is_string($permission) ? $permission : null;
@@ -144,7 +150,7 @@ class StateGraph
 
     private function bypasses(Role $role): bool
     {
-        return $role->permissions->contains('name', config()->string('system.permissions.bypass-authorization'));
+        return $role->checkPermissionTo(config()->string('system.permissions.bypass-authorization'));
     }
 
     /**

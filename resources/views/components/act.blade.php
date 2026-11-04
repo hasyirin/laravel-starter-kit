@@ -11,14 +11,14 @@
     }
 
     if ($action?->profile_id === null) {
-        $action?->setRelation('profile', null)->loadMissing(['actor' => fn ($actor) => $actor->constrain([\App\Domain\User\Models\User::class => fn ($query) => $query->withTrashed()->without('profile')])]);
+        $action?->setRelation('profile', null)->loadMissing(['actor' => fn ($actor) => $actor->constrain([\App\Domain\User\Models\User::class => fn ($query) => $query->withTrashed()])]);
     } else {
-        $action->loadMissing(['profile.user' => fn ($user) => $user->without('profile'), 'profile.position']);
+        $action->loadMissing(['profile.user', 'profile.position']);
     }
 
-    $actorName = $action?->profile?->name ?? ($action?->actor instanceof \App\Domain\Shared\Actor\Contracts\Models\HasActorName ? $action->actor->getActorName() : null);
+    $actorName = $action?->actor_name;
 
-    $position = $action?->profile?->position?->name;
+    $position = $action?->position_name;
 
     $actedAt = \App\Domain\User\Support\Preferences::current()->datetime($action?->acted_at);
 @endphp

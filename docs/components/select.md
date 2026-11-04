@@ -27,7 +27,7 @@ The kit changes these Flux defaults:
 | An enum case           | `[Status::Draft, Status::Published]`                        |
 | An option object       | `[Option::make('pro')->label('Pro')->icon('star')]`         |
 
-An enum case takes its label, icon, and color from its enum, when the enum has `HasLabel`, `HasIcon`, or `HasColor`. Without a label, an option shows its value.
+If an enum has `HasLabel`, `HasIcon`, or `HasColor`, its cases take their label, icon, and color from it. Without a label, an option shows its value.
 
 `<x-pillbox>`, `<x-checkbox>`, and `<x-radio>` take the same forms.
 
@@ -72,11 +72,25 @@ Each component shows the parts of an option that its look has room for:
 | `<x-pillbox>`                               | Everything in the list. A pill shows the label as text, or the selected label.  |
 | `<x-checkbox>` and `<x-radio>`              | The label. The default and `cards` variants also show the description. `cards` and `buttons` show the icon, and so does a `segmented` radio. |
 
-The default variant of a radio or checkbox group shows an HTML label as text, because Flux also puts the label in an HTML attribute there.
+In the default variant of a radio or checkbox group, Flux also puts the label in an HTML attribute. So that variant shows an HTML label as text.
+
+### Groups
+
+A list in place of a label makes a group. The key is the label of the group, and the list takes the forms above.
+
+```blade
+<x-select label="Time zone" wire:model="form.timezone" placeholder="Choose a time zone" :options="[
+    'UTC' => 'UTC',
+    'Asia' => ['Asia/Kuala_Lumpur' => 'Kuala Lumpur', 'Asia/Tokyo' => 'Tokyo'],
+    'Europe' => ['Europe/London' => 'London', 'Europe/Paris' => 'Paris'],
+]" />
+```
+
+One list can mix options and groups, and they keep their order. If all the options of a group are hidden, the select leaves out the group. Only `<x-select>` takes groups.
 
 ### Options in the Slot
 
-The slot takes Flux options, after the options of `options`. Use it for anything that an option object does not cover, such as a create option, an avatar, or `keywords` for the search.
+The slot takes Flux options, after the options of `options`. Use it for anything that an option object does not cover. Examples are a create option, an avatar, or `keywords` for the search.
 
 ```blade
 <x-select label="Project" wire:model="form.project" :options="[1 => 'Website', 2 => 'Mobile app']" placeholder="Choose a project">
@@ -100,7 +114,7 @@ For a long list, such as all users, let the server find the options. `search-mod
 <x-select label="Assignee" wire:model="form.assignee" :options="[1 => 'Aisyah', 2 => 'Ben', 3 => 'Chong']" search-model="form.assignee_search" search-placeholder="Search users" placeholder="Choose a user" />
 ```
 
-On this page, the options do not change, but the search text reaches its property. In a component, build the options from the search text, and keep the picked option in the list, so the select can still show it:
+On this page, the options do not change, but the search text reaches its property. In a component, build the options from the search text. Keep the picked option in the list, so the select can still show it:
 
 ```html
 <x-select label="Assignee" wire:model="assigneeId" :options="$this->assignees" search-model="assigneeSearch" />

@@ -1,0 +1,3 @@
+# Write the Values into the Vector Config
+
+Vector 0.57 and later do not replace environment variables in a config file, unless the service starts with the --dangerously-allow-env-var-interpolation flag. We did not turn this on, because the flag affects the config of every app on the server ([ADR-0004](0004-one-vector-daemon-per-server-with-a-file-per-app.md)). So `deploy/vector/vector.yaml` is a template: `deploy/vector/install.sh` writes the URL, the stream, and the OpenObserve password into the file in /etc/vector/conf.d. Only root and the vector group can read that file. To change a value or the token, run the install script again. Do not edit the file on the server.

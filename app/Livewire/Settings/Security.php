@@ -37,9 +37,6 @@ class Security extends Component
     public string $password_confirmation = '';
 
     #[Locked]
-    public bool $canManageTwoFactor = false;
-
-    #[Locked]
     public bool $twoFactorEnabled = false;
 
     #[Locked]
@@ -51,15 +48,12 @@ class Security extends Component
     #[Locked]
     public string $manualSetupKey = '';
 
-    public bool $showModal = false;
+    public bool $showingSetupModal = false;
 
-    public bool $showVerificationStep = false;
+    public bool $showingVerificationStep = false;
 
     #[Validate('required|string|size:6', onUpdate: false)]
     public string $code = '';
-
-    #[Locked]
-    public bool $canManagePasskeys = false;
 
     /**
      * @var array<int, array{id: int, name: string, authenticator: string|null, created_at_diff: string|null, last_used_at_diff: string|null}>
@@ -67,7 +61,7 @@ class Security extends Component
     #[Locked]
     public array $passkeys = [];
 
-    public bool $showDeleteModal = false;
+    public bool $showingDeleteModal = false;
 
     #[Locked]
     public ?int $deletingPasskeyId = null;
@@ -78,25 +72,21 @@ class Security extends Component
     /**
      * Mount the component.
      */
-    public function mount(DisableTwoFactorAuthentication $disableTwoFactorAuthentication): void
+    public function mount(): void
     {
-        $this->canManageTwoFactor = Features::canManageTwoFactorAuthentication();
-
-        if ($this->canManageTwoFactor) {
+        if (Features::enabled(Features::twoFactorAuthentication())) {
             /** @var User $user */
             $user = auth()->user();
 
             if (Fortify::confirmsTwoFactorAuthentication() && is_null($user->two_factor_confirmed_at)) {
-                $disableTwoFactorAuthentication($user);
+                resolve(DisableTwoFactorAuthentication::class)($user);
             }
 
             $this->twoFactorEnabled = $user->hasEnabledTwoFactorAuthentication();
             $this->requiresConfirmation = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
         }
 
-        $this->canManagePasskeys = Features::canManagePasskeys();
-
-        if ($this->canManagePasskeys) {
+        if (Features::enabled(Features::passkeys())) {
             $this->loadPasskeys();
         }
     }
@@ -104,7 +94,7 @@ class Security extends Component
     /**
      * Update the password for the currently authenticated user.
      */
-    public function updatePassword(UpdatePassword $updatePassword): void
+    public function updatePassword(): void
     {
         try {
             $this->validate([
@@ -120,7 +110,7 @@ class Security extends Component
         /** @var User $user */
         $user = auth()->user();
 
-        $updatePassword->execute($user, $this->password);
+        UpdatePassword::make()->execute($user, $this->password);
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
@@ -161,15 +151,15 @@ class Security extends Component
 
         $this->deletingPasskeyId = $passkey->id;
         $this->deletingPasskeyName = $passkey->name;
-        $this->showDeleteModal = true;
+        $this->showingDeleteModal = true;
     }
 
     /**
      * Delete the passkey.
      */
-    public function deletePasskey(DeletePasskey $deletePasskey): void
+    public function deletePasskey(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 
@@ -181,7 +171,7 @@ class Security extends Component
         $user = auth()->user();
         $passkey = $user->passkeys()->findOrFail($this->deletingPasskeyId);
 
-        $deletePasskey($user, $passkey);
+        resolve(DeletePasskey::class)($user, $passkey);
 
         $this->closeDeleteModal();
         $this->loadPasskeys();
@@ -192,7 +182,7 @@ class Security extends Component
      */
     public function closeDeleteModal(): void
     {
-        $this->showDeleteModal = false;
+        $this->showingDeleteModal = false;
         $this->deletingPasskeyId = null;
         $this->deletingPasskeyName = '';
     }
@@ -200,16 +190,16 @@ class Security extends Component
     /**
      * Enable two-factor authentication for the user.
      */
-    public function enable(EnableTwoFactorAuthentication $enableTwoFactorAuthentication): void
+    public function enable(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 
         /** @var User $user */
         $user = auth()->user();
 
-        $enableTwoFactorAuthentication($user);
+        resolve(EnableTwoFactorAuthentication::class)($user);
 
         if (! $this->requiresConfirmation) {
             $this->twoFactorEnabled = $user->hasEnabledTwoFactorAuthentication();
@@ -217,7 +207,7 @@ class Security extends Component
 
         $this->loadSetupData();
 
-        $this->showModal = true;
+        $this->showingSetupModal = true;
     }
 
     /**
@@ -248,7 +238,7 @@ class Security extends Component
     public function showVerificationIfNecessary(): void
     {
         if ($this->requiresConfirmation) {
-            $this->showVerificationStep = true;
+            $this->showingVerificationStep = true;
 
             $this->resetErrorBag();
 
@@ -261,15 +251,15 @@ class Security extends Component
     /**
      * Confirm two-factor authentication for the user.
      */
-    public function confirmTwoFactor(ConfirmTwoFactorAuthentication $confirmTwoFactorAuthentication): void
+    public function confirmTwoFactor(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 
         $this->validate();
 
-        $confirmTwoFactorAuthentication(auth()->user(), $this->code);
+        resolve(ConfirmTwoFactorAuthentication::class)(auth()->user(), $this->code);
 
         $this->closeModal();
 
@@ -281,7 +271,7 @@ class Security extends Component
      */
     public function resetVerification(): void
     {
-        $this->reset('code', 'showVerificationStep');
+        $this->reset('code', 'showingVerificationStep');
 
         $this->resetErrorBag();
     }
@@ -289,13 +279,13 @@ class Security extends Component
     /**
      * Disable two-factor authentication for the user.
      */
-    public function disable(DisableTwoFactorAuthentication $disableTwoFactorAuthentication): void
+    public function disable(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 
-        $disableTwoFactorAuthentication(auth()->user());
+        resolve(DisableTwoFactorAuthentication::class)(auth()->user());
 
         $this->twoFactorEnabled = false;
     }
@@ -309,8 +299,8 @@ class Security extends Component
             'code',
             'manualSetupKey',
             'qrCodeSvg',
-            'showModal',
-            'showVerificationStep',
+            'showingSetupModal',
+            'showingVerificationStep',
         );
 
         $this->resetErrorBag();
@@ -339,7 +329,7 @@ class Security extends Component
             ];
         }
 
-        if ($this->showVerificationStep) {
+        if ($this->showingVerificationStep) {
             return [
                 'title' => (string) __('user/settings.two_factor.modal.verify.title'),
                 'description' => (string) __('user/settings.two_factor.modal.verify.description'),

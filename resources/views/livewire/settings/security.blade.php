@@ -1,3 +1,5 @@
+@use(Laravel\Fortify\Features)
+
 <flux:main>
     @include('partials.settings-heading')
 
@@ -5,39 +7,28 @@
 
     <x-settings.layout :heading="__('user/settings.password.heading')">
         <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
-            <flux:input
-                wire:model="current_password"
-                :label="__('common/inputs.current_password')"
-                type="password"
-                required
-                autocomplete="current-password"
-                viewable
-            />
-            <flux:input
+            <x-input.password wire:model="current_password" :label="__('common/inputs.current_password')" required autocomplete="current-password" />
+            <x-input.password
                 wire:model="password"
                 :label="__('common/inputs.new_password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
-            <flux:input
+            <x-input.password
                 wire:model="password_confirmation"
                 :label="__('common/inputs.confirm_password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
 
-            <div class="flex items-center gap-4">
+            <div class="flex justify-end gap-2">
                 <flux:button variant="primary" type="submit" data-test="update-password-button">{{ __('common/buttons.save') }}</flux:button>
             </div>
         </form>
 
-        @if($canManageTwoFactor)
+        @if(Features::enabled(Features::twoFactorAuthentication()))
             <section class="mt-12">
                 <flux:heading>{{ __('user/settings.two_factor.heading') }}</flux:heading>
 
@@ -50,7 +41,7 @@
                                 <flux:button variant="danger" wire:click="disable">{{ __('user/settings.two_factor.disable') }}</flux:button>
                             </div>
 
-                            <livewire:settings.two-factor.recovery-codes :$requiresConfirmation />
+                            <livewire:settings.two-factor.recovery-codes />
                         </div>
                     @else
                         <div class="space-y-4">
@@ -63,8 +54,8 @@
             </section>
         @endif
 
-        @if($canManageTwoFactor)
-            <flux:modal name="two-factor-setup-modal" class="max-w-md md:min-w-md" @close="closeModal" wire:model="showModal">
+        @if(Features::enabled(Features::twoFactorAuthentication()))
+            <flux:modal name="two-factor-setup-modal" class="max-w-md md:min-w-md" @close="closeModal" wire:model="showingSetupModal">
                 <div class="space-y-6">
                     <div class="flex flex-col items-center space-y-4">
                         <div class="w-auto rounded-full border border-stone-100 bg-white p-0.5 shadow-sm dark:border-stone-600 dark:bg-stone-800">
@@ -97,17 +88,26 @@
                         </div>
                     </div>
 
-                    @if($showVerificationStep)
+                    @if($showingVerificationStep)
                         <div class="space-y-6">
                             <div
                                 class="flex flex-col items-center justify-center space-y-3"
                                 x-data
                                 x-init="$nextTick(() => $el.querySelector('input')?.focus())"
                             >
-                                <flux:otp name="code" wire:model="code" length="6" label="OTP Code" label:sr-only class="mx-auto" />
+                                <x-field name="code">
+                                    <flux:otp
+                                        name="code"
+                                        wire:model="code"
+                                        length="6"
+                                        :aria-label="__('common/inputs.otp_code')"
+                                        class="mx-auto"
+                                        data-input-control
+                                    />
+                                </x-field>
                             </div>
 
-                            <div class="flex items-center space-x-3">
+                            <div class="flex items-center gap-2">
                                 <flux:button variant="outline" class="flex-1" wire:click="resetVerification">{{ __('common/buttons.back') }}</flux:button>
 
                                 <flux:button variant="primary" class="flex-1" wire:click="confirmTwoFactor" x-bind:disabled="$wire.code.length < 6">
@@ -155,49 +155,20 @@
                                 </span>
                             </div>
 
-                            <div
-                                class="flex items-center space-x-2"
-                                x-data="{
-                                    copied: false,
-                                    async copy() {
-                                        try {
-                                            await navigator.clipboard.writeText('{{ $manualSetupKey }}');
-                                            this.copied = true;
-                                            setTimeout(() => this.copied = false, 1500);
-                                        } catch (e) {
-                                            console.warn('Could not copy to clipboard');
-                                        }
-                                    }
-                                }"
-                            >
-                                <div class="flex w-full items-stretch rounded-xl border dark:border-stone-700">
-                                    @empty($manualSetupKey)
-                                        <div class="flex w-full items-center justify-center bg-stone-100 p-3 dark:bg-stone-700">
-                                            <flux:icon.loading variant="mini" />
-                                        </div>
-                                    @else
-                                        <input
-                                            type="text"
-                                            readonly
-                                            value="{{ $manualSetupKey }}"
-                                            class="w-full bg-transparent p-3 text-stone-900 outline-none dark:text-stone-100"
-                                        />
-
-                                        <button @click="copy()" class="cursor-pointer border-l border-stone-200 px-3 transition-colors dark:border-stone-600">
-                                            <flux:icon.document-duplicate x-show="!copied" variant="outline">
-                                                </flux:icon>
-                                                <flux:icon.check x-show="copied" variant="solid" class="text-green-500"></flux:icon>
-                                        </button>
-                                    @endempty
+                            @empty($manualSetupKey)
+                                <div class="flex w-full items-center justify-center rounded-xl border bg-stone-100 p-3 dark:border-stone-700 dark:bg-stone-700">
+                                    <flux:icon.loading variant="mini" />
                                 </div>
-                            </div>
+                            @else
+                                <x-input :value="$manualSetupKey" :aria-label="__('user/settings.two_factor.setup_key')" readonly copyable />
+                            @endempty
                         </div>
                     @endif
                 </div>
             </flux:modal>
         @endif
 
-        @if($canManagePasskeys)
+        @if(Features::enabled(Features::passkeys()))
             <section class="mt-12">
                 <flux:heading>{{ __('user/passkeys.heading') }}</flux:heading>
                 <flux:subheading>{{ __('user/passkeys.description') }}</flux:subheading>
@@ -252,14 +223,14 @@
         @endif
     </x-settings.layout>
 
-    <flux:modal name="delete-passkey-modal" class="max-w-md md:min-w-md" @close="closeDeleteModal" wire:model="showDeleteModal">
+    <flux:modal name="delete-passkey-modal" class="max-w-md md:min-w-md" @close="closeDeleteModal" wire:model="showingDeleteModal">
         <div class="space-y-6">
             <div class="space-y-2">
                 <flux:heading size="lg">{{ __('user/passkeys.remove.heading') }}</flux:heading>
                 <flux:text>{{ __('user/passkeys.remove.description', ['name' => $deletingPasskeyName]) }}</flux:text>
             </div>
 
-            <div class="flex justify-end gap-3">
+            <div class="flex justify-end gap-2">
                 <flux:button variant="outline" wire:click="closeDeleteModal">{{ __('common/buttons.cancel') }}</flux:button>
                 <flux:button variant="danger" wire:click="deletePasskey">{{ __('user/passkeys.remove.submit') }}</flux:button>
             </div>

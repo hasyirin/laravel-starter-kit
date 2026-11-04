@@ -1,7 +1,8 @@
 <div class="flex items-start max-md:flex-col">
     <div class="me-10 w-full pb-4 md:w-[220px]">
         <flux:navlist aria-label="{{ __('navigation.settings') }}">
-            <flux:navlist.item :href="route('profile.edit')" wire:navigate>{{ __('user/settings.nav.profile') }}</flux:navlist.item>
+            <flux:navlist.item :href="route('user-information.edit')" wire:navigate>{{ __('user/settings.nav.user_information') }}</flux:navlist.item>
+            <flux:navlist.item :href="route('preferences.edit')" wire:navigate>{{ __('user/settings.nav.preferences') }}</flux:navlist.item>
             <flux:navlist.item :href="route('security.edit')" wire:navigate>{{ __('user/settings.nav.security') }}</flux:navlist.item>
             <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('user/settings.nav.appearance') }}</flux:navlist.item>
         </flux:navlist>

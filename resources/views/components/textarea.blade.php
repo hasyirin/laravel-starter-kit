@@ -15,9 +15,6 @@
 
 @php
     $attributes = $attributes->merge(['disabled' => $disabled]);
-@endphp
-
-@php
     $descriptionTrailing ??= $attributes->pluck('description:trailing');
     $name = $attributes->whereStartsWith('wire:model')->first() ?? $attributes->get('name');
 

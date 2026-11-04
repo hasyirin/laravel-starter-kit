@@ -45,6 +45,7 @@ return [
         'enable' => 'Enable 2FA',
         'disable' => 'Disable 2FA',
         'manual_entry' => 'or, enter the code manually',
+        'setup_key' => 'Setup key',
         'modal' => [
             'setup' => [
                 'title' => 'Enable two-factor authentication',

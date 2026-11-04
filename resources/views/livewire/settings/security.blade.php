@@ -23,7 +23,7 @@
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
             />
 
-            <div class="flex items-center gap-4">
+            <div class="flex justify-end gap-2">
                 <flux:button variant="primary" type="submit" data-test="update-password-button">{{ __('common/buttons.save') }}</flux:button>
             </div>
         </form>
@@ -107,7 +107,7 @@
                                 </x-field>
                             </div>
 
-                            <div class="flex items-center space-x-3">
+                            <div class="flex items-center gap-2">
                                 <flux:button variant="outline" class="flex-1" wire:click="resetVerification">{{ __('common/buttons.back') }}</flux:button>
 
                                 <flux:button variant="primary" class="flex-1" wire:click="confirmTwoFactor" x-bind:disabled="$wire.code.length < 6">
@@ -155,42 +155,13 @@
                                 </span>
                             </div>
 
-                            <div
-                                class="flex items-center space-x-2"
-                                x-data="{
-                                    copied: false,
-                                    async copy() {
-                                        try {
-                                            await navigator.clipboard.writeText('{{ $manualSetupKey }}');
-                                            this.copied = true;
-                                            setTimeout(() => this.copied = false, 1500);
-                                        } catch (e) {
-                                            console.warn('Could not copy to clipboard');
-                                        }
-                                    }
-                                }"
-                            >
-                                <div class="flex w-full items-stretch rounded-xl border dark:border-stone-700">
-                                    @empty($manualSetupKey)
-                                        <div class="flex w-full items-center justify-center bg-stone-100 p-3 dark:bg-stone-700">
-                                            <flux:icon.loading variant="mini" />
-                                        </div>
-                                    @else
-                                        <input
-                                            type="text"
-                                            readonly
-                                            value="{{ $manualSetupKey }}"
-                                            class="w-full bg-transparent p-3 text-stone-900 outline-none dark:text-stone-100"
-                                        />
-
-                                        <button @click="copy()" class="cursor-pointer border-l border-stone-200 px-3 transition-colors dark:border-stone-600">
-                                            <flux:icon.document-duplicate x-show="!copied" variant="outline">
-                                                </flux:icon>
-                                                <flux:icon.check x-show="copied" variant="solid" class="text-green-500"></flux:icon>
-                                        </button>
-                                    @endempty
+                            @empty($manualSetupKey)
+                                <div class="flex w-full items-center justify-center rounded-xl border bg-stone-100 p-3 dark:border-stone-700 dark:bg-stone-700">
+                                    <flux:icon.loading variant="mini" />
                                 </div>
-                            </div>
+                            @else
+                                <x-input :value="$manualSetupKey" :aria-label="__('user/settings.two_factor.setup_key')" readonly copyable />
+                            @endempty
                         </div>
                     @endif
                 </div>
@@ -259,7 +230,7 @@
                 <flux:text>{{ __('user/passkeys.remove.description', ['name' => $deletingPasskeyName]) }}</flux:text>
             </div>
 
-            <div class="flex justify-end gap-3">
+            <div class="flex justify-end gap-2">
                 <flux:button variant="outline" wire:click="closeDeleteModal">{{ __('common/buttons.cancel') }}</flux:button>
                 <flux:button variant="danger" wire:click="deletePasskey">{{ __('user/passkeys.remove.submit') }}</flux:button>
             </div>

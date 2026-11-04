@@ -62,3 +62,6 @@ Follow the naming rule of `.ai/rules/php.md` in JavaScript, Alpine, and Blade to
 
 ## Name functions short, without repeating the component
 Follow the method naming rule of `.ai/rules/php.md` in JavaScript too, with the file or component in place of the class. Keep the component name in names that other files use, such as `numberField` in `Alpine.data()` and the export `nameEditors`. The markup inside an Alpine component sees its data and methods. If a short name could hide an outer component's name, keep the component name in it, such as `cardOpen` in `card.js`.
+
+## Put the buttons of a form at the right end
+End a form or a dialog with its buttons at the right end. In a card footer, put them in `<flux:card.actions>`. Elsewhere, wrap them in `<div class="flex justify-end gap-2">`. Put the primary or danger button last, after Cancel or Back. A narrow, centered form, such as an auth page or the two-factor setup dialog, uses full-width buttons instead. A button that starts a task in its section, such as Enable 2FA, stays under the section text.

@@ -19,7 +19,7 @@
 
             <x-input.password wire:model="password" :label="__('common/inputs.password')" />
 
-            <div class="flex justify-end space-x-2 rtl:space-x-reverse">
+            <div class="flex justify-end gap-2">
                 <flux:modal.close>
                     <flux:button variant="filled">{{ __('common/buttons.cancel') }}</flux:button>
                 </flux:modal.close>

@@ -23,7 +23,7 @@
                 @endif
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="flex justify-end gap-2">
                 <flux:button variant="primary" type="submit">{{ __('common/buttons.save') }}</flux:button>
             </div>
         </form>

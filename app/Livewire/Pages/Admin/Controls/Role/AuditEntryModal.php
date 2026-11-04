@@ -14,7 +14,7 @@ class AuditEntryModal extends Modal
     #[Locked]
     public Role $role;
 
-    protected function authorizeAuditLog(): void
+    protected function authorizeLog(): void
     {
         $this->authorize('view', [$this->role, 'audit-log']);
     }

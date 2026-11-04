@@ -30,7 +30,7 @@ class Tabs extends Component
                 ->label((string) __('user/users.tabs.passkeys'))
                 ->content(PasskeyDataTable::class)
                 ->params(['user' => $this->user])
-                ->visible(Features::canManagePasskeys()),
+                ->visible(Features::enabled(Features::passkeys())),
             Tab::make('audit')
                 ->label((string) __('user/users.tabs.audit'))
                 ->content(Audit::class)

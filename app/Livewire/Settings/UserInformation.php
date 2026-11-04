@@ -38,7 +38,7 @@ class UserInformation extends Component
     /**
      * Update the user information of the currently authenticated user.
      */
-    public function save(UpdateUserInformation $updateUserInformation): void
+    public function save(): void
     {
         /** @var User $user */
         $user = auth()->user();
@@ -47,7 +47,7 @@ class UserInformation extends Component
 
         $this->validate($this->userInformationRules($user->id));
 
-        $updateUserInformation->execute($user, $this->name, $this->email);
+        UpdateUserInformation::make()->execute($user, $this->name, $this->email);
 
         Flux::toast(variant: 'success', text: __('user/settings.user_information.updated'));
     }

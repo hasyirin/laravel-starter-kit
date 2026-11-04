@@ -30,13 +30,13 @@ class RecoveryCodes extends Component
     /**
      * Generate new recovery codes for the user.
      */
-    public function regenerate(GenerateNewRecoveryCodes $generateNewRecoveryCodes): void
+    public function regenerate(): void
     {
         if (! $this->passwordIsConfirmed()) {
             return;
         }
 
-        $generateNewRecoveryCodes(auth()->user());
+        resolve(GenerateNewRecoveryCodes::class)(auth()->user());
 
         $this->load();
     }

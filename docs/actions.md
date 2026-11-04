@@ -4,7 +4,7 @@ An Action holds one business operation, for example updating the information of 
 
 ## Write an Action
 
-Put the class in the Actions folder of its domain, for example `app/Domain/User/Actions/UpdateUserInformation.php`. Name it after the operation. Use the `Actionable` trait, and give the class one public `execute()` method with typed parameters. Take its dependencies through the constructor:
+Put the class in the Actions folder of its domain, for example `app/Domain/User/Actions/UpdateUserInformation.php`. Name it after the operation. Use the `Actionable` trait, and give the class one public `execute()` method with typed parameters:
 
 ```php
 class UpdateUserInformation
@@ -27,22 +27,23 @@ class UpdateUserInformation
 - An Action takes models and plain values, not the request.
 - An Action never shows a toast, flashes the session, or redirects. Its caller does that.
 - The caller validates the input and authorizes the user before it calls the Action.
-- Code that cannot inject the Action gets it from the container with `UpdateUserInformation::make()`.
+- Every caller, another Action too, gets the Action with `UpdateUserInformation::make()`. It comes from the container, so a test can swap it.
+- Nothing takes an Action or another class as a parameter or through a constructor. Get any other class where you use it, with `resolve()`, such as `resolve(DeletePasskey::class)`.
 - Every Action uses the trait, and a test fails when one does not. Fortify actions keep the method names of their Fortify contracts instead of `execute()`, for example `CreateNewUser::create()`.
 
 ## Call an Action from a Component
 
-A component validates the input, authorizes the user, calls an Action for the work, and shows the result. Inject the Action into the component method:
+A component validates the input, authorizes the user, calls an Action for the work, and shows the result. Call the Action with `make()`:
 
 ```php
-public function save(UpdateUserInformation $updateUserInformation): void
+public function save(): void
 {
     /** @var User $user */
     $user = auth()->user();
 
     $this->validate($this->userInformationRules($user->id));
 
-    $updateUserInformation->execute($user, $this->name, $this->email);
+    UpdateUserInformation::make()->execute($user, $this->name, $this->email);
 
     Flux::toast(variant: 'success', text: __('user/settings.user_information.updated'));
 }

@@ -12,8 +12,6 @@ class UpdateUser
 {
     use Actionable;
 
-    public function __construct(private readonly ChangeUserProfile $changeUserProfile) {}
-
     /**
      * @param  array{organization_id: ?int, branch_id: ?int, department_id: ?int, position_id: ?int}  $placement
      * @param  array<int, string>|null  $roles
@@ -44,7 +42,7 @@ class UpdateUser
 
             $user->save();
 
-            $this->changeUserProfile->execute($actor, $user, $placement, $roles, $permissions);
+            ChangeUserProfile::make()->execute($actor, $user, $placement, $roles, $permissions);
         });
     }
 }

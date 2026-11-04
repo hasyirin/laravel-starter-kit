@@ -13,8 +13,6 @@ class RevokeUserPasskey
 {
     use Actionable;
 
-    public function __construct(private readonly DeletePasskey $deletePasskey) {}
-
     /**
      * @throws AuthorizationException
      */
@@ -26,6 +24,6 @@ class RevokeUserPasskey
 
         throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
 
-        ($this->deletePasskey)($user, $user->passkeys()->findOrFail($passkeyId));
+        resolve(DeletePasskey::class)($user, $user->passkeys()->findOrFail($passkeyId));
     }
 }

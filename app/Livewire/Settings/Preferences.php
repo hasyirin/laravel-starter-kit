@@ -34,7 +34,7 @@ class Preferences extends Component
         $this->locale = $preferences->locale;
     }
 
-    public function save(UpdatePreferences $updatePreferences): void
+    public function save(): void
     {
         /** @var User $user */
         $user = auth()->user();
@@ -44,7 +44,7 @@ class Preferences extends Component
             'locale' => ['required', Rule::in(array_keys($this->locales))],
         ]);
 
-        $updatePreferences->execute($user, $this->timezone, $this->locale);
+        UpdatePreferences::make()->execute($user, $this->timezone, $this->locale);
 
         Flux::toast(variant: 'success', text: __('user/settings.preferences.updated'));
     }

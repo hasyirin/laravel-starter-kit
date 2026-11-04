@@ -162,6 +162,7 @@ Keep these processes running on the server:
 
 - `php artisan horizon`, under a process monitor. For Supervisor, copy `deploy/supervisor/horizon.conf` to `/etc/supervisor/conf.d/`, replace its app path and user, and run `sudo supervisorctl reread`, `sudo supervisorctl update`, and `sudo supervisorctl start horizon`. On Laravel Cloud or Forge, add it as a background process instead. Keep the stop timeout (`stopwaitsecs`) above the longest job timeout, which is 600 seconds for media conversions.
 - The scheduler, every minute: `* * * * * php artisan schedule:run`. It takes the Horizon metric snapshots.
+- Vector, to send the daily-json logs to OpenObserve. Run `sudo deploy/vector/install.sh` once for each app. It adds the app to the Vector service of the server, next to the config of other apps, and the app gets its own stream. See [Ship logs with Vector](docs/vector.md).
 
 After each deploy:
 

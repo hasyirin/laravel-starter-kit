@@ -17,7 +17,7 @@
                 <flux:subheading>{{ __('user/settings.delete_account.confirm.description') }}</flux:subheading>
             </div>
 
-            <flux:input wire:model="password" :label="__('common/inputs.password')" type="password" viewable />
+            <x-input.password wire:model="password" :label="__('common/inputs.password')" />
 
             <div class="flex justify-end space-x-2 rtl:space-x-reverse">
                 <flux:modal.close>

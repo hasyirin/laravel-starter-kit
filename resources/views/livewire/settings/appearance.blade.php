@@ -1,13 +1,20 @@
+@use(App\Livewire\Components\Option)
+
 <flux:main>
     @include('partials.settings-heading')
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.appearance.title') }}</flux:heading>
 
     <x-settings.layout :heading="__('user/settings.appearance.heading')">
-        <flux:radio.group x-data variant="segmented" x-model="$flux.appearance">
-            <flux:radio value="light" icon="sun">{{ __('user/settings.appearance.light') }}</flux:radio>
-            <flux:radio value="dark" icon="moon">{{ __('user/settings.appearance.dark') }}</flux:radio>
-            <flux:radio value="system" icon="computer-desktop">{{ __('user/settings.appearance.system') }}</flux:radio>
-        </flux:radio.group>
+        <x-radio
+            x-data
+            variant="segmented"
+            x-model="$flux.appearance"
+            :options="[
+                Option::make('light')->label(__('user/settings.appearance.light'))->icon('sun'),
+                Option::make('dark')->label(__('user/settings.appearance.dark'))->icon('moon'),
+                Option::make('system')->label(__('user/settings.appearance.system'))->icon('computer-desktop'),
+            ]"
+        />
     </x-settings.layout>
 </flux:main>

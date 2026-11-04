@@ -160,7 +160,6 @@ test('the first paint has no fade and a new panel fades in', function (): void {
 
         slowNetwork(300);
         tab('keep-alive', 'notes').click();
-        await tick();
         const leavingPanelStill = panel('keep-alive', 'profile').getAnimations().every((animation) => animation.playState !== 'running');
 
         await until(() => shown('keep-alive', 'notes'));

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Dom\Element;
 use Dom\HTMLDocument;
 
 function breadcrumbs(string $blade, array $data = []): HTMLDocument
@@ -13,7 +14,7 @@ function breadcrumbTexts(HTMLDocument $document): array
 {
     $items = iterator_to_array($document->querySelectorAll('nav > [data-flux-breadcrumbs] > [data-flux-breadcrumbs-item]'));
 
-    return array_map(fn ($item): string => trim($item->textContent), $items);
+    return array_map(fn (Element $item): string => trim($item->textContent), $items);
 }
 
 function trailOf(int $count): array
@@ -48,18 +49,18 @@ test('the current page is never a link', function (): void {
 test('the home link can go elsewhere or be left out', function (): void {
     $items = [['label' => 'Penang']];
 
-    expect(breadcrumbs('<x-breadcrumbs :$items home="/admin" />', compact('items'))->querySelector('nav a')?->getAttribute('href'))->toBe('/admin')
-        ->and(breadcrumbs('<x-breadcrumbs :$items :home="false" />', compact('items'))->querySelector('nav a'))->toBeNull();
+    expect(breadcrumbs('<x-breadcrumbs :$items home="/admin" />', ['items' => $items])->querySelector('nav a')?->getAttribute('href'))->toBe('/admin')
+        ->and(breadcrumbs('<x-breadcrumbs :$items :home="false" />', ['items' => $items])->querySelector('nav a'))->toBeNull();
 });
 
 test('a null item is skipped', function (): void {
     $items = [null, ['label' => 'Penang']];
 
-    expect(breadcrumbTexts(breadcrumbs('<x-breadcrumbs :$items :home="false" />', compact('items'))))->toBe(['Penang']);
+    expect(breadcrumbTexts(breadcrumbs('<x-breadcrumbs :$items :home="false" />', ['items' => $items])))->toBe(['Penang']);
 });
 
 test('a trail without items renders nothing', function (): void {
-    expect(trim((string) $this->blade('<x-breadcrumbs :items="[]" />')))->toBe('');
+    expect(trim((string) $this->blade('<x-breadcrumbs :items="[]" />')))->toBeEmpty();
 });
 
 test('a trail at the limit shows every item', function (): void {
@@ -72,7 +73,7 @@ test('a trail at the limit shows every item', function (): void {
 test('a trail over the limit keeps the parent and the current page and moves the rest to a dropdown', function (): void {
     $document = breadcrumbs('<x-breadcrumbs :items="$items" />', ['items' => trailOf(6)]);
     $dropdown = $document->querySelector('ui-dropdown');
-    $hidden = array_map(fn ($link): string => $link->getAttribute('href'), iterator_to_array($dropdown->querySelectorAll('a[wire\\:navigate]')));
+    $hidden = array_map(fn (Element $link): string => $link->getAttribute('href'), iterator_to_array($dropdown->querySelectorAll('a[wire\\:navigate]')));
     $texts = breadcrumbTexts($document);
 
     expect($hidden)->toBe(['/level/1', '/level/2', '/level/3', '/level/4'])
@@ -90,7 +91,7 @@ test('a page can set its own limit', function (): void {
 test('a hidden item without a link is marked as disabled in the dropdown', function (): void {
     $items = [['label' => 'North'], ...trailOf(2)];
 
-    $document = breadcrumbs('<x-breadcrumbs :$items :max="2" />', compact('items'));
+    $document = breadcrumbs('<x-breadcrumbs :$items :max="2" />', ['items' => $items]);
 
     expect(trim($document->querySelector('ui-dropdown [aria-disabled="true"]')?->textContent ?? ''))->toBe('North');
 });

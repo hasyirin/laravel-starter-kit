@@ -21,3 +21,13 @@ test('the attributes of a group reach its element', function (): void {
 
     expect([$group?->getAttribute('wire:submit'), $group?->classList->contains('mt-6')])->toBe(['save', true]);
 });
+
+test('a disabled group disables the kit inputs in its cards', function (): void {
+    $document = HTMLDocument::createFromString((string) $this->blade(
+        '<x-card.group form disabled><x-card><x-input label="Name" wire:model="name" /></x-card><x-card><x-textarea label="Notes" wire:model="notes" /></x-card></x-card.group>',
+    ), LIBXML_NOERROR);
+
+    expect($document->querySelector('input[wire\:model="name"]')?->hasAttribute('disabled'))->toBeTrue()
+        ->and($document->querySelector('textarea')?->hasAttribute('disabled'))->toBeTrue()
+        ->and($document->querySelector('form[data-card-group]')?->hasAttribute('disabled'))->toBeFalse();
+});

@@ -10,7 +10,7 @@ It takes every [field prop](field.md). The kit links the label and the help text
 
 ## Show the HTML Safely
 
-The browser sends the HTML, so a user can save any HTML, also a script or an `onclick` attribute. Printed with `{!! !!}` as it is, that code runs for every user who opens the page. So never print it as it is. Print it through the sanitizer:
+The browser sends the HTML, so a user can save any HTML, also a script or an `onclick` attribute. If you print it with `{!! !!}` as it is, that code runs for every user who opens the page. So never print it as it is. Print it through the sanitizer:
 
 ```html
 <div>{!! str($article->body)->sanitizeHtml() !!}</div>

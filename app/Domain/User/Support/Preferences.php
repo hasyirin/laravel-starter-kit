@@ -47,7 +47,7 @@ final readonly class Preferences
     }
 
     /**
-     * A date-only value, such as a `date` cast, has no time zone, so it keeps its own: a date at midnight stays on its day in every zone.
+     * A date-only value, such as a `date` cast, has no time zone, so it keeps its own. A date at midnight stays on its day in every zone.
      */
     public function calendarDate(?DateTimeInterface $value): ?string
     {

@@ -172,7 +172,7 @@ keep their own corners. :nth-child(... of ...) instead of :has(~ ...) keeps a ch
 }
 
 /* The fade has no length until the first click, so the first paint shows the content without it. A length set later does not
-replay a fade that ran already. */
+replay a fade that started more than 150ms before. A panel that appeared less than 150ms before the first click fades again. */
 [data-tabs-animate] > [data-tab-panel] {
     animation-duration: 150ms;
 }

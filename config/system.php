@@ -48,6 +48,7 @@ return [
                     'update-permissions' => 'admin.controls.users.update-permissions',
                     'update-roles' => 'admin.controls.users.update-roles',
                     'delete' => 'admin.controls.users.delete',
+                    'view-activities' => 'admin.controls.users.view-activities',
                 ],
             ],
         ],

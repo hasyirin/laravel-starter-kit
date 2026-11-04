@@ -10,9 +10,9 @@ The app checks access with permissions, and roles group permissions. A user gets
 
 ## Add a Role
 
-Add the role to `RoleSeeder::data()`, or to the `data()` method of a seeder that extends `RoleSeeder`. Call a new role seeder from `DatabaseSeeder`, so that the seeding and the permission matrix include it. Each role lists permission patterns and exceptions, and `*` matches any text. `RoleSeeder` only adds permissions to a role, so changes made in production stay.
+Add the role to `RoleSeeder::data()`, or to the `data()` method of a seeder that extends `RoleSeeder`. Call a new role seeder from `DatabaseSeeder`, so that the seeding and the permission matrix include it. Each role lists permission patterns and exceptions, and `*` matches any text. `RoleSeeder` only adds permissions to a role, so the changes that people make in production stay.
 
-The seeders create system roles. A system role cannot be renamed or deleted.
+The seeders create system roles. Nobody can rename or delete a system role.
 
 ## Bypass
 
@@ -43,6 +43,7 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `admin.controls.users.update-permissions` | ✓                   |
 | `admin.controls.users.update-roles`       | ✓                   |
 | `admin.controls.users.delete`             | ✓                   |
+| `admin.controls.users.view-activities`    | ✓                   |
 
 A role with `bypass-authorization` passes every check.
 
@@ -99,7 +100,7 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 - view any needs the view-any permission
 - view needs the view-any or view permission
-- a user can view a role they have
+- having a role does not let a user view it
 - create needs the create permission
 - update needs the update permission
 - the name of a system role cannot be updated
@@ -119,5 +120,13 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 - seeding leaves out permissions that match an except pattern
 - seeding keeps permissions that were given to a role later
 - seeding reuses an existing role with the same name
+
+### PermissionTree
+
+- a resource holds its actions as permissions
+- a permission directly under an area is listed on the area
+- a one-segment permission is listed at the root
+- a missing label falls back to the headline
+- a group-level access permission makes its node an area
 
 <!-- /generated:test-rules -->

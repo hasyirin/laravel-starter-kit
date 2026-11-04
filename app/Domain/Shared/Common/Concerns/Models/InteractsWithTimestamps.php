@@ -29,7 +29,7 @@ trait InteractsWithTimestamps
 
     /**
      * A date-only value keeps the day it was given. Without this, `today('Asia/Kuala_Lumpur')` would move into
-     * the app zone below and be saved as the day before.
+     * the app zone below, and the model would save the day before.
      *
      * @param  string  $key
      */

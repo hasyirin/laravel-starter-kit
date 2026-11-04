@@ -88,7 +88,7 @@ class FileUpload extends Component
         }
 
         foreach ($files as $file) {
-            $rejection = $this->isFull()
+            $rejection = $this->full()
                 ? trans_choice('common/uploads.too_many', $this->limit(), ['name' => $file->getClientOriginalName(), 'max' => $this->limit()])
                 : Uploads::rejection($file, $this->fileRules);
 
@@ -151,7 +151,7 @@ class FileUpload extends Component
     public function render(): View
     {
         return view('livewire.components.file-upload', [
-            'full' => $this->isFull(),
+            'full' => $this->full(),
             'acceptedTypes' => $this->acceptedTypes(),
             'limits' => $this->limits(),
             'previews' => collect($this->items)->mapWithKeys(fn (array $item): array => [$item['uuid'] => $this->preview($item)])->all(),
@@ -163,7 +163,7 @@ class FileUpload extends Component
         return $this->multiple ? ($this->max ?? PHP_INT_MAX) : 1;
     }
 
-    private function isFull(): bool
+    private function full(): bool
     {
         return count($this->items) >= $this->limit();
     }

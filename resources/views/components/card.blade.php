@@ -1,4 +1,5 @@
 @props([
+    'disabled' => false,
     'heading' => null,
     'subheading' => null,
     'actions' => null,

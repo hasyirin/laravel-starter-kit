@@ -13,5 +13,6 @@ return [
     'edit' => 'Edit',
     'log_out' => 'Log out',
     'save' => 'Save',
+    'update' => 'Update',
     'view' => 'View',
 ];

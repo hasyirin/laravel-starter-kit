@@ -29,3 +29,14 @@ test('the admin sidebar shows the internal link to users with internal access', 
 
     $component->assertSee(route('internal.dashboard'));
 });
+
+test('the users item sits in the controls group under administration', function (): void {
+    $this->seed(PermissionSeeder::class);
+    $user = User::factory()->create();
+    $user->givePermissionTo('admin.access', 'admin.controls.users.view-any');
+    $this->actingAs($user);
+
+    $component = Livewire::test(Sidebar::class);
+
+    $component->assertSeeInOrder([__('navigation.administration'), __('navigation.controls'), route('admin.controls.users.index')], false);
+});

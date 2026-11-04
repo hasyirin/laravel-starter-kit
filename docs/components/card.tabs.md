@@ -1,6 +1,6 @@
 # Card Tabs
 
-`<x-card.tabs>` puts a [tab](tabs.md) bar in a thin card strip, and the content of the current tab below the strip. The content brings its own cards. The first card of the content joins the strip, so the bar and the card look like one block.
+`<x-card.tabs>` renders a segmented [tab](tabs.md) bar, and the content of the current tab below the bar. The content brings its own cards. With `strip`, the bar sits in a thin card strip, and the first card of the content joins the strip, so the bar and the card look like one block.
 
 ```blade
 <livewire:pages.local.examples.tabs query-as="card" bar="card" />
@@ -14,28 +14,28 @@ It renders a bar and `<x-tabs.content>` in one tag, so it takes the variables of
 
 ## Defaults
 
-The bar in the strip is a segmented [Flux tabs](https://fluxui.dev/components/tabs) bar, not the underline of `<x-tabs>`.
+The bar is a segmented [Flux tabs](https://fluxui.dev/components/tabs) bar, not the underline of `<x-tabs>`. It sits alone above the content, with a gap, and has no strip.
 
 ## Looks
 
 `variant` picks the bar: `segmented`, `navbar`, or `underline`. Other values go to Flux tabs, so `pills` works too. `strip` puts the bar in the card strip. Four looks fit the kit. The first one above is the default.
 
-`variant="navbar"` puts a navbar in the strip:
+`strip` puts the segmented bar in the card strip:
 
 ```blade
-<livewire:pages.local.examples.tabs query-as="card-navbar" bar="card" variant="navbar" />
+<livewire:pages.local.examples.tabs query-as="card-strip" bar="card" strip />
 ```
 
-`:strip="false"` renders the segmented bar alone above the content, with a gap:
+`variant="navbar"` with `strip` puts a navbar in the strip:
 
 ```blade
-<livewire:pages.local.examples.tabs query-as="card-bare" bar="card" :strip="false" />
+<livewire:pages.local.examples.tabs query-as="card-navbar" bar="card" variant="navbar" strip />
 ```
 
-`variant="underline"` with `:strip="false"` renders the underline bar above the content:
+`variant="underline"` renders the underline bar above the content:
 
 ```blade
-<livewire:pages.local.examples.tabs query-as="card-underline" bar="card" variant="underline" :strip="false" />
+<livewire:pages.local.examples.tabs query-as="card-underline" bar="card" variant="underline" />
 ```
 
 Other combinations work too, but the kit does not use them.
@@ -104,7 +104,7 @@ The card does not show the `title()` or the `description()` of a tab. Put them i
 | `panels`      |              | Required. The tabs to render, `$tabPanels` from the trait.                     |
 | `query-as`    | `tab`        | The URL key, `$queryTabAs` from the trait.                                     |
 | `variant`     | `segmented`  | The bar: `segmented`, `navbar`, `underline`, or a Flux tabs variant.           |
-| `strip`       | `true`       | Puts the bar in a thin card strip that the first card of the content joins.    |
+| `strip`       | `false`      | Puts the bar in a thin card strip that the first card of the content joins.    |
 | `orientation` | `horizontal` | The direction of the slide of the content: `horizontal` or `vertical`.         |
 | `params`      | `[]`         | Props for the content of every tab. They win over the tab props.               |
 | `aria-label`  |              | The name of the bar for screen readers.                                        |

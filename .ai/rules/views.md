@@ -8,6 +8,9 @@ paths:
 ## Use short translation keys
 Translate UI text with short keys from PHP files under `lang/en/`, such as `__('user/settings.profile.updated')`, never JSON sentence keys. Put shared labels in `lang/en/common/` (`buttons.php`, `inputs.php`).
 
+## Show by permission, never by role
+Use `@can` to show or hide UI. Never use `@role`, `@hasrole`, or `@hasanyrole`. Admins change roles at runtime.
+
 ## Never use em dashes
 Never write an em dash (`—` or `&mdash;`) in the frontend. Rewrite the sentence, or use a comma, colon, period, or parentheses instead.
 
@@ -18,4 +21,4 @@ Add a description, hint, or secondary label only when it tells the user somethin
 Show a date or a time as text with `App\Domain\User\Support\Preferences::current()`: `date()`, `datetime()`, or `time()` for a moment, such as `created_at`. They use the time zone and the locale of the user. For a date-only value, such as a `date` cast or a birthday, use `calendarDate()`: it keeps the day as stored. Do not call `format()` on a Carbon in a view. In a mail to another user, use `Preferences::of($user)`.
 
 ## Clean HTML from users before you print it
-Never print HTML that users wrote, such as the value of `<x-editor>`, with `{!! !!}` as it is: a script or an `onclick` attribute in it runs for every reader. Print it through `str($html)->sanitizeHtml()`. It keeps the formatting and removes scripts, event attributes, and `javascript:` links. See `docs/components/editor.md`.
+Never print HTML that users wrote, such as the value of `<x-editor>`, with `{!! !!}` as it is. A script or an `onclick` attribute in it runs for every reader. Print it through `str($html)->sanitizeHtml()`. It keeps the formatting and removes scripts, event attributes, and `javascript:` links. See `docs/components/editor.md`.

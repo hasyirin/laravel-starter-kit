@@ -1,3 +1,5 @@
+@aware(['disabled' => false])
+
 @props([
     'label' => null,
     'description' => null,

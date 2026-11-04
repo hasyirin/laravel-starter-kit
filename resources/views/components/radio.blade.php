@@ -1,3 +1,5 @@
+@aware(['disabled' => false])
+
 @props([
     'label' => null,
     'description' => null,
@@ -13,11 +15,12 @@
 ])
 
 @php
+    $attributes = $attributes->merge(['disabled' => $disabled]);
     $descriptionTrailing ??= $attributes->pluck('description:trailing');
     $name = $attributes->whereStartsWith('wire:model')->first() ?? $attributes->get('name');
 
     // Flux puts a prop that a variant does not use on the radio as an attribute, which breaks on HTML.
-    // So only the variants that show icons get the icon, and the default variant, which also puts the label there, gets the label as text.
+    // So only the variants that show icons get the icon. The default variant also puts the label there, so it gets the label as text.
     $showsIcons = in_array($variant, ['segmented', 'buttons', 'cards'], true);
 @endphp
 

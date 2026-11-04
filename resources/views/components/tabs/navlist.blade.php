@@ -6,7 +6,7 @@
 ])
 
 @php
-    $defaultSlug = collect($tabs)->first(fn (App\Livewire\Components\Tab $tab): bool => $tab->isDefault())?->slug() ?? '';
+    $defaultSlug = collect($tabs)->first(fn (App\Livewire\Components\Tab $tab): bool => $tab->default())?->slug() ?? '';
 @endphp
 
 @if($tabs !== [])

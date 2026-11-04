@@ -11,9 +11,9 @@
     }
 
     if ($action?->profile_id === null) {
-        $action?->setRelation('profile', null)->loadMissing(['actor' => fn ($actor) => $actor->constrain([\App\Domain\User\Models\User::class => fn ($query) => $query->withTrashed()->without('profile')])]);
+        $action?->setRelation('profile', null)->loadMissing(['actor' => fn ($actor) => $actor->constrain([\App\Domain\User\Models\User::class => fn ($query) => $query->withTrashed()])]);
     } else {
-        $action->loadMissing(['profile.user' => fn ($user) => $user->without('profile'), 'profile.position']);
+        $action->loadMissing(['profile.user', 'profile.position']);
     }
 
     $actorName = $action?->actor_name;

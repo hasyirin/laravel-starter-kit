@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Layouts\Admin;
 
+use App\Domain\User\Models\User;
 use App\Livewire\Components\Navigation;
 use App\Livewire\Components\Navigation\Group;
 use App\Livewire\Components\Navigation\Item;
@@ -16,6 +17,11 @@ class Sidebar extends Navigation
     {
         return [
             Item::make(label: (string) __('navigation.dashboard'), icon: 'home', route: 'admin.dashboard'),
+            Group::make(label: (string) __('navigation.administration'), items: [
+                Item::make(label: (string) __('navigation.controls'), icon: 'adjustments-horizontal', children: [
+                    Item::make(label: (string) __('navigation.users'), icon: 'users', route: 'admin.controls.users.index', active: 'admin.controls.users.*', accessible: ['viewAny', User::class]),
+                ]),
+            ]),
             Spacer::make(),
             Item::make(label: (string) __('navigation.internal'), icon: 'briefcase', route: 'internal.dashboard', accessible: config('system.permissions.internal.access')),
             Item::make(label: (string) __('navigation.app'), icon: 'arrow-uturn-left', route: 'dashboard'),

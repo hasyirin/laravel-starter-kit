@@ -1,3 +1,5 @@
+@aware(['disabled' => false])
+
 @props([
     'label' => null,
     'description' => null,
@@ -12,6 +14,7 @@
 ])
 
 @php
+    $attributes = $attributes->merge(['disabled' => $disabled]);
     $descriptionTrailing ??= $attributes->pluck('description:trailing');
     $name = $attributes->whereStartsWith('wire:model')->first() ?? $attributes->get('name');
     $showsValue = $showValue && $hint === null;

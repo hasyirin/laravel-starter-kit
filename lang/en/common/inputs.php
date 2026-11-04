@@ -11,6 +11,7 @@ return [
     'current_password' => 'Current password',
     'new_password' => 'New password',
     'confirm_password' => 'Confirm password',
+    'otp_code' => 'OTP code',
     'timezone' => 'Time zone',
     'locale' => 'Date and time format',
     'use_default' => 'Use the default: :value',

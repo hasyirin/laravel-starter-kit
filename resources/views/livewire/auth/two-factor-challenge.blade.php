@@ -43,13 +43,15 @@
                 <div class="space-y-5 text-center">
                     <div x-show="!showRecoveryInput">
                         <div class="my-5 flex items-center justify-center" x-ref="otp">
-                            <flux:otp x-model="code" length="6" name="code" label="OTP Code" label:sr-only class="mx-auto" />
+                            <x-field name="code">
+                                <flux:otp x-model="code" length="6" name="code" :aria-label="__('common/inputs.otp_code')" class="mx-auto" data-input-control />
+                            </x-field>
                         </div>
                     </div>
 
                     <div x-show="showRecoveryInput">
                         <div class="my-5">
-                            <flux:input
+                            <x-input
                                 type="text"
                                 name="recovery_code"
                                 x-ref="recovery_code"
@@ -58,10 +60,6 @@
                                 x-model="recovery_code"
                             />
                         </div>
-
-                        @error('recovery_code')
-                            <flux:text color="red">{{ $message }}</flux:text>
-                        @enderror
                     </div>
 
                     <flux:button variant="primary" type="submit" class="w-full">{{ __('common/buttons.continue') }}</flux:button>

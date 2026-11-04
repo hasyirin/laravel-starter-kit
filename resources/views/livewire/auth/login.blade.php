@@ -11,7 +11,7 @@
             @csrf
 
             <!-- Email Address -->
-            <flux:input
+            <x-input
                 name="email"
                 :label="__('common/inputs.email_address')"
                 :value="old('email')"
@@ -23,26 +23,22 @@
             />
 
             <!-- Password -->
-            <div class="relative">
-                <flux:input
-                    name="password"
-                    :label="__('common/inputs.password')"
-                    type="password"
-                    required
-                    autocomplete="current-password"
-                    :placeholder="__('common/inputs.password')"
-                    viewable
-                />
-
+            <x-input.password
+                name="password"
+                :label="__('common/inputs.password')"
+                required
+                autocomplete="current-password"
+                :placeholder="__('common/inputs.password')"
+            >
                 @if(Route::has('password.request'))
-                    <flux:link class="absolute end-0 top-0 text-sm" :href="route('password.request')" wire:navigate>
-                        {{ __('auth/login.forgot_password') }}
-                    </flux:link>
+                    <x-slot:hint>
+                        <flux:link :href="route('password.request')" wire:navigate>{{ __('auth/login.forgot_password') }}</flux:link>
+                    </x-slot:hint>
                 @endif
-            </div>
+            </x-input.password>
 
             <!-- Remember Me -->
-            <flux:checkbox name="remember" :label="__('auth/login.remember')" :checked="old('remember')" />
+            <x-checkbox name="remember" :label="__('auth/login.remember')" :checked="old('remember')" />
 
             <div class="flex items-center justify-end">
                 <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">{{ __('auth/login.submit') }}</flux:button>

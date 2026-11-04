@@ -11,30 +11,26 @@
             <input type="hidden" name="token" value="{{ request()->route('token') }}" />
 
             <!-- Email Address -->
-            <flux:input name="email" value="{{ request('email') }}" :label="__('common/inputs.email')" type="email" required autocomplete="email" />
+            <x-input name="email" value="{{ request('email') }}" :label="__('common/inputs.email')" type="email" required autocomplete="email" />
 
             <!-- Password -->
-            <flux:input
+            <x-input.password
                 name="password"
                 :label="__('common/inputs.password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 :placeholder="__('common/inputs.password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
 
             <!-- Confirm Password -->
-            <flux:input
+            <x-input.password
                 name="password_confirmation"
                 :label="__('common/inputs.confirm_password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 :placeholder="__('common/inputs.confirm_password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
 
             <div class="flex items-center justify-end">

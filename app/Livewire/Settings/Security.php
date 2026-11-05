@@ -48,9 +48,9 @@ class Security extends Component
     #[Locked]
     public string $manualSetupKey = '';
 
-    public bool $showModal = false;
+    public bool $showingSetupModal = false;
 
-    public bool $showVerificationStep = false;
+    public bool $showingVerificationStep = false;
 
     #[Validate('required|string|size:6', onUpdate: false)]
     public string $code = '';
@@ -61,7 +61,7 @@ class Security extends Component
     #[Locked]
     public array $passkeys = [];
 
-    public bool $showDeleteModal = false;
+    public bool $showingDeleteModal = false;
 
     #[Locked]
     public ?int $deletingPasskeyId = null;
@@ -151,7 +151,7 @@ class Security extends Component
 
         $this->deletingPasskeyId = $passkey->id;
         $this->deletingPasskeyName = $passkey->name;
-        $this->showDeleteModal = true;
+        $this->showingDeleteModal = true;
     }
 
     /**
@@ -159,7 +159,7 @@ class Security extends Component
      */
     public function deletePasskey(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 
@@ -182,7 +182,7 @@ class Security extends Component
      */
     public function closeDeleteModal(): void
     {
-        $this->showDeleteModal = false;
+        $this->showingDeleteModal = false;
         $this->deletingPasskeyId = null;
         $this->deletingPasskeyName = '';
     }
@@ -192,7 +192,7 @@ class Security extends Component
      */
     public function enable(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 
@@ -207,7 +207,7 @@ class Security extends Component
 
         $this->loadSetupData();
 
-        $this->showModal = true;
+        $this->showingSetupModal = true;
     }
 
     /**
@@ -238,7 +238,7 @@ class Security extends Component
     public function showVerificationIfNecessary(): void
     {
         if ($this->requiresConfirmation) {
-            $this->showVerificationStep = true;
+            $this->showingVerificationStep = true;
 
             $this->resetErrorBag();
 
@@ -253,7 +253,7 @@ class Security extends Component
      */
     public function confirmTwoFactor(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 
@@ -271,7 +271,7 @@ class Security extends Component
      */
     public function resetVerification(): void
     {
-        $this->reset('code', 'showVerificationStep');
+        $this->reset('code', 'showingVerificationStep');
 
         $this->resetErrorBag();
     }
@@ -281,7 +281,7 @@ class Security extends Component
      */
     public function disable(): void
     {
-        if (! $this->passwordIsConfirmed()) {
+        if (! $this->passwordConfirmed()) {
             return;
         }
 
@@ -299,8 +299,8 @@ class Security extends Component
             'code',
             'manualSetupKey',
             'qrCodeSvg',
-            'showModal',
-            'showVerificationStep',
+            'showingSetupModal',
+            'showingVerificationStep',
         );
 
         $this->resetErrorBag();
@@ -329,7 +329,7 @@ class Security extends Component
             ];
         }
 
-        if ($this->showVerificationStep) {
+        if ($this->showingVerificationStep) {
             return [
                 'title' => (string) __('user/settings.two_factor.modal.verify.title'),
                 'description' => (string) __('user/settings.two_factor.modal.verify.description'),

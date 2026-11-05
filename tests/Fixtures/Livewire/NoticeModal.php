@@ -17,7 +17,7 @@ class NoticeModal extends Modal
     {
         return <<<'BLADE'
             <div>
-                <flux:modal wire:model="open">Notice</flux:modal>
+                <flux:modal wire:model="showing">Notice</flux:modal>
             </div>
             BLADE;
     }

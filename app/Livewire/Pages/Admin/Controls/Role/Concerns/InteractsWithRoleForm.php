@@ -32,7 +32,7 @@ trait InteractsWithRoleForm
     {
         $names = PermissionTree::configured();
 
-        if (! $this->actorHasBypass()) {
+        if (! $this->actorBypasses()) {
             $names = $names->reject(fn (string $name): bool => $name === $this->bypassPermission())->values();
         }
 
@@ -60,7 +60,7 @@ trait InteractsWithRoleForm
         return collect($locked ? [$this->bypassPermission()] : []);
     }
 
-    private function actorHasBypass(): bool
+    private function actorBypasses(): bool
     {
         return $this->actor()->checkPermissionTo($this->bypassPermission());
     }

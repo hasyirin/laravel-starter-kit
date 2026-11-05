@@ -151,7 +151,7 @@ test('the modal shows each changed field with its old and new value', function (
 
     Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
         ->call('show', $entry->id)
-        ->assertSet('open', true)
+        ->assertSet('showing', true)
         ->assertSeeInOrder(['Name', 'Sam Subject', 'Sam Renamed']);
 });
 

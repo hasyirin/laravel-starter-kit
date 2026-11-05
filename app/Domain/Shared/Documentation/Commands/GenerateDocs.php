@@ -40,7 +40,14 @@ class GenerateDocs extends Command
     private function useDatabase(): void
     {
         config([
-            'database.connections.docs' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '', 'foreign_key_constraints' => true],
+            'database.connections.docs' => [
+                'driver' => 'sqlite',
+                'database' => ':memory:',
+                'prefix' => '',
+                'foreign_key_constraints' => true,
+                'use_native_json' => true,
+                'use_native_jsonb' => true,
+            ],
             'database.default' => 'docs',
             'cache.default' => 'array',
         ]);

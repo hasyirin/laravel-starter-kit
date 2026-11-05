@@ -17,7 +17,7 @@ test('a slider binds to its property, shows its value at the end of the label ro
     $view->assertSee('The volume must be at least 10.');
 });
 
-test('a hint takes the place of the value, and show-value off leaves it out', function (string $template, ?string $hint): void {
+test('a hint takes the place of the value, and with-value off leaves it out', function (string $template, ?string $hint): void {
     $document = HTMLDocument::createFromString((string) $this->blade($template), LIBXML_NOERROR);
 
     expect($document->querySelector('[data-input-slider-value]'))->toBeNull()
@@ -25,7 +25,7 @@ test('a hint takes the place of the value, and show-value off leaves it out', fu
         ->and($document->querySelector('[data-input-hint]')?->textContent)->toBe($hint);
 })->with([
     'a hint' => ['<x-slider label="Volume" hint="dB" wire:model="volume" />', 'dB'],
-    'show-value off' => ['<x-slider label="Volume" :show-value="false" wire:model="volume" />', null],
+    'with-value off' => ['<x-slider label="Volume" :with-value="false" wire:model="volume" />', null],
 ]);
 
 test('a range slider has a thumb for each end', function (): void {

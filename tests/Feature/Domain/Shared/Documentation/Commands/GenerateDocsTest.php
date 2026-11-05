@@ -26,6 +26,14 @@ test('it fills the generated sections from the code, and the check passes after 
         ->and(config('database.default'))->toBe('sqlite');
 });
 
+test('the database diagram shows a json column as json', function (): void {
+    File::put("{$this->docs}/database.md", "<!-- generated:erd -->\n<!-- /generated:erd -->\n");
+
+    $this->artisan('docs:generate', ['--path' => $this->docs])->assertSuccessful();
+
+    expect(File::get("{$this->docs}/database.md"))->toContain("        json credential\n");
+});
+
 test('the check fails without writing when a generated section is out of date', function (): void {
     $stale = "<!-- generated:permission-matrix -->\nold\n<!-- /generated:permission-matrix -->\n";
     File::put("{$this->docs}/permissions.md", $stale);

@@ -41,7 +41,7 @@
                                 <flux:button variant="danger" wire:click="disable">{{ __('user/settings.two_factor.disable') }}</flux:button>
                             </div>
 
-                            <livewire:settings.two-factor.recovery-codes :$requiresConfirmation />
+                            <livewire:settings.two-factor.recovery-codes />
                         </div>
                     @else
                         <div class="space-y-4">
@@ -55,7 +55,7 @@
         @endif
 
         @if(Features::enabled(Features::twoFactorAuthentication()))
-            <flux:modal name="two-factor-setup-modal" class="max-w-md md:min-w-md" @close="closeModal" wire:model="showModal">
+            <flux:modal name="two-factor-setup-modal" class="max-w-md md:min-w-md" @close="closeModal" wire:model="showingSetupModal">
                 <div class="space-y-6">
                     <div class="flex flex-col items-center space-y-4">
                         <div class="w-auto rounded-full border border-stone-100 bg-white p-0.5 shadow-sm dark:border-stone-600 dark:bg-stone-800">
@@ -88,7 +88,7 @@
                         </div>
                     </div>
 
-                    @if($showVerificationStep)
+                    @if($showingVerificationStep)
                         <div class="space-y-6">
                             <div
                                 class="flex flex-col items-center justify-center space-y-3"
@@ -223,7 +223,7 @@
         @endif
     </x-settings.layout>
 
-    <flux:modal name="delete-passkey-modal" class="max-w-md md:min-w-md" @close="closeDeleteModal" wire:model="showDeleteModal">
+    <flux:modal name="delete-passkey-modal" class="max-w-md md:min-w-md" @close="closeDeleteModal" wire:model="showingDeleteModal">
         <div class="space-y-6">
             <div class="space-y-2">
                 <flux:heading size="lg">{{ __('user/passkeys.remove.heading') }}</flux:heading>

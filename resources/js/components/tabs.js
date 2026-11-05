@@ -81,6 +81,8 @@ export default function tabs() {
 
                 root.querySelectorAll('[data-tab]').forEach((other) => markSelected(other, other === item));
                 contents.forEach((content) => content.setAttribute('data-tabs-animate', ''));
+                // The new fade length would replay a first paint fade that began less than that length ago on the panel that still shows.
+                ownElements(this.$wire.$el, '[data-tab-panel]').forEach((panel) => panel.getAnimations().forEach((animation) => animation.cancel()));
                 clearTimeout(dimTimer);
                 setPending(false);
 

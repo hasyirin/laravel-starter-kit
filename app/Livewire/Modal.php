@@ -11,22 +11,22 @@ abstract class Modal extends Component
 {
     use CanBeDisabled;
 
-    public bool $open = false;
+    public bool $showing = false;
 
     #[On('show')]
     public function show(): void
     {
         $this->resetValidation();
 
-        $this->open = true;
+        $this->showing = true;
     }
 
     public function close(): void
     {
-        $this->open = false;
+        $this->showing = false;
     }
 
-    public function updatedOpen(): void
+    public function updatedShowing(): void
     {
         $this->close();
     }

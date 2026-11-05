@@ -27,16 +27,16 @@ test('the shown input formats the number with the settings', function (string $t
     'the defaults' => ['<x-input.number label="Amount" />', "\$money(\$input, '.', ',', 2)", null],
     'no decimals and no grouping' => ['<x-input.number label="Year" decimals="0" comma="" />', "\$money(\$input, '.', '', 0)", null],
     'other separators' => ['<x-input.number label="Amount" comma="." separator="," />', "\$money(\$input, ',', '.', 2)", null],
-    'no negatives' => ['<x-input.number label="Amount" disable-negatives />', "\$money(\$input.replace(/-/g, ''), '.', ',', 2)", 'decimal'],
-    'no negatives and no decimals' => ['<x-input.number label="Quantity" decimals="0" disable-negatives />', "\$money(\$input.replace(/-/g, ''), '.', ',', 0)", 'numeric'],
+    'no negatives' => ['<x-input.number label="Amount" unsigned />', "\$money(\$input.replace(/-/g, ''), '.', ',', 2)", 'decimal'],
+    'no negatives and no decimals' => ['<x-input.number label="Quantity" decimals="0" unsigned />', "\$money(\$input.replace(/-/g, ''), '.', ',', 0)", 'numeric'],
 ]);
 
 test('the settings reach the number field behavior', function (): void {
-    $document = HTMLDocument::createFromString((string) $this->blade('<x-input.number label="Amount" decimals="3" comma=" " separator="," disable-negatives />'), LIBXML_NOERROR);
+    $document = HTMLDocument::createFromString((string) $this->blade('<x-input.number label="Amount" decimals="3" comma=" " separator="," unsigned />'), LIBXML_NOERROR);
     $field = $document->querySelector('[data-flux-field]');
 
     expect($field?->getAttribute('x-data'))->toBe('numberField')
-        ->and(json_decode((string) $field?->getAttribute('data-number'), true))->toBe(['decimals' => 3, 'comma' => ' ', 'separator' => ',', 'disableNegatives' => true]);
+        ->and(json_decode((string) $field?->getAttribute('data-number'), true))->toBe(['decimals' => 3, 'comma' => ' ', 'separator' => ',', 'unsigned' => true]);
 });
 
 test('name and value go to the hidden input, so a plain form posts the plain number', function (): void {

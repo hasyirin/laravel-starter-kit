@@ -16,10 +16,10 @@ class AbilityCheck extends Component
     public function mount(): void
     {
         $this->results = [
-            'can' => $this->can('admin.access'),
-            'cannot' => $this->cannot('admin.access'),
-            'canAny' => $this->canAny(['admin.access', 'admin.horizon.view']),
-            'cannotAny' => $this->cannotAny(['admin.access', 'admin.horizon.view']),
+            'can' => $this->can('system.access'),
+            'cannot' => $this->cannot('system.access'),
+            'canAny' => $this->canAny(['system.access', 'admin.horizon.view']),
+            'cannotAny' => $this->cannotAny(['system.access', 'admin.horizon.view']),
         ];
     }
 

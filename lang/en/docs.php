@@ -26,7 +26,7 @@ return [
             'note' => 'Note',
             'settings' => 'Settings',
             'billing' => 'Billing',
-            'billing_disabled' => 'Only an admin can open billing.',
+            'billing_disabled' => 'You need permission to open billing.',
         ],
     ],
 ];

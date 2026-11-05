@@ -8,7 +8,7 @@ use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 
-class DeleteUserAsAdmin
+class DeleteOtherUser
 {
     use Actionable;
 

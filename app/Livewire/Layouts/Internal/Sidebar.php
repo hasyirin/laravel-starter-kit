@@ -17,7 +17,7 @@ class Sidebar extends Navigation
         return [
             Item::make(label: (string) __('navigation.dashboard'), icon: 'home', route: 'internal.dashboard'),
             Spacer::make(),
-            Item::make(label: (string) __('navigation.admin'), icon: 'shield-check', route: 'admin.dashboard', accessible: config('system.permissions.admin.access')),
+            Item::make(label: (string) __('navigation.admin'), icon: 'shield-check', route: 'admin.dashboard', accessible: config('system.permissions.system.access')),
             Item::make(label: (string) __('navigation.app'), icon: 'arrow-uturn-left', route: 'dashboard'),
         ];
     }

@@ -30,4 +30,4 @@ If the glossary does not have the concept you need yet, treat that as a signal. 
 
 If your output contradicts an existing ADR, surface the conflict explicitly:
 
-> _Contradicts ADR-0007 (event-sourced orders), but worth reopening because…_
+> _Contradicts ADR-0099 (event-sourced orders), but worth reopening because…_

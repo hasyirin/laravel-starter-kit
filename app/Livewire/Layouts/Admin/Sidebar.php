@@ -18,7 +18,7 @@ class Sidebar extends Navigation
     {
         return [
             Item::make(label: (string) __('navigation.dashboard'), icon: 'home', route: 'admin.dashboard'),
-            Group::make(label: (string) __('navigation.administration'), items: [
+            Group::make(label: (string) __('navigation.system'), items: [
                 Item::make(label: (string) __('navigation.controls'), icon: 'adjustments-horizontal', children: [
                     Item::make(label: (string) __('navigation.users'), icon: 'users', route: 'admin.controls.users.index', active: 'admin.controls.users.*', accessible: ['viewAny', User::class]),
                     Item::make(label: (string) __('navigation.roles'), icon: 'shield-check', route: 'admin.controls.roles.index', active: 'admin.controls.roles.*', accessible: ['viewAny', Role::class]),

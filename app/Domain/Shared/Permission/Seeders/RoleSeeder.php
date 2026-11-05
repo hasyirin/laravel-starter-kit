@@ -42,7 +42,7 @@ class RoleSeeder extends Seeder
     public function data(): array
     {
         return [
-            config('system.roles.super-admin') => [
+            config('system.roles.system-admin') => [
                 'permissions' => [
                     'bypass-authorization',
                 ],

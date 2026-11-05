@@ -12,7 +12,7 @@ class AuditorRoleSeeder extends RoleSeeder
     {
         return [
             'auditor' => [
-                'permissions' => ['admin.access', 'admin.controls.*'],
+                'permissions' => ['system.access', 'admin.controls.*'],
                 'except' => ['admin.controls.*.delete', 'admin.controls.users.update-*'],
             ],
         ];

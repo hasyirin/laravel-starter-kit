@@ -14,26 +14,26 @@ beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
 
-    $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo(
-        'admin.access',
+    $this->actor = User::factory()->create();
+    grantPermissions($this->actor,
+        'system.access',
         'admin.controls.users.view-any',
         'admin.controls.users.view',
         'admin.controls.users.create',
         'admin.controls.users.delete',
     );
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
 });
 
 test('the list shows name, email, and roles', function (): void {
     $user = User::factory()->create(['name' => 'Ada Lovelace', 'email' => 'ada@example.test']);
-    Profile::factory()->for($user)->withRoles('super-admin')->create();
+    Profile::factory()->for($user)->withRoles('system-admin')->create();
 
     Livewire::test(UserDataTable::class)
         ->assertCanSeeTableRecords([$user])
         ->assertSee('Ada Lovelace')
         ->assertSee('ada@example.test')
-        ->assertSee('Super Administrator');
+        ->assertSee('System Administrator');
 });
 
 test('a deleted user is not listed', function (): void {
@@ -48,12 +48,12 @@ test('the delete action is hidden on your own row', function (): void {
 
     Livewire::test(UserDataTable::class)
         ->assertActionVisible(TestAction::make('delete')->table($other))
-        ->assertActionHidden(TestAction::make('delete')->table($this->admin));
+        ->assertActionHidden(TestAction::make('delete')->table($this->actor));
 });
 
 test('the delete action is hidden without the delete permission', function (): void {
     $other = User::factory()->create();
-    $this->admin->revokePermissionTo('admin.controls.users.delete');
+    revokePermissions($this->actor, 'admin.controls.users.delete');
 
     Livewire::test(UserDataTable::class)
         ->assertActionHidden(TestAction::make('delete')->table($other));

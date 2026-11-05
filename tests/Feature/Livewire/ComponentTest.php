@@ -38,20 +38,20 @@ beforeEach(function (): void {
     $this->ticket->state->transitionTo(InReview::class);
 
     $reviewer = User::factory()->create();
-    $reviewer->givePermissionTo(array_values(TicketPolicy::PERMISSIONS));
+    grantPermissions($reviewer, array_values(TicketPolicy::PERMISSIONS));
     $this->actingAs($reviewer);
 });
 
 test('the ability helpers check the permissions of the current user', function (array $permissions, array $results): void {
     $user = User::factory()->create();
-    $user->givePermissionTo(...$permissions);
+    grantPermissions($user, ...$permissions);
     $this->actingAs($user);
 
     $component = Livewire::test(AbilityCheck::class);
 
     $component->assertSet('results', $results);
 })->with([
-    'with admin access' => [['admin.access'], ['can' => true, 'cannot' => false, 'canAny' => true, 'cannotAny' => false]],
+    'with system access' => [['system.access'], ['can' => true, 'cannot' => false, 'canAny' => true, 'cannotAny' => false]],
     'with Horizon access only' => [['admin.horizon.view'], ['can' => false, 'cannot' => true, 'canAny' => true, 'cannotAny' => false]],
     'without permissions' => [[], ['can' => false, 'cannot' => true, 'canAny' => false, 'cannotAny' => true]],
 ]);
@@ -61,7 +61,7 @@ test('the ability helpers cannot be called from the browser', function (string $
 
     $component = Livewire::test(AbilityCheck::class);
 
-    expect(fn () => $component->call($method, 'admin.access'))->toThrow(MethodNotFoundException::class);
+    expect(fn () => $component->call($method, 'system.access'))->toThrow(MethodNotFoundException::class);
 })->with(['can', 'cannot', 'canAny', 'cannotAny', 'notifySaved']);
 
 test('a step runs when the record still has it', function (): void {

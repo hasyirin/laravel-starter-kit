@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\DataTables\Admin;
 
-use App\Domain\User\Actions\DeleteUserAsAdmin;
+use App\Domain\User\Actions\DeleteOtherUser;
 use App\Domain\User\Models\User;
 use App\Filament\Actions\CreateAction;
 use App\Filament\Actions\DeleteAction;
@@ -72,7 +72,7 @@ class UserDataTable extends DataTable
                 ->action($this->to(...)),
 
             DeleteAction::make()
-                ->through(DeleteUserAsAdmin::class)
+                ->through(DeleteOtherUser::class)
                 ->visible(fn (User $user): bool => $this->can('delete', $user) && ! $user->is(auth()->user())),
         ];
     }

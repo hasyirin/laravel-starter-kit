@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\Shared\Permission\Seeders\RoleSeeder;
-use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Livewire\Pages\Admin\Controls\Role\Show;
 use App\Livewire\Pages\Admin\Controls\Role\Tabs;
@@ -14,19 +13,19 @@ use Livewire\Livewire;
 
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
-    $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo('admin.access', 'admin.controls.roles.view', 'admin.controls.roles.update', 'admin.controls.roles.update-permissions');
-    $this->actingAs($this->admin);
+    $this->actor = User::factory()->create();
+    grantPermissions($this->actor, 'system.access', 'admin.controls.roles.view', 'admin.controls.roles.update', 'admin.controls.roles.update-permissions');
+    $this->actingAs($this->actor);
     $this->role = Role::query()->create(['name' => 'editor']);
-    $this->role->givePermissionTo('admin.access');
+    $this->role->givePermissionTo('system.access');
 });
 
 test('viewing a role needs view', function (): void {
-    $this->admin->revokePermissionTo('admin.controls.roles.view');
+    revokePermissions($this->actor, 'admin.controls.roles.view');
 
     $this->get(route('admin.controls.roles.show', $this->role))->assertForbidden();
 
-    $this->admin->givePermissionTo('admin.controls.roles.view');
+    grantPermissions($this->actor, 'admin.controls.roles.view');
 
     $this->get(route('admin.controls.roles.show', $this->role))
         ->assertOk()
@@ -38,7 +37,7 @@ test('viewing a role needs view', function (): void {
 test('the form shows the name and the permissions', function (): void {
     Livewire::test(Show::class, ['role' => $this->role])
         ->assertSet('form.name', 'editor')
-        ->assertSet('form.permissions', ['admin.access']);
+        ->assertSet('form.permissions', ['system.access']);
 });
 
 test('the browser cannot change the role of the form', function (): void {
@@ -63,7 +62,7 @@ test('saving renames the role and changes its permissions', function (): void {
 });
 
 test('the form is read-only without update', function (): void {
-    $this->admin->revokePermissionTo('admin.controls.roles.update');
+    revokePermissions($this->actor, 'admin.controls.roles.update');
 
     Livewire::test(Show::class, ['role' => $this->role])
         ->assertDontSeeHtml('type="submit"')
@@ -75,7 +74,7 @@ test('the form is read-only without update', function (): void {
 });
 
 test('the permissions are read-only without update-permissions', function (): void {
-    $this->admin->revokePermissionTo('admin.controls.roles.update-permissions');
+    revokePermissions($this->actor, 'admin.controls.roles.update-permissions');
 
     $component = Livewire::test(Show::class, ['role' => $this->role]);
 
@@ -83,13 +82,13 @@ test('the permissions are read-only without update-permissions', function (): vo
 
     $component->set('form.name', 'author')->set('form.permissions', [])->call('save')->assertHasNoErrors();
 
-    expect($this->role->fresh()->getPermissionNames()->all())->toBe(['admin.access']);
+    expect($this->role->fresh()->getPermissionNames()->all())->toBe(['system.access']);
 });
 
 test('the name of a system role is read-only, also with bypass', function (): void {
     $this->seed(RoleSeeder::class);
-    $this->admin->givePermissionTo('bypass-authorization');
-    $role = Role::findByName('super-admin');
+    grantPermissions($this->actor, 'bypass-authorization');
+    $role = Role::findByName('system-admin');
 
     $component = Livewire::test(Show::class, ['role' => $role]);
 
@@ -97,7 +96,7 @@ test('the name of a system role is read-only, also with bypass', function (): vo
 
     $component->set('form.name', 'owner')->call('save')->assertHasNoErrors();
 
-    expect($role->fresh()->name)->toBe('super-admin');
+    expect($role->fresh()->name)->toBe('system-admin');
 });
 
 test('the name must stay unique', function (): void {
@@ -126,13 +125,12 @@ test('the form is read-only on a role with bypass-authorization without bypass',
 });
 
 test('bypass-authorization is locked on a role that you hold', function (): void {
-    $this->admin->givePermissionTo('bypass-authorization');
+    grantPermissions($this->actor, 'bypass-authorization');
     $this->role->givePermissionTo('bypass-authorization');
 
     expect(Livewire::test(Show::class, ['role' => $this->role])->instance()->lockedPermissions->all())->toBe([]);
 
-    Profile::factory()->for($this->admin)->withRoles('editor')->create();
-    $this->admin->unsetRelation('profile');
+    grantRoles($this->actor, $this->role);
 
     expect(Livewire::test(Show::class, ['role' => $this->role])->instance()->lockedPermissions->all())->toBe(['bypass-authorization']);
 });

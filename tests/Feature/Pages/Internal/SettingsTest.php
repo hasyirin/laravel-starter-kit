@@ -8,7 +8,7 @@ use App\Domain\User\Models\User;
 test('users with the internal access permission are sent to their user information settings', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('internal.access');
+    grantPermissions($user, 'internal.access');
     $this->actingAs($user);
 
     $response = $this->get(route('internal.settings'));

@@ -73,7 +73,7 @@ class NoteModal extends RecordModal
 }
 ```
 
-The form takes the parent first. Livewire cannot keep a new record until the next request. It gives back a fully empty model, without the parent key or any other value. So the Action sets the parent again on every save. It also sets every other value that the user does not enter, such as a type. Then `save()` on the model inserts a new record or updates an existing one:
+The form takes the parent first. Livewire cannot keep a new record until the next request. It gives back a fully empty model, without the parent key or any other value. So the Action class sets the parent again on every save. It also sets every other value that the user does not enter, such as a type. Then `save()` on the model inserts a new record or updates an existing one:
 
 ```php
 class NoteForm extends Form
@@ -137,7 +137,7 @@ protected function getListeners(): array
 }
 ```
 
-The toast uses `common/records.created` and `common/records.updated`. Use `common/records.add` and `common/records.edit` for the heading. Keep delete buttons in the table, with an Action.
+The toast uses `common/records.created` and `common/records.updated`. Use `common/records.add` and `common/records.edit` for the heading. Keep delete buttons in the table, with an Action class.
 
 ## Reference
 

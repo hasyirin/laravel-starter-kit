@@ -16,14 +16,14 @@ beforeEach(function (): void {
 });
 
 test('a new role gets the web guard and its permissions', function (): void {
-    $role = CreateRole::make()->execute($this->actor, 'editor', ['admin.access', 'admin.controls.users.view']);
+    $role = CreateRole::make()->execute($this->actor, 'editor', ['system.access', 'admin.controls.users.view']);
 
     expect($role->fresh()?->guard_name)->toBe('web')
-        ->and($role->getPermissionNames()->sort()->values()->all())->toBe(['admin.access', 'admin.controls.users.view']);
+        ->and($role->getPermissionNames()->sort()->values()->all())->toBe(['admin.controls.users.view', 'system.access']);
 });
 
 test('a new role is logged once with its permissions', function (): void {
-    $role = CreateRole::make()->execute($this->actor, 'editor', ['admin.controls.users.view', 'admin.access']);
+    $role = CreateRole::make()->execute($this->actor, 'editor', ['system.access', 'admin.controls.users.view']);
 
     $entry = Activity::query()->where('subject_type', 'role')->sole();
 
@@ -32,7 +32,7 @@ test('a new role is logged once with its permissions', function (): void {
         ->and($entry->causer?->is($this->actor))->toBeTrue()
         ->and($entry->attribute_changes?->get('attributes'))->toMatchArray([
             'name' => 'editor',
-            'permissions' => ['admin.access', 'admin.controls.users.view'],
+            'permissions' => ['admin.controls.users.view', 'system.access'],
         ]);
 });
 
@@ -41,7 +41,7 @@ test('bypass-authorization cannot be given without bypass', function (): void {
 });
 
 test('bypass-authorization can be given with bypass', function (): void {
-    $this->actor->givePermissionTo('bypass-authorization');
+    grantPermissions($this->actor, 'bypass-authorization');
 
     $role = CreateRole::make()->execute($this->actor, 'owner', ['bypass-authorization']);
 

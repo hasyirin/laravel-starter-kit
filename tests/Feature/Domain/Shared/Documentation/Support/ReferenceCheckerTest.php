@@ -24,7 +24,7 @@ test('code names that exist pass the check', function (string $reference): void 
     'a facade method' => 'Gate::before',
     'a permission' => 'admin.horizon.view',
     'a permission pattern' => 'admin.controls.roles.*',
-    'a permission in the can middleware' => 'can:admin.access',
+    'a permission in the can middleware' => 'can:system.access',
     'a route name' => 'internal.settings',
     'a config key' => 'system.permissions',
     'a table column' => 'roles.is_system',

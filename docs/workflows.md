@@ -6,7 +6,7 @@ A workflow moves a record through states, for example an application from review
 
 1. Add a string column for the state to the table.
 2. Make a folder for the column, for example app/Domain/Billing/States/InvoiceState. Put the abstract base state and all its states in this one folder. Spatie finds the states by their folder.
-3. Make the base state extend `App\Domain\Shared\Common\States\State`. Set its default state with the `#[DefaultState]` attribute, and list its transitions in `configure()`:
+3. Make the base state extend `App\Domain\Shared\Common\States\State`. Set its default state with the `#[DefaultState]` attribute, and list its steps in `configure()`:
 
 ```php
 #[DefaultState(Draft::class)]
@@ -25,15 +25,15 @@ abstract class InvoiceState extends State
 4. Give each state a name in snake case, for example `public static string $name = 'site_visit';`. Spatie stores this name in the column, and its docs do not allow hyphens in names.
 5. In the model, use `Spatie\ModelStates\HasStates` and cast the column to the base state.
 
-Write each transition as one `allowTransition()` call. Put all the states that a step can start from in one array. A loop is a step back to an earlier state. Do not use the `#[AllowTransition]` attribute.
+Write each step as one `allowTransition()` call. Put all the states that a step can start from in one array. A loop is a step back to an earlier state. Do not use the `#[AllowTransition]` attribute.
 
 The kit builds the config of a state column once and keeps it for the life of the PHP process. That is one request on PHP-FPM, but many requests or jobs in an Octane worker or a queue worker. Spatie would otherwise build the config again for every record and every check, which is slow for a flow with many states. So:
 
-- List fixed rules only in `configure()`. Do not read the user, the request, the config, or the database in it. Put a check that depends on the record or the user in a transition's `reason()` or in the policy.
+- List fixed rules only in `configure()`. Do not read the user, the request, the config, or the database in it. Put a check that depends on the record or the user in the `reason()` of a transition class, or in the policy.
 - Override `configure()` only in the base state. The kit builds one config for the whole column, from the first state that asks for it.
 - Do not override `config()`. It is final, and it returns a copy, so a change to its result does not last.
 
-A model can have more than one state column, for example a decision and a stage. Each column has its own base state. A transition can check the other column in `reason()`.
+A model can have more than one state column, for example a decision and a stage. Each column has its own base state. A transition class can check the other column in `reason()`.
 
 ## Labels and Colors
 
@@ -64,7 +64,7 @@ class Pay extends Transition
 - `apply()` changes other attributes. They save together with the new state.
 - Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state or deleted the record after the app loaded the model. It throws `StateNotSaved` when a listener stopped the save. When a step fails, it puts the old attributes back on the model, so the model matches the database again.
 
-To give a step input, such as a payment reference, add a constructor parameter. Put it after the model, the field, and the new state. Then pass the value after the target state, as in `$invoice->state->transitionTo(Paid::class, $reference)`. Give the parameter a default, and make `reason()` work without it, because `allowedFor()` builds each transition without input:
+To give a step input, such as a payment reference, add a constructor parameter. Put it after the model, the field, and the new state. Then pass the value after the target state, as in `$invoice->state->transitionTo(Paid::class, $reference)`. Give the parameter a default, and make `reason()` work without it, because `allowedFor()` builds each transition class without input:
 
 ```php
 public function __construct(Invoice $model, string $field, State $newState, private readonly ?string $reference = null)
@@ -104,7 +104,7 @@ public function pay(): void
 }
 ```
 
-- It holds no business work. The step's work stays in its transition class, which takes the place of an [Action](actions.md) for a step.
+- It holds no business work. The step's work stays in its transition class, which takes the place of an [Action class](actions.md) for a step.
 - It returns true when the step ran, and false when the record changed before the step could start.
 - It passes extra arguments to the transition class, as in `$this->transitionTo($this->invoice->state, Paid::class, $reference)`.
 - When the record changed after the page loaded, it shows a toast and reloads the page with `wire:navigate`. This happens when the step no longer exists, or when another request saved first.
@@ -112,7 +112,7 @@ public function pay(): void
 - When a listener stopped the save, it shows a toast.
 - When the user does not have the permission, it still fails with a 403. The buttons from `allowedFor()` never offer such a step, so only a removed permission or a forged request gets there.
 
-The toasts come from the `exception()` hook of `App\Livewire\Component`. It catches a failed step anywhere in a component action, so a step that an Action runs inside a bigger operation gets the same toasts. Any other error still shows the error page. A component that defines its own `exception()` calls `parent::exception($e, $stopPropagation)` first.
+The toasts come from the `exception()` hook of `App\Livewire\Component`. It catches a failed step anywhere in a component action, so a step that an Action class runs inside a bigger operation gets the same toasts. Any other error still shows the error page. A component that defines its own `exception()` calls `parent::exception($e, $stopPropagation)` first.
 
 ## Listen for Changes
 

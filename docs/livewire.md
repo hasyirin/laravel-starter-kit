@@ -29,11 +29,11 @@ A form object holds the input of one record. It extends `App\Livewire\Form` and 
 A form has two main methods:
 
 - `set()` fills the form from a record. Call it in `mount()`, and again after a save.
-- `save()` validates the input, calls the Action, and returns the record. When the form has no record, `save()` creates one.
+- `save()` validates the input, calls the Action class, and returns the record. When the form has no record, `save()` creates one.
 
-A form for a child record takes the parent as the first argument of `set()`. Livewire rebuilds a new record as a fully empty model on the next request. So the Action sets the parent again on every save. It also sets every other value that the user does not enter, such as a type. The Record Modal section of [Modal](components/modal.md) shows an example.
+A form for a child record takes the parent as the first argument of `set()`. Livewire rebuilds a new record as a fully empty model on the next request. So the Action class sets the parent again on every save. It also sets every other value that the user does not enter, such as a type. The Record Modal section of [Modal](components/modal.md) shows an example.
 
-The form does not write models. The Action does the write and opens the transaction. So the component only authorizes the user, calls `save()`, and shows the result:
+The form does not write models. The Action class does the write and opens the transaction. So the component only authorizes the user, calls `save()`, and shows the result:
 
 ```php
 public function mount(User $user): void
@@ -57,7 +57,7 @@ public function save(): void
 
 Mark the record and every other property that the user does not type with `#[Locked]`. A browser can change any public property that is not locked. A flag that changes the rules, such as `required`, must be locked too.
 
-When the user can change only some parts of a record, check each part with the policy in `save()`. For example, `UserForm` sends the roles to the Action only when the user can `update` the `roles` of that user. A disabled input in the browser does not stop a request, so the check must be on the server.
+When the user can change only some parts of a record, check each part with the policy in `save()`. For example, `UserForm` sends the roles to the Action class only when the user can `update` the `roles` of that user. A disabled input in the browser does not stop a request, so the check must be on the server.
 
 ## Disable
 

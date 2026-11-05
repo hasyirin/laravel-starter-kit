@@ -11,7 +11,7 @@ use Spatie\Activitylog\Models\Activity;
 
 function systemRole(): Role
 {
-    return Role::query()->forceCreate(['name' => 'super-admin', 'guard_name' => 'web', 'is_system' => true]);
+    return Role::query()->forceCreate(['name' => 'system-admin', 'guard_name' => 'web', 'is_system' => true]);
 }
 
 test('a new role is not a system role', function (): void {
@@ -19,7 +19,7 @@ test('a new role is not a system role', function (): void {
 });
 
 test('the label of a system role is translated', function (): void {
-    expect(systemRole()->label)->toBe('Super Administrator');
+    expect(systemRole()->label)->toBe('System Administrator');
 });
 
 test('the label of a role that is not a system role is its name', function (): void {
@@ -57,7 +57,7 @@ test('a system role cannot be renamed', function (): void {
 
 test('a system role cannot be deleted', function (): void {
     $role = systemRole();
-    $role->givePermissionTo(Permission::query()->create(['name' => 'admin.access']));
+    $role->givePermissionTo(Permission::query()->create(['name' => 'system.access']));
 
     expect(fn (): ?bool => $role->delete())->toThrow(LogicException::class, 'System roles cannot be deleted.')
         ->and(Role::query()->whereKey($role->id)->exists())->toBeTrue()

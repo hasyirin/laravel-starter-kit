@@ -16,7 +16,7 @@ Route::middleware(['auth', 'verified', 'can:'.config()->string('system.permissio
     ->name('internal.')
     ->group(__DIR__.'/internal.php');
 
-Route::middleware(['auth', 'verified', 'can:'.config()->string('system.permissions.admin.access')])
+Route::middleware(['auth', 'verified', 'can:'.config()->string('system.permissions.system.access')])
     ->prefix('admin')
     ->name('admin.')
     ->group(__DIR__.'/admin.php');

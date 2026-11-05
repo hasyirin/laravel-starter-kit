@@ -18,12 +18,12 @@ test('guests are redirected to the login page', function (): void {
 
 test('the user list needs view-any', function (): void {
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.access');
+    grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
     $this->get(route('admin.controls.users.index'))->assertForbidden();
 
-    $user->givePermissionTo('admin.controls.users.view-any');
+    grantPermissions($user, 'admin.controls.users.view-any');
 
     $this->get(route('admin.controls.users.index'))
         ->assertOk()
@@ -33,12 +33,12 @@ test('the user list needs view-any', function (): void {
 
 test('the navigation shows the users item only with view-any', function (): void {
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.access');
+    grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
     $this->get(route('admin.dashboard'))->assertDontSee(route('admin.controls.users.index'));
 
-    $user->givePermissionTo('admin.controls.users.view-any');
+    grantPermissions($user, 'admin.controls.users.view-any');
 
     $this->get(route('admin.dashboard'))->assertSee(route('admin.controls.users.index'));
 });
@@ -49,7 +49,7 @@ test('the user table refuses a user without view-any', function (): void {
 
     Livewire::withoutLazyLoading()->test(UserDataTable::class)->assertForbidden();
 
-    $user->givePermissionTo('admin.controls.users.view-any');
+    grantPermissions($user, 'admin.controls.users.view-any');
 
     Livewire::withoutLazyLoading()->test(UserDataTable::class)->assertOk();
 });

@@ -14,7 +14,9 @@ trait HasPermissions
 {
     use SpatieHasPermissions {
         hasPermissionTo as protected hasOwnPermissionTo;
+        hasDirectPermission as protected hasOwnDirectPermission;
         getAllPermissions as protected getOwnPermissions;
+        getPermissionsViaRoles as protected getOwnPermissionsViaRoles;
         scopePermission as protected scopeOwnPermission;
     }
 
@@ -27,14 +29,35 @@ trait HasPermissions
     }
 
     /**
+     * @param  string|int|Permission|BackedEnum  $permission
+     */
+    public function hasDirectPermission($permission): bool
+    {
+        return $this->hasOwnDirectPermission($permission) || ($this->profile?->hasDirectPermission($permission) ?? false);
+    }
+
+    /**
      * @return Collection<int, Permission>
      */
     public function getAllPermissions(): Collection
     {
-        /** @var Collection<int, Permission> $permissions */
-        $permissions = $this->getOwnPermissions()->merge($this->profile?->getAllPermissions() ?? []);
+        return $this->mergePermissions($this->getOwnPermissions(), $this->profile?->getAllPermissions());
+    }
 
-        return $permissions->unique(fn (Permission $permission): mixed => $permission->getKey())->sort()->values();
+    /**
+     * @return Collection<int, Permission>
+     */
+    public function getPermissionsViaRoles(): Collection
+    {
+        return $this->mergePermissions($this->getOwnPermissionsViaRoles(), $this->profile?->getPermissionsViaRoles());
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function getPermissionNames(): Collection
+    {
+        return $this->getDirectPermissions()->map(fn (Permission $permission): string => $permission->name);
     }
 
     /**
@@ -46,8 +69,23 @@ trait HasPermissions
     {
         $viaProfile = fn (Builder $profile): Builder => $this->profile()->getRelated()->scopePermission($profile, $permissions);
 
-        return $without
-            ? $this->scopeOwnPermission($query, $permissions, true)->whereDoesntHave('profile', $viaProfile)
-            : $query->where(fn (Builder $query): Builder => $this->scopeOwnPermission($query, $permissions)->orWhereHas('profile', $viaProfile));
+        if ($without) {
+            return $this->scopeOwnPermission($query, $permissions, true)->whereDoesntHave('profile', $viaProfile);
+        }
+
+        return $query->where(fn (Builder $query): Builder => $this->scopeOwnPermission($query, $permissions)->orWhereHas('profile', $viaProfile));
+    }
+
+    /**
+     * @param  Collection<int, Permission>  $own
+     * @param  Collection<int, Permission>|null  $profile
+     * @return Collection<int, Permission>
+     */
+    private function mergePermissions(Collection $own, ?Collection $profile): Collection
+    {
+        return $own->merge($profile ?? [])
+            ->unique(fn (Permission $permission): mixed => $permission->getKey())
+            ->sort()
+            ->values();
     }
 }

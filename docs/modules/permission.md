@@ -6,7 +6,7 @@ The app checks access with permissions, and roles group permissions. A user gets
 
 1. Add the permission to `permissions` in `config/system.php`. Give it a key path that matches its name, for example `admin.controls.roles.view`.
 2. Run `php artisan db:seed --class="App\Domain\Shared\Permission\Seeders\PermissionSeeder"`. It creates the new permission and deletes the permissions that are no longer in the config. Do not run all the seeders in production, because `UserSeeder` creates the default users.
-3. Check the permission in a policy that extends `Policy`. `Policy::path()` builds the config key of a permission from the root, the policy prefix, the plural model name, and the action. For example, `RolePolicy` checks `admin.controls.roles.view` for the `view` action.
+3. Check the permission in a policy that extends `Policy`. `Policy::path()` builds the config key of a permission from the root, the policy prefix, the plural model name, and the ability. For example, `RolePolicy` checks `admin.controls.roles.view` for the `view` ability.
 
 ## Add a Role
 
@@ -16,7 +16,7 @@ The seeders create system roles. Nobody can rename or delete a system role.
 
 ## Bypass
 
-A user with `bypass-authorization` passes every check, because `AppServiceProvider` checks it in `Gate::before`. The super admin role has this permission.
+A user with `bypass-authorization` passes every check, because `AppServiceProvider` checks it in `Gate::before`. The `system-admin` role has this permission.
 
 ## Permission Matrix
 
@@ -24,27 +24,27 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 
 <!-- generated:permission-matrix -->
 
-| Permission                                | Super Administrator |
-|-------------------------------------------|---------------------|
-| `bypass-authorization`                    | ✓                   |
-| `internal.access`                         | ✓                   |
-| `admin.access`                            | ✓                   |
-| `admin.horizon.view`                      | ✓                   |
-| `admin.controls.roles.view-any`           | ✓                   |
-| `admin.controls.roles.view`               | ✓                   |
-| `admin.controls.roles.create`             | ✓                   |
-| `admin.controls.roles.update`             | ✓                   |
-| `admin.controls.roles.update-permissions` | ✓                   |
-| `admin.controls.roles.delete`             | ✓                   |
-| `admin.controls.roles.view-audit-log`     | ✓                   |
-| `admin.controls.users.view-any`           | ✓                   |
-| `admin.controls.users.view`               | ✓                   |
-| `admin.controls.users.create`             | ✓                   |
-| `admin.controls.users.update`             | ✓                   |
-| `admin.controls.users.update-permissions` | ✓                   |
-| `admin.controls.users.update-roles`       | ✓                   |
-| `admin.controls.users.delete`             | ✓                   |
-| `admin.controls.users.view-audit-log`     | ✓                   |
+| Permission                                | System Administrator |
+|-------------------------------------------|----------------------|
+| `bypass-authorization`                    | ✓                    |
+| `internal.access`                         | ✓                    |
+| `system.access`                           | ✓                    |
+| `admin.horizon.view`                      | ✓                    |
+| `admin.controls.roles.view-any`           | ✓                    |
+| `admin.controls.roles.view`               | ✓                    |
+| `admin.controls.roles.create`             | ✓                    |
+| `admin.controls.roles.update`             | ✓                    |
+| `admin.controls.roles.update-permissions` | ✓                    |
+| `admin.controls.roles.delete`             | ✓                    |
+| `admin.controls.roles.view-audit-log`     | ✓                    |
+| `admin.controls.users.view-any`           | ✓                    |
+| `admin.controls.users.view`               | ✓                    |
+| `admin.controls.users.create`             | ✓                    |
+| `admin.controls.users.update`             | ✓                    |
+| `admin.controls.users.update-permissions` | ✓                    |
+| `admin.controls.users.update-roles`       | ✓                    |
+| `admin.controls.users.delete`             | ✓                    |
+| `admin.controls.users.view-audit-log`     | ✓                    |
 
 A role with `bypass-authorization` passes every check.
 
@@ -93,13 +93,16 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 - a user has the permissions of their active profile
 - a user does not have the permissions of an inactive profile
-- the permission helpers and scopes count the permissions of the active profile
+- the permission helpers and scopes count the direct grants and the active profile
+- the permissions through roles count the direct grants and the active profile
+- a user can get and lose permissions directly
 
 ### HasRoles
 
 - a user has the roles of their active profile
 - a user does not have the roles of an inactive profile
-- the role helpers and scopes count the roles of the active profile
+- the role helpers and scopes count the direct grants and the active profile
+- a user can get and lose roles directly
 
 ### Role
 
@@ -143,17 +146,17 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 ### RoleSeeder
 
-- seeding creates only the super admin role, with the bypass-authorization permission
+- seeding creates only the system-admin role, with the bypass-authorization permission
 - seeding leaves out permissions that match an except pattern
 - seeding keeps permissions that were given to a role later
 - seeding reuses an existing role with the same name
 
 ### PermissionTree
 
-- a resource holds its actions as permissions
-- a permission directly under an area is listed on the area
+- a resource holds its abilities as permissions
+- a permission directly under a group is listed on the group
 - a one-segment permission is listed at the root
 - a missing label falls back to the headline
-- a group-level access permission makes its node an area
+- a node with only an access permission is a group
 
 <!-- /generated:test-rules -->

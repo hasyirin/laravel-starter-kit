@@ -16,7 +16,7 @@ The seeders create system roles. Nobody can rename or delete a system role.
 
 ## Bypass
 
-A user with `bypass-authorization` passes every check, because `AppServiceProvider` checks it in `Gate::before`. The `super-admin` role has this permission.
+A user with `bypass-authorization` passes every check, because `AppServiceProvider` checks it in `Gate::before`. The `system-admin` role has this permission.
 
 ## Permission Matrix
 
@@ -24,27 +24,27 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 
 <!-- generated:permission-matrix -->
 
-| Permission                                | Super Administrator |
-|-------------------------------------------|---------------------|
-| `bypass-authorization`                    | ✓                   |
-| `internal.access`                         | ✓                   |
-| `admin.access`                            | ✓                   |
-| `admin.horizon.view`                      | ✓                   |
-| `admin.controls.roles.view-any`           | ✓                   |
-| `admin.controls.roles.view`               | ✓                   |
-| `admin.controls.roles.create`             | ✓                   |
-| `admin.controls.roles.update`             | ✓                   |
-| `admin.controls.roles.update-permissions` | ✓                   |
-| `admin.controls.roles.delete`             | ✓                   |
-| `admin.controls.roles.view-audit-log`     | ✓                   |
-| `admin.controls.users.view-any`           | ✓                   |
-| `admin.controls.users.view`               | ✓                   |
-| `admin.controls.users.create`             | ✓                   |
-| `admin.controls.users.update`             | ✓                   |
-| `admin.controls.users.update-permissions` | ✓                   |
-| `admin.controls.users.update-roles`       | ✓                   |
-| `admin.controls.users.delete`             | ✓                   |
-| `admin.controls.users.view-audit-log`     | ✓                   |
+| Permission                                | System Administrator |
+|-------------------------------------------|----------------------|
+| `bypass-authorization`                    | ✓                    |
+| `internal.access`                         | ✓                    |
+| `system.access`                           | ✓                    |
+| `admin.horizon.view`                      | ✓                    |
+| `admin.controls.roles.view-any`           | ✓                    |
+| `admin.controls.roles.view`               | ✓                    |
+| `admin.controls.roles.create`             | ✓                    |
+| `admin.controls.roles.update`             | ✓                    |
+| `admin.controls.roles.update-permissions` | ✓                    |
+| `admin.controls.roles.delete`             | ✓                    |
+| `admin.controls.roles.view-audit-log`     | ✓                    |
+| `admin.controls.users.view-any`           | ✓                    |
+| `admin.controls.users.view`               | ✓                    |
+| `admin.controls.users.create`             | ✓                    |
+| `admin.controls.users.update`             | ✓                    |
+| `admin.controls.users.update-permissions` | ✓                    |
+| `admin.controls.users.update-roles`       | ✓                    |
+| `admin.controls.users.delete`             | ✓                    |
+| `admin.controls.users.view-audit-log`     | ✓                    |
 
 A role with `bypass-authorization` passes every check.
 
@@ -146,7 +146,7 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 ### RoleSeeder
 
-- seeding creates only the super-admin role, with the bypass-authorization permission
+- seeding creates only the system-admin role, with the bypass-authorization permission
 - seeding leaves out permissions that match an except pattern
 - seeding keeps permissions that were given to a role later
 - seeding reuses an existing role with the same name

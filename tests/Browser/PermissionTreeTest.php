@@ -10,17 +10,17 @@ use App\Domain\User\Models\User;
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
 
-    $admin = User::factory()->create();
-    grantPermissions($admin,
-        'admin.access',
+    $actor = User::factory()->create();
+    grantPermissions($actor,
+        'system.access',
         'admin.controls.users.view',
         'admin.controls.users.update',
         'admin.controls.users.update-roles',
         'admin.controls.users.update-permissions',
     );
-    $this->actingAs($admin);
+    $this->actingAs($actor);
 
-    Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('admin.access');
+    Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('system.access');
     Role::query()->create(['name' => 'viewer', 'guard_name' => 'web'])->givePermissionTo('internal.access');
     $this->subject = User::factory()->create();
     Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('admin.controls.users.view')->create();
@@ -91,11 +91,11 @@ test('ticking a role marks its permissions as given by that role', function (): 
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         await openCard('Roles');
-        const fromEditor = ! ticked(chip('admin.access')) && ! locked(chip('admin.access')) && chip('admin.access').textContent.includes('from editor');
+        const fromEditor = ! ticked(chip('system.access')) && ! locked(chip('system.access')) && chip('system.access').textContent.includes('from editor');
 
         role('viewer').click();
         role('editor').click();
-        await until(() => chip('internal.access').textContent.includes('from viewer') && ! chip('admin.access').textContent.includes('from editor'));
+        await until(() => chip('internal.access').textContent.includes('from viewer') && ! chip('system.access').textContent.includes('from editor'));
 
         return fromEditor
             && ! ticked(chip('internal.access'))
@@ -111,14 +111,14 @@ test('a permission that a role gives can also be ticked as direct, and stays whe
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         await openCard('Roles');
 
-        chip('admin.access').click();
-        await until(() => ticked(chip('admin.access')));
-        const directAndFromEditor = chip('admin.access').textContent.includes('from editor');
+        chip('system.access').click();
+        await until(() => ticked(chip('system.access')));
+        const directAndFromEditor = chip('system.access').textContent.includes('from editor');
 
         role('editor').click();
-        await until(() => ! chip('admin.access').textContent.includes('from editor'));
+        await until(() => ! chip('system.access').textContent.includes('from editor'));
 
-        return directAndFromEditor && ticked(chip('admin.access'));
+        return directAndFromEditor && ticked(chip('system.access'));
         SCRIPT)))->toBeTrue();
 
     $page->assertNoJavaScriptErrors();

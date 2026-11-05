@@ -18,7 +18,7 @@ return [
     ],
 
     'roles' => [
-        'super-admin' => 'super-admin',
+        'system-admin' => 'system-admin',
     ],
 
     'permissions' => [
@@ -26,8 +26,10 @@ return [
         'internal' => [
             'access' => 'internal.access',
         ],
+        'system' => [
+            'access' => 'system.access',
+        ],
         'admin' => [
-            'access' => 'admin.access',
             'horizon' => [
                 'view' => 'admin.horizon.view',
             ],

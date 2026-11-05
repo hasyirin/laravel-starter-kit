@@ -3,5 +3,5 @@
 declare(strict_types=1);
 
 return [
-    'super-admin' => 'Super Administrator',
+    'system-admin' => 'System Administrator',
 ];

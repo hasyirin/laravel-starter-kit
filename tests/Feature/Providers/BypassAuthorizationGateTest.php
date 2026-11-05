@@ -23,19 +23,19 @@ test('a user without the bypass-authorization permission does not pass every abi
     grantRoles($user, Role::query()->create(['name' => 'editor']));
 
     expect($user->can('anything'))->toBeFalse()
-        ->and($user->can('admin.access'))->toBeFalse();
+        ->and($user->can('system.access'))->toBeFalse();
 });
 
 test('a user with a role gets the permissions of that role', function (): void {
     $this->seed(PermissionSeeder::class);
 
     $role = Role::query()->create(['name' => 'editor']);
-    $role->givePermissionTo('admin.access');
+    $role->givePermissionTo('system.access');
 
     $user = User::factory()->create();
     grantRoles($user, $role);
 
-    expect($user->can('admin.access'))->toBeTrue()
+    expect($user->can('system.access'))->toBeTrue()
         ->and($user->can('admin.controls.users.delete'))->toBeFalse();
 });
 

@@ -12,7 +12,7 @@ test('guests are redirected to the login page', function (): void {
     $response->assertRedirect(route('login'));
 });
 
-test('users without the admin access permission are forbidden', function (): void {
+test('users without the system access permission are forbidden', function (): void {
     $this->seed(PermissionSeeder::class);
     $this->actingAs(User::factory()->create());
 
@@ -21,10 +21,10 @@ test('users without the admin access permission are forbidden', function (): voi
     $response->assertForbidden();
 });
 
-test('users with the admin access permission can visit the admin dashboard', function (): void {
+test('users with the system access permission can visit the admin dashboard', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.access');
+    grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
     $response = $this->get(route('admin.dashboard'));

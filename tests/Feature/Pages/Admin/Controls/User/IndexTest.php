@@ -18,7 +18,7 @@ test('guests are redirected to the login page', function (): void {
 
 test('the user list needs view-any', function (): void {
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.access');
+    grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
     $this->get(route('admin.controls.users.index'))->assertForbidden();
@@ -33,7 +33,7 @@ test('the user list needs view-any', function (): void {
 
 test('the navigation shows the users item only with view-any', function (): void {
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.access');
+    grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
     $this->get(route('admin.dashboard'))->assertDontSee(route('admin.controls.users.index'));

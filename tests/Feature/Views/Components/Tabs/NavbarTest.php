@@ -10,7 +10,7 @@ beforeEach(function (): void {
     $this->tabs = [
         Tab::make('profile')->label('Profile')->icon('user')->url('https://example.test/settings?search=bob')->markDefault(),
         Tab::make('billing')->label('Billing')->badge('3')->badgeColor('red')->tooltip('Invoices and plans')->url('https://example.test/settings?search=bob&tab=billing'),
-        Tab::make('audit')->label('Audit')->disabled(true)->tooltip('Shown to all', disabled: 'Ask an admin')->url('https://example.test/settings?search=bob&tab=audit'),
+        Tab::make('audit')->label('Audit')->disabled(true)->tooltip('Shown to all', disabled: 'Ask a system administrator')->url('https://example.test/settings?search=bob&tab=audit'),
     ];
 });
 
@@ -66,7 +66,7 @@ test('a tooltip wraps a tab in a navbar only when the tab has tooltip text, and 
 
     expect($document->querySelector('[data-flux-tooltip] > [data-tab="profile"]'))->toBeNull()
         ->and(trim($document->querySelector('[data-flux-tooltip]:has(> [data-tab="billing"]) [data-flux-tooltip-content]')?->textContent ?? ''))->toBe('Invoices and plans')
-        ->and(trim($document->querySelector('[data-flux-tooltip]:has(> [data-tab="audit"]) [data-flux-tooltip-content]')?->textContent ?? ''))->toBe('Ask an admin');
+        ->and(trim($document->querySelector('[data-flux-tooltip]:has(> [data-tab="audit"]) [data-flux-tooltip-content]')?->textContent ?? ''))->toBe('Ask a system administrator');
 });
 
 test('the default slug of a navbar comes from the tab marked as default, and the query key reaches the Alpine behavior', function (): void {

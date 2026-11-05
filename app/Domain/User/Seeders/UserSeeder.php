@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Super Admin',
                 'email' => 'admin@example.com',
-                'roles' => [config('system.roles.super-admin')],
+                'roles' => [config('system.roles.system-admin')],
             ],
             [
                 'name' => 'Admin',

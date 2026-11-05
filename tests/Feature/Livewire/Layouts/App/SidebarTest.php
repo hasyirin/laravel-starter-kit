@@ -8,10 +8,10 @@ use App\Livewire\Layouts\App\Sidebar;
 use Dom\HTMLDocument;
 use Livewire\Livewire;
 
-test('the sidebar shows the admin link below a spacer to users with admin access', function (): void {
+test('the sidebar shows the admin link below a spacer to users with system access', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.access');
+    grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
     $component = Livewire::test(Sidebar::class);

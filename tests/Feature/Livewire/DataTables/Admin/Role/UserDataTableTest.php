@@ -13,9 +13,9 @@ use Livewire\Livewire;
 beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
-    $this->admin = User::factory()->create();
-    grantPermissions($this->admin, 'admin.access', 'admin.controls.roles.view', 'admin.controls.users.view-any');
-    $this->actingAs($this->admin);
+    $this->actor = User::factory()->create();
+    grantPermissions($this->actor, 'system.access', 'admin.controls.roles.view', 'admin.controls.users.view-any');
+    $this->actingAs($this->actor);
     $this->role = Role::query()->create(['name' => 'editor']);
 });
 
@@ -29,11 +29,11 @@ test('the list shows the users with the role in their active profile', function 
 
     Livewire::test(UserDataTable::class, ['role' => $this->role])
         ->assertCanSeeTableRecords([$current])
-        ->assertCanNotSeeTableRecords([$formerly, $this->admin]);
+        ->assertCanNotSeeTableRecords([$formerly, $this->actor]);
 });
 
 test('the table needs view-any on users', function (): void {
-    revokePermissions($this->admin, 'admin.controls.users.view-any');
+    revokePermissions($this->actor, 'admin.controls.users.view-any');
 
     Livewire::test(UserDataTable::class, ['role' => $this->role])->assertForbidden();
 });

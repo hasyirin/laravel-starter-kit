@@ -7,7 +7,7 @@ The app has four areas, and each area has its own route file. A fifth file, `rou
 | Guest    | `routes/guest.php`    | Everyone                           | None        | None        | None                                      |
 | App      | `routes/app.php`      | Signed-in users                    | None        | None        | `auth`                                    |
 | Internal | `routes/internal.php` | Users with `internal.access`       | `/internal` | `internal.` | `auth`, `verified`, `can:internal.access` |
-| Admin    | `routes/admin.php`    | Users with `admin.access`          | `/admin`    | `admin.`    | `auth`, `verified`, `can:admin.access`    |
+| Admin    | `routes/admin.php`    | Users with `system.access`         | `/admin`    | `admin.`    | `auth`, `verified`, `can:system.access`   |
 
 Fortify registers the routes for login, registration, password reset, email verification, two-factor authentication, and passkeys. Do not add them to `guest.php`.
 
@@ -43,22 +43,22 @@ Put page tests in `tests/Feature/Pages/`. The internal and admin areas have thei
 
 ## Give Access
 
-- `config/system.php` defines `internal.access` and `admin.access`. `PermissionSeeder` creates them.
+- `config/system.php` defines `internal.access` and `system.access`. `PermissionSeeder` creates them.
 - A user gets their permissions from their active profile, and from roles and permissions given to the user directly. See **Profiles** in the README.
-- The two areas are separate. `admin.access` does not open the internal area, so give both permissions to a user who needs both areas.
-- The `super-admin` role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
+- The two areas are separate. `system.access` does not open the internal area, so give both permissions to a user who needs both areas.
+- The `system-admin` role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
 - Other permissions control the parts of the admin area: `admin.horizon.view` for Horizon, `admin.controls.roles.*` for roles, and `admin.controls.users.*` for users.
 
 ## After Login
 
 After a user logs in with a password, a two-factor code, or a passkey, the app sends them to the highest area that they can open:
 
-| The user has                         | The app sends them to                                                |
-|--------------------------------------|----------------------------------------------------------------------|
-| `admin.access` and `internal.access` | The admin dashboard, `/admin`                                        |
-| `admin.access` only                  | The admin dashboard, `/admin`                                        |
-| `internal.access` only               | The internal dashboard, `/internal`                                  |
-| Neither                              | The Fortify home path, `/dashboard` (`home` in `config/fortify.php`) |
+| The user has                          | The app sends them to                                                |
+|---------------------------------------|----------------------------------------------------------------------|
+| `system.access` and `internal.access` | The admin dashboard, `/admin`                                        |
+| `system.access` only                  | The admin dashboard, `/admin`                                        |
+| `internal.access` only                | The internal dashboard, `/internal`                                  |
+| Neither                               | The Fortify home path, `/dashboard` (`home` in `config/fortify.php`) |
 
 If the user tried to open a page before they logged in, the app sends them to that page instead.
 

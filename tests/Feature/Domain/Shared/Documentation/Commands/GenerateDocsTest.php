@@ -22,7 +22,7 @@ test('it fills the generated sections from the code, and the check passes after 
 
     expect(File::get("{$this->docs}/permissions.md"))
         ->toStartWith("# Permissions\n\n<!-- generated:permission-matrix -->\n\n| Permission ")
-        ->toContain('| `internal.access` ', 'Super Administrator')
+        ->toContain('| `internal.access` ', 'System Administrator')
         ->and(config('database.default'))->toBe('sqlite');
 });
 

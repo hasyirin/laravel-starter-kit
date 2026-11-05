@@ -24,7 +24,7 @@ class LoginResponse implements LoginResponseContract
         $user = auth()->user();
 
         return match (true) {
-            $user->can(config()->string('system.permissions.admin.access')) => route('admin.dashboard'),
+            $user->can(config()->string('system.permissions.system.access')) => route('admin.dashboard'),
             $user->can(config()->string('system.permissions.internal.access')) => route('internal.dashboard'),
             default => Fortify::redirects('login'),
         };

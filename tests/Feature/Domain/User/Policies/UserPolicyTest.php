@@ -128,7 +128,7 @@ test('only a user with bypass-authorization can update a user who has it', funct
 test('a role that carries bypass-authorization puts its holder out of reach of an update', function (): void {
     $this->seed(RoleSeeder::class);
     grantPermissions($this->user, 'admin.controls.users.update');
-    Profile::factory()->for($this->other)->withRoles('super-admin')->create();
+    Profile::factory()->for($this->other)->withRoles('system-admin')->create();
 
     expect($this->user->can('update', $this->other->fresh()))->toBeFalse();
 });

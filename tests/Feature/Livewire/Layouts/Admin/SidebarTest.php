@@ -10,7 +10,7 @@ use Livewire\Livewire;
 test('the admin sidebar links back to the app dashboard below a spacer', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.access');
+    grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
     $component = Livewire::test(Sidebar::class);
@@ -22,7 +22,7 @@ test('the admin sidebar links back to the app dashboard below a spacer', functio
 test('the admin sidebar shows the internal link to users with internal access', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    grantPermissions($user, 'internal.access', 'admin.access');
+    grantPermissions($user, 'internal.access', 'system.access');
     $this->actingAs($user);
 
     $component = Livewire::test(Sidebar::class);
@@ -33,7 +33,7 @@ test('the admin sidebar shows the internal link to users with internal access', 
 test('the users item sits under controls in the system group', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.access', 'admin.controls.users.view-any');
+    grantPermissions($user, 'system.access', 'admin.controls.users.view-any');
     $this->actingAs($user);
 
     $component = Livewire::test(Sidebar::class);

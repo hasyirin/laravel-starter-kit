@@ -24,7 +24,7 @@ function savedSnapshot(): Snapshot
 {
     $snapshot = new Snapshot;
     $snapshot->assignRole(Role::query()->create(['name' => 'editor']));
-    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'admin.access']));
+    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'system.access']));
     $snapshot->save();
 
     return $snapshot;
@@ -32,7 +32,7 @@ function savedSnapshot(): Snapshot
 
 test('a model keeps the roles and permissions that it gets before its first save', function (string $roleMethod, string $permissionMethod, string $saveMethod): void {
     $role = Role::query()->create(['name' => 'editor']);
-    $permission = Permission::query()->create(['name' => 'admin.access']);
+    $permission = Permission::query()->create(['name' => 'system.access']);
     $snapshot = new Snapshot;
 
     $snapshot->{$roleMethod}($role);
@@ -40,7 +40,7 @@ test('a model keeps the roles and permissions that it gets before its first save
     $snapshot->{$saveMethod}();
 
     expect($snapshot->fresh()?->getRoleNames()->all())->toBe(['editor'])
-        ->and($snapshot->fresh()?->getPermissionNames()->all())->toBe(['admin.access']);
+        ->and($snapshot->fresh()?->getPermissionNames()->all())->toBe(['system.access']);
 })->with([
     'assign' => ['assignRole', 'givePermissionTo'],
     'sync' => ['syncRoles', 'syncPermissions'],
@@ -54,18 +54,18 @@ test('a model keeps the roles and permissions from every call before its first s
 
     $snapshot->assignRole(Role::query()->create(['name' => 'editor']));
     $snapshot->assignRole(Role::query()->create(['name' => 'author']));
-    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'admin.access']));
+    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'system.access']));
     $snapshot->givePermissionTo(Permission::query()->create(['name' => 'admin.horizon.view']));
     $snapshot->save();
 
     expect($snapshot->fresh()?->getRoleNames()->sort()->values()->all())->toBe(['author', 'editor'])
-        ->and($snapshot->fresh()?->getPermissionNames()->sort()->values()->all())->toBe(['admin.access', 'admin.horizon.view']);
+        ->and($snapshot->fresh()?->getPermissionNames()->sort()->values()->all())->toBe(['admin.horizon.view', 'system.access']);
 });
 
 test('syncing before the first save replaces the roles and permissions given before', function (): void {
     $snapshot = new Snapshot;
     $snapshot->assignRole(Role::query()->create(['name' => 'editor']));
-    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'admin.access']));
+    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'system.access']));
 
     $snapshot->syncRoles(Role::query()->create(['name' => 'author']));
     $snapshot->syncPermissions(Permission::query()->create(['name' => 'admin.horizon.view']));
@@ -97,13 +97,13 @@ test('the roles and permissions of a model cannot change after its first save', 
 
     expect(fn (): mixed => $snapshot->{$method}($change))->toThrow(LogicException::class, 'Roles and permissions can only be given before the first save.')
         ->and($snapshot->fresh()?->getRoleNames()->all())->toBe(['editor'])
-        ->and($snapshot->fresh()?->getPermissionNames()->all())->toBe(['admin.access']);
+        ->and($snapshot->fresh()?->getPermissionNames()->all())->toBe(['system.access']);
 })->with([
     'assign a role' => ['assignRole', fn (): Role => Role::query()->create(['name' => 'author'])],
     'remove a role' => ['removeRole', 'editor'],
     'sync the roles' => ['syncRoles', fn (): Role => Role::query()->create(['name' => 'author'])],
     'give a permission' => ['givePermissionTo', fn (): Permission => Permission::query()->create(['name' => 'admin.horizon.view'])],
-    'revoke a permission' => ['revokePermissionTo', 'admin.access'],
+    'revoke a permission' => ['revokePermissionTo', 'system.access'],
     'sync the permissions' => ['syncPermissions', fn (): Permission => Permission::query()->create(['name' => 'admin.horizon.view'])],
 ]);
 
@@ -113,5 +113,5 @@ test('roles and permissions cannot be removed even before the first save', funct
     expect(fn (): mixed => $snapshot->{$method}($existing))->toThrow(LogicException::class, 'Roles and permissions can only be given before the first save.');
 })->with([
     'remove a role' => ['removeRole', fn (): Role => Role::query()->create(['name' => 'editor'])],
-    'revoke a permission' => ['revokePermissionTo', fn (): Permission => Permission::query()->create(['name' => 'admin.access'])],
+    'revoke a permission' => ['revokePermissionTo', fn (): Permission => Permission::query()->create(['name' => 'system.access'])],
 ]);

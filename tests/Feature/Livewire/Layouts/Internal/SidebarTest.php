@@ -19,10 +19,10 @@ test('the internal sidebar links back to the app dashboard below a spacer', func
         ->assertDontSee(route('admin.dashboard'));
 });
 
-test('the internal sidebar shows the admin link to users with admin access', function (): void {
+test('the internal sidebar shows the admin link to users with system access', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    grantPermissions($user, 'internal.access', 'admin.access');
+    grantPermissions($user, 'internal.access', 'system.access');
     $this->actingAs($user);
 
     $component = Livewire::test(Sidebar::class);

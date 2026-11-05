@@ -14,9 +14,9 @@ beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
 
-    $this->admin = User::factory()->create();
-    grantPermissions($this->admin, 'admin.access', 'admin.controls.users.view', 'admin.controls.users.update');
-    $this->actingAs($this->admin);
+    $this->actor = User::factory()->create();
+    grantPermissions($this->actor, 'system.access', 'admin.controls.users.view', 'admin.controls.users.update');
+    $this->actingAs($this->actor);
 
     $this->subject = User::factory()->create();
 });
@@ -37,7 +37,7 @@ function passkeyTable(User $user): Testable
 
 test('the passkeys tab lists the passkeys of the user', function (): void {
     $own = createPasskey($this->subject, 'Laptop');
-    $other = createPasskey($this->admin, 'Phone');
+    $other = createPasskey($this->actor, 'Phone');
 
     passkeyTable($this->subject)
         ->assertCanSeeTableRecords([$own])
@@ -45,7 +45,7 @@ test('the passkeys tab lists the passkeys of the user', function (): void {
         ->assertSee('Laptop');
 });
 
-test('an admin can revoke a passkey', function (): void {
+test('a passkey can be revoked on the page of another user', function (): void {
     $passkey = createPasskey($this->subject);
 
     passkeyTable($this->subject)->callAction(TestAction::make('revoke')->table($passkey));
@@ -54,16 +54,16 @@ test('an admin can revoke a passkey', function (): void {
 });
 
 test('revoke is hidden on your own page', function (): void {
-    $passkey = createPasskey($this->admin);
+    $passkey = createPasskey($this->actor);
 
-    passkeyTable($this->admin)
+    passkeyTable($this->actor)
         ->assertCanSeeTableRecords([$passkey])
         ->assertActionHidden(TestAction::make('revoke')->table($passkey));
 });
 
 test('revoke is hidden without update', function (): void {
     $passkey = createPasskey($this->subject);
-    revokePermissions($this->admin, 'admin.controls.users.update');
+    revokePermissions($this->actor, 'admin.controls.users.update');
 
     passkeyTable($this->subject)
         ->assertCanSeeTableRecords([$passkey])

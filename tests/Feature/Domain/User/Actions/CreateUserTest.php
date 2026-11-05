@@ -49,7 +49,7 @@ test('a refused bypass role leaves no user behind', function (): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
     $placement = ['organization_id' => null, 'branch_id' => null, 'department_id' => null, 'position_id' => null];
 
-    expect(fn (): User => CreateUser::make()->execute(User::factory()->create(), 'Ada Lovelace', 'ada@example.com', 'secret-password', $placement, ['super-admin']))
+    expect(fn (): User => CreateUser::make()->execute(User::factory()->create(), 'Ada Lovelace', 'ada@example.com', 'secret-password', $placement, ['system-admin']))
         ->toThrow(AuthorizationException::class);
 
     $this->assertDatabaseMissing('users', ['email' => 'ada@example.com']);

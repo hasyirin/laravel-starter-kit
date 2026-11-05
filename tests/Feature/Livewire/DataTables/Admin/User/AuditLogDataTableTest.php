@@ -21,8 +21,8 @@ beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
 
-    $this->admin = User::factory()->create(['name' => 'Ada Admin']);
-    grantPermissions($this->admin, 'admin.access', 'admin.controls.users.view', 'admin.controls.users.view-audit-log');
+    $this->actor = User::factory()->create(['name' => 'Ada Admin']);
+    grantPermissions($this->actor, 'system.access', 'admin.controls.users.view', 'admin.controls.users.view-audit-log');
 
     $this->subject = User::factory()->create(['name' => 'Sam Subject']);
     $this->other = User::factory()->create(['name' => 'Olive Other']);
@@ -43,7 +43,7 @@ function renameAs(User $causer, User $user, string $name): Activity
 
 test('by this user lists what the user did', function (): void {
     $did = renameAs($this->subject, $this->other, 'Olive Renamed');
-    $doneToThem = renameAs($this->admin, $this->subject, 'Sam Renamed');
+    $doneToThem = renameAs($this->actor, $this->subject, 'Sam Renamed');
 
     auditLogTable($this->subject, 'by')
         ->assertCanSeeTableRecords([$did])
@@ -52,12 +52,12 @@ test('by this user lists what the user did', function (): void {
 });
 
 test('on this user lists changes to the user and their profiles', function (): void {
-    $onUser = renameAs($this->admin, $this->subject, 'Sam Renamed');
+    $onUser = renameAs($this->actor, $this->subject, 'Sam Renamed');
     Profile::factory()->for($this->subject)->create();
     $onProfile = Activity::query()->latest('id')->firstOrFail();
-    $onOther = renameAs($this->admin, $this->other, 'Olive Renamed');
+    $onOther = renameAs($this->actor, $this->other, 'Olive Renamed');
     $byThem = renameAs($this->subject, $this->other, 'Olive Again');
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
 
     auditLogTable($this->subject, 'on')
         ->assertCanSeeTableRecords([$onUser, $onProfile])
@@ -69,7 +69,7 @@ test('the subject type filter keeps only that type', function (): void {
     $onUser = renameAs($this->subject, $this->other, 'Olive Renamed');
     Profile::factory()->for($this->other)->create();
     $onProfile = Activity::query()->latest('id')->firstOrFail();
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
 
     auditLogTable($this->subject, 'by')
         ->filterTable('subject_type', ['profile'])
@@ -82,7 +82,7 @@ test('the event filter keeps only those events in both directions', function (st
     Profile::factory()->for($this->subject)->create();
     $created = Activity::query()->latest('id')->firstOrFail();
     $created->update(['causer_type' => $this->subject->getMorphClass(), 'causer_id' => $this->subject->id]);
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
 
     auditLogTable($this->subject, $direction)
         ->filterTable('event', ['created'])
@@ -92,9 +92,9 @@ test('the event filter keeps only those events in both directions', function (st
 
 test('the time filter keeps the days that the viewer picks, in the time zone of the viewer', function (): void {
     context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
-    $early = renameAs($this->admin, $this->subject, 'Sam Early');
+    $early = renameAs($this->actor, $this->subject, 'Sam Early');
     $early->forceFill(['created_at' => CarbonImmutable::parse('2026-01-01 15:00', 'UTC')])->save();
-    $late = renameAs($this->admin, $this->subject, 'Sam Late');
+    $late = renameAs($this->actor, $this->subject, 'Sam Late');
     $late->forceFill(['created_at' => CarbonImmutable::parse('2026-01-01 17:00', 'UTC')])->save();
 
     auditLogTable($this->subject, 'on')
@@ -104,11 +104,11 @@ test('the time filter keeps the days that the viewer picks, in the time zone of 
 });
 
 test('the search finds an entry by who did it, a changed value, or its event', function (string $search): void {
-    $byAdmin = renameAs($this->admin, $this->subject, 'Sam Renamed');
+    $byAdmin = renameAs($this->actor, $this->subject, 'Sam Renamed');
     $byOther = renameAs($this->other, $this->subject, 'Sam Again');
     Profile::factory()->for($this->subject)->create();
     $created = Activity::query()->latest('id')->firstOrFail();
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
 
     $expected = ['ada' => $byAdmin, 'again' => $byOther, 'created' => $created][$search];
 
@@ -119,8 +119,8 @@ test('the search finds an entry by who did it, a changed value, or its event', f
 })->with(['who did it' => ['ada'], 'a changed value' => ['again'], 'its event' => ['created']]);
 
 test('the audit tab needs view-audit-log', function (string $component, array $params): void {
-    revokePermissions($this->admin, 'admin.controls.users.view-audit-log');
-    $this->actingAs($this->admin);
+    revokePermissions($this->actor, 'admin.controls.users.view-audit-log');
+    $this->actingAs($this->actor);
 
     Livewire::test($component, ['user' => $this->subject, ...$params])->assertForbidden();
 })->with([
@@ -130,7 +130,7 @@ test('the audit tab needs view-audit-log', function (string $component, array $p
 ]);
 
 test('the switch is kept in the URL', function (): void {
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
 
     Livewire::withQueryParams(['direction' => 'on'])
         ->test(Audit::class, ['user' => $this->subject])
@@ -139,7 +139,7 @@ test('the switch is kept in the URL', function (): void {
 });
 
 test('a row click opens the modal with the audit entry', function (): void {
-    $entry = renameAs($this->admin, $this->subject, 'Sam Renamed');
+    $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
 
     auditLogTable($this->subject, 'on')
         ->callAction(TestAction::make('view')->table($entry))
@@ -147,7 +147,7 @@ test('a row click opens the modal with the audit entry', function (): void {
 });
 
 test('the modal shows each changed field with its old and new value', function (): void {
-    $entry = renameAs($this->admin, $this->subject, 'Sam Renamed');
+    $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
 
     Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
         ->call('show', $entry->id)
@@ -157,19 +157,19 @@ test('the modal shows each changed field with its old and new value', function (
 
 test('a profile entry shows the roles of that profile', function (): void {
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
-    $this->actingAs($this->admin);
-    Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('admin.access')->create();
+    $this->actingAs($this->actor);
+    Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('system.access')->create();
     $entry = Activity::query()->latest('id')->firstOrFail();
 
     Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
         ->call('show', $entry->id)
         ->assertSee('editor')
-        ->assertSee('admin.access');
+        ->assertSee('system.access');
 });
 
 test('a profile entry shows field labels and the names of related records', function (): void {
     $organization = Organization::factory()->create(['name' => 'Acme Holdings']);
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
     Profile::factory()->for($this->subject)->for($organization)->create();
     $entry = Activity::query()->latest('id')->firstOrFail();
 
@@ -183,7 +183,7 @@ test('a profile entry shows field labels and the names of related records', func
 });
 
 test('the modal shows dates for the viewer and booleans as yes or no', function (): void {
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
     $verifiedAt = CarbonImmutable::parse('2026-01-02 03:04:05');
     $entry = Activity::query()->create([
         'description' => 'updated',
@@ -200,23 +200,23 @@ test('the modal shows dates for the viewer and booleans as yes or no', function 
 });
 
 test('the modal shows a list as the items that were removed and added', function (): void {
-    $this->actingAs($this->admin);
+    $this->actingAs($this->actor);
     $entry = Activity::query()->create([
         'description' => 'updated',
         'event' => 'updated',
         'subject_type' => 'user',
         'subject_id' => $this->subject->id,
-        'attribute_changes' => ['attributes' => ['permissions' => ['admin.access', 'internal.access']], 'old' => ['permissions' => ['admin.access', 'admin.horizon.view']]],
+        'attribute_changes' => ['attributes' => ['permissions' => ['system.access', 'internal.access']], 'old' => ['permissions' => ['system.access', 'admin.horizon.view']]],
     ]);
 
     Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
         ->call('show', $entry->id)
         ->assertSeeInOrder(['Permissions', 'admin.horizon.view', 'internal.access'])
-        ->assertDontSee('admin.access');
+        ->assertDontSee('system.access');
 });
 
 test('the modal refuses an audit entry that does not involve the user', function (): void {
-    $entry = renameAs($this->admin, $this->other, 'Olive Renamed');
+    $entry = renameAs($this->actor, $this->other, 'Olive Renamed');
 
     Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
         ->call('show', $entry->id)

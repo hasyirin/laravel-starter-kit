@@ -18,7 +18,7 @@ function userPasskey(User $user): Passkey
     ]);
 }
 
-test('an admin revokes a passkey of another user', function (): void {
+test('an actor revokes a passkey of another user', function (): void {
     $user = User::factory()->create();
     $passkey = userPasskey($user);
 
@@ -27,11 +27,11 @@ test('an admin revokes a passkey of another user', function (): void {
     expect(Passkey::query()->find($passkey->id))->toBeNull();
 });
 
-test('an admin cannot revoke their own passkey here', function (): void {
-    $admin = User::factory()->create();
-    $passkey = userPasskey($admin);
+test('an actor cannot revoke their own passkey here', function (): void {
+    $actor = User::factory()->create();
+    $passkey = userPasskey($actor);
 
-    expect(fn () => RevokeUserPasskey::make()->execute($admin, $admin, $passkey->id))->toThrow(AuthorizationException::class);
+    expect(fn () => RevokeUserPasskey::make()->execute($actor, $actor, $passkey->id))->toThrow(AuthorizationException::class);
     expect(Passkey::query()->find($passkey->id))->not->toBeNull();
 });
 

@@ -10,6 +10,7 @@ return [
         'roles' => 'Roles',
         'horizon' => 'Horizon',
         'internal' => 'Internal',
+        'system' => 'System',
     ],
     'abilities' => [
         'access' => 'Access',

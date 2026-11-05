@@ -15,15 +15,15 @@ use Spatie\Activitylog\Models\Activity;
 beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
-    $this->admin = User::factory()->create(['name' => 'Ada Admin']);
-    grantPermissions($this->admin, 'admin.access', 'admin.controls.roles.view', 'admin.controls.roles.view-audit-log');
-    $this->actingAs($this->admin);
+    $this->actor = User::factory()->create(['name' => 'Ada Admin']);
+    grantPermissions($this->actor, 'system.access', 'admin.controls.roles.view', 'admin.controls.roles.view-audit-log');
+    $this->actingAs($this->actor);
     $this->role = Role::query()->create(['name' => 'editor']);
     $this->other = Role::query()->create(['name' => 'other']);
 });
 
 test('the list shows only the changes to the role, with who made them', function (): void {
-    UpdateRole::make()->execute($this->admin, $this->role, 'author', ['admin.access']);
+    UpdateRole::make()->execute($this->actor, $this->role, 'author', ['system.access']);
     $onRole = Activity::query()->whereMorphedTo('subject', $this->role)->latest('id')->firstOrFail();
     $onOther = Activity::query()->whereMorphedTo('subject', $this->other)->firstOrFail();
 
@@ -34,14 +34,14 @@ test('the list shows only the changes to the role, with who made them', function
 });
 
 test('the audit needs view-audit-log', function (string $component): void {
-    revokePermissions($this->admin, 'admin.controls.roles.view-audit-log');
+    revokePermissions($this->actor, 'admin.controls.roles.view-audit-log');
 
     Livewire::test($component, ['role' => $this->role])->assertForbidden();
 })->with([AuditLogDataTable::class, AuditEntryModal::class]);
 
 test('a row click opens the modal with the permissions that were removed and added', function (): void {
     $this->role->givePermissionTo('admin.horizon.view');
-    UpdateRole::make()->execute($this->admin, $this->role, null, ['internal.access']);
+    UpdateRole::make()->execute($this->actor, $this->role, null, ['internal.access']);
     $entry = Activity::query()->whereMorphedTo('subject', $this->role)->latest('id')->firstOrFail();
 
     Livewire::test(AuditLogDataTable::class, ['role' => $this->role])

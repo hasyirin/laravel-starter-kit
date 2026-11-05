@@ -14,21 +14,21 @@ use Livewire\Livewire;
 
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
-    $this->admin = User::factory()->create();
-    grantPermissions($this->admin, 'admin.access');
-    $this->actingAs($this->admin);
+    $this->actor = User::factory()->create();
+    grantPermissions($this->actor, 'system.access');
+    $this->actingAs($this->actor);
 });
 
 test('creating a user needs create', function (): void {
     $this->get(route('admin.controls.users.create'))->assertForbidden();
 
-    grantPermissions($this->admin, 'admin.controls.users.create');
+    grantPermissions($this->actor, 'admin.controls.users.create');
 
     $this->get(route('admin.controls.users.create'))->assertOk()->assertSeeLivewire(Create::class);
 });
 
 test('a new user opens on their page', function (): void {
-    grantPermissions($this->admin, 'admin.controls.users.create');
+    grantPermissions($this->actor, 'admin.controls.users.create');
     $organization = Organization::factory()->create();
     $department = Department::factory()->create(['organization_id' => $organization->id]);
     $position = Position::factory()->forDepartment($department)->create();
@@ -53,7 +53,7 @@ test('a new user opens on their page', function (): void {
 });
 
 test('a new user gets the ticked roles and permissions', function (): void {
-    grantPermissions($this->admin, 'admin.controls.users.create', 'admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
+    grantPermissions($this->actor, 'admin.controls.users.create', 'admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
 
     Livewire::test(Create::class)
@@ -72,7 +72,7 @@ test('a new user gets the ticked roles and permissions', function (): void {
 });
 
 test('roles and permissions are left out without update-roles and update-permissions', function (): void {
-    grantPermissions($this->admin, 'admin.controls.users.create');
+    grantPermissions($this->actor, 'admin.controls.users.create');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
 
     $component = Livewire::test(Create::class);
@@ -96,7 +96,7 @@ test('roles and permissions are left out without update-roles and update-permiss
 });
 
 test('a position without a department can be picked without a department', function (): void {
-    grantPermissions($this->admin, 'admin.controls.users.create');
+    grantPermissions($this->actor, 'admin.controls.users.create');
     $position = Position::factory()->create();
 
     $component = Livewire::test(Create::class)->set('form.organization_id', $position->organization_id);
@@ -118,7 +118,7 @@ test('a position without a department can be picked without a department', funct
 });
 
 test('a department of another organization is refused', function (): void {
-    grantPermissions($this->admin, 'admin.controls.users.create');
+    grantPermissions($this->actor, 'admin.controls.users.create');
     $organization = Organization::factory()->create();
     $foreignDepartment = Department::factory()->create();
 
@@ -136,7 +136,7 @@ test('a department of another organization is refused', function (): void {
 });
 
 test('changing the organization clears the placement that no longer fits', function (): void {
-    grantPermissions($this->admin, 'admin.controls.users.create');
+    grantPermissions($this->actor, 'admin.controls.users.create');
     $department = Department::factory()->create();
     $position = Position::factory()->forDepartment($department)->create();
     $other = Organization::factory()->create();
@@ -151,7 +151,7 @@ test('changing the organization clears the placement that no longer fits', funct
 });
 
 test('clearing the organization empties the placement', function (): void {
-    grantPermissions($this->admin, 'admin.controls.users.create');
+    grantPermissions($this->actor, 'admin.controls.users.create');
     $department = Department::factory()->create();
 
     Livewire::test(Create::class)
@@ -163,7 +163,7 @@ test('clearing the organization empties the placement', function (): void {
 });
 
 test('the password is required on create', function (): void {
-    grantPermissions($this->admin, 'admin.controls.users.create');
+    grantPermissions($this->actor, 'admin.controls.users.create');
 
     Livewire::test(Create::class)
         ->set('form.name', 'New Person')

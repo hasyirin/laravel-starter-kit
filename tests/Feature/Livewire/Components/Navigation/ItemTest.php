@@ -13,10 +13,10 @@ use Symfony\Component\Routing\Exception\RouteNotFoundException;
 test('an item with a permission is accessible to a user who has it', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.access');
+    grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
-    $item = Item::make(label: 'Admin', accessible: 'admin.access');
+    $item = Item::make(label: 'Admin', accessible: 'system.access');
 
     expect($item->accessible)->toBeTrue();
 });
@@ -25,7 +25,7 @@ test('an item with a permission is hidden from a user without it', function (): 
     $this->seed(PermissionSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $item = Item::make(label: 'Admin', accessible: 'admin.access');
+    $item = Item::make(label: 'Admin', accessible: 'system.access');
 
     expect($item->accessible)->toBeFalse();
 });

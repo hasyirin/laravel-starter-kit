@@ -38,7 +38,7 @@ class NoteDataTable extends DataTable
     protected function headerActions(): array
     {
         return [
-            CreateAction::make()->action(fn () => $this->dispatch('show')->to(NoteModal::class)),
+            CreateAction::make()->label('Note')->action(fn () => $this->dispatch('show')->to(NoteModal::class)),
         ];
     }
 

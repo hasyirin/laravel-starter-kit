@@ -38,13 +38,13 @@ beforeEach(function (): void {
     $this->ticket->state->transitionTo(InReview::class);
 
     $reviewer = User::factory()->create();
-    $reviewer->givePermissionTo(array_values(TicketPolicy::PERMISSIONS));
+    grantPermissions($reviewer, array_values(TicketPolicy::PERMISSIONS));
     $this->actingAs($reviewer);
 });
 
 test('the ability helpers check the permissions of the current user', function (array $permissions, array $results): void {
     $user = User::factory()->create();
-    $user->givePermissionTo(...$permissions);
+    grantPermissions($user, ...$permissions);
     $this->actingAs($user);
 
     $component = Livewire::test(AbilityCheck::class);

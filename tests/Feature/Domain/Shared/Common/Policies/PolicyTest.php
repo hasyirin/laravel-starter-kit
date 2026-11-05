@@ -66,7 +66,7 @@ test('has any permission accepts strings, arrays, and collections', function (mi
 
     expect(rolePermissionsPolicy()->any($user, ...$actions))->toBeFalse();
 
-    $user->givePermissionTo('admin.controls.roles.view');
+    grantPermissions($user, 'admin.controls.roles.view');
 
     expect(rolePermissionsPolicy()->any($user, ...$actions))->toBeTrue();
 })->with([
@@ -80,11 +80,11 @@ test('has all permissions needs every permission', function (mixed $actions): vo
     $this->seed(PermissionSeeder::class);
 
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.controls.roles.view');
+    grantPermissions($user, 'admin.controls.roles.view');
 
     expect(rolePermissionsPolicy()->all($user, ...$actions))->toBeFalse();
 
-    $user->givePermissionTo('admin.controls.roles.view-any');
+    grantPermissions($user, 'admin.controls.roles.view-any');
 
     expect(rolePermissionsPolicy()->all($user, ...$actions))->toBeTrue();
 })->with([
@@ -105,7 +105,7 @@ test('a transition needs the permission of its step', function (bool $reviewed, 
 
     expect($user->can('transition', [$ticket, 'state', $state]))->toBeFalse();
 
-    $user->givePermissionTo($permission);
+    grantPermissions($user, $permission);
 
     expect($user->can('transition', [$ticket, 'state', $state]))->toBeTrue()
         ->and($user->can('transition', [$ticket, 'title', $state]))->toBeFalse();
@@ -120,7 +120,7 @@ test('a transition is refused when the current state has no such step', function
     $this->seed(PermissionSeeder::class);
     $ticket = Ticket::query()->create(['title' => 'Leak']);
     $user = User::factory()->create();
-    $user->givePermissionTo(array_values(TicketPolicy::PERMISSIONS));
+    grantPermissions($user, array_values(TicketPolicy::PERMISSIONS));
 
     expect($user->can('transition', [$ticket, 'state', $state]))->toBeFalse();
 })->with([

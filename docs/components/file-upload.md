@@ -14,7 +14,7 @@ The property holds one item for each file. The item of a stored file names its m
 
 1. In `mount()`, it fills the property with `FileUpload::items()`, which gives the media of one collection of a model, in their order. The model needs the kit's media trait. See [The Model](#the-model).
 2. Before it saves, it validates the property with the `Uploads` rule and the same file rules. The browser sends the items, so the field's own check is not enough. The rule also tells the user when an upload has expired: Livewire deletes uploads after a day.
-3. It stores the items with the `SyncMedia` Action. New files join the collection, removed files leave it, and the collection takes the order of the items.
+3. It stores the items with the `SyncMedia` Action class. New files join the collection, removed files leave it, and the collection takes the order of the items.
 
 ```php
 use App\Domain\Shared\Media\Actions\SyncMedia;

@@ -27,7 +27,7 @@ test('marking a verified email keeps the time', function (): void {
 test('a user without bypass-authorization cannot verify the email of a user who has it', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->unverified()->create();
-    $user->givePermissionTo('bypass-authorization');
+    grantPermissions($user, 'bypass-authorization');
 
     expect(fn () => VerifyUserEmail::make()->execute(User::factory()->create(), $user))->toThrow(AuthorizationException::class);
     expect($user->fresh()->email_verified_at)->toBeNull();

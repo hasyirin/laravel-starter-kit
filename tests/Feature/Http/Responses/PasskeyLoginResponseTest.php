@@ -11,7 +11,7 @@ use Laravel\Passkeys\Contracts\PasskeyLoginResponse;
 test('a passkey login sends the browser to the highest area the user can open', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.access');
+    grantPermissions($user, 'admin.access');
     $this->actingAs($user);
     $request = Request::create(route('passkey.login'), 'POST', server: ['HTTP_ACCEPT' => 'application/json']);
 

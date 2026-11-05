@@ -10,7 +10,7 @@ return [
     'admin' => 'Admin',
     'search' => 'Search',
     'settings' => 'Settings',
-    'administration' => 'Administration',
+    'system' => 'System',
     'controls' => 'Controls',
     'users' => 'Users',
     'roles' => 'Roles',

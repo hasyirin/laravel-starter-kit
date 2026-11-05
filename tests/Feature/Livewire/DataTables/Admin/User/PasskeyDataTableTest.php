@@ -15,7 +15,7 @@ beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
 
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo('admin.access', 'admin.controls.users.view', 'admin.controls.users.update');
+    grantPermissions($this->admin, 'admin.access', 'admin.controls.users.view', 'admin.controls.users.update');
     $this->actingAs($this->admin);
 
     $this->subject = User::factory()->create();
@@ -63,7 +63,7 @@ test('revoke is hidden on your own page', function (): void {
 
 test('revoke is hidden without update', function (): void {
     $passkey = createPasskey($this->subject);
-    $this->admin->revokePermissionTo('admin.controls.users.update');
+    revokePermissions($this->admin, 'admin.controls.users.update');
 
     passkeyTable($this->subject)
         ->assertCanSeeTableRecords([$passkey])

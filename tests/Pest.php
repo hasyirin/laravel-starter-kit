@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Permission\Models\Role;
+use App\Domain\User\Models\Profile;
+use App\Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -12,6 +16,65 @@ pest()->extend(TestCase::class)
 pest()->beforeEach(function (): void {
     app()->detectEnvironment(fn (): string => 'local');
 })->in('Browser');
+
+/**
+ * @param  string|array<int, string>  ...$permissions
+ */
+function grantPermissions(User $user, string|array ...$permissions): void
+{
+    $profile = $user->profile;
+
+    giveProfile(
+        $user,
+        roles: collect($profile?->getRoleNames()),
+        permissions: collect($profile?->permissions)->pluck('name')->merge(collect($permissions)->flatten()),
+    );
+}
+
+/**
+ * @param  string|array<int, string>  ...$permissions
+ */
+function revokePermissions(User $user, string|array ...$permissions): void
+{
+    $profile = $user->profile;
+
+    giveProfile(
+        $user,
+        roles: collect($profile?->getRoleNames()),
+        permissions: collect($profile?->permissions)->pluck('name')->diff(collect($permissions)->flatten()),
+    );
+}
+
+/**
+ * @param  Role|string|array<int, Role|string>  ...$roles
+ */
+function grantRoles(User $user, Role|string|array ...$roles): void
+{
+    $profile = $user->profile;
+    $names = collect($roles)->flatten()->map(fn (Role|string $role): string => $role instanceof Role ? $role->name : $role);
+
+    giveProfile(
+        $user,
+        roles: collect($profile?->getRoleNames())->merge($names),
+        permissions: collect($profile?->permissions)->pluck('name'),
+    );
+}
+
+/**
+ * @param  Collection<int, string>  $roles
+ * @param  Collection<int, string>  $permissions
+ */
+function giveProfile(User $user, Collection $roles, Collection $permissions): void
+{
+    Profile::factory()
+        ->for($user)
+        ->state($user->profile?->only(['organization_id', 'branch_id', 'department_id', 'position_id']) ?? [])
+        ->withRoles(...$roles->unique()->values()->all())
+        ->withPermissions(...$permissions->unique()->values()->all())
+        ->create();
+
+    $user->unsetRelation('profile');
+}
 
 function browserScript(string $body): string
 {

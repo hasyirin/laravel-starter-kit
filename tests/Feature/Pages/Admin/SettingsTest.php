@@ -8,7 +8,7 @@ use App\Domain\User\Models\User;
 test('users with the admin access permission are sent to their user information settings', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.access');
+    grantPermissions($user, 'admin.access');
     $this->actingAs($user);
 
     $response = $this->get(route('admin.settings'));

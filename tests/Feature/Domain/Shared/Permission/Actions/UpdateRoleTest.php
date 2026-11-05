@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Domain\Shared\Permission\Actions\UpdateRole;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
-use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Spatie\Activitylog\Models\Activity;
@@ -61,22 +60,17 @@ test('bypass-authorization cannot be added without bypass', function (): void {
     expect(fn (): Role => UpdateRole::make()->execute($this->actor, $this->role, null, ['admin.access', 'bypass-authorization']))->toThrow(AuthorizationException::class);
 });
 
-test('bypass-authorization cannot be removed from a role that you hold', function (string $holding): void {
-    $this->actor->givePermissionTo('bypass-authorization');
+test('bypass-authorization cannot be removed from a role that you hold', function (): void {
+    grantPermissions($this->actor, 'bypass-authorization');
     $this->role->givePermissionTo('bypass-authorization');
-
-    if ($holding === 'profile') {
-        Profile::factory()->for($this->actor)->withRoles('editor')->create();
-    } else {
-        $this->actor->assignRole($this->role);
-    }
+    grantRoles($this->actor, $this->role);
 
     expect(fn (): Role => UpdateRole::make()->execute($this->actor, $this->role, null, ['admin.access']))->toThrow(AuthorizationException::class)
         ->and($this->role->fresh()?->hasPermissionTo('bypass-authorization'))->toBeTrue();
-})->with(['profile', 'direct']);
+});
 
 test('bypass-authorization can be removed from another role with bypass', function (): void {
-    $this->actor->givePermissionTo('bypass-authorization');
+    grantPermissions($this->actor, 'bypass-authorization');
     $this->role->givePermissionTo('bypass-authorization');
 
     UpdateRole::make()->execute($this->actor, $this->role, null, ['admin.access']);

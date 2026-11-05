@@ -26,6 +26,84 @@ _Avoid_: Current profile, latest profile
 **Placement**:
 The organization, branch, department, and position on a profile.
 
+### Organizations
+
+**Organization**:
+A company, agency, or other body that users belong to.
+
+**Department**:
+A unit of an organization that does one kind of work, for example finance.
+
+**Branch**:
+A place where an organization works, for example its headquarters.
+
+**Position**:
+A job in an organization, for example clerk. Many users can hold one position.
+
+**Owner**:
+The organization that runs the app.
+_Avoid_: Local organization, default organization
+
+**Owner department**:
+The owner's department that runs the app, for example its IT department.
+
+**Owner branch**:
+The branch where the owner is based, for example its headquarters.
+
+### Access
+
+**Area**:
+A part of the app with its own pages and its own access rule: guest, app, internal, or admin.
+
+**Staff**:
+The users who can open the internal area.
+
+**System administrator**:
+A user who can open the admin area.
+_Avoid_: Administrator, admin
+
+**Public user**:
+A user who can open neither the internal area nor the admin area.
+_Avoid_: Guest
+
+**Permission**:
+The right to open an area or to do one thing in the app, for example view a role.
+
+**Bypass**:
+The permission that passes every access check.
+
+**Role**:
+A named set of permissions that a profile can hold. A change to a role applies at once to every profile that holds it.
+
+**System role**:
+A role that comes with the app. Nobody can rename or delete it.
+
+### Actions
+
+**Action**:
+One thing that a user did to a record, such as prepare or approve it. It holds the user, the time, and the profile that was active then.
+
+**Actor**:
+The user who did an action.
+
+**Preparer**:
+The user who created a record.
+
+### Workflows
+
+**Workflow**:
+The states that a record moves through, and the steps between them.
+
+**State**:
+The point that a record has reached in a workflow, for example site visit.
+
+**Step**:
+A move of a record from one state to another.
+_Avoid_: Transition
+
+**Loop**:
+A step back to an earlier state.
+
 ### Audit
 
 **Audit log**:

@@ -87,7 +87,7 @@ protected function getListeners(): array
 }
 ```
 
-The toast uses `common/records.created` and `common/records.updated`. Use `common/records.add` and `common/records.edit` for the heading. Keep delete buttons in the table, with an Action.
+The toast uses `common/records.created` and `common/records.updated`. Use `common/records.add` and `common/records.edit` for the heading. Keep delete buttons in the table, with an Action class.
 
 ## Reference
 
@@ -109,6 +109,6 @@ The toast uses `common/records.created` and `common/records.updated`. Use `commo
 | `RecordModal::label()` | The name of the record, for the toast and heading. Required. |
 | `RecordModal::query()` | The scoped query for the records. Required. |
 | `RecordModal::fillForm()` | Fills the form from the record. Required. |
-| `RecordModal::persist()` | Saves the form to the record, with an Action. Required. |
+| `RecordModal::persist()` | Saves the form to the record, with an Action class. Required. |
 | `RecordModal::event()` | The name of the saved event. |
 | `RecordModal::save()` | Checks, validates, persists, and closes. |

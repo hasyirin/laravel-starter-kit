@@ -41,7 +41,7 @@ test('bypass-authorization cannot be given without bypass', function (): void {
 });
 
 test('bypass-authorization can be given with bypass', function (): void {
-    $this->actor->givePermissionTo('bypass-authorization');
+    grantPermissions($this->actor, 'bypass-authorization');
 
     $role = CreateRole::make()->execute($this->actor, 'owner', ['bypass-authorization']);
 

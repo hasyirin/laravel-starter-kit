@@ -8,6 +8,7 @@ use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\Shared\Permission\Observers\RoleObserver;
 use App\Domain\User\Models\Profile;
+use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -67,6 +68,7 @@ class Role extends \Spatie\Permission\Models\Role
     protected function relationForModel(string $modelClass): MorphToMany
     {
         throw_if(is_a($modelClass, Profile::class, true), LogicException::class, 'The roles of a profile cannot be changed.');
+        throw_if(is_a($modelClass, User::class, true), LogicException::class, 'Users get roles and permissions only through a profile.');
 
         return parent::relationForModel($modelClass);
     }

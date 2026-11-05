@@ -15,7 +15,7 @@ beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo('admin.access', 'admin.controls.roles.view-any', 'admin.controls.roles.create', 'admin.controls.roles.delete');
+    grantPermissions($this->admin, 'admin.access', 'admin.controls.roles.view-any', 'admin.controls.roles.create', 'admin.controls.roles.delete');
     $this->actingAs($this->admin);
     $this->role = Role::query()->create(['name' => 'editor']);
 });
@@ -30,7 +30,7 @@ test('the list shows the label of each role', function (): void {
 });
 
 test('the table refuses a user without view-any', function (): void {
-    $this->admin->revokePermissionTo('admin.controls.roles.view-any');
+    revokePermissions($this->admin, 'admin.controls.roles.view-any');
 
     Livewire::test(RoleDataTable::class)->assertForbidden();
 });
@@ -55,14 +55,14 @@ test('the delete action deletes a role that no profile holds', function (): void
 });
 
 test('the delete action is hidden without the delete permission', function (): void {
-    $this->admin->revokePermissionTo('admin.controls.roles.delete');
+    revokePermissions($this->admin, 'admin.controls.roles.delete');
 
     Livewire::test(RoleDataTable::class)->assertActionHidden(TestAction::make('delete')->table($this->role));
 });
 
 test('the delete action is hidden on a system role and a role that a profile holds, also with bypass', function (): void {
     $this->seed(RoleSeeder::class);
-    $this->admin->givePermissionTo('bypass-authorization');
+    grantPermissions($this->admin, 'bypass-authorization');
     Profile::factory()->for(User::factory())->withRoles('editor')->create();
 
     Livewire::test(RoleDataTable::class)

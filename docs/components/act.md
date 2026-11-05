@@ -6,11 +6,11 @@
 <x-act name="prepare">Not prepared yet.</x-act>
 ```
 
-`name` takes an `Act` case or its value. While the record has no such action, the act shows its slot, for example a note or a field that picks who acts next.
+`name` takes an `Act` case or its value. While the record has no such action, `<x-act>` shows its slot, for example a note or a field that picks who acts next.
 
 ## Action
 
-`action` takes an action of a record. The act takes its name from the action, so it needs `name` only for the time before the action exists.
+`action` takes an action of a record. `<x-act>` takes its name from the action, so it needs `name` only for the time before the action exists.
 
 ```html
 <x-act :action="$invoice->preparer" />
@@ -18,15 +18,15 @@
 <x-act name="prepare" :action="$invoice->action(App\Domain\Shared\Actor\Enums\Act::Prepare)">Not prepared yet.</x-act>
 ```
 
-Each action keeps the profile that its user had when they acted. So the act shows the position of that day, also after the user moves to another position. It also shows the name of the user after someone deletes that user. A user without a profile gets their name and no position. The time follows the time zone and the locale of the user who reads the page.
+Each action keeps the profile that its user had when they acted. So `<x-act>` shows the position of that day, also after the user moves to another position. It also shows the name of the user after someone deletes that user. A user without a profile gets their name and no position. The time follows the time zone and the locale of the user who reads the page.
 
-The act shows the name of an actor without a profile only when the actor implements `App\Domain\Shared\Actor\Contracts\Models\HasActorName`. `User` implements it. For any other actor, the act shows only the time.
+`<x-act>` shows the name of an actor without a profile only when the actor implements `App\Domain\Shared\Actor\Contracts\Models\HasActorName`. `User` implements it. For any other actor, `<x-act>` shows only the time.
 
 ### Lists
 
 In a [DataTable](data-table.md#show-who-acted), use `App\Filament\Tables\Columns\ActColumn`, which loads them for you.
 
-The act loads the relations that it shows for each action, so a list of acts runs one to three queries per row. Load them for the whole list first:
+`<x-act>` loads the relations that it shows for each action, so a list of actions runs one to three queries per row. Load them for the whole list first:
 
 ```php
 use App\Domain\User\Models\User;
@@ -41,7 +41,7 @@ $invoices = Invoice::query()->with([
 ])->get();
 ```
 
-When you eager load `actor`, it also loads deleted users, so the act still shows their names. `$action->actor` alone does not load a deleted user. A closure that constrains `User` on `actor` replaces that default, so add `withTrashed()` to it, as above.
+When you eager load `actor`, it also loads deleted users, so `<x-act>` still shows their names. `$action->actor` alone does not load a deleted user. A closure that constrains `User` on `actor` replaces that default, so add `withTrashed()` to it, as above.
 
 ## Record an Action
 
@@ -85,10 +85,10 @@ class Invoice extends Model
 
 | Prop     | Default | Description                                                         |
 |----------|---------|---------------------------------------------------------------------|
-| `name`   |         | The `Act` case, or its value. Without it, the act takes the name of `action`. |
-| `action` |         | The action to show. Without it, the act shows its slot.             |
+| `name`   |         | The `Act` case, or its value. Without it, `<x-act>` takes the name of `action`. |
+| `action` |         | The action to show. Without it, `<x-act>` shows its slot.             |
 
-The act renders nothing when it has neither a `name` nor an `action`.
+`<x-act>` renders nothing when it has neither a `name` nor an `action`.
 
 ### Slots
 

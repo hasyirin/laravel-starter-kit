@@ -11,7 +11,7 @@ return [
         'horizon' => 'Horizon',
         'internal' => 'Internal',
     ],
-    'actions' => [
+    'abilities' => [
         'access' => 'Access',
         'view-any' => 'View any',
         'view' => 'View',

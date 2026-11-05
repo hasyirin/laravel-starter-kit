@@ -13,7 +13,7 @@ beforeEach(function (): void {
 
 test('an admin cannot delete themselves', function (): void {
     $admin = User::factory()->create();
-    $admin->givePermissionTo('bypass-authorization');
+    grantPermissions($admin, 'bypass-authorization');
 
     expect(fn () => DeleteUserAsAdmin::make()->execute($admin, $admin))->toThrow(AuthorizationException::class);
     expect($admin->fresh()->trashed())->toBeFalse();
@@ -22,7 +22,7 @@ test('an admin cannot delete themselves', function (): void {
 test('an admin without bypass cannot delete a bypass holder', function (): void {
     $admin = User::factory()->create();
     $holder = User::factory()->create();
-    $holder->givePermissionTo('bypass-authorization');
+    grantPermissions($holder, 'bypass-authorization');
 
     expect(fn () => DeleteUserAsAdmin::make()->execute($holder, $admin))->toThrow(AuthorizationException::class);
     expect($holder->fresh()->trashed())->toBeFalse();

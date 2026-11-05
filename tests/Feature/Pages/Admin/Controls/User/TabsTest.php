@@ -14,7 +14,7 @@ beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo('admin.access', 'admin.controls.users.view');
+    grantPermissions($this->admin, 'admin.access', 'admin.controls.users.view');
     $this->actingAs($this->admin);
     $this->subject = User::factory()->create();
 });
@@ -26,7 +26,7 @@ test('the passkeys tab is the default tab when passkeys are on', function (): vo
 });
 
 test('the tab is kept in the URL', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.view-audit-log');
+    grantPermissions($this->admin, 'admin.controls.users.view-audit-log');
 
     Livewire::withQueryParams(['tab' => 'audit'])
         ->test(Tabs::class, ['user' => $this->subject])
@@ -42,7 +42,7 @@ test('the show page mounts the tabs below the form', function (): void {
 
 test('the passkeys tab is hidden when passkeys are off', function (): void {
     config()->set('fortify.features', []);
-    $this->admin->givePermissionTo('admin.controls.users.view-audit-log');
+    grantPermissions($this->admin, 'admin.controls.users.view-audit-log');
 
     expect(Features::enabled(Features::passkeys()))->toBeFalse();
 
@@ -52,7 +52,7 @@ test('the passkeys tab is hidden when passkeys are off', function (): void {
 });
 
 test('the audit tab shows with view-audit-log', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.view-audit-log');
+    grantPermissions($this->admin, 'admin.controls.users.view-audit-log');
 
     Livewire::test(Tabs::class, ['user' => $this->subject])
         ->call('switchTab', 'audit')

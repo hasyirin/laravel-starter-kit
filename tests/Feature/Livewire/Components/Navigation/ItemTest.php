@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Exception\RouteNotFoundException;
 test('an item with a permission is accessible to a user who has it', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.access');
+    grantPermissions($user, 'admin.access');
     $this->actingAs($user);
 
     $item = Item::make(label: 'Admin', accessible: 'admin.access');

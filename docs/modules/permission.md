@@ -1,12 +1,12 @@
 # Permissions
 
-The app checks access with permissions, and roles group permissions. A user gets the roles and permissions of their active profile, plus any given to the user directly. See **Profiles** in the README.
+The app checks access with permissions, and roles group permissions. A user gets only the roles and permissions of their active profile. See **Profiles** in the README.
 
 ## Add a Permission
 
 1. Add the permission to `permissions` in `config/system.php`. Give it a key path that matches its name, for example `admin.controls.roles.view`.
 2. Run `php artisan db:seed --class="App\Domain\Shared\Permission\Seeders\PermissionSeeder"`. It creates the new permission and deletes the permissions that are no longer in the config. Do not run all the seeders in production, because `UserSeeder` creates the default users.
-3. Check the permission in a policy that extends `Policy`. `Policy::path()` builds the config key of a permission from the root, the policy prefix, the plural model name, and the action. For example, `RolePolicy` checks `admin.controls.roles.view` for the `view` action.
+3. Check the permission in a policy that extends `Policy`. `Policy::path()` builds the config key of a permission from the root, the policy prefix, the plural model name, and the ability. For example, `RolePolicy` checks `admin.controls.roles.view` for the `view` ability.
 
 ## Add a Role
 
@@ -16,7 +16,7 @@ The seeders create system roles. Nobody can rename or delete a system role.
 
 ## Bypass
 
-A user with `bypass-authorization` passes every check, because `AppServiceProvider` checks it in `Gate::before`. The super admin role has this permission.
+A user with `bypass-authorization` passes every check, because `AppServiceProvider` checks it in `Gate::before`. The `super-admin` role has this permission.
 
 ## Permission Matrix
 
@@ -93,13 +93,16 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 - a user has the permissions of their active profile
 - a user does not have the permissions of an inactive profile
-- the permission helpers and scopes count the permissions of the active profile
+- the permission helpers and scopes count only the permissions of the active profile
+- the permissions through roles come only from the roles of the active profile
+- the permissions of a user change only through a profile
 
 ### HasRoles
 
 - a user has the roles of their active profile
 - a user does not have the roles of an inactive profile
-- the role helpers and scopes count the roles of the active profile
+- the role helpers and scopes count only the roles of the active profile
+- the roles of a user change only through a profile
 
 ### Role
 
@@ -119,7 +122,7 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 - a role cannot be removed from a profile
 - a role that a profile has cannot be synced to other models
 - a role cannot be synced to a profile
-- a role that no profile has can be synced to users
+- the users of a role change only through profiles
 
 ### RolePolicy
 
@@ -143,17 +146,17 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 ### RoleSeeder
 
-- seeding creates only the super admin role, with the bypass-authorization permission
+- seeding creates only the super-admin role, with the bypass-authorization permission
 - seeding leaves out permissions that match an except pattern
 - seeding keeps permissions that were given to a role later
 - seeding reuses an existing role with the same name
 
 ### PermissionTree
 
-- a resource holds its actions as permissions
-- a permission directly under an area is listed on the area
+- a resource holds its abilities as permissions
+- a permission directly under a group is listed on the group
 - a one-segment permission is listed at the root
 - a missing label falls back to the headline
-- a group-level access permission makes its node an area
+- a node with only an access permission is a group
 
 <!-- /generated:test-rules -->

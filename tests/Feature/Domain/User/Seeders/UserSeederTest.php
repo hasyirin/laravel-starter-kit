@@ -31,7 +31,7 @@ test('seeding skips admins whose email already exists', function (): void {
     expect(User::query()->where('email', 'admin@example.com')->sole()->profile)->toBeNull();
 });
 
-test('seeding the database with model events off gives the super admin user the super admin role', function (): void {
+test('seeding the database with model events off gives admin@example.com the super-admin role', function (): void {
     $this->seed();
 
     expect(User::query()->where('email', 'admin@example.com')->sole()->hasRole('super-admin'))->toBeTrue()

@@ -21,7 +21,7 @@ use Livewire\Livewire;
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo(['admin.access', 'admin.controls.users.view', 'admin.controls.users.update']);
+    grantPermissions($this->admin, ['admin.access', 'admin.controls.users.view', 'admin.controls.users.update']);
     $this->actingAs($this->admin);
     $this->subject = User::factory()->create(['email_verified_at' => null]);
 });
@@ -51,11 +51,11 @@ function treeNames(array $node): array
 }
 
 test('viewing a user needs view', function (): void {
-    $this->admin->revokePermissionTo('admin.controls.users.view');
+    revokePermissions($this->admin, 'admin.controls.users.view');
 
     $this->get(route('admin.controls.users.show', $this->subject))->assertForbidden();
 
-    $this->admin->givePermissionTo('admin.controls.users.view');
+    grantPermissions($this->admin, 'admin.controls.users.view');
 
     $this->get(route('admin.controls.users.show', $this->subject))
         ->assertOk()
@@ -158,7 +158,7 @@ test('saving keeps the roles of the profile', function (): void {
 });
 
 test('saving puts the placement, the roles, and the permissions in one new profile', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
+    grantPermissions($this->admin, 'admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
     Profile::factory()->for($this->subject)->create();
     $department = Department::factory()->create();
@@ -191,7 +191,7 @@ test('a blank password keeps the old one', function (): void {
 });
 
 test('the form is read-only without update', function (): void {
-    $this->admin->revokePermissionTo('admin.controls.users.update');
+    revokePermissions($this->admin, 'admin.controls.users.update');
 
     Livewire::test(Show::class, ['user' => $this->subject])
         ->assertDontSeeHtml('type="submit"')
@@ -204,7 +204,7 @@ test('the form is read-only without update', function (): void {
 });
 
 test('the form is read-only on a user with bypass-authorization without bypass', function (): void {
-    $this->subject->givePermissionTo('bypass-authorization');
+    grantPermissions($this->subject, 'bypass-authorization');
 
     Livewire::test(Show::class, ['user' => $this->subject])
         ->assertDontSeeHtml('type="submit"')
@@ -246,9 +246,9 @@ test('the permissions are read-only without update-permissions', function (): vo
 });
 
 test('your own roles and permissions are read-only without bypass', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
+    grantPermissions($this->admin, 'admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
-    Profile::factory()->for($this->admin)->withRoles('editor')->create();
+    grantRoles($this->admin, 'editor');
 
     $component = Livewire::test(Show::class, ['user' => $this->admin]);
 
@@ -258,16 +258,16 @@ test('your own roles and permissions are read-only without bypass', function ():
 
 test('your own bypass role is locked', function (): void {
     $this->seed(RoleSeeder::class);
-    $this->admin->givePermissionTo('bypass-authorization');
+    grantPermissions($this->admin, 'bypass-authorization');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
-    Profile::factory()->for($this->admin)->withRoles('super-admin', 'editor')->create();
+    grantRoles($this->admin, 'super-admin', 'editor');
 
     expect(roleOptionStates(Livewire::test(Show::class, ['user' => $this->admin])))->toBe(['editor' => false, 'super-admin' => true]);
 });
 
 test('the bypass role and permission of another user stay editable with bypass', function (): void {
     $this->seed(RoleSeeder::class);
-    $this->admin->givePermissionTo('bypass-authorization');
+    grantPermissions($this->admin, 'bypass-authorization');
     Profile::factory()->for($this->subject)->withRoles('super-admin')->withPermissions('bypass-authorization')->create();
 
     $component = Livewire::test(Show::class, ['user' => $this->subject]);
@@ -277,8 +277,7 @@ test('the bypass role and permission of another user stay editable with bypass',
 });
 
 test('your own direct bypass-authorization is locked', function (): void {
-    $this->admin->givePermissionTo('bypass-authorization');
-    Profile::factory()->for($this->admin)->withPermissions('bypass-authorization')->create();
+    grantPermissions($this->admin, 'bypass-authorization');
 
     $component = Livewire::test(Show::class, ['user' => $this->admin]);
 
@@ -287,7 +286,7 @@ test('your own direct bypass-authorization is locked', function (): void {
 });
 
 test('a permission that a held role gives can be saved as direct', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.update-permissions');
+    grantPermissions($this->admin, 'admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('admin.access');
     Profile::factory()->for($this->subject)->withRoles('editor')->create();
 
@@ -300,7 +299,7 @@ test('a permission that a held role gives can be saved as direct', function (): 
 });
 
 test('a permission that a newly ticked role gives can be saved as direct', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
+    grantPermissions($this->admin, 'admin.controls.users.update-roles', 'admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('admin.access');
 
     Livewire::test(Show::class, ['user' => $this->subject])
@@ -315,7 +314,7 @@ test('a permission that a newly ticked role gives can be saved as direct', funct
 });
 
 test('a direct permission that a role also gives stays direct', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.update-permissions');
+    grantPermissions($this->admin, 'admin.controls.users.update-permissions');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('admin.access');
     Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('admin.access')->create();
 
@@ -328,7 +327,7 @@ test('a direct permission that a role also gives stays direct', function (): voi
 });
 
 test('a role that does not exist is refused', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.update-roles');
+    grantPermissions($this->admin, 'admin.controls.users.update-roles');
 
     Livewire::test(Show::class, ['user' => $this->subject])
         ->set('form.roles', ['ghost'])
@@ -339,7 +338,7 @@ test('a role that does not exist is refused', function (): void {
 });
 
 test('a permission outside the config is refused', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.update-permissions');
+    grantPermissions($this->admin, 'admin.controls.users.update-permissions');
     Permission::query()->create(['name' => 'ghost.view', 'guard_name' => 'web']);
 
     Livewire::test(Show::class, ['user' => $this->subject])
@@ -352,7 +351,7 @@ test('a permission outside the config is refused', function (): void {
 
 test('roles that carry bypass are not offered without bypass', function (): void {
     $this->seed(RoleSeeder::class);
-    $this->admin->givePermissionTo('admin.controls.users.update-roles');
+    grantPermissions($this->admin, 'admin.controls.users.update-roles');
     Role::query()->create(['name' => 'root', 'guard_name' => 'web'])->givePermissionTo('bypass-authorization');
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
 
@@ -360,7 +359,7 @@ test('roles that carry bypass are not offered without bypass', function (): void
 });
 
 test('the super-admin role without bypass is offered like any other role', function (): void {
-    $this->admin->givePermissionTo('admin.controls.users.update-roles');
+    grantPermissions($this->admin, 'admin.controls.users.update-roles');
     Role::query()->create(['name' => 'super-admin', 'guard_name' => 'web']);
 
     expect(roleOptionStates(Livewire::test(Show::class, ['user' => $this->subject])))->toBe(['super-admin' => false]);
@@ -375,7 +374,7 @@ test('a bypass role that the user holds still shows without bypass', function ()
 
 test('ticking a role that carries bypass is refused without bypass', function (string $role): void {
     $this->seed(RoleSeeder::class);
-    $this->admin->givePermissionTo('admin.controls.users.update-roles');
+    grantPermissions($this->admin, 'admin.controls.users.update-roles');
     Role::query()->create(['name' => 'root', 'guard_name' => 'web'])->givePermissionTo('bypass-authorization');
 
     Livewire::test(Show::class, ['user' => $this->subject])
@@ -388,7 +387,7 @@ test('ticking a role that carries bypass is refused without bypass', function (s
 
 test('the super-admin role is offered with bypass', function (): void {
     $this->seed(RoleSeeder::class);
-    $this->admin->givePermissionTo('bypass-authorization');
+    grantPermissions($this->admin, 'bypass-authorization');
 
     expect(roleOptionStates(Livewire::test(Show::class, ['user' => $this->subject])))->toBe(['super-admin' => false]);
 });
@@ -401,7 +400,7 @@ test('the roles card says so when there is no role to tick', function (): void {
 test('bypass-authorization is hidden without bypass', function (): void {
     expect(treeNames(Livewire::test(Show::class, ['user' => $this->subject])->instance()->permissionTree))->not->toContain('bypass-authorization');
 
-    $this->admin->givePermissionTo('bypass-authorization');
+    grantPermissions($this->admin, 'bypass-authorization');
 
     expect(treeNames(Livewire::test(Show::class, ['user' => $this->subject])->instance()->permissionTree))->toContain('bypass-authorization');
 });
@@ -425,7 +424,7 @@ test('an unverified email can be marked as verified', function (): void {
 });
 
 test('marking an email as verified needs update', function (): void {
-    $this->admin->revokePermissionTo('admin.controls.users.update');
+    revokePermissions($this->admin, 'admin.controls.users.update');
 
     Livewire::test(Show::class, ['user' => $this->subject])
         ->call('verifyEmail')
@@ -460,7 +459,7 @@ test('the show page opens without a tab bar when no tab is available', function 
 });
 
 test('a user opened from a role leads back to the role', function (): void {
-    $this->admin->givePermissionTo('admin.controls.roles.view');
+    grantPermissions($this->admin, 'admin.controls.roles.view');
     $role = Role::query()->create(['name' => 'editor']);
 
     $this->get(route('admin.controls.roles.users.show', [$role, $this->subject]))

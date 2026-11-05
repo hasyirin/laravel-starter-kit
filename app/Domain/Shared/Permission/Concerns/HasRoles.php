@@ -15,11 +15,15 @@ trait HasRoles
 {
     use HasPermissions, SpatieHasRoles {
         HasPermissions::hasPermissionTo insteadof SpatieHasRoles;
+        HasPermissions::hasDirectPermission insteadof SpatieHasRoles;
         HasPermissions::getAllPermissions insteadof SpatieHasRoles;
+        HasPermissions::getDirectPermissions insteadof SpatieHasRoles;
+        HasPermissions::getPermissionsViaRoles insteadof SpatieHasRoles;
+        HasPermissions::getPermissionNames insteadof SpatieHasRoles;
+        HasPermissions::givePermissionTo insteadof SpatieHasRoles;
+        HasPermissions::syncPermissions insteadof SpatieHasRoles;
+        HasPermissions::revokePermissionTo insteadof SpatieHasRoles;
         HasPermissions::scopePermission insteadof SpatieHasRoles;
-        SpatieHasRoles::hasRole as protected hasOwnRole;
-        SpatieHasRoles::getRoleNames as protected getOwnRoleNames;
-        SpatieHasRoles::scopeRole as protected scopeOwnRole;
     }
 
     /**
@@ -27,7 +31,7 @@ trait HasRoles
      */
     public function hasRole($roles, ?string $guard = null): bool
     {
-        return $this->hasOwnRole($roles, $guard) || ($this->profile?->hasRole($roles, $guard) ?? false);
+        return $this->profile?->hasRole($roles, $guard) ?? false;
     }
 
     /**
@@ -44,14 +48,43 @@ trait HasRoles
     }
 
     /**
+     * @param  string|array<array-key, mixed>|Role|Collection<array-key, mixed>|BackedEnum  $roles
+     */
+    public function hasExactRoles($roles, ?string $guard = null): bool
+    {
+        return $this->profile?->hasExactRoles($roles, $guard) ?? false;
+    }
+
+    /**
      * @return Collection<int, string>
      */
     public function getRoleNames(): Collection
     {
-        /** @var Collection<int, string> $names */
-        $names = $this->getOwnRoleNames()->merge($this->profile?->getRoleNames() ?? []);
+        return $this->profile?->getRoleNames() ?? collect();
+    }
 
-        return $names->unique()->values();
+    /**
+     * @param  string|int|array<array-key, mixed>|Role|Collection<array-key, mixed>|BackedEnum  ...$roles
+     */
+    public function assignRole(...$roles): never
+    {
+        throw $this->profileOnlyException();
+    }
+
+    /**
+     * @param  string|int|array<array-key, mixed>|Role|Collection<array-key, mixed>|BackedEnum  ...$roles
+     */
+    public function syncRoles(...$roles): never
+    {
+        throw $this->profileOnlyException();
+    }
+
+    /**
+     * @param  string|int|array<array-key, mixed>|Role|Collection<array-key, mixed>|BackedEnum  ...$role
+     */
+    public function removeRole(...$role): never
+    {
+        throw $this->profileOnlyException();
     }
 
     /**
@@ -63,8 +96,10 @@ trait HasRoles
     {
         $viaProfile = fn (Builder $profile): Builder => $this->profile()->getRelated()->scopeRole($profile, $roles, $guard);
 
-        return $without
-            ? $this->scopeOwnRole($query, $roles, $guard, true)->whereDoesntHave('profile', $viaProfile)
-            : $query->where(fn (Builder $query): Builder => $this->scopeOwnRole($query, $roles, $guard)->orWhereHas('profile', $viaProfile));
+        if ($without) {
+            return $query->whereDoesntHave('profile', $viaProfile);
+        }
+
+        return $query->whereHas('profile', $viaProfile);
     }
 }

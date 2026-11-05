@@ -9,14 +9,14 @@ use App\Livewire\Pages\Admin\Controls\Role\Index;
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo('admin.access');
+    grantPermissions($this->admin, 'admin.access');
     $this->actingAs($this->admin);
 });
 
 test('the role list needs view-any', function (): void {
     $this->get(route('admin.controls.roles.index'))->assertForbidden();
 
-    $this->admin->givePermissionTo('admin.controls.roles.view-any');
+    grantPermissions($this->admin, 'admin.controls.roles.view-any');
 
     $this->get(route('admin.controls.roles.index'))
         ->assertOk()
@@ -27,7 +27,7 @@ test('the role list needs view-any', function (): void {
 test('the navigation shows the roles item only with view-any', function (): void {
     $this->get(route('admin.dashboard'))->assertDontSee(route('admin.controls.roles.index'));
 
-    $this->admin->givePermissionTo('admin.controls.roles.view-any');
+    grantPermissions($this->admin, 'admin.controls.roles.view-any');
 
     $this->get(route('admin.dashboard'))->assertSee(route('admin.controls.roles.index'));
 });

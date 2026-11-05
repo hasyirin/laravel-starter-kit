@@ -15,7 +15,7 @@ beforeEach(function (): void {
     $this->seed([PermissionSeeder::class, RoleSeeder::class]);
 
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo(
+    grantPermissions($this->admin,
         'admin.access',
         'admin.controls.users.view-any',
         'admin.controls.users.view',
@@ -53,7 +53,7 @@ test('the delete action is hidden on your own row', function (): void {
 
 test('the delete action is hidden without the delete permission', function (): void {
     $other = User::factory()->create();
-    $this->admin->revokePermissionTo('admin.controls.users.delete');
+    revokePermissions($this->admin, 'admin.controls.users.delete');
 
     Livewire::test(UserDataTable::class)
         ->assertActionHidden(TestAction::make('delete')->table($other));

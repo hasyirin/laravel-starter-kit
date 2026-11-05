@@ -22,7 +22,7 @@ beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
 
     $this->admin = User::factory()->create(['name' => 'Ada Admin']);
-    $this->admin->givePermissionTo('admin.access', 'admin.controls.users.view', 'admin.controls.users.view-audit-log');
+    grantPermissions($this->admin, 'admin.access', 'admin.controls.users.view', 'admin.controls.users.view-audit-log');
 
     $this->subject = User::factory()->create(['name' => 'Sam Subject']);
     $this->other = User::factory()->create(['name' => 'Olive Other']);
@@ -119,7 +119,7 @@ test('the search finds an entry by who did it, a changed value, or its event', f
 })->with(['who did it' => ['ada'], 'a changed value' => ['again'], 'its event' => ['created']]);
 
 test('the audit tab needs view-audit-log', function (string $component, array $params): void {
-    $this->admin->revokePermissionTo('admin.controls.users.view-audit-log');
+    revokePermissions($this->admin, 'admin.controls.users.view-audit-log');
     $this->actingAs($this->admin);
 
     Livewire::test($component, ['user' => $this->subject, ...$params])->assertForbidden();

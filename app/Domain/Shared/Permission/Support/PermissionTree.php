@@ -8,12 +8,12 @@ use Illuminate\Support\Collection;
 
 /**
  * @phpstan-type PermissionLeaf array{name: string, label: string}
- * @phpstan-type PermissionNode array{key: string, label: string, kind: 'area'|'resource', permissions: array<int, PermissionLeaf>, children: array<int, array<string, mixed>>}
+ * @phpstan-type PermissionNode array{key: string, label: string, kind: 'group'|'resource', permissions: array<int, PermissionLeaf>, children: array<int, array<string, mixed>>}
  * @phpstan-type PermissionPath array{name: string, rest: string}
  */
 class PermissionTree
 {
-    private const string GROUP_ACTION = 'access';
+    private const string GROUP_ABILITY = 'access';
 
     /**
      * @return Collection<int, string>
@@ -43,11 +43,11 @@ class PermissionTree
      */
     private static function node(string $key, string $label, Collection $paths): array
     {
-        $actions = $paths->filter(self::isAction(...));
-        $groups = $paths->reject(self::isAction(...));
+        $abilities = $paths->filter(self::isAbility(...));
+        $groups = $paths->reject(self::isAbility(...));
 
-        $permissions = $actions
-            ->map(fn (array $path): array => ['name' => $path['name'], 'label' => self::label('actions', $path['rest'])])
+        $permissions = $abilities
+            ->map(fn (array $path): array => ['name' => $path['name'], 'label' => self::label('abilities', $path['rest'])])
             ->values()
             ->all();
 
@@ -60,7 +60,7 @@ class PermissionTree
         return [
             'key' => $key,
             'label' => $label,
-            'kind' => self::kind($children, $actions),
+            'kind' => self::kind($children, $abilities),
             'permissions' => $permissions,
             'children' => $children,
         ];
@@ -80,26 +80,26 @@ class PermissionTree
     /**
      * @param  PermissionPath  $path
      */
-    private static function isAction(array $path): bool
+    private static function isAbility(array $path): bool
     {
         return ! str_contains($path['rest'], '.');
     }
 
     /**
      * @param  array<int, array<string, mixed>>  $children
-     * @param  Collection<array-key, PermissionPath>  $actions
-     * @return 'area'|'resource'
+     * @param  Collection<array-key, PermissionPath>  $abilities
+     * @return 'group'|'resource'
      */
-    private static function kind(array $children, Collection $actions): string
+    private static function kind(array $children, Collection $abilities): string
     {
         if ($children !== []) {
-            return 'area';
+            return 'group';
         }
 
-        $groupOnly = $actions->every(fn (array $path): bool => $path['rest'] === self::GROUP_ACTION);
+        $groupOnly = $abilities->every(fn (array $path): bool => $path['rest'] === self::GROUP_ABILITY);
 
         if ($groupOnly) {
-            return 'area';
+            return 'group';
         }
 
         return 'resource';

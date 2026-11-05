@@ -11,7 +11,7 @@ use Livewire\Livewire;
 test('the sidebar shows the admin link below a spacer to users with admin access', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.access');
+    grantPermissions($user, 'admin.access');
     $this->actingAs($user);
 
     $component = Livewire::test(Sidebar::class);
@@ -22,7 +22,7 @@ test('the sidebar shows the admin link below a spacer to users with admin access
 test('the sidebar shows the internal link below a spacer to users with internal access', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('internal.access');
+    grantPermissions($user, 'internal.access');
     $this->actingAs($user);
 
     $component = Livewire::test(Sidebar::class);

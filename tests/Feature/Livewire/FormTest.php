@@ -11,7 +11,7 @@ use Tests\Fixtures\Livewire\AbilityCheckFormHost;
 test('the ability helpers check the permissions of the current user', function (array $permissions, array $results): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo(...$permissions);
+    grantPermissions($user, ...$permissions);
     $this->actingAs($user);
 
     $component = Livewire::test(AbilityCheckFormHost::class);
@@ -26,7 +26,7 @@ test('the ability helpers check the permissions of the current user', function (
 test('authorize checks the permissions of the current user', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.horizon.view');
+    grantPermissions($user, 'admin.horizon.view');
     $this->actingAs($user);
 
     $form = Livewire::test(AbilityCheckFormHost::class)->instance()->form;

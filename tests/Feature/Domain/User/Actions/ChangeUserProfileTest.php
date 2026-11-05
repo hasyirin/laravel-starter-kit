@@ -153,7 +153,7 @@ test('only a bypass holder can give or remove bypass-authorization or the super-
     expect(fn (): ?Profile => ChangeUserProfile::make()->execute($this->actor, $this->user, ...$give))->toThrow(AuthorizationException::class)
         ->and($this->user->profiles()->count())->toBe(0);
 
-    $this->actor->givePermissionTo('bypass-authorization');
+    grantPermissions($this->actor, 'bypass-authorization');
 
     expect(changeUserProfileSnapshot(ChangeUserProfile::make()->execute($this->actor, $this->user, ...$give))[$argument])->toBe([$name])
         ->and(changeUserProfileSnapshot(ChangeUserProfile::make()->execute($this->actor, $this->user, ...$remove))[$argument])->toBeEmpty();

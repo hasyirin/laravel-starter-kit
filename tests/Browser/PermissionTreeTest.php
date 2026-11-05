@@ -11,7 +11,7 @@ beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
 
     $admin = User::factory()->create();
-    $admin->givePermissionTo(
+    grantPermissions($admin,
         'admin.access',
         'admin.controls.users.view',
         'admin.controls.users.update',

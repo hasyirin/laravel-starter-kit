@@ -46,7 +46,7 @@ test('a passkey of another user cannot be revoked', function (): void {
 test('a user without bypass-authorization cannot revoke a passkey of a user who has it', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('bypass-authorization');
+    grantPermissions($user, 'bypass-authorization');
 
     $passkey = userPasskey($user);
 

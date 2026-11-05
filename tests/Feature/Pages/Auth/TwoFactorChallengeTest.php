@@ -37,7 +37,7 @@ test('users who pass the two factor challenge go to the highest area they can op
     ]);
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->withTwoFactor()->create();
-    $user->givePermissionTo('internal.access');
+    grantPermissions($user, 'internal.access');
 
     $this->post(route('login.store'), [
         'email' => $user->email,

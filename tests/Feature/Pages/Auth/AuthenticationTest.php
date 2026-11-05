@@ -30,7 +30,7 @@ test('users can authenticate using the login screen', function (): void {
 test('users go to the highest area they can open after login', function (array $permissions, string $dashboard): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo(...$permissions);
+    grantPermissions($user, ...$permissions);
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
@@ -47,7 +47,7 @@ test('users go to the highest area they can open after login', function (array $
 test('users go to the page they asked for before login', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    $user->givePermissionTo('admin.access');
+    grantPermissions($user, 'admin.access');
     $this->get(route('user-information.edit'));
 
     $response = $this->post(route('login.store'), [

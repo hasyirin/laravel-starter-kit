@@ -106,10 +106,10 @@ test('the allowed states pass the guards and the permissions of the user', funct
     $ticket->state->transitionTo(InReview::class);
 
     $reviewer = User::factory()->create();
-    $reviewer->givePermissionTo(array_values(TicketPolicy::PERMISSIONS));
+    grantPermissions($reviewer, array_values(TicketPolicy::PERMISSIONS));
 
     $returner = User::factory()->create();
-    $returner->givePermissionTo('internal.tickets.returned');
+    grantPermissions($returner, 'internal.tickets.returned');
 
     $allowed = fn (User $user): array => array_map(fn (State $state): string => $state::getMorphClass(), $ticket->state->allowedFor($user));
 

@@ -1,6 +1,6 @@
 # Routes and Access Areas
 
-The app has four areas, and each area has its own route file. A fifth file holds tools for developers. `routes/web.php` loads the five files and gives each one its middleware, URL prefix, and route name prefix. All five also get the `web` middleware group.
+The app has four areas, and each area has its own route file. A fifth file, `routes/local.php`, holds tools for developers, and it is not an area. `routes/web.php` loads the five files and gives each one its middleware, URL prefix, and route name prefix. All five also get the `web` middleware group.
 
 | Area     | File                  | Who can open it                    | URL prefix  | Name prefix | Middleware                                |
 |----------|-----------------------|------------------------------------|-------------|-------------|-------------------------------------------|
@@ -8,7 +8,6 @@ The app has four areas, and each area has its own route file. A fifth file holds
 | App      | `routes/app.php`      | Signed-in users                    | None        | None        | `auth`                                    |
 | Internal | `routes/internal.php` | Users with `internal.access`       | `/internal` | `internal.` | `auth`, `verified`, `can:internal.access` |
 | Admin    | `routes/admin.php`    | Users with `admin.access`          | `/admin`    | `admin.`    | `auth`, `verified`, `can:admin.access`    |
-| Local    | `routes/local.php`    | Everyone, in the local environment | None        | None        | `EnsureLocalEnvironment`                  |
 
 Fortify registers the routes for login, registration, password reset, email verification, two-factor authentication, and passkeys. Do not add them to `guest.php`.
 
@@ -17,8 +16,9 @@ Fortify registers the routes for login, registration, password reset, email veri
 - **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to this file. That middleware sends signed-in users away, so these routes would stop working for them.
 - **App**: pages for every signed-in user, such as the dashboard and the settings pages, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` middleware to a route that needs a verified email address.
 - **Internal**: the daily work of the staff, for example orders and reports.
-- **Admin**: the administration of the system: users, roles, permissions, and Horizon.
-- **Local**: tools for developers, such as the live component docs at `/docs/components`. `EnsureLocalEnvironment` answers 404 in every other environment, so these routes stay registered but never open in production.
+- **Admin**: the tools that run the system, such as users, roles, permissions, and Horizon.
+
+Put tools for developers, such as the live component docs at `/docs/components`, in `routes/local.php`. Everyone can open them in the local environment, and the routes get no URL or name prefix. In every other environment, `EnsureLocalEnvironment` answers 404, so these routes stay registered but never open in production.
 
 ## Add a Route
 
@@ -44,9 +44,9 @@ Put page tests in `tests/Feature/Pages/`. The internal and admin areas have thei
 ## Give Access
 
 - `config/system.php` defines `internal.access` and `admin.access`. `PermissionSeeder` creates them.
-- A user gets their permissions from their active profile, directly or through a role. See **Profiles** in the README.
+- A user gets their permissions only from their active profile: from the profile itself or through its roles. See **Profiles** in the README.
 - The two areas are separate. `admin.access` does not open the internal area, so give both permissions to a user who needs both areas.
-- The super admin role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
+- The `super-admin` role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
 - Other permissions control the parts of the admin area: `admin.horizon.view` for Horizon, `admin.controls.roles.*` for roles, and `admin.controls.users.*` for users.
 
 ## After Login

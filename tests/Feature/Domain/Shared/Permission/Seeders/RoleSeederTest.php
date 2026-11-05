@@ -11,7 +11,7 @@ beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
 });
 
-test('seeding creates only the super admin role, with the bypass-authorization permission', function (): void {
+test('seeding creates only the super-admin role, with the bypass-authorization permission', function (): void {
     $this->seed(RoleSeeder::class);
 
     expect(Role::query()->pluck('name')->all())->toBe(['super-admin'])

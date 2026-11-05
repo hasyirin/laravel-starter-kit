@@ -86,7 +86,7 @@ test('the placement, the roles, and the permissions change in one new profile', 
 
 test('a user without bypass-authorization cannot change a user who has it', function (): void {
     $this->seed(PermissionSeeder::class);
-    $this->user->givePermissionTo('bypass-authorization');
+    grantPermissions($this->user, 'bypass-authorization');
 
     expect(fn () => UpdateUser::make()->execute($this->actor, $this->user, 'New Name', 'new@example.com', 'new-password', $this->placement))
         ->toThrow(AuthorizationException::class);
@@ -95,5 +95,5 @@ test('a user without bypass-authorization cannot change a user who has it', func
     expect($fresh->name)->not->toBe('New Name')
         ->and($fresh->email)->not->toBe('new@example.com')
         ->and(Hash::check('old-password', $fresh->password))->toBeTrue()
-        ->and($this->user->profiles()->count())->toBe(0);
+        ->and($this->user->profiles()->count())->toBe(1);
 });

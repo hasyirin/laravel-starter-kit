@@ -9,4 +9,4 @@ The audit log records the changes to every column of a model, not only the filla
 ## Consequences
 
 - The log is a deny list. Put each column that holds a secret, for example a token or a password, in `$hidden`, or its value goes into the audit log.
-- Pivot changes, for example the permissions of a role, do not change a column. The Action that syncs them logs them.
+- Pivot changes, for example the permissions of a role, do not change a column. The Action class that syncs them logs them.

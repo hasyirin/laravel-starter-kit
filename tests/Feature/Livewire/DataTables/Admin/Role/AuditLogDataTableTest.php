@@ -16,7 +16,7 @@ beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
     $this->admin = User::factory()->create(['name' => 'Ada Admin']);
-    $this->admin->givePermissionTo('admin.access', 'admin.controls.roles.view', 'admin.controls.roles.view-audit-log');
+    grantPermissions($this->admin, 'admin.access', 'admin.controls.roles.view', 'admin.controls.roles.view-audit-log');
     $this->actingAs($this->admin);
     $this->role = Role::query()->create(['name' => 'editor']);
     $this->other = Role::query()->create(['name' => 'other']);
@@ -34,7 +34,7 @@ test('the list shows only the changes to the role, with who made them', function
 });
 
 test('the audit needs view-audit-log', function (string $component): void {
-    $this->admin->revokePermissionTo('admin.controls.roles.view-audit-log');
+    revokePermissions($this->admin, 'admin.controls.roles.view-audit-log');
 
     Livewire::test($component, ['role' => $this->role])->assertForbidden();
 })->with([AuditLogDataTable::class, AuditEntryModal::class]);

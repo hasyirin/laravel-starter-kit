@@ -14,7 +14,7 @@ beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo('admin.access', 'admin.controls.roles.view');
+    grantPermissions($this->admin, 'admin.access', 'admin.controls.roles.view');
     $this->actingAs($this->admin);
     $this->role = Role::query()->create(['name' => 'editor']);
 });
@@ -24,7 +24,7 @@ test('the users tab shows with view-any on users', function (): void {
         ->assertDontSee(__('permission/roles.tabs.users'))
         ->assertDontSeeLivewire(UserDataTable::class);
 
-    $this->admin->givePermissionTo('admin.controls.users.view-any');
+    grantPermissions($this->admin, 'admin.controls.users.view-any');
 
     Livewire::test(Tabs::class, ['role' => $this->role])
         ->assertSet('tab', '')
@@ -35,9 +35,9 @@ test('the audit tab shows with view-audit-log', function (): void {
     Livewire::test(Tabs::class, ['role' => $this->role])
         ->assertDontSee(__('permission/roles.tabs.audit'));
 
-    $this->admin->givePermissionTo('admin.controls.roles.view-audit-log');
+    grantPermissions($this->admin, 'admin.controls.roles.view-audit-log');
 
-    $this->admin->givePermissionTo('admin.controls.users.view-any');
+    grantPermissions($this->admin, 'admin.controls.users.view-any');
 
     Livewire::withQueryParams(['tab' => 'audit'])
         ->test(Tabs::class, ['role' => $this->role])

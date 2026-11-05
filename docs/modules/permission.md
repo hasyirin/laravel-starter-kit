@@ -4,9 +4,9 @@ The app checks access with permissions, and roles group permissions. A user gets
 
 ## Add a Permission
 
-1. Add the permission to `permissions` in `config/system.php`. Give it a key path that matches its name, for example `admin.controls.roles.view`.
+1. Add the permission to `permissions` in `config/system.php`. Give it a key path that matches its name, for example `internal.controls.roles.view`.
 2. Run `php artisan db:seed --class="App\Domain\Shared\Permission\Seeders\PermissionSeeder"`. It creates the new permission and deletes the permissions that are no longer in the config. Do not run all the seeders in production, because `UserSeeder` creates the default users.
-3. Check the permission in a policy that extends `Policy`. `Policy::path()` builds the config key of a permission from the root, the policy prefix, the plural model name, and the ability. For example, `RolePolicy` checks `admin.controls.roles.view` for the `view` ability.
+3. Check the permission in a policy that extends `Policy`. `Policy::path()` builds the config key of a permission from the root, the policy prefix, the plural model name, and the ability. For example, `RolePolicy` checks `internal.controls.roles.view` for the `view` ability.
 
 ## Add a Role
 
@@ -24,27 +24,27 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 
 <!-- generated:permission-matrix -->
 
-| Permission                                | System Administrator |
-|-------------------------------------------|----------------------|
-| `bypass-authorization`                    | ✓                    |
-| `internal.access`                         | ✓                    |
-| `system.access`                           | ✓                    |
-| `admin.horizon.view`                      | ✓                    |
-| `admin.controls.roles.view-any`           | ✓                    |
-| `admin.controls.roles.view`               | ✓                    |
-| `admin.controls.roles.create`             | ✓                    |
-| `admin.controls.roles.update`             | ✓                    |
-| `admin.controls.roles.update-permissions` | ✓                    |
-| `admin.controls.roles.delete`             | ✓                    |
-| `admin.controls.roles.view-audit-log`     | ✓                    |
-| `admin.controls.users.view-any`           | ✓                    |
-| `admin.controls.users.view`               | ✓                    |
-| `admin.controls.users.create`             | ✓                    |
-| `admin.controls.users.update`             | ✓                    |
-| `admin.controls.users.update-permissions` | ✓                    |
-| `admin.controls.users.update-roles`       | ✓                    |
-| `admin.controls.users.delete`             | ✓                    |
-| `admin.controls.users.view-audit-log`     | ✓                    |
+| Permission                                   | System Administrator |
+|----------------------------------------------|----------------------|
+| `bypass-authorization`                       | ✓                    |
+| `internal.access`                            | ✓                    |
+| `internal.controls.roles.view-any`           | ✓                    |
+| `internal.controls.roles.view`               | ✓                    |
+| `internal.controls.roles.create`             | ✓                    |
+| `internal.controls.roles.update`             | ✓                    |
+| `internal.controls.roles.update-permissions` | ✓                    |
+| `internal.controls.roles.delete`             | ✓                    |
+| `internal.controls.roles.view-audit-log`     | ✓                    |
+| `internal.controls.users.view-any`           | ✓                    |
+| `internal.controls.users.view`               | ✓                    |
+| `internal.controls.users.create`             | ✓                    |
+| `internal.controls.users.update`             | ✓                    |
+| `internal.controls.users.update-permissions` | ✓                    |
+| `internal.controls.users.update-roles`       | ✓                    |
+| `internal.controls.users.delete`             | ✓                    |
+| `internal.controls.users.view-audit-log`     | ✓                    |
+| `system.access`                              | ✓                    |
+| `system.horizon.view`                        | ✓                    |
 
 A role with `bypass-authorization` passes every check.
 

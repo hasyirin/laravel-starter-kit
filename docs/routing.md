@@ -15,8 +15,8 @@ Fortify registers the routes for login, registration, password reset, email veri
 
 - **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to this file. That middleware sends signed-in users away, so these routes would stop working for them.
 - **App**: pages for every signed-in user, such as the dashboard and the settings pages, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` middleware to a route that needs a verified email address.
-- **Internal**: the daily work of the staff, for example orders and reports.
-- **Admin**: the tools that run the system, such as users, roles, permissions, and Horizon.
+- **Internal**: the daily work of the staff, such as users, roles, orders, and reports.
+- **Admin**: the tools that run the system, such as Horizon.
 
 Put tools for developers, such as the live component docs at `/docs/components`, in `routes/local.php`. Everyone can open them in the local environment, and the routes get no URL or name prefix. In every other environment, `EnsureLocalEnvironment` answers 404, so these routes stay registered but never open in production.
 
@@ -47,7 +47,7 @@ Put page tests in `tests/Feature/Pages/`. The internal and admin areas have thei
 - A user gets their permissions from their active profile, and from roles and permissions given to the user directly. See **Profiles** in the README.
 - The two areas are separate. `system.access` does not open the internal area, so give both permissions to a user who needs both areas.
 - The `system-admin` role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
-- Other permissions control the parts of the admin area: `admin.horizon.view` for Horizon, `admin.controls.roles.*` for roles, and `admin.controls.users.*` for users.
+- Other permissions control the parts of each area: `internal.controls.roles.*` and `internal.controls.users.*` for the roles and users pages, and `system.horizon.view` for Horizon.
 
 ## After Login
 
@@ -91,7 +91,7 @@ Two groups of pages do not extend `Page`. The settings pages extend `Livewire\Co
 
 ## Horizon
 
-The Horizon dashboard is at `/admin/horizon`. Set `HORIZON_PATH` to move it. Horizon registers its own routes, so the middleware of the admin area does not apply to them. Horizon checks `admin.horizon.view` itself, except in the local environment, where everyone can open it.
+The Horizon dashboard is at `/admin/horizon`. Set `HORIZON_PATH` to move it. Horizon registers its own routes, so the middleware of the admin area does not apply to them. Horizon checks `system.horizon.view` itself, except in the local environment, where everyone can open it.
 
 ## Rules
 

@@ -25,34 +25,32 @@ return [
         'bypass-authorization' => 'bypass-authorization',
         'internal' => [
             'access' => 'internal.access',
+            'controls' => [
+                'roles' => [
+                    'view-any' => 'internal.controls.roles.view-any',
+                    'view' => 'internal.controls.roles.view',
+                    'create' => 'internal.controls.roles.create',
+                    'update' => 'internal.controls.roles.update',
+                    'update-permissions' => 'internal.controls.roles.update-permissions',
+                    'delete' => 'internal.controls.roles.delete',
+                    'view-audit-log' => 'internal.controls.roles.view-audit-log',
+                ],
+                'users' => [
+                    'view-any' => 'internal.controls.users.view-any',
+                    'view' => 'internal.controls.users.view',
+                    'create' => 'internal.controls.users.create',
+                    'update' => 'internal.controls.users.update',
+                    'update-permissions' => 'internal.controls.users.update-permissions',
+                    'update-roles' => 'internal.controls.users.update-roles',
+                    'delete' => 'internal.controls.users.delete',
+                    'view-audit-log' => 'internal.controls.users.view-audit-log',
+                ],
+            ],
         ],
         'system' => [
             'access' => 'system.access',
-        ],
-        'admin' => [
             'horizon' => [
-                'view' => 'admin.horizon.view',
-            ],
-            'controls' => [
-                'roles' => [
-                    'view-any' => 'admin.controls.roles.view-any',
-                    'view' => 'admin.controls.roles.view',
-                    'create' => 'admin.controls.roles.create',
-                    'update' => 'admin.controls.roles.update',
-                    'update-permissions' => 'admin.controls.roles.update-permissions',
-                    'delete' => 'admin.controls.roles.delete',
-                    'view-audit-log' => 'admin.controls.roles.view-audit-log',
-                ],
-                'users' => [
-                    'view-any' => 'admin.controls.users.view-any',
-                    'view' => 'admin.controls.users.view',
-                    'create' => 'admin.controls.users.create',
-                    'update' => 'admin.controls.users.update',
-                    'update-permissions' => 'admin.controls.users.update-permissions',
-                    'update-roles' => 'admin.controls.users.update-roles',
-                    'delete' => 'admin.controls.users.delete',
-                    'view-audit-log' => 'admin.controls.users.view-audit-log',
-                ],
+                'view' => 'system.horizon.view',
             ],
         ],
     ],

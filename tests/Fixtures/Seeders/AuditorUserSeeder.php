@@ -14,7 +14,7 @@ class AuditorUserSeeder extends UserSeeder
             [
                 'name' => 'Auditor',
                 'email' => 'auditor@example.com',
-                'permissions' => ['system.access', 'admin.horizon.view'],
+                'permissions' => ['system.access', 'system.horizon.view'],
             ],
         ];
     }

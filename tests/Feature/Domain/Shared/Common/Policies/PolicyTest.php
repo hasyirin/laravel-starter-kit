@@ -32,7 +32,7 @@ beforeEach(function (): void {
 });
 
 test('the path uses the root, the prefix, the plural model name, and the action', function (): void {
-    expect(new RolePolicy()->path('update-permissions'))->toBe('system.permissions.admin.controls.roles.update-permissions');
+    expect(new RolePolicy()->path('update-permissions'))->toBe('system.permissions.internal.controls.roles.update-permissions');
 });
 
 test('the path uses the model property when it is set', function (): void {
@@ -43,7 +43,7 @@ function rolePermissionsPolicy(): object
 {
     return new class extends Policy
     {
-        protected static string $prefix = 'admin.controls';
+        protected static string $prefix = 'internal.controls';
 
         protected static ?string $model = Role::class;
 
@@ -66,7 +66,7 @@ test('has any permission accepts strings, arrays, and collections', function (mi
 
     expect(rolePermissionsPolicy()->any($user, ...$actions))->toBeFalse();
 
-    grantPermissions($user, 'admin.controls.roles.view');
+    grantPermissions($user, 'internal.controls.roles.view');
 
     expect(rolePermissionsPolicy()->any($user, ...$actions))->toBeTrue();
 })->with([
@@ -80,11 +80,11 @@ test('has all permissions needs every permission', function (mixed $actions): vo
     $this->seed(PermissionSeeder::class);
 
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.controls.roles.view');
+    grantPermissions($user, 'internal.controls.roles.view');
 
     expect(rolePermissionsPolicy()->all($user, ...$actions))->toBeFalse();
 
-    grantPermissions($user, 'admin.controls.roles.view-any');
+    grantPermissions($user, 'internal.controls.roles.view-any');
 
     expect(rolePermissionsPolicy()->all($user, ...$actions))->toBeTrue();
 })->with([

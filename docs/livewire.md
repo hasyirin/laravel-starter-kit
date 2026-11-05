@@ -24,7 +24,7 @@ A `refresh` event without `to()` renders every component on the page again. Do n
 
 ## Forms
 
-A form object holds the input of one record. It extends `App\Livewire\Form` and lives in a folder under `app/Livewire/Forms`, such as `app/Livewire/Forms/Admin`. One form serves both the create page and the edit page. `App\Livewire\Forms\Admin\UserForm` is the example.
+A form object holds the input of one record. It extends `App\Livewire\Form` and lives in a folder under `app/Livewire/Forms`, such as `app/Livewire/Forms/Internal`. One form serves both the create page and the edit page. `App\Livewire\Forms\Internal\UserForm` is the example.
 
 A form has two main methods:
 

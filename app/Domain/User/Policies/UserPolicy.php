@@ -9,7 +9,7 @@ use App\Domain\User\Models\User;
 
 class UserPolicy extends Policy
 {
-    protected static string $prefix = 'admin.controls';
+    protected static string $prefix = 'internal.controls';
 
     public function viewAny(User $user): bool
     {

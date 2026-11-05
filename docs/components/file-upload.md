@@ -74,7 +74,7 @@ With `multiple`, the user can drag the files into a new order. `SyncMedia` store
 
 ## Stored Files
 
-Each stored file links to the `media.show` route. The route asks the policy of the model that owns the file for its `view` ability, so give that policy a `view` method. For a file of a user, `UserPolicy` lets the user open it, and also a user with `admin.controls.users.view` or `admin.controls.users.view-any`. An image opens in the browser, and other files download. An SVG image downloads too, because it can hold a script.
+Each stored file links to the `media.show` route. The route asks the policy of the model that owns the file for its `view` ability, so give that policy a `view` method. For a file of a user, `UserPolicy` lets the user open it, and also a user with `internal.controls.users.view` or `internal.controls.users.view-any`. An image opens in the browser, and other files download. An SVG image downloads too, because it can hold a script.
 
 The media disk is private, so this route is the only way to a stored file. `getUrl()` of a media gives this route too, also for a conversion, such as `getUrl('preview')`. A conversion is an image, so it always opens in the browser.
 

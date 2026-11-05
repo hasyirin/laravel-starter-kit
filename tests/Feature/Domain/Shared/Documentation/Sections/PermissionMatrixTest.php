@@ -12,9 +12,9 @@ test('the matrix marks the permissions of each seeded role', function (): void {
 
     expect(new PermissionMatrix()->render([]))
         ->toMatch('/^\| Permission +\| user\/roles\.auditor +\| System Administrator +\|$/m')
-        ->toMatch('/^\| `system\.access` +\| ✓ +\| ✓ +\|$/m')
-        ->toMatch('/^\| `admin\.controls\.roles\.delete` +\| +\| ✓ +\|$/m')
-        ->toMatch('/^\| `internal\.access` +\| +\| ✓ +\|$/m')
+        ->toMatch('/^\| `system\.access` +\| +\| ✓ +\|$/m')
+        ->toMatch('/^\| `internal\.controls\.roles\.delete` +\| +\| ✓ +\|$/m')
+        ->toMatch('/^\| `internal\.access` +\| ✓ +\| ✓ +\|$/m')
         ->toEndWith('A role with `bypass-authorization` passes every check.');
 });
 

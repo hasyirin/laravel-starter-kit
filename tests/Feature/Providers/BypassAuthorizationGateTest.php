@@ -36,7 +36,7 @@ test('a user with a role gets the permissions of that role', function (): void {
     grantRoles($user, $role);
 
     expect($user->can('system.access'))->toBeTrue()
-        ->and($user->can('admin.controls.users.delete'))->toBeFalse();
+        ->and($user->can('internal.controls.users.delete'))->toBeFalse();
 });
 
 test('ability checks do not fail when the bypass-authorization permission does not exist', function (): void {

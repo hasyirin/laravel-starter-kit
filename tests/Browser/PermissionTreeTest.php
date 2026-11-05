@@ -12,18 +12,18 @@ beforeEach(function (): void {
 
     $actor = User::factory()->create();
     grantPermissions($actor,
-        'system.access',
-        'admin.controls.users.view',
-        'admin.controls.users.update',
-        'admin.controls.users.update-roles',
-        'admin.controls.users.update-permissions',
+        'internal.access',
+        'internal.controls.users.view',
+        'internal.controls.users.update',
+        'internal.controls.users.update-roles',
+        'internal.controls.users.update-permissions',
     );
     $this->actingAs($actor);
 
     Role::query()->create(['name' => 'editor', 'guard_name' => 'web'])->givePermissionTo('system.access');
     Role::query()->create(['name' => 'viewer', 'guard_name' => 'web'])->givePermissionTo('internal.access');
     $this->subject = User::factory()->create();
-    Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('admin.controls.users.view')->create();
+    Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('internal.controls.users.view')->create();
 });
 
 function permissionTreeScript(string $body): string
@@ -53,19 +53,19 @@ function permissionTreeScript(string $body): string
 }
 
 test('ticking a resource box ticks all of its actions', function (): void {
-    $page = visit(route('admin.controls.users.show', $this->subject, false));
+    $page = visit(route('internal.controls.users.show', $this->subject, false));
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
-        tree().querySelector('[data-node="admin.controls.roles"] [data-resource-box]').click();
+        tree().querySelector('[data-node="internal.controls.roles"] [data-resource-box]').click();
 
-        return await until(() => chips('admin.controls.roles').length === 7 && chips('admin.controls.roles').every(ticked));
+        return await until(() => chips('internal.controls.roles').length === 7 && chips('internal.controls.roles').every(ticked));
         SCRIPT)))->toBeTrue();
 
     $page->assertNoJavaScriptErrors();
 });
 
 test('search shows only matching actions', function (): void {
-    $page = visit(route('admin.controls.users.show', $this->subject, false));
+    $page = visit(route('internal.controls.users.show', $this->subject, false));
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         const search = tree().querySelector('input');
@@ -76,18 +76,18 @@ test('search shows only matching actions', function (): void {
 
         return shownChips().map((element) => [element.dataset.permission, element.querySelector('mark')?.textContent]);
         SCRIPT)))->toBe([
-        ['admin.controls.roles.update', 'Upd'],
-        ['admin.controls.roles.update-permissions', 'Upd'],
-        ['admin.controls.users.update', 'Upd'],
-        ['admin.controls.users.update-permissions', 'Upd'],
-        ['admin.controls.users.update-roles', 'Upd'],
+        ['internal.controls.roles.update', 'Upd'],
+        ['internal.controls.roles.update-permissions', 'Upd'],
+        ['internal.controls.users.update', 'Upd'],
+        ['internal.controls.users.update-permissions', 'Upd'],
+        ['internal.controls.users.update-roles', 'Upd'],
     ]);
 
     $page->assertNoJavaScriptErrors();
 });
 
 test('ticking a role marks its permissions as given by that role', function (): void {
-    $page = visit(route('admin.controls.users.show', $this->subject, false));
+    $page = visit(route('internal.controls.users.show', $this->subject, false));
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         await openCard('Roles');
@@ -106,7 +106,7 @@ test('ticking a role marks its permissions as given by that role', function (): 
 });
 
 test('a permission that a role gives can also be ticked as direct, and stays when the role is removed', function (): void {
-    $page = visit(route('admin.controls.users.show', $this->subject, false));
+    $page = visit(route('internal.controls.users.show', $this->subject, false));
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         await openCard('Roles');
@@ -125,7 +125,7 @@ test('a permission that a role gives can also be ticked as direct, and stays whe
 });
 
 test('the save button of the form saves the ticked permissions and keeps the search', function (): void {
-    $page = visit(route('admin.controls.users.show', $this->subject, false));
+    $page = visit(route('internal.controls.users.show', $this->subject, false));
 
     expect($page->script(permissionTreeScript(<<<'SCRIPT'
         const search = tree().querySelector('input');
@@ -133,24 +133,24 @@ test('the save button of the form saves the ticked permissions and keeps the sea
         search.dispatchEvent(new Event('input', { bubbles: true }));
         await until(() => shownChips().length === 2);
 
-        chip('admin.controls.users.create').click();
-        await until(() => ticked(chip('admin.controls.users.create')));
+        chip('internal.controls.users.create').click();
+        await until(() => ticked(chip('internal.controls.users.create')));
 
         document.querySelector('form[data-card-group] button[type="submit"]').click();
 
         return await until(() => document.body.textContent.includes('User updated.'))
             && shownChips().length === 2
-            && ticked(chip('admin.controls.users.create'));
+            && ticked(chip('internal.controls.users.create'));
         SCRIPT)))->toBeTrue();
 
     expect($this->subject->fresh()->profile->getPermissionNames()->sort()->values()->all())
-        ->toBe(['admin.controls.users.create', 'admin.controls.users.view']);
+        ->toBe(['internal.controls.users.create', 'internal.controls.users.view']);
 
     $page->assertNoJavaScriptErrors();
 });
 
 test('enter in the search does not send the form', function (): void {
-    $page = visit(route('admin.controls.users.show', $this->subject, false));
+    $page = visit(route('internal.controls.users.show', $this->subject, false));
 
     $page->script(permissionTreeScript(<<<'SCRIPT'
         tree().closest('form').addEventListener('submit', () => (window.formSent = true), { capture: true });

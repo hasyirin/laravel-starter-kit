@@ -52,7 +52,7 @@ test('the ability helpers check the permissions of the current user', function (
     $component->assertSet('results', $results);
 })->with([
     'with system access' => [['system.access'], ['can' => true, 'cannot' => false, 'canAny' => true, 'cannotAny' => false]],
-    'with Horizon access only' => [['admin.horizon.view'], ['can' => false, 'cannot' => true, 'canAny' => true, 'cannotAny' => false]],
+    'with Horizon access only' => [['system.horizon.view'], ['can' => false, 'cannot' => true, 'canAny' => true, 'cannotAny' => false]],
     'without permissions' => [[], ['can' => false, 'cannot' => true, 'canAny' => false, 'cannotAny' => true]],
 ]);
 

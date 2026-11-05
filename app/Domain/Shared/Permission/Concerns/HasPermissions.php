@@ -7,20 +7,25 @@ namespace App\Domain\Shared\Permission\Concerns;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use LogicException;
 use Spatie\Permission\Contracts\Permission;
 use Spatie\Permission\Traits\HasPermissions as SpatieHasPermissions;
 
 trait HasPermissions
 {
-    use SpatieHasPermissions;
+    use SpatieHasPermissions {
+        hasPermissionTo as protected hasOwnPermissionTo;
+        hasDirectPermission as protected hasOwnDirectPermission;
+        getAllPermissions as protected getOwnPermissions;
+        getPermissionsViaRoles as protected getOwnPermissionsViaRoles;
+        scopePermission as protected scopeOwnPermission;
+    }
 
     /**
      * @param  string|int|Permission|BackedEnum  $permission
      */
     public function hasPermissionTo($permission, ?string $guardName = null): bool
     {
-        return $this->profile?->hasPermissionTo($permission, $guardName) ?? false;
+        return $this->hasOwnPermissionTo($permission, $guardName) || ($this->profile?->hasPermissionTo($permission, $guardName) ?? false);
     }
 
     /**
@@ -28,7 +33,7 @@ trait HasPermissions
      */
     public function hasDirectPermission($permission): bool
     {
-        return $this->profile?->hasDirectPermission($permission) ?? false;
+        return $this->hasOwnDirectPermission($permission) || ($this->profile?->hasDirectPermission($permission) ?? false);
     }
 
     /**
@@ -36,15 +41,7 @@ trait HasPermissions
      */
     public function getAllPermissions(): Collection
     {
-        return $this->profile?->getAllPermissions() ?? collect();
-    }
-
-    /**
-     * @return Collection<int, Permission>
-     */
-    public function getDirectPermissions(): Collection
-    {
-        return $this->profile?->getDirectPermissions() ?? collect();
+        return $this->mergePermissions($this->getOwnPermissions(), $this->profile?->getAllPermissions());
     }
 
     /**
@@ -52,7 +49,7 @@ trait HasPermissions
      */
     public function getPermissionsViaRoles(): Collection
     {
-        return $this->profile?->getPermissionsViaRoles() ?? collect();
+        return $this->mergePermissions($this->getOwnPermissionsViaRoles(), $this->profile?->getPermissionsViaRoles());
     }
 
     /**
@@ -60,31 +57,7 @@ trait HasPermissions
      */
     public function getPermissionNames(): Collection
     {
-        return $this->profile?->getPermissionNames() ?? collect();
-    }
-
-    /**
-     * @param  string|int|array<array-key, mixed>|Permission|Collection<array-key, mixed>|BackedEnum  ...$permissions
-     */
-    public function givePermissionTo(...$permissions): never
-    {
-        throw $this->profileOnlyException();
-    }
-
-    /**
-     * @param  string|int|array<array-key, mixed>|Permission|Collection<array-key, mixed>|BackedEnum  ...$permissions
-     */
-    public function syncPermissions(...$permissions): never
-    {
-        throw $this->profileOnlyException();
-    }
-
-    /**
-     * @param  Permission|array<array-key, Permission|string>|string|BackedEnum  $permission
-     */
-    public function revokePermissionTo($permission): never
-    {
-        throw $this->profileOnlyException();
+        return $this->getDirectPermissions()->map(fn (Permission $permission): string => $permission->name);
     }
 
     /**
@@ -97,14 +70,22 @@ trait HasPermissions
         $viaProfile = fn (Builder $profile): Builder => $this->profile()->getRelated()->scopePermission($profile, $permissions);
 
         if ($without) {
-            return $query->whereDoesntHave('profile', $viaProfile);
+            return $this->scopeOwnPermission($query, $permissions, true)->whereDoesntHave('profile', $viaProfile);
         }
 
-        return $query->whereHas('profile', $viaProfile);
+        return $query->where(fn (Builder $query): Builder => $this->scopeOwnPermission($query, $permissions)->orWhereHas('profile', $viaProfile));
     }
 
-    private function profileOnlyException(): LogicException
+    /**
+     * @param  Collection<int, Permission>  $own
+     * @param  Collection<int, Permission>|null  $profile
+     * @return Collection<int, Permission>
+     */
+    private function mergePermissions(Collection $own, ?Collection $profile): Collection
     {
-        return new LogicException('Users get roles and permissions only through a profile.');
+        return $own->merge($profile ?? [])
+            ->unique(fn (Permission $permission): mixed => $permission->getKey())
+            ->sort()
+            ->values();
     }
 }

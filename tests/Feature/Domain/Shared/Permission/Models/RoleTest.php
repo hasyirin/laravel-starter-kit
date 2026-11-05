@@ -127,17 +127,21 @@ test('a role cannot be synced to a profile', function (): void {
     $role = Role::query()->create(['name' => 'editor']);
     $profile = Profile::factory()->create();
     $user = User::factory()->create();
-    $user->roles()->attach($role);
+    $user->assignRole($role);
 
     expect(fn (): Role => $role->syncModels($profile))->toThrow(LogicException::class, 'The roles of a profile cannot be changed.')
         ->and($user->fresh()?->roles)->toHaveCount(1)
         ->and($profile->fresh()?->roles)->toBeEmpty();
 });
 
-test('the users of a role change only through profiles', function (string $method): void {
+test('a role that no profile has can be synced to users', function (): void {
     $role = Role::query()->create(['name' => 'editor']);
     $user = User::factory()->create();
+    $former = User::factory()->create();
+    $former->assignRole($role);
 
-    expect(fn (): Role => $role->{$method}($user))->toThrow(LogicException::class, 'Users get roles and permissions only through a profile.')
-        ->and($user->roles()->exists())->toBeFalse();
-})->with(['assignToModels', 'removeFromModels', 'syncModels']);
+    $role->syncModels($user);
+
+    expect($former->fresh()?->roles)->toBeEmpty()
+        ->and($user->fresh()?->roles)->toHaveCount(1);
+});

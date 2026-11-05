@@ -44,7 +44,7 @@ Put page tests in `tests/Feature/Pages/`. The internal and admin areas have thei
 ## Give Access
 
 - `config/system.php` defines `internal.access` and `admin.access`. `PermissionSeeder` creates them.
-- A user gets their permissions only from their active profile: from the profile itself or through its roles. See **Profiles** in the README.
+- A user gets their permissions from their active profile, and from roles and permissions given to the user directly. See **Profiles** in the README.
 - The two areas are separate. `admin.access` does not open the internal area, so give both permissions to a user who needs both areas.
 - The `super-admin` role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
 - Other permissions control the parts of the admin area: `admin.horizon.view` for Horizon, `admin.controls.roles.*` for roles, and `admin.controls.users.*` for users.

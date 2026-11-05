@@ -20,7 +20,7 @@ A user's time zone and locale.
 A snapshot of a user's placement, roles, and permissions at one point in time.
 
 **Active profile**:
-A user's newest profile. It holds the placement, roles, and permissions that apply now.
+A user's newest profile. Its placement, roles, and permissions apply now.
 _Avoid_: Current profile, latest profile
 
 **Placement**:
@@ -77,6 +77,10 @@ A named set of permissions that a profile can hold. A change to a role applies a
 
 **System role**:
 A role that comes with the app. Nobody can rename or delete it.
+
+**Direct grant**:
+A role or permission that is given to a user, not to a profile.
+_Avoid_: Direct permission
 
 ### Actions
 

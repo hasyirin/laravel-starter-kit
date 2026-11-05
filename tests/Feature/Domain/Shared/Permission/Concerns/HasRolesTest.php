@@ -21,28 +21,34 @@ test('a user does not have the roles of an inactive profile', function (): void 
     expect($user->hasRole('editor'))->toBeFalse();
 });
 
-test('the role helpers and scopes count only the roles of the active profile', function (): void {
+test('the role helpers and scopes count the direct grants and the active profile', function (): void {
     $user = User::factory()->create();
-    $user->roles()->attach(Role::query()->create(['name' => 'writer']));
-    Profile::factory()->for($user)->withRoles(Role::query()->create(['name' => 'editor']), Role::query()->create(['name' => 'author']))->create();
+    $user->assignRole(Role::query()->create(['name' => 'writer']));
+    Profile::factory()->for($user)->withRoles(Role::query()->create(['name' => 'editor']))->create();
     $other = User::factory()->create();
 
-    expect($user->hasRole('writer'))->toBeFalse()
-        ->and($user->hasAllRoles('editor|author'))->toBeTrue()
-        ->and($user->hasAllRoles(['editor', 'writer']))->toBeFalse()
-        ->and($user->hasExactRoles(['editor', 'author']))->toBeTrue()
+    expect($user->hasRole('writer'))->toBeTrue()
+        ->and($user->hasAllRoles('editor|writer'))->toBeTrue()
+        ->and($user->hasAllRoles(['editor', 'missing']))->toBeFalse()
+        ->and($user->hasExactRoles(['editor', 'writer']))->toBeTrue()
         ->and($user->hasExactRoles('editor'))->toBeFalse()
-        ->and($user->getRoleNames()->sort()->values()->all())->toBe(['author', 'editor'])
+        ->and($user->getRoleNames()->all())->toEqualCanonicalizing(['editor', 'writer'])
         ->and(User::query()->role('editor')->pluck('id')->all())->toBe([$user->id])
-        ->and(User::query()->role('writer')->pluck('id')->all())->toBe([])
+        ->and(User::query()->role('writer')->pluck('id')->all())->toBe([$user->id])
         ->and(User::query()->withoutRole('editor')->pluck('id')->all())->toBe([$other->id])
-        ->and(User::query()->withoutRole('writer')->pluck('id')->all())->toEqualCanonicalizing([$user->id, $other->id]);
+        ->and(User::query()->withoutRole('writer')->pluck('id')->all())->toBe([$other->id]);
 });
 
-test('the roles of a user change only through a profile', function (string $method): void {
+test('a user can get and lose roles directly', function (string $method, string $role, array $expected): void {
     $user = User::factory()->create();
+    $user->assignRole(Role::query()->create(['name' => 'writer']));
     Role::query()->create(['name' => 'editor']);
 
-    expect(fn (): mixed => $user->{$method}('editor'))->toThrow(LogicException::class, 'Users get roles and permissions only through a profile.')
-        ->and($user->roles()->exists())->toBeFalse();
-})->with(['assignRole', 'syncRoles', 'removeRole']);
+    $user->{$method}($role);
+
+    expect($user->fresh()?->getRoleNames()->all())->toEqualCanonicalizing($expected);
+})->with([
+    ['assignRole', 'editor', ['editor', 'writer']],
+    ['syncRoles', 'editor', ['editor']],
+    ['removeRole', 'writer', []],
+]);

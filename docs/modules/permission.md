@@ -1,6 +1,6 @@
 # Permissions
 
-The app checks access with permissions, and roles group permissions. A user gets only the roles and permissions of their active profile. See **Profiles** in the README.
+The app checks access with permissions, and roles group permissions. A user gets the roles and permissions of their active profile, plus any given to the user directly. See **Profiles** in the README.
 
 ## Add a Permission
 
@@ -93,16 +93,16 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 
 - a user has the permissions of their active profile
 - a user does not have the permissions of an inactive profile
-- the permission helpers and scopes count only the permissions of the active profile
-- the permissions through roles come only from the roles of the active profile
-- the permissions of a user change only through a profile
+- the permission helpers and scopes count the direct grants and the active profile
+- the permissions through roles count the direct grants and the active profile
+- a user can get and lose permissions directly
 
 ### HasRoles
 
 - a user has the roles of their active profile
 - a user does not have the roles of an inactive profile
-- the role helpers and scopes count only the roles of the active profile
-- the roles of a user change only through a profile
+- the role helpers and scopes count the direct grants and the active profile
+- a user can get and lose roles directly
 
 ### Role
 
@@ -122,7 +122,7 @@ The names of the tests in `tests/Feature/Domain/Shared/Permission`. A failing te
 - a role cannot be removed from a profile
 - a role that a profile has cannot be synced to other models
 - a role cannot be synced to a profile
-- the users of a role change only through profiles
+- a role that no profile has can be synced to users
 
 ### RolePolicy
 

@@ -65,10 +65,10 @@ class PasskeyDataTable extends DataTable
                 ->modalHeading((string) __('user/users.passkeys_tab.revoke_heading'))
                 ->modalSubmitActionLabel((string) __('user/users.passkeys_tab.revoke'))
                 ->visible(fn (): bool => $this->revocable())
-                ->action(function (Passkey $passkey, RevokeUserPasskey $revokeUserPasskey): void {
+                ->action(function (Passkey $passkey): void {
                     $this->authorize('update', $this->user);
 
-                    $revokeUserPasskey->execute($this->actor(), $this->user, $passkey->id);
+                    RevokeUserPasskey::make()->execute($this->actor(), $this->user, $passkey->id);
 
                     Flux::toast(variant: 'success', text: __('user/users.passkeys_tab.revoked'));
                 }),

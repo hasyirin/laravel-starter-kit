@@ -173,3 +173,31 @@ test('an item with children renders them inside its group', function (): void {
     $document = HTMLDocument::createFromString((string) $view, LIBXML_NOERROR);
     expect($document->querySelector('[data-flux-sidebar-group] [data-flux-sidebar-item][href="https://example.com/sales"]'))->not->toBeNull();
 });
+
+test('an item with a permission is hidden from a guest', function (): void {
+    $item = Item::make(label: 'Admin', accessible: 'system.access');
+
+    expect($item->accessible)->toBeFalse();
+});
+
+test('an item links to its route with its parameters', function (): void {
+    $item = Item::make(label: 'Input', route: 'docs.components', parameters: ['page' => 'input']);
+
+    expect($item->href())->toBe(route('docs.components', 'input'));
+});
+
+test('an item with parameters is active only when the current route has the same values', function (?string $current, ?string $page, bool $active): void {
+    $route = resolve(Router::class)->getRoutes()->getByName('docs.components');
+    $route->bind(request()->create(route('docs.components', ['page' => $current])));
+
+    request()->setRouteResolver(fn () => $route);
+
+    $item = Item::make(label: 'Page', route: 'docs.components', parameters: ['page' => $page]);
+
+    expect($item->active())->toBe($active);
+})->with([
+    'the same page' => ['input', 'input', true],
+    'another page' => ['card', 'input', false],
+    'the overview on a page' => ['input', null, false],
+    'the overview on the overview' => [null, null, true],
+]);

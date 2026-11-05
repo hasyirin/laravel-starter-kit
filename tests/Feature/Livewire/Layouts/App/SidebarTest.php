@@ -53,3 +53,15 @@ test('the sidebar marks the item of the current page', function (): void {
     $document = HTMLDocument::createFromString((string) $response->getContent(), LIBXML_NOERROR);
     expect($document->querySelector('a[data-flux-sidebar-item][data-current][href="'.route('dashboard').'"]'))->not->toBeNull();
 });
+
+test('the sidebar links to the docs only in the local environment', function (string $environment, bool $shown): void {
+    app()->detectEnvironment(fn (): string => $environment);
+    $this->actingAs(User::factory()->create());
+
+    $component = Livewire::test(Sidebar::class);
+
+    expect(str_contains($component->html(), 'href="'.route('docs.components').'"'))->toBe($shown);
+})->with([
+    'local' => ['local', true],
+    'production' => ['production', false],
+]);

@@ -24,19 +24,18 @@ class ComponentDocs extends Page
 
     public function mount(): void
     {
-        abort_unless($this->page === null || $this->documents()->has($this->page), 404);
+        abort_unless($this->page === null || self::documents()->has($this->page), 404);
     }
 
     public function render(): View
     {
-        $documents = $this->documents();
+        $documents = self::documents();
 
         view()->share('errors', (new ViewErrorBag)->put('default', new MessageBag([
             'form.taken_email' => (string) __('validation.unique', ['attribute' => 'email']),
         ])));
 
         return view('livewire.pages.local.component-docs', [
-            'documents' => $documents,
             'parts' => $this->parts((string) file_get_contents(base_path('docs/components/'.($this->page ?? 'README').'.md'))),
         ])->title($this->page === null ? (string) __('docs.components') : (string) $documents->get($this->page));
     }
@@ -44,7 +43,7 @@ class ComponentDocs extends Page
     /**
      * @return Collection<string, string>
      */
-    private function documents(): Collection
+    public static function documents(): Collection
     {
         return collect(glob(base_path('docs/components/*.md')) ?: [])
             ->reject(fn (string $path): bool => basename($path) === 'README.md')

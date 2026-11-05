@@ -42,5 +42,5 @@ test('seeding gives a user the permissions in their data', function (): void {
     $this->seed(AuditorUserSeeder::class);
 
     expect(User::query()->where('email', 'auditor@example.com')->sole()->profile?->getPermissionNames()->sort()->values()->all())
-        ->toBe(['admin.horizon.view', 'system.access']);
+        ->toBe(['system.access', 'system.horizon.view']);
 });

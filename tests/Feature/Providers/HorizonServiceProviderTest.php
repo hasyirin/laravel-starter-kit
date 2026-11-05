@@ -9,7 +9,7 @@ test('a user with the Horizon view permission can view Horizon', function (): vo
     $this->seed(PermissionSeeder::class);
 
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.horizon.view');
+    grantPermissions($user, 'system.horizon.view');
 
     expect($user->can('viewHorizon'))->toBeTrue();
 });
@@ -24,7 +24,7 @@ test('the dashboard opens for a user with the Horizon view permission', function
     $this->seed(PermissionSeeder::class);
 
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.horizon.view');
+    grantPermissions($user, 'system.horizon.view');
 
     $this->actingAs($user)->get(route('horizon.index'))->assertOk();
 });

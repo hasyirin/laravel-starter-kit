@@ -60,7 +60,7 @@ test('a new profile copies the placement, roles, and permissions it was not give
     $arguments = [
         'placement' => ['placement' => $newPlacement],
         'roles' => ['roles' => ['viewer']],
-        'permissions' => ['permissions' => ['admin.controls.users.view']],
+        'permissions' => ['permissions' => ['internal.controls.users.view']],
     ][$given];
 
     $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, ...$arguments);
@@ -68,7 +68,7 @@ test('a new profile copies the placement, roles, and permissions it was not give
     expect(changeUserProfileSnapshot($profile))->toBe([
         'placement' => $given === 'placement' ? $newPlacement : $placement,
         'roles' => $given === 'roles' ? ['viewer'] : ['editor'],
-        'permissions' => $given === 'permissions' ? ['admin.controls.users.view'] : ['system.access'],
+        'permissions' => $given === 'permissions' ? ['internal.controls.users.view'] : ['system.access'],
     ])->and($this->user->profiles()->count())->toBe(2);
 })->with(['placement', 'roles', 'permissions']);
 
@@ -85,11 +85,11 @@ test('nothing changes when the sets are the same', function (): void {
 test('a change builds on the profile that is current when it saves', function (): void {
     Profile::factory()->for($this->user)->withPermissions('system.access')->create();
     $user = User::query()->findOrFail($this->user->id);
-    Profile::factory()->for($this->user)->withPermissions('admin.controls.users.view')->create();
+    Profile::factory()->for($this->user)->withPermissions('internal.controls.users.view')->create();
 
     $profile = ChangeUserProfile::make()->execute($this->actor, $user, roles: ['editor']);
 
-    expect(changeUserProfileSnapshot($profile)['permissions'])->toBe(['admin.controls.users.view'])
+    expect(changeUserProfileSnapshot($profile)['permissions'])->toBe(['internal.controls.users.view'])
         ->and(changeUserProfileSnapshot($profile)['roles'])->toBe(['editor']);
 });
 
@@ -113,9 +113,9 @@ test('the user holds the new profile after the change', function (): void {
 test('a permission that a new role gives can also be direct', function (): void {
     Role::findByName('editor')->givePermissionTo('system.access');
 
-    $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, roles: ['editor'], permissions: ['system.access', 'admin.controls.users.view']);
+    $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, roles: ['editor'], permissions: ['system.access', 'internal.controls.users.view']);
 
-    expect(changeUserProfileSnapshot($profile)['permissions'])->toBe(['admin.controls.users.view', 'system.access']);
+    expect(changeUserProfileSnapshot($profile)['permissions'])->toBe(['internal.controls.users.view', 'system.access']);
 });
 
 test('removing a role keeps the direct permissions that the role also gives', function (): void {
@@ -177,7 +177,7 @@ test('a user without bypass-authorization cannot change the profile of a user wh
     $arguments = [
         'placement' => ['placement' => changeUserProfilePlacement(Department::factory()->create())],
         'roles' => ['roles' => ['system-admin', 'viewer']],
-        'permissions' => ['permissions' => ['admin.controls.users.view']],
+        'permissions' => ['permissions' => ['internal.controls.users.view']],
     ][$argument];
 
     expect(fn (): ?Profile => ChangeUserProfile::make()->execute($this->actor, $this->user, ...$arguments))->toThrow(AuthorizationException::class)

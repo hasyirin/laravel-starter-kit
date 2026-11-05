@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 return [
     'segments' => [
-        'admin' => 'Admin',
         'controls' => 'Controls',
         'users' => 'Users',
         'roles' => 'Roles',

@@ -19,18 +19,18 @@ test('the ability helpers check the permissions of the current user', function (
     $component->assertSet('form.results', $results);
 })->with([
     'with system access' => [['system.access'], ['can' => true, 'cannot' => false, 'canAny' => true, 'cannotAny' => false]],
-    'with Horizon access only' => [['admin.horizon.view'], ['can' => false, 'cannot' => true, 'canAny' => true, 'cannotAny' => false]],
+    'with Horizon access only' => [['system.horizon.view'], ['can' => false, 'cannot' => true, 'canAny' => true, 'cannotAny' => false]],
     'without permissions' => [[], ['can' => false, 'cannot' => true, 'canAny' => false, 'cannotAny' => true]],
 ]);
 
 test('authorize checks the permissions of the current user', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
-    grantPermissions($user, 'admin.horizon.view');
+    grantPermissions($user, 'system.horizon.view');
     $this->actingAs($user);
 
     $form = Livewire::test(AbilityCheckFormHost::class)->instance()->form;
 
-    expect($form->authorize('admin.horizon.view')->allowed())->toBeTrue()
+    expect($form->authorize('system.horizon.view')->allowed())->toBeTrue()
         ->and(fn () => $form->authorize('system.access'))->toThrow(AuthorizationException::class);
 });

@@ -1,0 +1,48 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Shared\Permission\Models\Role;
+use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\User\Models\Profile;
+use App\Domain\User\Models\User;
+use App\Livewire\DataTables\Internal\Role\UserDataTable;
+use Filament\Actions\Testing\TestAction;
+use Livewire\Livewire;
+
+beforeEach(function (): void {
+    Livewire::withoutLazyLoading();
+    $this->seed(PermissionSeeder::class);
+    $this->actor = User::factory()->create();
+    grantPermissions($this->actor, 'internal.access', 'internal.controls.roles.view', 'internal.controls.users.view-any');
+    $this->actingAs($this->actor);
+    $this->role = Role::query()->create(['name' => 'editor']);
+});
+
+test('the list shows the users with the role in their active profile', function (): void {
+    $current = User::factory()->create();
+    Profile::factory()->for($current)->withRoles('editor')->create();
+
+    $formerly = User::factory()->create();
+    Profile::factory()->for($formerly)->withRoles('editor')->create(['created_at' => now()->subDay()]);
+    Profile::factory()->for($formerly)->create();
+
+    Livewire::test(UserDataTable::class, ['role' => $this->role])
+        ->assertCanSeeTableRecords([$current])
+        ->assertCanNotSeeTableRecords([$formerly, $this->actor]);
+});
+
+test('the table needs view-any on users', function (): void {
+    revokePermissions($this->actor, 'internal.controls.users.view-any');
+
+    Livewire::test(UserDataTable::class, ['role' => $this->role])->assertForbidden();
+});
+
+test('the row click opens the user under the role', function (): void {
+    $user = User::factory()->create();
+    grantRoles($user, $this->role);
+
+    Livewire::test(UserDataTable::class, ['role' => $this->role])
+        ->callAction(TestAction::make('view')->table($user))
+        ->assertRedirect(route('internal.controls.roles.users.show', [$this->role, $user]));
+});

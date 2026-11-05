@@ -23,18 +23,18 @@ test('seeding leaves out permissions that match an except pattern', function ():
     $this->seed(AuditorRoleSeeder::class);
 
     expect(Role::findByName('auditor')->permissions->pluck('name')->sort()->values()->all())->toBe([
-        'admin.controls.roles.create',
-        'admin.controls.roles.update',
-        'admin.controls.roles.update-permissions',
-        'admin.controls.roles.view',
-        'admin.controls.roles.view-any',
-        'admin.controls.roles.view-audit-log',
-        'admin.controls.users.create',
-        'admin.controls.users.update',
-        'admin.controls.users.view',
-        'admin.controls.users.view-any',
-        'admin.controls.users.view-audit-log',
-        'system.access',
+        'internal.access',
+        'internal.controls.roles.create',
+        'internal.controls.roles.update',
+        'internal.controls.roles.update-permissions',
+        'internal.controls.roles.view',
+        'internal.controls.roles.view-any',
+        'internal.controls.roles.view-audit-log',
+        'internal.controls.users.create',
+        'internal.controls.users.update',
+        'internal.controls.users.view',
+        'internal.controls.users.view-any',
+        'internal.controls.users.view-audit-log',
     ]);
 });
 

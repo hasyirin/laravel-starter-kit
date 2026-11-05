@@ -55,11 +55,11 @@ test('a model keeps the roles and permissions from every call before its first s
     $snapshot->assignRole(Role::query()->create(['name' => 'editor']));
     $snapshot->assignRole(Role::query()->create(['name' => 'author']));
     $snapshot->givePermissionTo(Permission::query()->create(['name' => 'system.access']));
-    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'admin.horizon.view']));
+    $snapshot->givePermissionTo(Permission::query()->create(['name' => 'system.horizon.view']));
     $snapshot->save();
 
     expect($snapshot->fresh()?->getRoleNames()->sort()->values()->all())->toBe(['author', 'editor'])
-        ->and($snapshot->fresh()?->getPermissionNames()->sort()->values()->all())->toBe(['admin.horizon.view', 'system.access']);
+        ->and($snapshot->fresh()?->getPermissionNames()->sort()->values()->all())->toBe(['system.access', 'system.horizon.view']);
 });
 
 test('syncing before the first save replaces the roles and permissions given before', function (): void {
@@ -68,11 +68,11 @@ test('syncing before the first save replaces the roles and permissions given bef
     $snapshot->givePermissionTo(Permission::query()->create(['name' => 'system.access']));
 
     $snapshot->syncRoles(Role::query()->create(['name' => 'author']));
-    $snapshot->syncPermissions(Permission::query()->create(['name' => 'admin.horizon.view']));
+    $snapshot->syncPermissions(Permission::query()->create(['name' => 'system.horizon.view']));
     $snapshot->save();
 
     expect($snapshot->fresh()?->getRoleNames()->all())->toBe(['author'])
-        ->and($snapshot->fresh()?->getPermissionNames()->all())->toBe(['admin.horizon.view']);
+        ->and($snapshot->fresh()?->getPermissionNames()->all())->toBe(['system.horizon.view']);
 });
 
 test('saving a model with roles returns false when a listener stops the save', function (): void {
@@ -102,9 +102,9 @@ test('the roles and permissions of a model cannot change after its first save', 
     'assign a role' => ['assignRole', fn (): Role => Role::query()->create(['name' => 'author'])],
     'remove a role' => ['removeRole', 'editor'],
     'sync the roles' => ['syncRoles', fn (): Role => Role::query()->create(['name' => 'author'])],
-    'give a permission' => ['givePermissionTo', fn (): Permission => Permission::query()->create(['name' => 'admin.horizon.view'])],
+    'give a permission' => ['givePermissionTo', fn (): Permission => Permission::query()->create(['name' => 'system.horizon.view'])],
     'revoke a permission' => ['revokePermissionTo', 'system.access'],
-    'sync the permissions' => ['syncPermissions', fn (): Permission => Permission::query()->create(['name' => 'admin.horizon.view'])],
+    'sync the permissions' => ['syncPermissions', fn (): Permission => Permission::query()->create(['name' => 'system.horizon.view'])],
 ]);
 
 test('roles and permissions cannot be removed even before the first save', function (string $method, Role|Permission $existing): void {

@@ -8,6 +8,7 @@ return [
     'app' => 'App',
     'internal' => 'Internal',
     'admin' => 'Admin',
+    'docs' => 'Docs',
     'search' => 'Search',
     'settings' => 'Settings',
     'controls' => 'Controls',

@@ -25,6 +25,7 @@ class Sidebar extends Navigation
             Spacer::make(),
             Item::make(label: (string) __('navigation.admin'), icon: 'shield-check', route: 'admin.dashboard', accessible: config('system.permissions.system.access')),
             Item::make(label: (string) __('navigation.app'), icon: 'arrow-uturn-left', route: 'dashboard'),
+            Item::make(label: (string) __('navigation.docs'), icon: 'book-open', route: 'docs.components', accessible: app()->isLocal()),
         ];
     }
 }

@@ -6,7 +6,7 @@ test('the dropdown of a long trail opens and shows the hidden levels', function 
     $page = visit('/docs/components/breadcrumbs');
 
     expect($page->script(browserScript(<<<'SCRIPT'
-        const dropdown = document.querySelector('nav ui-dropdown');
+        const dropdown = document.querySelector('[data-docs-example] nav ui-dropdown');
         const menu = dropdown.querySelector('[data-flux-navmenu]');
         const hiddenAtFirst = ! menu.checkVisibility();
 

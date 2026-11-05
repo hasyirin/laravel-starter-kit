@@ -70,10 +70,13 @@ Full-page Livewire components extend `App\Livewire\Pages\Shared\Page`. It gives 
 
 | Route                                   | Layout                                       |
 |-----------------------------------------|----------------------------------------------|
+| Routes in `routes/local.php`            | `resources/views/layouts/local.blade.php`    |
 | `admin.*`                               | `resources/views/layouts/admin.blade.php`    |
 | `internal.*`                            | `resources/views/layouts/internal.blade.php` |
 | Other routes with the `auth` middleware | `resources/views/layouts/app.blade.php`      |
 | All other routes                        | `resources/views/layouts/guest.blade.php`    |
+
+`Page` finds a local route by its `EnsureLocalEnvironment` middleware. The local layout works for guests too: it shows the user menu only to a signed-in user.
 
 A guest page keeps the guest layout for signed-in users too. A page that more than one area uses gets the layout of each area.
 
@@ -86,7 +89,9 @@ Two groups of pages do not extend `Page`. The settings pages extend `Livewire\Co
   - The internal sidebar links to App and Admin.
   - The admin sidebar links to App and Internal.
 - A sidebar shows the Internal or Admin link only to users who have the matching permission. The App link goes back to the app dashboard, and it always shows.
-- The logo at the top of each sidebar opens the dashboard of its own area.
+- In the local environment, each area sidebar also shows a Docs link to `/docs/components`.
+- The local pages have their own sidebar, `app/Livewire/Layouts/Local/Sidebar.php`. It lists the component docs pages. Below the spacer, it links to App, Internal, and Admin, each only for users who can open that area. A guest sees no area links.
+- The logo at the top of each sidebar opens the dashboard of its own area. In the local sidebar, it opens `/docs/components`.
 - Each area has a settings route: `settings`, `internal.settings`, and `admin.settings`. The user menu links to the settings route of the current area. For now, all three open the shared settings pages.
 
 ## Horizon

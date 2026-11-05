@@ -40,3 +40,16 @@ test('the users item sits under controls', function (): void {
 
     $component->assertSeeInOrder([__('navigation.controls'), route('internal.controls.users.index')], false);
 });
+
+test('the sidebar links to the docs only in the local environment', function (string $environment, bool $shown): void {
+    $this->seed(PermissionSeeder::class);
+    app()->detectEnvironment(fn (): string => $environment);
+    $this->actingAs(User::factory()->create());
+
+    $component = Livewire::test(Sidebar::class);
+
+    expect(str_contains($component->html(), 'href="'.route('docs.components').'"'))->toBe($shown);
+})->with([
+    'local' => ['local', true],
+    'production' => ['production', false],
+]);

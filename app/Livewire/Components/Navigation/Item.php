@@ -22,6 +22,7 @@ final class Item implements Htmlable
     public readonly string|int|null $badge;
 
     /**
+     * @param  array<string, mixed>  $parameters
      * @param  (Closure(): bool)|array{0: string, 1?: mixed}|string|bool  $accessible
      * @param  Arrayable<array-key, Item>|array<array-key, Item>  $children
      */
@@ -29,6 +30,7 @@ final class Item implements Htmlable
         public readonly string $label,
         public readonly ?string $icon = null,
         public readonly ?string $route = null,
+        public readonly array $parameters = [],
         public readonly ?string $active = null,
         public readonly ?string $href = null,
         Closure|array|string|bool $accessible = true,
@@ -38,13 +40,13 @@ final class Item implements Htmlable
         $allChildren = collect($children)->ensure(self::class);
         $this->children = $allChildren->filter(fn (self $child): bool => $child->accessible)->values();
 
-        /** @var User $user */
+        /** @var User|null $user */
         $user = auth()->user();
 
         $this->accessible = match (true) {
             $allChildren->isNotEmpty() && $this->children->isEmpty() => false,
-            is_array($accessible) => $user->can(...$accessible),
-            is_string($accessible) => $user->can($accessible),
+            is_array($accessible) => $user?->can(...$accessible) ?? false,
+            is_string($accessible) => $user?->can($accessible) ?? false,
             $accessible instanceof Closure => ($accessible)(),
             default => $accessible,
         };
@@ -54,12 +56,17 @@ final class Item implements Htmlable
 
     public function active(): bool
     {
-        return $this->children->isNotEmpty() ? $this->children->contains(fn (self $child): bool => $child->active()) : request()->routeIs($this->active ?? $this->route);
+        if ($this->children->isNotEmpty()) {
+            return $this->children->contains(fn (self $child): bool => $child->active());
+        }
+
+        return request()->routeIs($this->active ?? $this->route)
+            && collect($this->parameters)->every(fn (mixed $value, string $key): bool => request()->route($key) === $value);
     }
 
     public function href(): ?string
     {
-        return $this->route ? route($this->route) : $this->href;
+        return $this->route ? route($this->route, $this->parameters) : $this->href;
     }
 
     public function hasRoute(): bool
@@ -73,6 +80,7 @@ final class Item implements Htmlable
     }
 
     /**
+     * @param  array<string, mixed>  $parameters
      * @param  (Closure(): bool)|array{0: string, 1?: mixed}|string|bool  $accessible
      * @param  Arrayable<array-key, Item>|array<array-key, Item>  $children
      */
@@ -80,12 +88,13 @@ final class Item implements Htmlable
         string $label,
         ?string $icon = null,
         ?string $route = null,
+        array $parameters = [],
         ?string $active = null,
         ?string $href = null,
         Closure|array|string|bool $accessible = true,
         string|int|null $badge = null,
         Arrayable|array $children = [],
     ): self {
-        return new self($label, $icon, $route, $active, $href, $accessible, $badge, $children);
+        return new self($label, $icon, $route, $parameters, $active, $href, $accessible, $badge, $children);
     }
 }

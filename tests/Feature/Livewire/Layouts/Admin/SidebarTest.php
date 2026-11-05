@@ -56,3 +56,16 @@ test('the horizon link loads the whole page, without wire:navigate', function ()
     expect($link)->not->toBeNull()
         ->and($link?->hasAttribute('wire:navigate'))->toBeFalse();
 });
+
+test('the sidebar links to the docs only in the local environment', function (string $environment, bool $shown): void {
+    $this->seed(PermissionSeeder::class);
+    app()->detectEnvironment(fn (): string => $environment);
+    $this->actingAs(User::factory()->create());
+
+    $component = Livewire::test(Sidebar::class);
+
+    expect(str_contains($component->html(), 'href="'.route('docs.components').'"'))->toBe($shown);
+})->with([
+    'local' => ['local', true],
+    'production' => ['production', false],
+]);

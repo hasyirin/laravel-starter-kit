@@ -93,6 +93,8 @@ Two groups of pages do not extend `Page`. The settings pages extend `Livewire\Co
 
 The Horizon dashboard is at `/admin/horizon`. Set `HORIZON_PATH` to move it. Horizon registers its own routes, so the middleware of the admin area does not apply to them. Horizon checks `system.horizon.view` itself, except in the local environment, where everyone can open it.
 
+The admin sidebar links to Horizon for users with `system.horizon.view`. The link loads the whole page, without `wire:navigate`, because Horizon is not a Livewire page.
+
 ## Rules
 
 - **Give each URL one route.** Without the route cache, the last route for a URL wins. With the route cache, the first one wins, and `php artisan optimize` turns the cache on. So a second route for the same URL can work in development and fail in production.

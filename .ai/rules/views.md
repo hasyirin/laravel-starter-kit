@@ -9,7 +9,7 @@ paths:
 Translate UI text with short keys from PHP files under `lang/en/`, such as `__('user/settings.user_information.updated')`, never JSON sentence keys. Put shared labels in `lang/en/common/` (`buttons.php`, `inputs.php`).
 
 ## Show by permission, never by role
-Use `@can` to show or hide UI. Never use `@role`, `@hasrole`, or `@hasanyrole`. System administrators change roles at runtime.
+Use `@can` to show or hide UI. Never use `@role`, `@hasrole`, or `@hasanyrole`. Staff change roles at runtime on the roles pages.
 
 ## Never use em dashes
 Never write an em dash (`—` or `&mdash;`) in the frontend. Rewrite the sentence, or use a comma, colon, period, or parentheses instead.

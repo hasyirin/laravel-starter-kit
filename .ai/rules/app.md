@@ -18,7 +18,7 @@ Get an Action class or another class in the code that uses it, not through a par
 Use the fluent `str()` helper whenever there is a string to transform, for example `str($name)->initials()->value()`. Use static `Str::` only for calls without an input string, such as `Str::uuid7()` or `Str::random()`.
 
 ## Check permissions, never roles
-Authorize and guard with permissions only, such as `$user->can()` or `checkPermissionTo()`. Never check a role, such as `hasRole('system-admin')`, and never compare role names. System administrators change roles at runtime, and a project can rename them. If no permission fits, add one to `config/system.php`. The `system-admin` role is only a seeded role that holds `bypass-authorization`. `Gate::before()` checks that permission, not the role.
+Authorize and guard with permissions only, such as `$user->can()` or `checkPermissionTo()`. Never check a role, such as `hasRole('system-admin')`, and never compare role names. Staff change roles at runtime on the roles pages, and a project can rename them. If no permission fits, add one to `config/system.php`. The `system-admin` role is only a seeded role that holds `bypass-authorization`. `Gate::before()` checks that permission, not the role.
 
 ## Update the docs with the code
 After you change code that a doc in `docs/` describes, run `php artisan docs:generate` and update the hand-written text of that doc. `composer test` fails when a generated section is out of date or a doc names code that no longer exists.

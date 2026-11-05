@@ -36,7 +36,7 @@ The `actions` slot puts buttons at the right end of the header. Use `size="sm"` 
 ```blade
 <x-card heading="Team">
     <x-slot:actions>
-        <flux:button size="sm" icon="plus">Invite</flux:button>
+        <flux:button size="sm" icon="plus">Member</flux:button>
     </x-slot:actions>
 
     <flux:text>Three people can edit this project.</flux:text>

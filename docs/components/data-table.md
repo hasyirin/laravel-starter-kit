@@ -21,6 +21,7 @@ class CountryDataTable extends DataTable
     {
         return [
             CreateAction::make()
+                ->label(__('countries.country'))
                 ->visible(fn () => $this->can('create', Country::class))
                 ->action($this->to(...)),
         ];
@@ -148,11 +149,11 @@ Use the helpers of Filament: `assertCanSeeTableRecords()`, `searchTable()`, `sor
 
 ### Presets
 
-Use these in place of the actions and columns of Filament with the same job. Each action sets its name, icon, label, and color. Give each one `visible()`, and `action()`, or `through()` for the delete action.
+Use these in place of the actions and columns of Filament with the same job. Each action sets its name, icon, label, and color. The create action is the exception for the label: give it the singular name of its record, such as "Country". Its plus icon already says "add". Give each one `visible()`, and `action()`, or `through()` for the delete action.
 
 | Preset                              | Name     | Icon                       | Label                   | Color   | Notes                                                                 |
 | ----------------------------------- | -------- | -------------------------- | ----------------------- | ------- | --------------------------------------------------------------------- |
-| `App\Filament\Actions\CreateAction` | `create` | `heroicon-m-plus`          | `common/buttons.add`    | Primary | For `headerActions()`.                                                |
+| `App\Filament\Actions\CreateAction` | `create` | `heroicon-m-plus`          | Required                | Primary | For `headerActions()`. Throws when it has no label.                   |
 | `App\Filament\Actions\ViewAction`   | `view`   | `heroicon-m-eye`           | `common/buttons.view`   | Primary | A row click runs it.                                                  |
 | `App\Filament\Actions\EditAction`   | `edit`   | `heroicon-m-pencil-square` | `common/buttons.edit`   | Gray    | A row click runs it when the table has no `view` action.              |
 | `App\Filament\Actions\DeleteAction` | `delete` | Trash                      | `common/buttons.delete` | Danger  | Asks for a confirmation and needs `through()`. See [Delete](#delete). |

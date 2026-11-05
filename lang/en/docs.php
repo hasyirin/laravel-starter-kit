@@ -9,6 +9,7 @@ return [
     'copied' => 'Copied',
     'examples' => [
         'data_table' => [
+            'country' => 'Country',
             'name' => 'Name',
             'code' => 'Code',
             'created_at' => 'Created',

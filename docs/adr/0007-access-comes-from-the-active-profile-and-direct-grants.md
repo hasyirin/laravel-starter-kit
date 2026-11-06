@@ -1,6 +1,6 @@
 # Access Comes from the Active Profile and Direct Grants
 
-A user's roles and permissions come from their active profile and from direct grants. A direct grant is a role or permission that is given to the user, not to a profile. The kit itself gives access only through profiles, in its seeder, admin pages, and Action classes. But it is a starter kit, so it lets an app choose direct grants too. See [ADR-0002](0002-profiles-are-append-only-snapshots.md).
+A user's roles and permissions come from their active profile and from direct grants. A direct grant is a role or permission that is given to the user, not to a profile. The kit itself gives access only through profiles, in its seeder, user pages, and Action classes. But it is a starter kit, so it lets an app choose direct grants too. See [ADR-0002](0002-profiles-are-append-only-snapshots.md).
 
 ## Considered Options
 

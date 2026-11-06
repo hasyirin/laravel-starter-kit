@@ -16,7 +16,7 @@ test('an item with a permission is accessible to a user who has it', function ()
     grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
-    $item = Item::make(label: 'Admin', accessible: 'system.access');
+    $item = Item::make(label: 'System', accessible: 'system.access');
 
     expect($item->accessible)->toBeTrue();
 });
@@ -25,7 +25,7 @@ test('an item with a permission is hidden from a user without it', function (): 
     $this->seed(PermissionSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $item = Item::make(label: 'Admin', accessible: 'system.access');
+    $item = Item::make(label: 'System', accessible: 'system.access');
 
     expect($item->accessible)->toBeFalse();
 });
@@ -175,7 +175,7 @@ test('an item with children renders them inside its group', function (): void {
 });
 
 test('an item with a permission is hidden from a guest', function (): void {
-    $item = Item::make(label: 'Admin', accessible: 'system.access');
+    $item = Item::make(label: 'System', accessible: 'system.access');
 
     expect($item->accessible)->toBeFalse();
 });

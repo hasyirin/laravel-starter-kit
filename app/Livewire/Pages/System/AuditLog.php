@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Livewire\Pages\Admin;
+namespace App\Livewire\Pages\System;
 
 use App\Livewire\Pages\Shared\Page;
 use Illuminate\Contracts\View\View;
@@ -16,6 +16,6 @@ class AuditLog extends Page
 
     public function render(): View
     {
-        return view('livewire.pages.admin.audit-log')->title(__('navigation.audit_log'));
+        return view('livewire.pages.system.audit-log')->title(__('navigation.audit_log'));
     }
 }

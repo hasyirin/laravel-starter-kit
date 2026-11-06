@@ -12,9 +12,7 @@
                 ]"
             />
         @else
-            <x-breadcrumbs
-                :items="[['label' => __('user/users.title'), 'href' => route('internal.controls.users.index')], ['label' => $user->email]]"
-            />
+            <x-breadcrumbs :items="[['label' => __('user/users.title'), 'href' => route('internal.controls.users.index')], ['label' => $user->email]]" />
         @endisset
 
         <div class="flex items-center gap-4">

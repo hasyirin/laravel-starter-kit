@@ -49,7 +49,7 @@ test('the current page is never a link', function (): void {
 test('the home link can go elsewhere or be left out', function (): void {
     $items = [['label' => 'Penang']];
 
-    expect(breadcrumbs('<x-breadcrumbs :$items home="/admin" />', ['items' => $items])->querySelector('nav a')?->getAttribute('href'))->toBe('/admin')
+    expect(breadcrumbs('<x-breadcrumbs :$items home="/system" />', ['items' => $items])->querySelector('nav a')?->getAttribute('href'))->toBe('/system')
         ->and(breadcrumbs('<x-breadcrumbs :$items :home="false" />', ['items' => $items])->querySelector('nav a'))->toBeNull();
 });
 

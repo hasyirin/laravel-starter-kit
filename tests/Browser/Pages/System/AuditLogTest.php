@@ -16,7 +16,7 @@ beforeEach(function (): void {
 
 function openAuditLogFilters(): PendingAwaitablePage
 {
-    $page = visit(route('admin.audit-log', absolute: false));
+    $page = visit(route('system.audit-log', absolute: false));
 
     $page->script(browserScript(<<<'SCRIPT'
         await until(() => document.querySelector('.fi-ta-row'));
@@ -69,7 +69,7 @@ test('the record select shows only for a type whose records have names', functio
 });
 
 test('the record select finds users by name, and a new type clears the picked users', function (): void {
-    $ada = User::factory()->create(['name' => 'Ada Admin']);
+    $ada = User::factory()->create(['name' => 'Ada Lovelace']);
     User::factory()->create(['name' => 'Sam Subject']);
     $page = openAuditLogFilters();
 
@@ -89,9 +89,9 @@ test('the record select finds users by name, and a new type clears the picked us
         const wrapper = document.querySelector('[wire\\:partial="schema-component::tableFiltersForm.causer.ids"]');
         const input = wrapper.querySelector('input[role="combobox"]');
         const options = () => [...document.querySelectorAll(`#${input.getAttribute('aria-controls')} [role="option"]`)];
-        await until(() => options().some((option) => option.textContent.includes('Ada Admin')));
+        await until(() => options().some((option) => option.textContent.includes('Ada Lovelace')));
         const names = options().map((option) => option.textContent.trim());
-        options().find((option) => option.textContent.includes('Ada Admin')).click();
+        options().find((option) => option.textContent.includes('Ada Lovelace')).click();
 
         const component = wire(wrapper);
         await until(() => component.$get('tableDeferredFilters.causer.ids').length === 1);
@@ -99,7 +99,7 @@ test('the record select finds users by name, and a new type clears the picked us
         return { names, ids: component.$get('tableDeferredFilters.causer.ids') };
         SCRIPT));
 
-    expect($picked['names'])->toBe(['Ada Admin'])
+    expect($picked['names'])->toBe(['Ada Lovelace'])
         ->and($picked['ids'])->toBe([(string) $ada->id]);
 
     pickType($page, 'causer', 'none');

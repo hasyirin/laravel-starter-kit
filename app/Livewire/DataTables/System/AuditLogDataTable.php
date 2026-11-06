@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Livewire\DataTables\Admin;
+namespace App\Livewire\DataTables\System;
 
 use App\Domain\User\Models\Profile;
 use App\Livewire\DataTables\AuditLogDataTable as DataTable;
-use App\Livewire\Pages\Admin\AuditEntryModal;
+use App\Livewire\Pages\System\AuditEntryModal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Livewire\Attributes\Defer;

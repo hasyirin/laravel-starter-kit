@@ -5,8 +5,8 @@
     </head>
 
     <body class="min-h-screen bg-zinc-100 antialiased dark:bg-zinc-900">
-        @include('layouts.partials.admin.sidebar')
-        @include('layouts.partials.admin.header')
+        @include('layouts.partials.system.sidebar')
+        @include('layouts.partials.system.header')
 
         {{ $slot }}
 

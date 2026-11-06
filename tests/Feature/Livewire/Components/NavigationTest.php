@@ -20,10 +20,10 @@ test('a navigation puts a spacer between two sections the user may see', functio
     $component = Livewire::test(StubNavigation::class, ['entries' => [
         Item::make(label: 'Sales'),
         Spacer::make(),
-        Item::make(label: 'Admin'),
+        Item::make(label: 'System'),
     ]]);
 
-    $component->assertSeeInOrder(['Sales', 'data-flux-sidebar-spacer', 'Admin'], false);
+    $component->assertSeeInOrder(['Sales', 'data-flux-sidebar-spacer', 'System'], false);
 });
 
 test('a navigation shows no spacer next to a section the user may not see', function (array $entries, int $spacers): void {
@@ -31,7 +31,7 @@ test('a navigation shows no spacer next to a section the user may not see', func
 
     expect(substr_count($component->html(), 'data-flux-sidebar-spacer'))->toBe($spacers);
 })->with([
-    'hidden section before it' => [fn (): array => [Item::make(label: 'Sales', accessible: false), Spacer::make(), Item::make(label: 'Admin')], 0],
-    'hidden section after it' => [fn (): array => [Item::make(label: 'Sales'), Spacer::make(), Item::make(label: 'Admin', accessible: false)], 0],
-    'hidden section between two spacers' => [fn (): array => [Item::make(label: 'Sales'), Spacer::make(), Item::make(label: 'Payroll', accessible: false), Spacer::make(), Item::make(label: 'Admin')], 1],
+    'hidden section before it' => [fn (): array => [Item::make(label: 'Sales', accessible: false), Spacer::make(), Item::make(label: 'System')], 0],
+    'hidden section after it' => [fn (): array => [Item::make(label: 'Sales'), Spacer::make(), Item::make(label: 'System', accessible: false)], 0],
+    'hidden section between two spacers' => [fn (): array => [Item::make(label: 'Sales'), Spacer::make(), Item::make(label: 'Payroll', accessible: false), Spacer::make(), Item::make(label: 'System')], 1],
 ]);

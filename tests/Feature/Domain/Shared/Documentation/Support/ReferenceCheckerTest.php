@@ -42,7 +42,7 @@ test('code names that do not exist fail the check', function (string $reference,
     'a class constant' => ['MissingSeeder::class', 'is not a class'],
     'a method' => ['LoginResponse::missing()', 'names a member that LoginResponse does not have'],
     'a method of a missing class' => ['Missing::method()', 'names a class that does not exist'],
-    'a dotted name' => ['admin.missing', 'is not a permission, route name, config key, or table column'],
+    'a dotted name' => ['system.missing', 'is not a permission, route name, config key, or table column'],
     'an environment variable' => ['MISSING_VARIABLE', 'is not read by a config file or listed in .env.example'],
 ]);
 
@@ -62,7 +62,7 @@ test('words that are not code names are not checked', function (string $referenc
     expect(new ReferenceChecker()->problem($reference))->toBeNull();
 })->with([
     'a command' => 'php artisan optimize',
-    'a path in the app' => '/admin/horizon',
+    'a path in the app' => '/system/horizon',
     'a link' => 'https://laravel.com/docs',
     'a name prefix' => 'internal.',
     'a version' => '1.2.3',

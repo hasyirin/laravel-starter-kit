@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Livewire\Pages\Admin;
+namespace App\Livewire\Pages\System;
 
 use App\Livewire\Pages\Shared\AuditEntryModal as Modal;
 use Illuminate\Database\Eloquent\Relations\MorphTo;

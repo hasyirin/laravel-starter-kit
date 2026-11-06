@@ -16,10 +16,10 @@ test('the internal sidebar links back to the app dashboard below a spacer', func
     $component = Livewire::test(Sidebar::class);
 
     $component->assertSeeInOrder([route('internal.dashboard'), 'data-flux-sidebar-spacer', route('dashboard')], false)
-        ->assertDontSee(route('admin.dashboard'));
+        ->assertDontSee(route('system.dashboard'));
 });
 
-test('the internal sidebar shows the admin link to users with system access', function (): void {
+test('the internal sidebar shows the system link to users with system access', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
     grantPermissions($user, 'internal.access', 'system.access');
@@ -27,7 +27,7 @@ test('the internal sidebar shows the admin link to users with system access', fu
 
     $component = Livewire::test(Sidebar::class);
 
-    $component->assertSee(route('admin.dashboard'));
+    $component->assertSee(route('system.dashboard'));
 });
 
 test('the users item sits under controls', function (): void {

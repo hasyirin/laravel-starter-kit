@@ -3,7 +3,7 @@
 @php
     $settingsRoute = match (true) {
         request()->routeIs('internal.*') => 'internal.settings',
-        request()->routeIs('admin.*') => 'admin.settings',
+        request()->routeIs('system.*') => 'system.settings',
         default => 'settings',
     };
 

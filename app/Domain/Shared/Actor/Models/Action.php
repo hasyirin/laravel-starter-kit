@@ -48,6 +48,14 @@ class Action extends \Hasyirin\Actor\Models\Action
         'name',
     ];
 
+    /**
+     * Many actions share one name, such as approve, so a name does not pick out one action.
+     */
+    public function auditNameColumn(): ?string
+    {
+        return null;
+    }
+
     protected function casts(): array
     {
         return [

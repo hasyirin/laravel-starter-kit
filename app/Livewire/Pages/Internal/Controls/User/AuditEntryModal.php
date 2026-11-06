@@ -6,7 +6,7 @@ namespace App\Livewire\Pages\Internal\Controls\User;
 
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\UserAuditLog;
-use App\Livewire\Pages\Internal\Controls\AuditEntryModal as Modal;
+use App\Livewire\Pages\Shared\AuditEntryModal as Modal;
 use Livewire\Attributes\Locked;
 use Spatie\Activitylog\Models\Activity;
 

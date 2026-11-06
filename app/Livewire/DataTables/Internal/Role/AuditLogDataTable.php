@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Livewire\DataTables\Internal\Role;
 
 use App\Domain\Shared\Permission\Models\Role;
-use App\Livewire\DataTables\Internal\AuditLogDataTable as DataTable;
+use App\Livewire\DataTables\AuditLogDataTable as DataTable;
 use App\Livewire\Pages\Internal\Controls\Role\AuditEntryModal;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Livewire\Attributes\Defer;
 use Livewire\Attributes\Locked;
 use Spatie\Activitylog\Models\Activity;
@@ -28,7 +29,7 @@ class AuditLogDataTable extends DataTable
      */
     protected function query(): Builder
     {
-        return Activity::query()->with('causer')->whereMorphedTo('subject', $this->role)->latest('id');
+        return Activity::query()->with(['causer' => fn (MorphTo $causer): MorphTo => $causer->withTrashed()])->whereMorphedTo('subject', $this->role)->latest('id');
     }
 
     protected function modal(): string

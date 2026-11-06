@@ -66,14 +66,14 @@ test('on this user lists changes to the user and their profiles', function (): v
         ->assertSee('Ada Admin');
 });
 
-test('the subject type filter keeps only that type', function (): void {
+test('the subject filter keeps only that type', function (): void {
     $onUser = renameAs($this->subject, $this->other, 'Olive Renamed');
     Profile::factory()->for($this->other)->create();
     $onProfile = Activity::query()->latest('id')->firstOrFail();
     $this->actingAs($this->actor);
 
     auditLogTable($this->subject, AuditDirection::By)
-        ->filterTable('subject_type', ['profile'])
+        ->filterTable('subject', ['type' => 'profile'])
         ->assertCanSeeTableRecords([$onProfile])
         ->assertCanNotSeeTableRecords([$onUser]);
 });

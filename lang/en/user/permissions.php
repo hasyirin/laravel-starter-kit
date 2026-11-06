@@ -8,6 +8,7 @@ return [
         'users' => 'Users',
         'roles' => 'Roles',
         'horizon' => 'Horizon',
+        'audit-log' => 'Audit log',
         'internal' => 'Internal',
         'system' => 'System',
     ],

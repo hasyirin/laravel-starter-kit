@@ -69,3 +69,16 @@ test('the sidebar links to the docs only in the local environment', function (st
     'local' => ['local', true],
     'production' => ['production', false],
 ]);
+
+test('the admin sidebar shows the audit log link only to users who can view the audit log', function (): void {
+    $this->seed(PermissionSeeder::class);
+    $user = User::factory()->create();
+    grantPermissions($user, 'system.access');
+    $this->actingAs($user);
+
+    Livewire::test(Sidebar::class)->assertDontSee(route('admin.audit-log'));
+
+    grantPermissions($user, 'system.audit-log.view');
+
+    Livewire::test(Sidebar::class)->assertSeeInOrder([route('admin.dashboard'), route('admin.audit-log'), 'data-flux-sidebar-spacer'], false);
+});

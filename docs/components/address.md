@@ -30,12 +30,12 @@ public function save(): void
 }
 ```
 
-A create page has no model when it opens. It passes the new model to `save()` instead, after its main form saves it. Validate the address first, so that a bad address does not leave a new record without one:
+A create page has no model when it opens. It passes the new model to `save()` instead, after its main form saves it. Call `$this->validate()` before the saves. It validates all forms of the component together, so the user sees all errors at once. A bad address also stops the save before the new record exists:
 
 ```php
 public function save(): void
 {
-    $this->address->validate();
+    $this->validate();
 
     $organization = $this->form->save();
     $this->address->save($organization);
@@ -194,10 +194,14 @@ public function save(): void
         $this->mailing->fill($this->home->values());
     }
 
+    $this->validate();
+
     $this->home->save();
     $this->mailing->save();
 }
 ```
+
+`$this->validate()` checks both addresses before either one saves. So a bad mailing address does not leave only the home address saved.
 
 The page ticks the box when the two saved addresses are the same, so it needs no extra column. A new record starts with the box ticked, because both addresses are empty.
 

@@ -89,6 +89,16 @@ test('search-model sends the search text to its property and turns off filtering
         ->and($document->querySelector('ui-select')?->hasAttribute('filter'))->toBeFalse();
 });
 
+test('a search attribute goes to the search input, not to the select', function (string $template): void {
+    $document = HTMLDocument::createFromString((string) $this->blade($template), LIBXML_NOERROR);
+
+    expect($document->querySelector('[data-flux-select-search] input')?->getAttribute('inputmode'))->toBe('numeric')
+        ->and($document->querySelector('ui-select')?->hasAttribute('search:inputmode'))->toBeFalse();
+})->with([
+    'search on the server' => ['<x-select label="Postcode" wire:model="postcode" :options="[\'84000\' => \'84000\']" search-model="search" search:inputmode="numeric" />'],
+    'search in the browser' => ['<x-select label="Postcode" :options="[\'84000\' => \'84000\']" search:inputmode="numeric" />'],
+]);
+
 test('a default adds a checkbox named after its option and leaves wire:model on the select', function (): void {
     $document = HTMLDocument::createFromString((string) $this->blade('<x-select label="State" wire:model.live="state" :options="[10 => \'Selangor\', 14 => \'Kuala Lumpur\']" :default="14" />'), LIBXML_NOERROR);
     $field = $document->querySelector('[data-flux-field]');

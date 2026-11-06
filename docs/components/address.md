@@ -30,12 +30,12 @@ public function save(): void
 }
 ```
 
-A create page has no model when it opens. It passes the new model to `save()` instead, after its main form saves it. Validate the address first, so that a bad address does not leave a new record without one:
+A create page has no model when it opens. It passes the new model to `save()` instead, after its main form saves it. Call `$this->validate()` before the saves. It validates all forms of the component together, so the user sees all errors at once. A bad address also stops the save before the new record exists:
 
 ```php
 public function save(): void
 {
-    $this->address->validate();
+    $this->validate();
 
     $organization = $this->form->save();
     $this->address->save($organization);
@@ -97,7 +97,7 @@ public function postcodes(): Collection
 <x-select :label="__('common/inputs.postcode')" :options="$this->postcodes" search-model="postcodeSearch" search:inputmode="numeric" wire:model.live="form.postcode" />
 ```
 
-Pass `local: true` to list only the local postcodes. Validate the postcode in the page's own rules, for example with `Rule::exists(Postcode::class, 'code')->withoutTrashed()`.
+Pass `local: true` to list only the local postcodes. Validate the postcode in the page's own rules, for example with `Rule::exists(Postcode::class, 'code')->withoutTrashed()`. For a local list, also add `App\Domain\Shared\Geography\Rules\LocalPostcode`. It fails a postcode outside the local area with the same error as the address form.
 
 ## The City Is the Post Office
 
@@ -126,7 +126,7 @@ The district fields are hidden by default. `withDistricts()` shows District and 
 
 ## Local Area
 
-`local()` accepts only addresses in the app's local area. The Postcode list then shows only local postcodes, without a search, and the City list only local post offices. A postcode outside the area fails with its own error. Set the codes of the local country, state, and district in `config/address.php`:
+`local()` accepts only addresses in the app's local area. The Postcode list then shows only local postcodes, without a search, and the City list only local post offices. A postcode or a city outside the area fails with its own error. Set the codes of the local country, state, and district in `config/address.php`:
 
 ```php
 'locality' => [
@@ -194,10 +194,14 @@ public function save(): void
         $this->mailing->fill($this->home->values());
     }
 
+    $this->validate();
+
     $this->home->save();
     $this->mailing->save();
 }
 ```
+
+`$this->validate()` checks both addresses before either one saves. So a bad mailing address does not leave only the home address saved.
 
 The page ticks the box when the two saved addresses are the same, so it needs no extra column. A new record starts with the box ticked, because both addresses are empty.
 

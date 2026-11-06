@@ -11,9 +11,10 @@ use App\Domain\Shared\Geography\Models\Postcode;
 use App\Domain\Shared\Geography\Models\PostOffice;
 use App\Domain\Shared\Geography\Models\State;
 use App\Domain\Shared\Geography\Models\Subdistrict;
+use App\Domain\Shared\Geography\Rules\LocalPostcode;
+use App\Domain\Shared\Geography\Rules\LocalPostOffice;
 use App\Livewire\Form;
 use BackedEnum;
-use Closure;
 use Hasyirin\Address\Contracts\Addressable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -62,6 +63,8 @@ class AddressForm extends Form
 
     #[Locked]
     public bool $districtsRequired = false;
+
+    private ?PostOffice $postOffice = null;
 
     public function required(bool $required = true): static
     {
@@ -179,11 +182,7 @@ class AddressForm extends Form
 
     public function stateName(): ?string
     {
-        if ($this->post_office_id === null) {
-            return null;
-        }
-
-        return PostOffice::query()->with('state')->find($this->post_office_id)?->state->name;
+        return $this->postOffice()?->state->name;
     }
 
     /**
@@ -259,8 +258,22 @@ class AddressForm extends Form
             'line_1' => [$required, 'string', 'max:255'],
             'line_2' => ['nullable', 'string', 'max:255'],
             'line_3' => ['nullable', 'string', 'max:255'],
-            'postcode' => $this->postcodeRules($required),
-            'post_office_id' => [$required, 'integer', $this->postOfficeRule()],
+            'postcode' => [
+                'bail',
+                $required,
+                'string',
+                Rule::exists(Postcode::class, 'code')
+                    ->withoutTrashed()
+                    ->when($this->post_office_id !== null, fn (Exists $rule) => $rule->where('post_office_id', $this->post_office_id)),
+                Rule::when($this->local, [new LocalPostcode]),
+            ],
+            'post_office_id' => [
+                'bail',
+                $required,
+                'integer',
+                Rule::exists(PostOffice::class, 'id')->withoutTrashed(),
+                Rule::when($this->local, [new LocalPostOffice]),
+            ],
         ];
 
         if (! $this->showingDistricts) {
@@ -289,53 +302,6 @@ class AddressForm extends Form
     private function coreRequired(): bool
     {
         return $this->required || collect($this->values())->contains(fn (mixed $value): bool => filled($value));
-    }
-
-    /**
-     * @return list<mixed>
-     */
-    private function postcodeRules(string $required): array
-    {
-        $rules = ['bail', $required, 'string', $this->postcodeRule()];
-
-        if (! $this->local) {
-            return $rules;
-        }
-
-        return [...$rules, function (string $attribute, mixed $value, Closure $fail): void {
-            $local = PostOffice::query()
-                ->local()
-                ->whereHas('postcodes', fn (Builder $query) => $query->where('code', $value))
-                ->exists();
-
-            if ($local) {
-                return;
-            }
-
-            $fail((string) __('common/inputs.postcode_outside_local_area'));
-        }];
-    }
-
-    private function postcodeRule(): Exists
-    {
-        $rule = Rule::exists(Postcode::class, 'code')->withoutTrashed();
-
-        if ($this->post_office_id === null) {
-            return $rule;
-        }
-
-        return $rule->where('post_office_id', $this->post_office_id);
-    }
-
-    private function postOfficeRule(): Exists
-    {
-        $rule = Rule::exists(PostOffice::class, 'id')->withoutTrashed();
-
-        if (! $this->local) {
-            return $rule;
-        }
-
-        return $rule->whereIn('id', PostOffice::query()->local()->pluck('id')->all());
     }
 
     /**
@@ -402,10 +368,21 @@ class AddressForm extends Form
 
     private function stateId(): ?int
     {
+        return $this->postOffice()?->state_id;
+    }
+
+    private function postOffice(): ?PostOffice
+    {
         if ($this->post_office_id === null) {
             return null;
         }
 
-        return PostOffice::query()->find($this->post_office_id)?->state_id;
+        if ($this->postOffice?->id === $this->post_office_id) {
+            return $this->postOffice;
+        }
+
+        $this->postOffice = PostOffice::query()->with('state')->find($this->post_office_id);
+
+        return $this->postOffice;
     }
 }

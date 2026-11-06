@@ -10,6 +10,7 @@ use App\Domain\Shared\Geography\Models\State;
 use App\Domain\Shared\Geography\Models\Subdistrict;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
@@ -318,6 +319,41 @@ describe('districts', function (): void {
             ->assertSet('address.subdistrict_id', null);
     });
 
+    test('a city in another state picked from the city list replaces the district and clears the subdistrict', function (): void {
+        $far = PostOffice::factory()->for($this->perlis)->create(['name' => 'Far']);
+        Postcode::factory()->for($far)->create(['code' => '84300']);
+
+        Livewire::test(AddressFormHost::class, ['districts' => 'optional'])
+            ->set('address.postcode', '84300')
+            ->set('address.post_office_id', $this->muar->id)
+            ->set('address.district_id', $this->muarDistrict->id)
+            ->set('address.subdistrict_id', $this->sungaiBalang->id)
+            ->set('address.post_office_id', $far->id)
+            ->assertSet('address.district_id', $this->perlisDistrict->id)
+            ->assertSet('address.subdistrict_id', null);
+    });
+
+    test('another city in the same state keeps the district and the subdistrict', function (): void {
+        Livewire::test(AddressFormHost::class, ['districts' => 'optional'])
+            ->set('address.postcode', '84300')
+            ->set('address.post_office_id', $this->muar->id)
+            ->set('address.district_id', $this->muarDistrict->id)
+            ->set('address.subdistrict_id', $this->sungaiBalang->id)
+            ->set('address.post_office_id', $this->bukitPasir->id)
+            ->assertSet('address.district_id', $this->muarDistrict->id)
+            ->assertSet('address.subdistrict_id', $this->sungaiBalang->id);
+    });
+
+    test('clearing the city clears the district and the subdistrict', function (): void {
+        Livewire::test(AddressFormHost::class, ['districts' => 'optional'])
+            ->set('address.postcode', '84000')
+            ->set('address.district_id', $this->muarDistrict->id)
+            ->set('address.subdistrict_id', $this->sungaiBalang->id)
+            ->set('address.post_office_id', '')
+            ->assertSet('address.district_id', null)
+            ->assertSet('address.subdistrict_id', null);
+    });
+
     test('optional districts can stay empty', function (): void {
         Livewire::test(AddressFormHost::class, ['districts' => 'optional'])
             ->set('address.line_1', '1 Jalan Satu')
@@ -402,6 +438,19 @@ describe('districts', function (): void {
             ->call('save')
             ->assertHasErrors(['address.district_id' => 'exists']);
     });
+
+    test('the form loads the city once per request', function (): void {
+        $component = Livewire::test(AddressFormHost::class, ['districts' => 'optional'])->set('address.postcode', '84000');
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $component->call('save')->assertHasErrors('address.line_1');
+
+        $cityQueries = collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], '"post_offices"."id" = ?'));
+
+        expect($cityQueries)->toHaveCount(1);
+    });
 });
 
 describe('local area', function (): void {
@@ -445,13 +494,29 @@ describe('local area', function (): void {
         expect($component->errors()->get('address.postcode'))->toBe([__('common/inputs.postcode_outside_local_area')]);
     });
 
-    test('a city outside the local area fails', function (): void {
-        Livewire::test(AddressFormHost::class, ['local' => true])
+    test('a city outside the local area fails with the local-area error', function (): void {
+        $component = Livewire::test(AddressFormHost::class, ['local' => true])
             ->set('address.line_1', '1 Jalan Satu')
             ->set('address.postcode', '01000')
             ->set('address.post_office_id', $this->kangar->id)
-            ->call('save')
-            ->assertHasErrors('address.post_office_id');
+            ->call('save');
+
+        expect($component->errors()->get('address.post_office_id'))->toBe([__('common/inputs.city_outside_local_area')]);
+    });
+
+    test('the local city check does not load the ids of every local post office', function (): void {
+        $component = Livewire::test(AddressFormHost::class, ['local' => true])
+            ->set('address.line_1', '1 Jalan Satu')
+            ->set('address.postcode', '84000');
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $component->call('save');
+
+        $idQueries = collect(DB::getQueryLog())->filter(fn (array $query): bool => str_starts_with($query['query'], 'select "id" from "post_offices"'));
+
+        expect($idQueries)->toBeEmpty();
     });
 
     test('a local address passes', function (): void {

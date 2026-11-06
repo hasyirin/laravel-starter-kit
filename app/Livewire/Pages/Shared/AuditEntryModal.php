@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Livewire\Pages\Internal\Controls;
+namespace App\Livewire\Pages\Shared;
 
 use App\Livewire\Modal;
 use Illuminate\Contracts\View\View;
@@ -38,6 +38,6 @@ abstract class AuditEntryModal extends Modal
 
     public function render(): View
     {
-        return view('livewire.pages.internal.controls.audit-entry-modal');
+        return view('livewire.pages.shared.audit-entry-modal');
     }
 }

@@ -15,6 +15,7 @@ return [
     'users' => 'Users',
     'roles' => 'Roles',
     'horizon' => 'Horizon',
+    'audit_log' => 'Audit log',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',
         'home' => 'Home',

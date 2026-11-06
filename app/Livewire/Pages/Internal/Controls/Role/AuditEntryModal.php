@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Pages\Internal\Controls\Role;
 
 use App\Domain\Shared\Permission\Models\Role;
-use App\Livewire\Pages\Internal\Controls\AuditEntryModal as Modal;
+use App\Livewire\Pages\Shared\AuditEntryModal as Modal;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Livewire\Attributes\Locked;
 use Spatie\Activitylog\Models\Activity;
 
@@ -21,6 +22,6 @@ class AuditEntryModal extends Modal
 
     protected function find(int $id): Activity
     {
-        return Activity::query()->with('causer')->whereMorphedTo('subject', $this->role)->findOrFail($id);
+        return Activity::query()->with(['causer' => fn (MorphTo $causer): MorphTo => $causer->withTrashed()])->whereMorphedTo('subject', $this->role)->findOrFail($id);
     }
 }

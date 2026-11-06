@@ -32,7 +32,7 @@ class UserAuditLog
     private static function involving(User $user, bool $by, bool $on): Builder
     {
         return Activity::query()
-            ->with(['causer', 'subject' => fn (MorphTo $subject): MorphTo => $subject->morphWith([Profile::class => ['user']])])
+            ->with(['causer' => fn (MorphTo $causer): MorphTo => $causer->withTrashed(), 'subject' => fn (MorphTo $subject): MorphTo => $subject->morphWith([Profile::class => ['user']])])
             ->where(function (Builder $query) use ($user, $by, $on): void {
                 if ($by) {
                     $query->orWhere(fn (Builder $query): Builder => $query->whereMorphedTo('causer', $user));

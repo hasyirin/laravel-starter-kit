@@ -17,6 +17,7 @@
         "filament/tables": "^5.0",
         "filament/widgets": "^5.0",
         "hasyirin/laravel-actor": "^2.1",
+        "hasyirin/laravel-address": "^5.4.0",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",

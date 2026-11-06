@@ -6,4 +6,4 @@ paths:
 # Seeders
 
 ## Extend the shared Seeder and keep seeders idempotent
-Extend `App\Domain\Shared\Common\Seeders\Seeder`: return the rows from `data()`, write one row in `each()`, and use `before()` and `after()` for setup and cleanup. Seeding twice must change nothing, so match existing rows with `firstOrCreate()` or skip them.
+Extend `App\Domain\Shared\Common\Seeders\Seeder`: return the rows from `data()`, write one row in `each()`, and use `before()` and `after()` for setup and cleanup. Seeding twice must change nothing, so match existing rows with `firstOrCreate()` or skip them. `GeographySeeder` only runs `address:seed`, because laravel-address seeds its own data with upserts.

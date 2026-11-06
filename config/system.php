@@ -17,6 +17,12 @@ return [
         'branch' => ['code' => 'HQ', 'name' => 'Headquarters'],
     ],
 
+    'audit' => [
+        'retention_days' => env('AUDIT_RETENTION_DAYS'),
+        'archive_disk' => env('AUDIT_ARCHIVE_DISK', 'local'),
+        'queue_connection' => env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync')),
+    ],
+
     'roles' => [
         'system-admin' => 'system-admin',
     ],

@@ -84,6 +84,15 @@ return [
             'after_commit' => false,
         ],
 
+        'redis-audit' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => env('REDIS_AUDIT_QUEUE', 'audit'),
+            'retry_after' => (int) env('REDIS_AUDIT_QUEUE_RETRY_AFTER', 360),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
         'deferred' => [
             'driver' => 'deferred',
         ],

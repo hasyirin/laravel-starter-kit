@@ -225,6 +225,20 @@ return [
             'timeout' => 600,
             'nice' => 10,
         ],
+
+        'supervisor-audit' => [
+            'connection' => 'redis-audit',
+            'queue' => ['audit'],
+            'balance' => 'simple',
+            'processes' => 1,
+            'maxTime' => 3600,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 3,
+            'backoff' => [60, 300],
+            'timeout' => 300,
+            'nice' => 10,
+        ],
     ],
 
     'environments' => [
@@ -238,6 +252,10 @@ return [
             'supervisor-media' => [
                 'processes' => 2,
             ],
+
+            'supervisor-audit' => [
+                'processes' => 1,
+            ],
         ],
 
         'local' => [
@@ -248,6 +266,10 @@ return [
             'supervisor-media' => [
                 'processes' => 1,
             ],
+
+            'supervisor-audit' => [
+                'processes' => 1,
+            ],
         ],
 
         '*' => [
@@ -256,6 +278,10 @@ return [
             ],
 
             'supervisor-media' => [
+                'processes' => 1,
+            ],
+
+            'supervisor-audit' => [
                 'processes' => 1,
             ],
         ],

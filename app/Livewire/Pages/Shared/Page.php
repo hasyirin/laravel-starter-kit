@@ -16,7 +16,7 @@ abstract class Page extends Component
 
         return $view->layout(match (true) {
             in_array(EnsureLocalEnvironment::class, $middleware, true) => 'layouts.local',
-            request()->routeIs('admin.*') => 'layouts.admin',
+            request()->routeIs('system.*') => 'layouts.system',
             request()->routeIs('internal.*') => 'layouts.internal',
             in_array('auth', $middleware, true) => 'layouts.app',
             default => 'layouts.guest',

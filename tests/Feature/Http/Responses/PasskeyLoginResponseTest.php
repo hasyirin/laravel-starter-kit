@@ -17,5 +17,5 @@ test('a passkey login sends the browser to the highest area the user can open', 
 
     $response = TestResponse::fromBaseResponse(resolve(PasskeyLoginResponse::class)->toResponse($request));
 
-    $response->assertOk()->assertExactJson(['redirect' => route('admin.dashboard')]);
+    $response->assertOk()->assertExactJson(['redirect' => route('system.dashboard')]);
 });

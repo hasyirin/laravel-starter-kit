@@ -11,7 +11,7 @@ beforeEach(function (): void {
 
     $this->user = User::factory()->create();
     $this->role = Role::query()->create(['name' => 'editor']);
-    $this->system = Role::query()->forceCreate(['name' => 'admin', 'guard_name' => 'web', 'is_system' => true]);
+    $this->system = Role::query()->forceCreate(['name' => 'system-admin', 'guard_name' => 'web', 'is_system' => true]);
 });
 
 test('view any needs the view-any permission', function (): void {

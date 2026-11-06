@@ -7,7 +7,7 @@ return [
     'dashboard' => 'Dashboard',
     'app' => 'App',
     'internal' => 'Internal',
-    'admin' => 'Admin',
+    'system' => 'System',
     'docs' => 'Docs',
     'search' => 'Search',
     'settings' => 'Settings',

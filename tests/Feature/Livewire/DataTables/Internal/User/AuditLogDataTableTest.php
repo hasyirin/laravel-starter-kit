@@ -22,7 +22,7 @@ beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
 
-    $this->actor = User::factory()->create(['name' => 'Ada Admin']);
+    $this->actor = User::factory()->create(['name' => 'Ada Lovelace']);
     grantPermissions($this->actor, 'internal.access', 'internal.controls.users.view', 'internal.controls.users.view-audit-log');
 
     $this->subject = User::factory()->create(['name' => 'Sam Subject']);
@@ -63,7 +63,7 @@ test('on this user lists changes to the user and their profiles', function (): v
     auditLogTable($this->subject, AuditDirection::On)
         ->assertCanSeeTableRecords([$onUser, $onProfile])
         ->assertCanNotSeeTableRecords([$onOther, $byThem])
-        ->assertSee('Ada Admin');
+        ->assertSee('Ada Lovelace');
 });
 
 test('the subject type filter keeps only that type', function (): void {
@@ -105,18 +105,18 @@ test('the time filter keeps the days that the viewer picks, in the time zone of 
 });
 
 test('the search finds an entry by who did it, a changed value, or its event', function (string $search): void {
-    $byAdmin = renameAs($this->actor, $this->subject, 'Sam Renamed');
+    $byActor = renameAs($this->actor, $this->subject, 'Sam Renamed');
     $byOther = renameAs($this->other, $this->subject, 'Sam Again');
     Profile::factory()->for($this->subject)->create();
     $created = Activity::query()->latest('id')->firstOrFail();
     $this->actingAs($this->actor);
 
-    $expected = ['ada' => $byAdmin, 'again' => $byOther, 'created' => $created][$search];
+    $expected = ['ada' => $byActor, 'again' => $byOther, 'created' => $created][$search];
 
     auditLogTable($this->subject, AuditDirection::On)
         ->searchTable(strtoupper($search))
         ->assertCanSeeTableRecords([$expected])
-        ->assertCanNotSeeTableRecords(collect([$byAdmin, $byOther, $created])->reject(fn (Activity $entry): bool => $entry->is($expected))->all());
+        ->assertCanNotSeeTableRecords(collect([$byActor, $byOther, $created])->reject(fn (Activity $entry): bool => $entry->is($expected))->all());
 })->with(['who did it' => ['ada'], 'a changed value' => ['again'], 'its event' => ['created']]);
 
 test('the audit tab needs view-audit-log', function (string $component, array $params): void {

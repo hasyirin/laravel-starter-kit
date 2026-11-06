@@ -53,17 +53,21 @@ The branch where the owner is based, for example its headquarters.
 ### Access
 
 **Area**:
-A part of the app with its own pages and its own access rule: guest, app, internal, or admin.
+A part of the app with its own pages and its own access rule: guest, app, internal, or system.
+
+**System area**:
+The area with the tools that run the app, such as the queue dashboard.
+_Avoid_: Admin area, admin panel
 
 **Staff**:
 The users who can open the internal area.
 
 **System administrator**:
-A user who can open the admin area.
+A user who can open the system area.
 _Avoid_: Administrator, admin
 
 **Public user**:
-A user who can open neither the internal area nor the admin area.
+A user who can open neither the internal area nor the system area.
 _Avoid_: Guest
 
 **Permission**:

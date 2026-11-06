@@ -167,6 +167,19 @@ test('a profile entry shows the roles of that profile', function (): void {
         ->assertSee('system.access');
 });
 
+test('a profile entry still shows its roles on the next request', function (): void {
+    Role::query()->create(['name' => 'editor', 'guard_name' => 'web']);
+    $this->actingAs($this->actor);
+    Profile::factory()->for($this->subject)->withRoles('editor')->withPermissions('system.access')->create();
+    $entry = Activity::query()->latest('id')->firstOrFail();
+
+    Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
+        ->call('show', $entry->id)
+        ->call('$refresh')
+        ->assertSee('editor')
+        ->assertSee('system.access');
+});
+
 test('a profile entry shows field labels and the names of related records', function (): void {
     $organization = Organization::factory()->create(['name' => 'Acme Holdings']);
     $this->actingAs($this->actor);
@@ -221,4 +234,23 @@ test('the modal refuses an audit entry that does not involve the user', function
     Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
         ->call('show', $entry->id)
         ->assertNotFound();
+});
+
+test('the modal shows the impersonator of an entry', function (): void {
+    $impersonator = User::factory()->create(['name' => 'Ina Impersonator']);
+    context()->add('impersonator_id', $impersonator->id);
+    $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
+    $impersonator->delete();
+
+    Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
+        ->call('show', $entry->id)
+        ->assertSee(__('user/users.impersonation.by', ['name' => 'Ina Impersonator']));
+});
+
+test('the modal shows no impersonator for an entry without one', function (): void {
+    $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
+
+    Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
+        ->call('show', $entry->id)
+        ->assertDontSee(__('user/users.impersonation.by', ['name' => '']));
 });

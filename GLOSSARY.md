@@ -82,6 +82,16 @@ A role that comes with the app. Nobody can rename or delete it.
 A role or permission that is given to a user, not to a profile.
 _Avoid_: Direct permission
 
+**Impersonation**:
+Use of the app as another user, without that user's password.
+_Avoid_: Login as, switch user, sudo
+
+**Impersonator**:
+The user who impersonates another user.
+
+**Impersonated user**:
+The user whom an impersonator uses the app as.
+
 ### Actions
 
 **Action**:

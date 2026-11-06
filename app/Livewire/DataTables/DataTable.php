@@ -56,11 +56,6 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
             HTML;
     }
 
-    public function render(): View
-    {
-        return view('livewire.data-tables.data-table');
-    }
-
     /**
      * @return Builder<covariant Model>|null
      */
@@ -120,5 +115,10 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
     protected function paginated(): bool
     {
         return true;
+    }
+
+    public function render(): View
+    {
+        return view('livewire.data-tables.data-table');
     }
 }

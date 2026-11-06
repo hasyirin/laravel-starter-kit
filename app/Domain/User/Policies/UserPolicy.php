@@ -6,6 +6,7 @@ namespace App\Domain\User\Policies;
 
 use App\Domain\Shared\Common\Policies\Policy;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
 
 class UserPolicy extends Policy
 {
@@ -47,6 +48,15 @@ class UserPolicy extends Policy
         }
 
         return $this->reaches($user, $model);
+    }
+
+    public function impersonate(User $user, User $model): bool
+    {
+        if (Impersonation::forbids($user, $model)) {
+            return false;
+        }
+
+        return $this->hasAllPermissions($user, 'impersonate', 'update') && $this->reaches($user, $model);
     }
 
     private function reaches(User $user, User $model): bool

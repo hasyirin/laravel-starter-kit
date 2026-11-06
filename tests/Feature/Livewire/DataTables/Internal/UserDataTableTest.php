@@ -7,6 +7,7 @@ use App\Domain\Shared\Permission\Seeders\RoleSeeder;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Internal\UserDataTable;
+use App\Livewire\Pages\Internal\Controls\User\ImpersonateModal;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
@@ -80,4 +81,37 @@ test('the row click opens the user', function (): void {
     Livewire::test(UserDataTable::class)
         ->callAction(TestAction::make('view')->table($other))
         ->assertRedirect(route('internal.controls.users.show', $other));
+});
+
+test('the impersonate action is hidden without the impersonate permission', function (): void {
+    $other = User::factory()->create();
+    grantPermissions($this->actor, 'internal.controls.users.update');
+
+    Livewire::test(UserDataTable::class)
+        ->assertActionHidden(TestAction::make('impersonate')->table($other));
+});
+
+test('the impersonate action is hidden on your own row', function (): void {
+    $other = User::factory()->create();
+    grantPermissions($this->actor, 'internal.controls.users.update', 'internal.controls.users.impersonate');
+
+    Livewire::test(UserDataTable::class)
+        ->assertActionVisible(TestAction::make('impersonate')->table($other))
+        ->assertActionHidden(TestAction::make('impersonate')->table($this->actor));
+});
+
+test('the impersonate action opens the impersonate modal', function (): void {
+    $other = User::factory()->create();
+    grantPermissions($this->actor, 'internal.controls.users.update', 'internal.controls.users.impersonate');
+
+    Livewire::test(UserDataTable::class)
+        ->callAction(TestAction::make('impersonate')->table($other))
+        ->assertDispatchedTo(ImpersonateModal::class, 'show', id: $other->id);
+});
+
+test('the impersonate action is hidden on your own row, also with bypass', function (): void {
+    grantPermissions($this->actor, 'bypass-authorization');
+
+    Livewire::test(UserDataTable::class)
+        ->assertActionHidden(TestAction::make('impersonate')->table($this->actor));
 });

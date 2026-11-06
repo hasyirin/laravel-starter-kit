@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Domain\User\Actions\Fortify\CreateNewUser;
 use App\Domain\User\Actions\Fortify\ResetUserPassword;
+use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
 use App\Http\Responses\LoginResponse;
 use App\Http\Responses\PasskeyLoginResponse;
 use App\Http\Responses\TwoFactorLoginResponse;
@@ -13,6 +15,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
@@ -49,6 +52,13 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::confirmPasswordsUsing(function (User $user, ?string $password): bool {
+            if (Impersonation::active()) {
+                $user = Impersonation::impersonator();
+            }
+
+            return $user instanceof User && Hash::check((string) $password, $user->password);
+        });
     }
 
     /**

@@ -43,6 +43,7 @@ return [
                     'update-permissions' => 'internal.controls.users.update-permissions',
                     'update-roles' => 'internal.controls.users.update-roles',
                     'delete' => 'internal.controls.users.delete',
+                    'impersonate' => 'internal.controls.users.impersonate',
                     'view-audit-log' => 'internal.controls.users.view-audit-log',
                 ],
             ],

@@ -27,19 +27,6 @@ class ComponentDocs extends Page
         abort_unless($this->page === null || self::documents()->has($this->page), 404);
     }
 
-    public function render(): View
-    {
-        $documents = self::documents();
-
-        view()->share('errors', (new ViewErrorBag)->put('default', new MessageBag([
-            'form.taken_email' => (string) __('validation.unique', ['attribute' => 'email']),
-        ])));
-
-        return view('livewire.pages.local.component-docs', [
-            'parts' => $this->parts((string) file_get_contents(base_path('docs/components/'.($this->page ?? 'README').'.md'))),
-        ])->title($this->page === null ? (string) __('docs.components') : (string) $documents->get($this->page));
-    }
-
     /**
      * @return Collection<string, string>
      */
@@ -78,5 +65,18 @@ class ComponentDocs extends Page
                 'bindings' => array_values(array_unique($bindings[1])),
             ];
         }, $pieces, array_keys($pieces));
+    }
+
+    public function render(): View
+    {
+        $documents = self::documents();
+
+        view()->share('errors', (new ViewErrorBag)->put('default', new MessageBag([
+            'form.taken_email' => (string) __('validation.unique', ['attribute' => 'email']),
+        ])));
+
+        return view('livewire.pages.local.component-docs', [
+            'parts' => $this->parts((string) file_get_contents(base_path('docs/components/'.($this->page ?? 'README').'.md'))),
+        ])->title($this->page === null ? (string) __('docs.components') : (string) $documents->get($this->page));
     }
 }

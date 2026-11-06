@@ -31,6 +31,7 @@ test('seeding leaves out permissions that match an except pattern', function ():
         'internal.controls.roles.view-any',
         'internal.controls.roles.view-audit-log',
         'internal.controls.users.create',
+        'internal.controls.users.impersonate',
         'internal.controls.users.update',
         'internal.controls.users.view',
         'internal.controls.users.view-any',

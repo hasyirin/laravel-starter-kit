@@ -39,13 +39,13 @@ class Tabs extends Component
         ];
     }
 
-    public function render(): View
-    {
-        return view('livewire.pages.internal.controls.user.tabs');
-    }
-
     protected function rendersWithoutTabs(): bool
     {
         return true;
+    }
+
+    public function render(): View
+    {
+        return view('livewire.pages.internal.controls.user.tabs');
     }
 }

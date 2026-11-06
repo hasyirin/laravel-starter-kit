@@ -154,3 +154,49 @@ test('a typed ability needs the base ability and the typed permission', function
 
     expect($this->user->can('view', [$this->other, 'audit-log']))->toBeTrue();
 });
+
+test('impersonate needs the impersonate and update permissions', function (): void {
+    expect($this->user->can('impersonate', $this->other))->toBeFalse();
+
+    grantPermissions($this->user, 'internal.controls.users.impersonate');
+
+    expect($this->user->can('impersonate', $this->other))->toBeFalse();
+
+    revokePermissions($this->user, 'internal.controls.users.impersonate');
+    grantPermissions($this->user, 'internal.controls.users.update');
+
+    expect($this->user->can('impersonate', $this->other))->toBeFalse();
+
+    grantPermissions($this->user, 'internal.controls.users.impersonate');
+
+    expect($this->user->can('impersonate', $this->other))->toBeTrue();
+});
+
+test('a user cannot impersonate themselves', function (): void {
+    grantPermissions($this->user, 'internal.controls.users.impersonate', 'internal.controls.users.update');
+
+    expect($this->user->can('impersonate', $this->user))->toBeFalse();
+});
+
+test('a user cannot impersonate a deleted user', function (): void {
+    grantPermissions($this->user, 'internal.controls.users.impersonate', 'internal.controls.users.update');
+
+    $this->other->delete();
+
+    expect($this->user->can('impersonate', $this->other))->toBeFalse();
+});
+
+test('a user without bypass-authorization cannot impersonate a user who has it', function (): void {
+    grantPermissions($this->user, 'internal.controls.users.impersonate', 'internal.controls.users.update');
+    grantPermissions($this->other, 'bypass-authorization');
+
+    expect($this->user->can('impersonate', $this->other))->toBeFalse();
+});
+
+test('nobody can impersonate while impersonating', function (): void {
+    grantPermissions($this->user, 'internal.controls.users.impersonate', 'internal.controls.users.update');
+
+    session()->put('impersonation.impersonator_id', $this->other->id);
+
+    expect($this->user->can('impersonate', $this->other))->toBeFalse();
+});

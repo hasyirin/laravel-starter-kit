@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\DataTables\Internal\User;
 
+use App\Domain\User\Enums\AuditDirection;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\UserAuditLog;
 use App\Livewire\DataTables\Internal\AuditLogDataTable as DataTable;
@@ -20,7 +21,7 @@ class AuditLogDataTable extends DataTable
     public User $user;
 
     #[Locked]
-    public string $direction = 'by';
+    public AuditDirection $direction = AuditDirection::By;
 
     public function mount(): void
     {
@@ -42,6 +43,6 @@ class AuditLogDataTable extends DataTable
 
     protected function showsCauser(): bool
     {
-        return $this->direction === 'on';
+        return $this->direction === AuditDirection::On;
     }
 }

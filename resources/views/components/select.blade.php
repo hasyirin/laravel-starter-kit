@@ -44,16 +44,24 @@
         $defaultLabel ??= __('common/inputs.use_default', ['value' => $defaultOption?->resolvedText() ?? $default]);
     }
 
-    $controlAttributes = $attributes->except('class');
+    $searchInputAttributes = collect($attributes->whereStartsWith('search:')->getAttributes())
+        ->mapWithKeys(fn (mixed $value, string $key): array => [str($key)->after('search:')->value() => $value]);
+    $controlAttributes = $attributes->whereDoesntStartWith('search:')->except('class');
 
     if ($searchModel !== null) {
         // The server sends only the matching options, so Flux must not filter them again.
         $controlAttributes['filter'] = false;
+    }
 
-        $searchAttributes = new \Illuminate\View\ComponentAttributeBag(array_filter([
-            'wire:model.live.debounce.250ms' => $searchModel,
-            'placeholder' => $searchPlaceholder,
-        ]));
+    $hasSearchSlot = $searchable && ($searchModel !== null || $searchInputAttributes->isNotEmpty());
+
+    if ($hasSearchSlot) {
+        $searchAttributes = new \Illuminate\View\ComponentAttributeBag(
+            collect(['wire:model.live.debounce.250ms' => $searchModel, 'placeholder' => $searchPlaceholder])
+                ->merge($searchInputAttributes)
+                ->filter()
+                ->all(),
+        );
     }
 @endphp
 
@@ -73,7 +81,7 @@
     {{ $attributes->only('class') }}
 >
     <flux:select :$variant :$searchable :$required :class="$inputClass" data-input-control :attributes="$controlAttributes">
-        @if($searchModel !== null)
+        @if($hasSearchSlot)
             <x-slot:search>
                 <flux:select.search :attributes="$searchAttributes" />
             </x-slot:search>

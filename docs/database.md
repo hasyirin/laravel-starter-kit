@@ -32,6 +32,27 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
+    addresses {
+        integer id PK
+        string addressable_type
+        integer addressable_id
+        integer country_id FK
+        integer state_id FK
+        integer district_id FK
+        integer subdistrict_id FK
+        integer post_office_id FK
+        string type
+        string line_1
+        string line_2
+        string line_3
+        string postcode
+        decimal latitude
+        decimal longitude
+        json properties
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     branches {
         integer id PK
         integer organization_id FK
@@ -42,12 +63,30 @@ erDiagram
         datetime updated_at
         datetime deleted_at
     }
+    countries {
+        integer id PK
+        string code
+        string name
+        string alpha_2
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     departments {
         integer id PK
         integer organization_id FK
         string code
         string name
         boolean is_owner
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+    districts {
+        integer id PK
+        integer state_id FK
+        string code
+        string name
         datetime created_at
         datetime updated_at
         datetime deleted_at
@@ -117,6 +156,24 @@ erDiagram
         datetime updated_at
         datetime deleted_at
     }
+    post_offices {
+        integer id PK
+        integer state_id FK
+        string name
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+    postcodes {
+        integer id PK
+        integer post_office_id FK
+        string code
+        decimal latitude
+        decimal longitude
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     profiles {
         integer id PK
         integer organization_id FK
@@ -140,6 +197,24 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
+    states {
+        integer id PK
+        integer country_id FK
+        string code
+        string name
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+    subdistricts {
+        integer id PK
+        integer district_id FK
+        string code
+        string name
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     users {
         integer id PK
         string name
@@ -157,8 +232,12 @@ erDiagram
         string locale
     }
     branches |o--o{ profiles : "branch_id"
+    countries |o--o{ addresses : "country_id"
+    countries ||--o{ states : "country_id"
     departments |o--o{ positions : "department_id"
     departments |o--o{ profiles : "department_id"
+    districts |o--o{ addresses : "district_id"
+    districts ||--o{ subdistricts : "district_id"
     organizations ||--o{ branches : "organization_id"
     organizations ||--o{ departments : "organization_id"
     organizations ||--o{ positions : "organization_id"
@@ -166,9 +245,15 @@ erDiagram
     permissions ||--o{ model_has_permissions : "permission_id"
     permissions ||--o{ role_has_permissions : "permission_id"
     positions |o--o{ profiles : "position_id"
+    post_offices |o--o{ addresses : "post_office_id"
+    post_offices ||--o{ postcodes : "post_office_id"
     profiles |o--o{ actions : "profile_id"
     roles ||--o{ model_has_roles : "role_id"
     roles ||--o{ role_has_permissions : "role_id"
+    states |o--o{ addresses : "state_id"
+    states ||--o{ districts : "state_id"
+    states ||--o{ post_offices : "state_id"
+    subdistricts |o--o{ addresses : "subdistrict_id"
     users ||--o{ passkeys : "user_id"
     users ||--o{ profiles : "user_id"
 ```
@@ -179,6 +264,7 @@ These polymorphic column pairs can point to any table, so the diagram draws no l
 - `actions.actor_type` and `actions.actor_id`
 - `activity_log.subject_type` and `activity_log.subject_id`
 - `activity_log.causer_type` and `activity_log.causer_id`
+- `addresses.addressable_type` and `addresses.addressable_id`
 - `media.model_type` and `media.model_id`
 - `model_has_permissions.model_type` and `model_has_permissions.model_id`
 - `model_has_roles.model_type` and `model_has_roles.model_id`

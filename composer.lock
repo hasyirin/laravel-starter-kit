@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1fe85160d915c95f1188be812a802bd0",
+    "content-hash": "184562c290c10a5d3c817515d9bc0b46",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -2323,6 +2323,75 @@
                 }
             ],
             "time": "2026-11-05T18:27:21+00:00"
+        },
+        {
+            "name": "hasyirin/laravel-address",
+            "version": "v5.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hasyirin/laravel-address.git",
+                "reference": "d4e195076598fa2fc2e0a212cb01053d0b581b67"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hasyirin/laravel-address/zipball/d4e195076598fa2fc2e0a212cb01053d0b581b67",
+                "reference": "d4e195076598fa2fc2e0a212cb01053d0b581b67",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^13.35",
+                "php": "^8.4",
+                "spatie/laravel-package-tools": "^1.16"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.14",
+                "laravel/pint": "^1.32",
+                "nunomaduro/collision": "^8.9.5",
+                "orchestra/testbench": "^11.3",
+                "pestphp/pest": "^5.3.5",
+                "pestphp/pest-plugin-arch": "^5.0",
+                "pestphp/pest-plugin-laravel": "^5.0.1",
+                "phpstan/extension-installer": "^1.4.3",
+                "phpstan/phpstan-deprecation-rules": "^2.0.5",
+                "phpstan/phpstan-phpunit": "^2.1.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Hasyirin\\Address\\AddressServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Hasyirin\\Address\\": "src/",
+                    "Hasyirin\\Address\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hasyirin Fakhriy",
+                    "email": "ahrim@novarift.my",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Polymorphic address management for Laravel with hierarchical geographical data and built-in Malaysian dataset.",
+            "homepage": "https://github.com/hasyirin/laravel-address",
+            "keywords": [
+                "Hasyirin Fakhriy",
+                "laravel",
+                "laravel-address"
+            ],
+            "support": {
+                "issues": "https://github.com/hasyirin/laravel-address/issues",
+                "source": "https://github.com/hasyirin/laravel-address/tree/v5.4.0"
+            },
+            "time": "2026-11-05T19:30:15+00:00"
         },
         {
             "name": "kirschbaum-development/eloquent-power-joins",

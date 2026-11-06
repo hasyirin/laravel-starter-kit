@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Internal\Controls\User;
 
+use App\Domain\User\Enums\AuditDirection;
 use App\Domain\User\Models\User;
 use App\Livewire\Component;
 use Illuminate\Contracts\View\View;
@@ -15,8 +16,11 @@ class Audit extends Component
     #[Locked]
     public User $user;
 
-    #[Url]
-    public string $direction = 'by';
+    #[Url(nullable: true)]
+    public AuditDirection $direction = AuditDirection::By {
+        // Livewire puts null here when ?direction= has an unknown value. Without nullable: true, it throws a ValueError.
+        set(?AuditDirection $direction) => $direction ?? AuditDirection::By;
+    }
 
     public function mount(): void
     {

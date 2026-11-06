@@ -17,8 +17,9 @@ Put the `render()` method at the end of the class, after all other methods. This
 ## Build forms with set() and save()
 Extend `App\Livewire\Form`. Put a form in `app/Livewire/Forms/<Area>/<Model>Form.php`. Give it typed properties and a `rules()` method; do not use `#[Validate]`. Use one form for create and edit:
 - `set(Model $model): static` fills the form from a record.
-- A form for a child record takes the parent first, such as `set(Notebook $notebook, Note $note)`. Livewire rebuilds an unsaved model as a fully empty one on the next request. A new record then loses every value from the earlier request, such as its parent key. So the Action class sets the parent again on every save. It also sets every other value that the user does not enter, such as a certificate type.
-- `save(): Model` validates, then calls the Action class with `make()->execute()`, and returns the record. If the record is null, it creates one.
+- A form for a child record takes the parent once, in `set()` or in `save()`. Pass it to `set()` when the parent exists before the form opens, as on an edit page: `set(Notebook $notebook, Note $note)`. Pass it to `save()` when the page creates the parent in the same request, as on a create page: `save(Organization $organization)`. A form can take the parent in either place, as `AddressForm` does. A page still passes it only once.
+- Livewire rebuilds an unsaved model as a fully empty one on the next request. A new record then loses every value from the earlier request, such as its parent key. So the Action class sets the parent again on every save. It also sets every other value that the user does not enter, such as a certificate type.
+- `save()` validates, then calls the Action class with `make()->execute()`, and returns the record. If the record is null, it creates one.
 - A form never writes models and never opens a transaction. The Action class does that.
 - Mark each property that the user does not type with `#[Locked]`, such as the record and any flag that changes the rules. A browser can change any other public property.
 - Do not put a `disabled` flag on a form. Disable the component with `CanBeDisabled`, and check a part that the user can or cannot change with the policy in `save()`.

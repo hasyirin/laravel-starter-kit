@@ -1,5 +1,7 @@
+@use(App\Livewire\Pages\Local\Examples\TabBarType)
+
 <div>
-    @if($bar === 'card')
+    @if($bar === TabBarType::Card)
         <x-card.tabs
             :$tabs
             :$currentTab
@@ -11,13 +13,13 @@
             :params="$contentParams"
             :aria-label="$ariaLabel"
         />
-    @elseif($bar === 'navlist')
+    @elseif($bar === TabBarType::Navlist)
         <div class="flex gap-6">
             <x-tabs.navlist :$tabs :$currentTab :query-as="$queryTabAs" :aria-label="$ariaLabel" class="w-40 shrink-0" />
             <x-tabs.content :panels="$tabPanels" :$currentTab orientation="vertical" class="min-w-0 flex-1" />
         </div>
     @else
-        @if($bar === 'navbar')
+        @if($bar === TabBarType::Navbar)
             <x-tabs.navbar :$tabs :$currentTab :query-as="$queryTabAs" :aria-label="$ariaLabel" />
         @else
             <x-tabs :$tabs :$currentTab :query-as="$queryTabAs" :$variant :aria-label="$ariaLabel" />

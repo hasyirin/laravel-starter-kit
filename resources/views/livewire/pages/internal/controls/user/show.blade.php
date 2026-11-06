@@ -1,3 +1,5 @@
+@use(App\Domain\User\Support\Impersonation)
+
 <flux:main container>
     @isset($role)
         <x-breadcrumbs
@@ -23,6 +25,17 @@
             <flux:heading size="xl" class="mb-0!">{{ $user->name }}</flux:heading>
             <flux:subheading>{{ $this->subheading }}</flux:subheading>
         </div>
+
+        @if(Impersonation::allows(auth()->user(), $user))
+            <flux:button
+                class="ms-auto"
+                icon="user-circle"
+                data-test="impersonate-button"
+                wire:click="$dispatchTo('pages.internal.controls.user.impersonate-modal', 'show', { id: {{ $user->id }} })"
+            >
+                {{ __('user/users.impersonation.action') }}
+            </flux:button>
+        @endif
     </div>
 
     @include('livewire.pages.internal.controls.user.partials.details', ['submit' => __('common/buttons.update')])
@@ -30,6 +43,10 @@
     <div class="mt-10">
         <livewire:pages.internal.controls.user.tabs :$user />
     </div>
+
+    @if(Impersonation::allows(auth()->user(), $user))
+        <livewire:pages.internal.controls.user.impersonate-modal :$role />
+    @endif
 
     @can('update', $user)
         @unless($user->hasVerifiedEmail())

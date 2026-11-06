@@ -148,16 +148,6 @@ class FileUpload extends Component
         $this->items = $items;
     }
 
-    public function render(): View
-    {
-        return view('livewire.components.file-upload', [
-            'full' => $this->full(),
-            'acceptedTypes' => $this->acceptedTypes(),
-            'limits' => $this->limits(),
-            'previews' => collect($this->items)->mapWithKeys(fn (array $item): array => [$item['uuid'] => $this->preview($item)])->all(),
-        ]);
-    }
-
     private function limit(): int
     {
         return $this->multiple ? ($this->max ?? PHP_INT_MAX) : 1;
@@ -233,5 +223,15 @@ class FileUpload extends Component
         $file = isset($item['upload']) ? TemporaryUploadedFile::unserializeFromLivewireRequest($item['upload']) : null;
 
         return $file instanceof TemporaryUploadedFile && $file->exists() ? $file : null;
+    }
+
+    public function render(): View
+    {
+        return view('livewire.components.file-upload', [
+            'full' => $this->full(),
+            'acceptedTypes' => $this->acceptedTypes(),
+            'limits' => $this->limits(),
+            'previews' => collect($this->items)->mapWithKeys(fn (array $item): array => [$item['uuid'] => $this->preview($item)])->all(),
+        ]);
     }
 }

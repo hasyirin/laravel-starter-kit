@@ -42,6 +42,7 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `internal.controls.users.update-permissions` | ✓                    |
 | `internal.controls.users.update-roles`       | ✓                    |
 | `internal.controls.users.delete`             | ✓                    |
+| `internal.controls.users.impersonate`        | ✓                    |
 | `internal.controls.users.view-audit-log`     | ✓                    |
 | `system.access`                              | ✓                    |
 | `system.horizon.view`                        | ✓                    |

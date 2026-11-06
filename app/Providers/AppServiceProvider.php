@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Domain\Shared\Common\Support\ContextCauserResolver;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
@@ -17,15 +16,9 @@ use Illuminate\Validation\Rules\Password;
 use Livewire\Blaze\Blaze;
 use Livewire\Livewire;
 use RuntimeException;
-use Spatie\Activitylog\Support\CauserResolver;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-        $this->app->scoped(CauserResolver::class, ContextCauserResolver::class);
-    }
-
     public function boot(): void
     {
         $this->preventDebugModeInProduction();

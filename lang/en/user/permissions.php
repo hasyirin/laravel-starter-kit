@@ -20,6 +20,7 @@ return [
         'update-roles' => 'Update roles',
         'update-permissions' => 'Update permissions',
         'delete' => 'Delete',
+        'impersonate' => 'Impersonate',
         'view-audit-log' => 'View audit log',
         'bypass-authorization' => 'Bypass authorization',
     ],

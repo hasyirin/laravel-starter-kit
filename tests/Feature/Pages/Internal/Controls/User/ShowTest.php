@@ -11,6 +11,7 @@ use App\Domain\Shared\Permission\Seeders\RoleSeeder;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Livewire\Components\Option;
+use App\Livewire\Pages\Internal\Controls\User\ImpersonateModal;
 use App\Livewire\Pages\Internal\Controls\User\Show;
 use App\Livewire\Pages\Internal\Controls\User\Tabs;
 use Carbon\CarbonImmutable;
@@ -472,4 +473,15 @@ test('a user opened from a role needs view on the role', function (): void {
     $role = Role::query()->create(['name' => 'editor']);
 
     $this->get(route('internal.controls.roles.users.show', [$role, $this->subject]))->assertForbidden();
+});
+
+test('the impersonate button shows only when the policy allows it', function (): void {
+    $this->get(route('internal.controls.users.show', $this->subject))
+        ->assertDontSee('data-test="impersonate-button"', false);
+
+    grantPermissions($this->actor, 'internal.controls.users.impersonate');
+
+    $this->get(route('internal.controls.users.show', $this->subject))
+        ->assertSee('data-test="impersonate-button"', false)
+        ->assertSeeLivewire(ImpersonateModal::class);
 });

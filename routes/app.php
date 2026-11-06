@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\StopImpersonationController;
 use App\Livewire\Pages\App\Dashboard;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Preferences;
@@ -11,6 +12,8 @@ use App\Livewire\Settings\UserInformation;
 use Illuminate\Support\Facades\Route;
 
 Route::get('media/{media:uuid}/{conversion?}', MediaController::class)->name('media.show');
+
+Route::post('impersonation/stop', StopImpersonationController::class)->name('impersonation.stop');
 
 Route::redirect('settings', '/settings/user-information')->name('settings');
 

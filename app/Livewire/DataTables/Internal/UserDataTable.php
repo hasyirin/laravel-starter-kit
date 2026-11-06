@@ -6,12 +6,15 @@ namespace App\Livewire\DataTables\Internal;
 
 use App\Domain\User\Actions\DeleteOtherUser;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
 use App\Filament\Actions\CreateAction;
 use App\Filament\Actions\DeleteAction;
 use App\Filament\Actions\ViewAction;
 use App\Filament\Tables\Columns\TimestampColumn;
 use App\Livewire\DataTables\DataTable;
+use App\Livewire\Pages\Internal\Controls\User\ImpersonateModal;
 use Filament\Actions\Action;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -71,10 +74,24 @@ class UserDataTable extends DataTable
                 ->visible(fn (User $user): bool => $this->can('view', $user))
                 ->action($this->to(...)),
 
+            Action::make('impersonate')
+                ->label((string) __('user/users.impersonation.action'))
+                ->icon(Heroicon::UserCircle)
+                ->visible(fn (User $user): bool => $this->impersonatable($user))
+                ->action(fn (User $user) => $this->dispatch('show', id: $user->id)->to(ImpersonateModal::class)),
+
             DeleteAction::make()
                 ->through(DeleteOtherUser::class)
                 ->visible(fn (User $user): bool => $this->can('delete', $user) && ! $user->is(auth()->user())),
         ];
+    }
+
+    private function impersonatable(User $user): bool
+    {
+        /** @var User $actor */
+        $actor = auth()->user();
+
+        return Impersonation::allows($actor, $user);
     }
 
     protected function to(?User $record = null): void

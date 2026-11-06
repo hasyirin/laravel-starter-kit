@@ -3,15 +3,19 @@
 
 <div>
     <flux:modal wire:model="showing" class="md:min-w-xl">
-        @if($showing && $this->entry)
-            @php($entry = $this->entry)
+        @if($showing && $entry)
             @php($changes = AuditLog::changes($entry))
+            @php($impersonator = AuditLog::impersonatorName($entry))
 
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">{{ AuditLog::subjectLabel($entry) }}</flux:heading>
 
                     <flux:subheading>{{ AuditLog::summary($entry) }}</flux:subheading>
+
+                    @if($impersonator)
+                        <flux:subheading>{{ __('user/users.impersonation.by', ['name' => $impersonator]) }}</flux:subheading>
+                    @endif
                 </div>
 
                 @if($changes->isEmpty())

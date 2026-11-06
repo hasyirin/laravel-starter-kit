@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Internal\Controls;
 
-use App\Domain\User\Models\Profile;
 use App\Livewire\Modal;
 use Illuminate\Contracts\View\View;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Spatie\Activitylog\Models\Activity;
@@ -15,7 +13,7 @@ use Spatie\Activitylog\Models\Activity;
 abstract class AuditEntryModal extends Modal
 {
     #[Locked]
-    public ?int $entryId = null;
+    public ?Activity $entry = null;
 
     abstract protected function authorizeLog(): void;
 
@@ -31,28 +29,11 @@ abstract class AuditEntryModal extends Modal
     {
         $this->authorizeLog();
 
-        $this->entryId = $id;
-        unset($this->entry);
+        abort_if($id === null, 404);
 
-        abort_unless($this->entry instanceof Activity, 404);
+        $this->entry = $this->find($id);
 
         parent::show();
-    }
-
-    #[Computed]
-    public function entry(): ?Activity
-    {
-        if ($this->entryId === null) {
-            return null;
-        }
-
-        $entry = $this->find($this->entryId);
-
-        if ($entry->subject instanceof Profile) {
-            $entry->subject->loadMissing(['roles', 'permissions']);
-        }
-
-        return $entry;
     }
 
     public function render(): View

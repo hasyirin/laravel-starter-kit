@@ -18,15 +18,20 @@ class LoginResponse implements LoginResponseContract
             : redirect()->intended($this->highestAreaUrl());
     }
 
-    protected function highestAreaUrl(): string
+    public static function home(User $user): string
     {
-        /** @var User $user */
-        $user = auth()->user();
-
         return match (true) {
             $user->can(config()->string('system.permissions.system.access')) => route('admin.dashboard'),
             $user->can(config()->string('system.permissions.internal.access')) => route('internal.dashboard'),
             default => Fortify::redirects('login'),
         };
+    }
+
+    protected function highestAreaUrl(): string
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        return self::home($user);
     }
 }

@@ -107,6 +107,19 @@ class AuditLog
         return $entry->causer->name;
     }
 
+    public static function impersonatorName(Activity $entry): ?string
+    {
+        $id = $entry->getProperty('impersonator_id');
+
+        if ($id === null) {
+            return null;
+        }
+
+        $name = User::withTrashed()->whereKey($id)->value('name');
+
+        return is_string($name) ? $name : null;
+    }
+
     public static function summary(Activity $entry): string
     {
         return collect([

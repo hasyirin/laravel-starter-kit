@@ -46,6 +46,13 @@ return [
     'create' => [
         'title' => 'Create user',
     ],
+    'impersonation' => [
+        'action' => 'Impersonate',
+        'heading' => 'Impersonate :name?',
+        'description' => 'You will use the app as this user. Each change you make records you as the impersonator. Enter your password to continue.',
+        'by' => 'Impersonated by :name',
+        'stop' => 'Stop impersonating',
+    ],
     'verify' => [
         'heading' => 'Mark the email as verified?',
         'description' => 'The user will not need to confirm :email.',

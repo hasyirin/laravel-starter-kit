@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Internal\UserDataTable;
+use App\Livewire\Pages\Internal\Controls\User\ImpersonateModal;
 use App\Livewire\Pages\Internal\Controls\User\Index;
 use Livewire\Livewire;
 
@@ -52,4 +53,11 @@ test('the user table refuses a user without view-any', function (): void {
     grantPermissions($user, 'internal.controls.users.view-any');
 
     Livewire::withoutLazyLoading()->test(UserDataTable::class)->assertOk();
+});
+
+test('the user list holds the impersonate modal', function (): void {
+    $user = User::factory()->create();
+    grantPermissions($user, 'internal.access', 'internal.controls.users.view-any');
+
+    $this->actingAs($user)->get(route('internal.controls.users.index'))->assertSeeLivewire(ImpersonateModal::class);
 });

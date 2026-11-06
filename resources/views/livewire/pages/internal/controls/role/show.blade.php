@@ -1,14 +1,13 @@
 <flux:main container>
-    <x-breadcrumbs
-        :items="[['label' => __('permission/roles.title'), 'href' => route('internal.controls.roles.index')], ['label' => $role->label]]"
-        class="mb-6"
-    />
+    <div class="space-y-8">
+        <x-breadcrumbs
+            :items="[['label' => __('permission/roles.title'), 'href' => route('internal.controls.roles.index')], ['label' => $role->label]]"
+        />
 
-    <flux:heading size="xl" class="mb-6">{{ $role->label }}</flux:heading>
+        <flux:heading size="xl">{{ $role->label }}</flux:heading>
 
-    @include('livewire.pages.internal.controls.role.partials.details', ['submit' => __('common/buttons.update')])
+        @include('livewire.pages.internal.controls.role.partials.details', ['submit' => __('common/buttons.update')])
 
-    <div class="mt-10">
         <livewire:pages.internal.controls.role.tabs :$role />
     </div>
 </flux:main>

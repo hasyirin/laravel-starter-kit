@@ -21,7 +21,7 @@ class CountryDataTable extends DataTable
     {
         return [
             CreateAction::make()
-                ->label(__('countries.country'))
+                ->label((string) __('countries.country'))
                 ->visible(fn () => $this->can('create', Country::class))
                 ->action($this->to(...)),
         ];
@@ -30,7 +30,7 @@ class CountryDataTable extends DataTable
     protected function columns(): array
     {
         return [
-            TextColumn::make('name')->label(__('inputs.name'))->searchable()->sortable(),
+            TextColumn::make('name')->label((string) __('inputs.name'))->searchable()->sortable(),
             TimestampColumn::make('created_at'),
         ];
     }
@@ -113,7 +113,7 @@ protected function getListeners(): array
 `App\Filament\Tables\Columns\ActColumn` shows an action of each row as [`<x-act>`](act.md) does: the name of the user, the position that the user held then, and the time. Give it the relation of the action, such as `preparer`:
 
 ```php
-ActColumn::make('preparer')->label(__('common/acts.prepare.by')),
+ActColumn::make('preparer')->label((string) __('common/acts.prepare.by')),
 ```
 
 The column loads the action, its profile, user, position, and actor for the whole page, so you do not add them to the query. A row without the action has an empty cell. You cannot search or sort the column.

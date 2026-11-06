@@ -1,46 +1,44 @@
 @use(App\Domain\User\Support\Impersonation)
 
 <flux:main container>
-    @isset($role)
-        <x-breadcrumbs
-            :items="[
-                ['label' => __('permission/roles.title'), 'href' => route('internal.controls.roles.index')],
-                ['label' => $role->label, 'href' => route('internal.controls.roles.show', $role)],
-                ['label' => __('permission/roles.tabs.users'), 'href' => route('internal.controls.roles.show', ['role' => $role, 'tab' => 'users'])],
-                ['label' => $user->email],
-            ]"
-            class="mb-6"
-        />
-    @else
-        <x-breadcrumbs
-            :items="[['label' => __('user/users.title'), 'href' => route('internal.controls.users.index')], ['label' => $user->email]]"
-            class="mb-6"
-        />
-    @endisset
+    <div class="space-y-8">
+        @isset($role)
+            <x-breadcrumbs
+                :items="[
+                    ['label' => __('permission/roles.title'), 'href' => route('internal.controls.roles.index')],
+                    ['label' => $role->label, 'href' => route('internal.controls.roles.show', $role)],
+                    ['label' => __('permission/roles.tabs.users'), 'href' => route('internal.controls.roles.show', ['role' => $role, 'tab' => 'users'])],
+                    ['label' => $user->email],
+                ]"
+            />
+        @else
+            <x-breadcrumbs
+                :items="[['label' => __('user/users.title'), 'href' => route('internal.controls.users.index')], ['label' => $user->email]]"
+            />
+        @endisset
 
-    <div class="mb-6 flex items-center gap-4">
-        <flux:avatar size="lg" :name="$user->name" :initials="$user->initials()" />
+        <div class="flex items-center gap-4">
+            <flux:avatar size="lg" :name="$user->name" :initials="$user->initials()" />
 
-        <div>
-            <flux:heading size="xl" class="mb-0!">{{ $user->name }}</flux:heading>
-            <flux:subheading>{{ $this->subheading }}</flux:subheading>
+            <div>
+                <flux:heading size="xl" class="mb-0!">{{ $user->name }}</flux:heading>
+                <flux:subheading>{{ $this->subheading }}</flux:subheading>
+            </div>
+
+            @if(Impersonation::allows(auth()->user(), $user))
+                <flux:button
+                    class="ms-auto"
+                    icon="user-circle"
+                    data-test="impersonate-button"
+                    wire:click="$dispatchTo('pages.internal.controls.user.impersonate-modal', 'show', { id: {{ $user->id }} })"
+                >
+                    {{ __('user/users.impersonation.action') }}
+                </flux:button>
+            @endif
         </div>
 
-        @if(Impersonation::allows(auth()->user(), $user))
-            <flux:button
-                class="ms-auto"
-                icon="user-circle"
-                data-test="impersonate-button"
-                wire:click="$dispatchTo('pages.internal.controls.user.impersonate-modal', 'show', { id: {{ $user->id }} })"
-            >
-                {{ __('user/users.impersonation.action') }}
-            </flux:button>
-        @endif
-    </div>
+        @include('livewire.pages.internal.controls.user.partials.details', ['submit' => __('common/buttons.update')])
 
-    @include('livewire.pages.internal.controls.user.partials.details', ['submit' => __('common/buttons.update')])
-
-    <div class="mt-10">
         <livewire:pages.internal.controls.user.tabs :$user />
     </div>
 

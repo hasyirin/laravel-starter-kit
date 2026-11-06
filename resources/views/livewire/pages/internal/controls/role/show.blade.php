@@ -1,8 +1,6 @@
 <flux:main container>
     <div class="space-y-8">
-        <x-breadcrumbs
-            :items="[['label' => __('permission/roles.title'), 'href' => route('internal.controls.roles.index')], ['label' => $role->label]]"
-        />
+        <x-breadcrumbs :items="[['label' => __('permission/roles.title'), 'href' => route('internal.controls.roles.index')], ['label' => $role->label]]" />
 
         <flux:heading size="xl">{{ $role->label }}</flux:heading>
 

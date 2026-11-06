@@ -8,9 +8,9 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Enums\AuditDirection;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
-use App\Livewire\DataTables\Admin\AuditLogDataTable;
 use App\Livewire\DataTables\Internal\User\AuditLogDataTable as UserAuditLogDataTable;
-use App\Livewire\Pages\Admin\AuditEntryModal;
+use App\Livewire\DataTables\System\AuditLogDataTable;
+use App\Livewire\Pages\System\AuditEntryModal;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -23,7 +23,7 @@ beforeEach(function (): void {
     $this->viewer = User::factory()->create(['name' => 'Vera Viewer']);
     grantPermissions($this->viewer, 'system.access', 'system.audit-log.view');
 
-    $this->ada = User::factory()->create(['name' => 'Ada Admin']);
+    $this->ada = User::factory()->create(['name' => 'Ada Lovelace']);
     $this->sam = User::factory()->create(['name' => 'Sam Subject']);
 });
 
@@ -48,7 +48,7 @@ test('the list shows changes to every kind of record by every user', function ()
 
     Livewire::test(AuditLogDataTable::class)
         ->assertCanSeeTableRecords([$onUser, $onRole])
-        ->assertSee(['Ada Admin', 'Sam Renamed']);
+        ->assertSee(['Ada Lovelace', 'Sam Renamed']);
 });
 
 test('the audit log needs system.audit-log.view', function (string $component): void {
@@ -86,7 +86,7 @@ test('the list shows the name of a deleted causer', function (): void {
     $this->actingAs($this->viewer);
 
     Livewire::test(AuditLogDataTable::class)
-        ->assertTableColumnStateSet('causer_name', 'Ada Admin', $entry);
+        ->assertTableColumnStateSet('causer_name', 'Ada Lovelace', $entry);
 });
 
 test('each active filter shows what it keeps', function (string $filter, array $data, string $indicator): void {
@@ -98,9 +98,9 @@ test('each active filter shows what it keeps', function (string $filter, array $
         ->assertSee($indicator);
 })->with([
     'a causer type' => ['causer', ['type' => AuditLog::NO_CAUSER], 'By: None'],
-    'picked causers' => ['causer', ['type' => 'user', 'ids' => 'ada'], 'By: Ada Admin'],
+    'picked causers' => ['causer', ['type' => 'user', 'ids' => 'ada'], 'By: Ada Lovelace'],
     'a subject type' => ['subject', ['type' => 'role'], 'Subject: Role'],
-    'picked impersonators' => ['impersonator', ['ids' => 'ada'], 'Impersonated by: Ada Admin'],
+    'picked impersonators' => ['impersonator', ['ids' => 'ada'], 'Impersonated by: Ada Lovelace'],
     'only impersonated changes' => ['impersonator', ['only' => true], 'Only impersonated changes'],
     'a time range' => ['created_at', ['from' => '2026-01-02'], 'From: '],
 ]);
@@ -162,7 +162,7 @@ test('the impersonated by column shows the impersonator of an entry', function (
         ->assertTableColumnStateSet('impersonator_name', 'Ina Impersonator', $entry);
 });
 
-test('the impersonator filter is only on the admin audit log', function (): void {
+test('the impersonator filter is only on the system audit log', function (): void {
     grantPermissions($this->viewer, 'internal.access', 'internal.controls.users.view', 'internal.controls.users.view-audit-log');
     $this->actingAs($this->viewer);
 

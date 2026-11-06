@@ -11,7 +11,7 @@ test('users with the system access permission are sent to their user information
     grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
-    $response = $this->get(route('admin.settings'));
+    $response = $this->get(route('system.settings'));
 
     $response->assertRedirect()->assertHeader('Location', route('user-information.edit', absolute: false));
 });

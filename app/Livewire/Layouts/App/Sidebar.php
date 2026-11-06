@@ -18,7 +18,7 @@ class Sidebar extends Navigation
             Item::make(label: (string) __('navigation.dashboard'), icon: 'home', route: 'dashboard'),
             Spacer::make(),
             Item::make(label: (string) __('navigation.internal'), icon: 'briefcase', route: 'internal.dashboard', accessible: config('system.permissions.internal.access')),
-            Item::make(label: (string) __('navigation.admin'), icon: 'shield-check', route: 'admin.dashboard', accessible: config('system.permissions.system.access')),
+            Item::make(label: (string) __('navigation.system'), icon: 'shield-check', route: 'system.dashboard', accessible: config('system.permissions.system.access')),
             Item::make(label: (string) __('navigation.docs'), icon: 'book-open', route: 'docs.components', accessible: app()->isLocal()),
         ];
     }

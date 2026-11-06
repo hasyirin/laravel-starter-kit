@@ -16,7 +16,7 @@ test('the user menu links to the settings of the current area', function (string
 })->with([
     'on an app page' => ['dashboard', 'settings'],
     'on an internal page' => ['internal.dashboard', 'internal.settings'],
-    'on an admin page' => ['admin.dashboard', 'admin.settings'],
+    'on a system page' => ['system.dashboard', 'system.settings'],
 ]);
 
 test('the user menu shows the impersonator and a stop button while impersonating', function (): void {

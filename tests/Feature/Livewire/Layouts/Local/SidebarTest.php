@@ -32,5 +32,5 @@ test('the sidebar shows the area links below a spacer to users with access', fun
 
     $component = Livewire::test(Sidebar::class);
 
-    $component->assertSeeInOrder(['data-flux-sidebar-spacer', route('dashboard'), route('internal.dashboard'), route('admin.dashboard')], false);
+    $component->assertSeeInOrder(['data-flux-sidebar-spacer', route('dashboard'), route('internal.dashboard'), route('system.dashboard')], false);
 });

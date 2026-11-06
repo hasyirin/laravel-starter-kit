@@ -4,8 +4,8 @@
 
         <flux:heading size="xl">{{ __('navigation.audit_log') }}</flux:heading>
 
-        <livewire:data-tables.admin.audit-log-data-table />
+        <livewire:data-tables.system.audit-log-data-table />
     </div>
 
-    <livewire:pages.admin.audit-entry-modal />
+    <livewire:pages.system.audit-entry-modal />
 </flux:main>

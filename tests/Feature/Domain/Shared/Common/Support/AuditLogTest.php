@@ -29,7 +29,7 @@ test('the record lookup names the picked records, deleted ones too', function ()
 
 test('records that a name does not pick out cannot be looked up', function (string $type): void {
     expect(AuditLog::nameColumn($type))->toBeNull()
-        ->and(AuditLog::records($type, ''))->toBe([]);
+        ->and(AuditLog::records($type, ''))->toBeEmpty();
 })->with(['profile', 'action', 'an unknown type' => 'unknown']);
 
 test('the causer types are the types that made changes, and none', function (): void {

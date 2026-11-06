@@ -15,7 +15,7 @@ use Spatie\Activitylog\Models\Activity;
 beforeEach(function (): void {
     Livewire::withoutLazyLoading();
     $this->seed(PermissionSeeder::class);
-    $this->actor = User::factory()->create(['name' => 'Ada Admin']);
+    $this->actor = User::factory()->create(['name' => 'Ada Lovelace']);
     grantPermissions($this->actor, 'internal.access', 'internal.controls.roles.view', 'internal.controls.roles.view-audit-log');
     $this->actingAs($this->actor);
     $this->role = Role::query()->create(['name' => 'editor']);
@@ -30,7 +30,7 @@ test('the list shows only the changes to the role, with who made them', function
     Livewire::test(AuditLogDataTable::class, ['role' => $this->role])
         ->assertCanSeeTableRecords([$onRole])
         ->assertCanNotSeeTableRecords([$onOther])
-        ->assertSee('Ada Admin');
+        ->assertSee('Ada Lovelace');
 });
 
 test('the audit needs view-audit-log', function (string $component): void {

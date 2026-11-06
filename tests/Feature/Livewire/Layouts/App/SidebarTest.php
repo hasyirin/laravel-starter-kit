@@ -8,7 +8,7 @@ use App\Livewire\Layouts\App\Sidebar;
 use Dom\HTMLDocument;
 use Livewire\Livewire;
 
-test('the sidebar shows the admin link below a spacer to users with system access', function (): void {
+test('the sidebar shows the system link below a spacer to users with system access', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
     grantPermissions($user, 'system.access');
@@ -16,7 +16,7 @@ test('the sidebar shows the admin link below a spacer to users with system acces
 
     $component = Livewire::test(Sidebar::class);
 
-    $component->assertSeeInOrder([route('dashboard'), 'data-flux-sidebar-spacer', route('admin.dashboard')], false);
+    $component->assertSeeInOrder([route('dashboard'), 'data-flux-sidebar-spacer', route('system.dashboard')], false);
 });
 
 test('the sidebar shows the internal link below a spacer to users with internal access', function (): void {
@@ -28,10 +28,10 @@ test('the sidebar shows the internal link below a spacer to users with internal 
     $component = Livewire::test(Sidebar::class);
 
     $component->assertSeeInOrder([route('dashboard'), 'data-flux-sidebar-spacer', route('internal.dashboard')], false)
-        ->assertDontSee(route('admin.dashboard'));
+        ->assertDontSee(route('system.dashboard'));
 });
 
-test('the sidebar hides the internal and admin links and their spacer from users without access', function (): void {
+test('the sidebar hides the internal and system links and their spacer from users without access', function (): void {
     $this->seed(PermissionSeeder::class);
     $this->actingAs(User::factory()->create());
 
@@ -39,7 +39,7 @@ test('the sidebar hides the internal and admin links and their spacer from users
 
     $component->assertSee(route('dashboard'))
         ->assertDontSee(route('internal.dashboard'))
-        ->assertDontSee(route('admin.dashboard'))
+        ->assertDontSee(route('system.dashboard'))
         ->assertDontSeeHtml('data-flux-sidebar-spacer');
 });
 

@@ -15,5 +15,5 @@ test('a page uses the layout of the area that its route is in', function (string
     'a guest page' => ['home', 'layouts.guest'],
     'an app page' => ['dashboard', 'layouts.app'],
     'an internal page' => ['internal.dashboard', 'layouts.internal'],
-    'an admin page' => ['admin.dashboard', 'layouts.admin'],
+    'a system page' => ['system.dashboard', 'layouts.system'],
 ]);

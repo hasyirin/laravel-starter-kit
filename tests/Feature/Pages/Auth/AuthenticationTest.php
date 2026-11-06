@@ -39,8 +39,8 @@ test('users go to the highest area they can open after login', function (array $
 
     $response->assertRedirect(route($dashboard));
 })->with([
-    'with internal and system access' => [['internal.access', 'system.access'], 'admin.dashboard'],
-    'with system access only' => [['system.access'], 'admin.dashboard'],
+    'with internal and system access' => [['internal.access', 'system.access'], 'system.dashboard'],
+    'with system access only' => [['system.access'], 'system.dashboard'],
     'with internal access only' => [['internal.access'], 'internal.dashboard'],
 ]);
 

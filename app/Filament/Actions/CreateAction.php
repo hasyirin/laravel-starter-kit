@@ -20,9 +20,7 @@ class CreateAction extends Action
     #[Override]
     public function getLabel(): string|Htmlable|null
     {
-        if ($this->label === null) {
-            throw new LogicException('Give the create action the singular name of its record as its label, such as "User".');
-        }
+        throw_if($this->label === null, LogicException::class, 'Give the create action the singular name of its record as its label, such as "User".');
 
         return parent::getLabel();
     }

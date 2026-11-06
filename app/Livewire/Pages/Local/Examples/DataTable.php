@@ -39,7 +39,7 @@ class DataTable extends \App\Livewire\DataTables\DataTable
      */
     protected function headerActions(): array
     {
-        return [CreateAction::make()->label(__('docs.examples.data_table.country'))->action($this->showToast(...))];
+        return [CreateAction::make()->label((string) __('docs.examples.data_table.country'))->action($this->showToast(...))];
     }
 
     /**

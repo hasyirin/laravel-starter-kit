@@ -139,6 +139,14 @@ public function assignees(): Collection
 }
 ```
 
+## Search Input
+
+An attribute that starts with `search:` goes to the search input, not to the select. For example, `search:inputmode="numeric"` opens the number keypad on a phone. It works with the search in the browser and with `search-model`.
+
+```blade
+<x-select label="Postcode" wire:model="form.postcode" :options="['84000' => '84000', '84300' => '84300']" search:inputmode="numeric" placeholder="Choose a postcode" />
+```
+
 ## Default Value
 
 ```blade
@@ -205,4 +213,4 @@ A checkbox below the select shows "Use the default: Kuala Lumpur". It works the 
 
 `wire:model` goes to `flux:select`. Flux keeps the focus on an element inside the select, so the kit sends the blur event when the focus leaves the select. Every modifier works, also `.blur` and `.live.blur`.
 
-All other attributes go to `flux:select`, so its props work: `placeholder`, `size`, `multiple`, `clearable`, `disabled`, `invalid`, `empty`, `prefix`, `selected-suffix`, `position`, `align`, and `options:class`. `class` goes to the field.
+All other attributes go to `flux:select`, so its props work: `placeholder`, `size`, `multiple`, `clearable`, `disabled`, `invalid`, `empty`, `prefix`, `selected-suffix`, `position`, `align`, and `options:class`. `class` goes to the field. An attribute that starts with `search:` goes to the search input, such as `search:inputmode`.

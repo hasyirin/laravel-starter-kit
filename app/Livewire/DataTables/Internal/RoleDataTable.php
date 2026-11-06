@@ -40,6 +40,7 @@ class RoleDataTable extends DataTable
     {
         return [
             CreateAction::make()
+                ->label((string) __('permission/roles.role'))
                 ->visible(fn (): bool => $this->can('create', Role::class))
                 ->action($this->to(...)),
         ];

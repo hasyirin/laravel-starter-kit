@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\User\Enums\AuditDirection;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
@@ -28,7 +29,7 @@ beforeEach(function (): void {
     $this->other = User::factory()->create(['name' => 'Olive Other']);
 });
 
-function auditLogTable(User $user, string $direction): Testable
+function auditLogTable(User $user, AuditDirection $direction): Testable
 {
     return Livewire::test(AuditLogDataTable::class, ['user' => $user, 'direction' => $direction]);
 }
@@ -45,7 +46,7 @@ test('by this user lists what the user did', function (): void {
     $did = renameAs($this->subject, $this->other, 'Olive Renamed');
     $doneToThem = renameAs($this->actor, $this->subject, 'Sam Renamed');
 
-    auditLogTable($this->subject, 'by')
+    auditLogTable($this->subject, AuditDirection::By)
         ->assertCanSeeTableRecords([$did])
         ->assertCanNotSeeTableRecords([$doneToThem])
         ->assertSee('User Olive Renamed');
@@ -59,7 +60,7 @@ test('on this user lists changes to the user and their profiles', function (): v
     $byThem = renameAs($this->subject, $this->other, 'Olive Again');
     $this->actingAs($this->actor);
 
-    auditLogTable($this->subject, 'on')
+    auditLogTable($this->subject, AuditDirection::On)
         ->assertCanSeeTableRecords([$onUser, $onProfile])
         ->assertCanNotSeeTableRecords([$onOther, $byThem])
         ->assertSee('Ada Admin');
@@ -71,13 +72,13 @@ test('the subject filter keeps only that type', function (): void {
     $onProfile = Activity::query()->latest('id')->firstOrFail();
     $this->actingAs($this->actor);
 
-    auditLogTable($this->subject, 'by')
+    auditLogTable($this->subject, AuditDirection::By)
         ->filterTable('subject', ['type' => 'profile'])
         ->assertCanSeeTableRecords([$onProfile])
         ->assertCanNotSeeTableRecords([$onUser]);
 });
 
-test('the event filter keeps only those events in both directions', function (string $direction): void {
+test('the event filter keeps only those events in both directions', function (AuditDirection $direction): void {
     $updated = renameAs($this->subject, $this->subject, 'Sam Renamed');
     Profile::factory()->for($this->subject)->create();
     $created = Activity::query()->latest('id')->firstOrFail();
@@ -88,7 +89,7 @@ test('the event filter keeps only those events in both directions', function (st
         ->filterTable('event', ['created'])
         ->assertCanSeeTableRecords([$created])
         ->assertCanNotSeeTableRecords([$updated]);
-})->with(['by', 'on']);
+})->with(AuditDirection::cases());
 
 test('the time filter keeps the days that the viewer picks, in the time zone of the viewer', function (): void {
     context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
@@ -97,7 +98,7 @@ test('the time filter keeps the days that the viewer picks, in the time zone of 
     $late = renameAs($this->actor, $this->subject, 'Sam Late');
     $late->forceFill(['created_at' => CarbonImmutable::parse('2026-01-01 17:00', 'UTC')])->save();
 
-    auditLogTable($this->subject, 'on')
+    auditLogTable($this->subject, AuditDirection::On)
         ->filterTable('created_at', ['from' => '2026-01-02', 'until' => '2026-01-02'])
         ->assertCanSeeTableRecords([$late])
         ->assertCanNotSeeTableRecords([$early]);
@@ -112,7 +113,7 @@ test('the search finds an entry by who did it, a changed value, or its event', f
 
     $expected = ['ada' => $byAdmin, 'again' => $byOther, 'created' => $created][$search];
 
-    auditLogTable($this->subject, 'on')
+    auditLogTable($this->subject, AuditDirection::On)
         ->searchTable(strtoupper($search))
         ->assertCanSeeTableRecords([$expected])
         ->assertCanNotSeeTableRecords(collect([$byAdmin, $byOther, $created])->reject(fn (Activity $entry): bool => $entry->is($expected))->all());
@@ -125,7 +126,7 @@ test('the audit tab needs view-audit-log', function (string $component, array $p
     Livewire::test($component, ['user' => $this->subject, ...$params])->assertForbidden();
 })->with([
     'the tab' => [Audit::class, []],
-    'the table' => [AuditLogDataTable::class, ['direction' => 'by']],
+    'the table' => [AuditLogDataTable::class, ['direction' => AuditDirection::By]],
     'the modal' => [AuditEntryModal::class, []],
 ]);
 
@@ -134,14 +135,29 @@ test('the switch is kept in the URL', function (): void {
 
     Livewire::withQueryParams(['direction' => 'on'])
         ->test(Audit::class, ['user' => $this->subject])
-        ->assertSet('direction', 'on')
+        ->assertSet('direction', AuditDirection::On)
         ->assertSeeLivewire(AuditLogDataTable::class);
+});
+
+test('an unknown direction in the URL falls back to by this user', function (string $direction): void {
+    $this->actingAs($this->actor);
+
+    Livewire::withQueryParams(['direction' => $direction])
+        ->test(Audit::class, ['user' => $this->subject])
+        ->assertSet('direction', AuditDirection::By);
+})->with(['an unknown value' => ['sideways'], 'an empty value' => ['']]);
+
+test('the switch shows by this user and on this user', function (): void {
+    $this->actingAs($this->actor);
+
+    Livewire::test(Audit::class, ['user' => $this->subject])
+        ->assertSeeInOrder(['By this user', 'On this user']);
 });
 
 test('a row click opens the modal with the audit entry', function (): void {
     $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
 
-    auditLogTable($this->subject, 'on')
+    auditLogTable($this->subject, AuditDirection::On)
         ->callAction(TestAction::make('view')->table($entry))
         ->assertDispatchedTo(AuditEntryModal::class, 'show', id: $entry->id);
 });
@@ -186,7 +202,7 @@ test('a profile entry shows field labels and the names of related records', func
     Profile::factory()->for($this->subject)->for($organization)->create();
     $entry = Activity::query()->latest('id')->firstOrFail();
 
-    auditLogTable($this->subject, 'on')->assertSee('Organization');
+    auditLogTable($this->subject, AuditDirection::On)->assertSee('Organization');
 
     Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
         ->call('show', $entry->id)

@@ -18,7 +18,10 @@ class Tabs extends Component
     public string $queryAs = 'tab';
 
     #[Locked]
-    public string $bar = 'tabs';
+    public TabBarType $bar = TabBarType::Tabs {
+        // Livewire puts a tag attribute, such as bar="card", into the property as a string.
+        set(TabBarType|string $bar) => is_string($bar) ? TabBarType::from($bar) : $bar;
+    }
 
     #[Locked]
     public ?string $variant = null;

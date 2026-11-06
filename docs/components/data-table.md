@@ -21,6 +21,7 @@ class CountryDataTable extends DataTable
     {
         return [
             CreateAction::make()
+                ->label((string) __('countries.country'))
                 ->visible(fn () => $this->can('create', Country::class))
                 ->action($this->to(...)),
         ];
@@ -29,7 +30,7 @@ class CountryDataTable extends DataTable
     protected function columns(): array
     {
         return [
-            TextColumn::make('name')->label(__('inputs.name'))->searchable()->sortable(),
+            TextColumn::make('name')->label((string) __('inputs.name'))->searchable()->sortable(),
             TimestampColumn::make('created_at'),
         ];
     }
@@ -112,7 +113,7 @@ protected function getListeners(): array
 `App\Filament\Tables\Columns\ActColumn` shows an action of each row as [`<x-act>`](act.md) does: the name of the user, the position that the user held then, and the time. Give it the relation of the action, such as `preparer`:
 
 ```php
-ActColumn::make('preparer')->label(__('common/acts.prepare.by')),
+ActColumn::make('preparer')->label((string) __('common/acts.prepare.by')),
 ```
 
 The column loads the action, its profile, user, position, and actor for the whole page, so you do not add them to the query. A row without the action has an empty cell. You cannot search or sort the column.
@@ -148,11 +149,11 @@ Use the helpers of Filament: `assertCanSeeTableRecords()`, `searchTable()`, `sor
 
 ### Presets
 
-Use these in place of the actions and columns of Filament with the same job. Each action sets its name, icon, label, and color. Give each one `visible()`, and `action()`, or `through()` for the delete action.
+Use these in place of the actions and columns of Filament with the same job. Each action sets its name, icon, label, and color. The create action is the exception for the label: give it the singular name of its record, such as "Country". Its plus icon already says "add". Give each one `visible()`, and `action()`, or `through()` for the delete action.
 
 | Preset                              | Name     | Icon                       | Label                   | Color   | Notes                                                                 |
 | ----------------------------------- | -------- | -------------------------- | ----------------------- | ------- | --------------------------------------------------------------------- |
-| `App\Filament\Actions\CreateAction` | `create` | `heroicon-m-plus`          | `common/buttons.add`    | Primary | For `headerActions()`.                                                |
+| `App\Filament\Actions\CreateAction` | `create` | `heroicon-m-plus`          | Required                | Primary | For `headerActions()`. Throws when it has no label.                   |
 | `App\Filament\Actions\ViewAction`   | `view`   | `heroicon-m-eye`           | `common/buttons.view`   | Primary | A row click runs it.                                                  |
 | `App\Filament\Actions\EditAction`   | `edit`   | `heroicon-m-pencil-square` | `common/buttons.edit`   | Gray    | A row click runs it when the table has no `view` action.              |
 | `App\Filament\Actions\DeleteAction` | `delete` | Trash                      | `common/buttons.delete` | Danger  | Asks for a confirmation and needs `through()`. See [Delete](#delete). |

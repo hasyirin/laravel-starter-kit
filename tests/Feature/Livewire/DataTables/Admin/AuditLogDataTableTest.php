@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Common\Support\AuditLog;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\User\Enums\AuditDirection;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Admin\AuditLogDataTable;
@@ -165,7 +166,7 @@ test('the impersonator filter is only on the admin audit log', function (): void
     grantPermissions($this->viewer, 'internal.access', 'internal.controls.users.view', 'internal.controls.users.view-audit-log');
     $this->actingAs($this->viewer);
 
-    $userTable = Livewire::test(UserAuditLogDataTable::class, ['user' => $this->sam, 'direction' => 'on']);
+    $userTable = Livewire::test(UserAuditLogDataTable::class, ['user' => $this->sam, 'direction' => AuditDirection::On]);
 
     $userTable->assertTableFilterExists('causer')->assertTableFilterExists('subject');
     expect(fn () => $userTable->assertTableFilterExists('impersonator'))->toThrow(ExpectationFailedException::class);

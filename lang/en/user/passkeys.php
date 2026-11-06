@@ -14,7 +14,7 @@ return [
     ],
 
     'add' => [
-        'button' => 'Add passkey',
+        'button' => 'Passkey',
         'name' => 'Passkey name',
         'name_placeholder' => 'e.g., MacBook Pro, iPhone',
         'submit' => 'Register passkey',

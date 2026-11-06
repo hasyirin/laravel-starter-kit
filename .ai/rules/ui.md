@@ -35,9 +35,8 @@ Space every screen with these values. Most come from the defaults of Flux and th
 | Label to input, and input to help or error | 8px | The default of `<x-field>` |
 | Button to button | 8px | `gap-2` |
 | Card to card | 24px | `space-y-6` or `gap-6` |
-| Breadcrumbs to the page heading | 24px | `mb-6` |
 | Page heading to its subheading | 8px | The default of `flux:heading` |
-| Page heading to the content | 24px | `mb-6` |
+| Page section to page section, such as breadcrumbs, heading, form, and tabs | 32px | `space-y-8` on a `div` around the sections, inside `<flux:main container>`. Put modals after that `div`. |
 
 Use another value only when a screen has a reason that you can name. Then give that reason when you hand in the change.
 
@@ -65,3 +64,6 @@ Follow the method naming rule of `.ai/rules/php.md` in JavaScript too, with the 
 
 ## Put the buttons of a form at the right end
 End a form or a dialog with its buttons at the right end. In a card footer, put them in `<flux:card.actions>`. Elsewhere, wrap them in `<div class="flex justify-end gap-2">`. Put the primary or danger button last, after Cancel or Back. A narrow, centered form, such as an auth page or the two-factor setup dialog, uses full-width buttons instead. A button that starts a task in its section, such as Enable 2FA, stays under the section text.
+
+## Label a plus button with the record name only
+A plus icon already says "add". So label a button with a plus icon with only the singular name of its record, such as "User" or "Passkey". Do not write "Add", "New", or "Create" in it. This includes `App\Filament\Actions\CreateAction`, which throws when it has no label. A modal heading has no icon, so it keeps `common/records.add`.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Support;
 
+use App\Domain\User\Enums\AuditDirection;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,9 +16,9 @@ class UserAuditLog
     /**
      * @return Builder<Activity>
      */
-    public static function query(User $user, string $direction): Builder
+    public static function query(User $user, AuditDirection $direction): Builder
     {
-        return self::involving($user, by: $direction !== 'on', on: $direction === 'on')->latest('id');
+        return self::involving($user, by: $direction === AuditDirection::By, on: $direction === AuditDirection::On)->latest('id');
     }
 
     public static function find(User $user, int $id): Activity

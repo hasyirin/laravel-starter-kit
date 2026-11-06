@@ -43,6 +43,7 @@ class UserDataTable extends DataTable
     {
         return [
             CreateAction::make()
+                ->label((string) __('user/users.user'))
                 ->visible(fn (): bool => $this->can('create', User::class))
                 ->action($this->to(...)),
         ];

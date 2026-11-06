@@ -127,3 +127,20 @@ _Avoid_: Activity, activity log, history
 **Audit entry**:
 One change in the audit log: the record, the event, the user who made it, and the old and new values.
 _Avoid_: Activity, log entry
+
+### Addresses
+
+**Address**:
+The postal address of a record: up to three lines, a postcode, a city, and the state of that city. A record has at most one address of each type, such as primary and mailing.
+
+**City**:
+The post office that delivers the mail to an address. It is the name after the postcode, as on a MyKad. The code calls it a post office.
+_Avoid_: Town, locality
+
+**Subdistrict**:
+A part of a district, called a mukim in Malay. The bundled data has subdistricts only for Negeri Sembilan and Kemaman.
+_Avoid_: Mukim
+
+**Local area**:
+The post offices whose addresses a form accepts when the form has the local limit. By default, they are the post offices of the app's state.
+_Avoid_: Service area, jurisdiction

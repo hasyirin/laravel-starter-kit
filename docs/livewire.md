@@ -31,7 +31,7 @@ A form has two main methods:
 - `set()` fills the form from a record. Call it in `mount()`, and again after a save.
 - `save()` validates the input, calls the Action class, and returns the record. When the form has no record, `save()` creates one.
 
-A form for a child record takes the parent as the first argument of `set()`. Livewire rebuilds a new record as a fully empty model on the next request. So the Action class sets the parent again on every save. It also sets every other value that the user does not enter, such as a type. The Record Modal section of [Modal](components/modal.md) shows an example.
+A form for a child record takes the parent once. An edit page passes it as the first argument of `set()`, as the Record Modal section of [Modal](components/modal.md) shows. A create page passes it to `save()`, because the page saves the parent first, in the same request. [Address](components/address.md) shows both. Livewire rebuilds a new record as a fully empty model on the next request. So the Action class sets the parent again on every save. It also sets every other value that the user does not enter, such as a type.
 
 The form does not write models. The Action class does the write and opens the transaction. So the component only authorizes the user, calls `save()`, and shows the result:
 

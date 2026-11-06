@@ -6,7 +6,7 @@ namespace App\Livewire\DataTables\Internal\User;
 
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\UserAuditLog;
-use App\Livewire\DataTables\Internal\AuditLogDataTable as DataTable;
+use App\Livewire\DataTables\AuditLogDataTable as DataTable;
 use App\Livewire\Pages\Internal\Controls\User\AuditEntryModal;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Defer;

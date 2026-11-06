@@ -53,6 +53,9 @@ return [
             'horizon' => [
                 'view' => 'system.horizon.view',
             ],
+            'audit-log' => [
+                'view' => 'system.audit-log.view',
+            ],
         ],
     ],
 ];

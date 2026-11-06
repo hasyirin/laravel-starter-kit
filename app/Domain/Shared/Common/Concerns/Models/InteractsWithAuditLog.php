@@ -19,4 +19,13 @@ trait InteractsWithAuditLog
             ->logAll()
             ->logExcept(array_filter([...$this->getHidden(), $this->getKeyName(), $this->getCreatedAtColumn(), $this->getUpdatedAtColumn(), 'deleted_at']));
     }
+
+    public function auditNameColumn(): ?string
+    {
+        if (! $this->isFillable('name')) {
+            return null;
+        }
+
+        return 'name';
+    }
 }

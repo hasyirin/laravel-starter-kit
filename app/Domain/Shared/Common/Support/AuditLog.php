@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Collection;
 use ReflectionMethod;
@@ -20,6 +21,10 @@ use Spatie\Activitylog\Models\Activity;
 
 class AuditLog
 {
+    public const string NO_CAUSER = 'none';
+
+    private const int RECORD_LIMIT = 50;
+
     private const array NAME_ATTRIBUTES = ['label', 'name', 'title', 'email'];
 
     private const array DATE_CASTS = ['date', 'immutable_date'];
@@ -65,6 +70,141 @@ class AuditLog
         if (is_string($until) && $until !== '') {
             $query->where('created_at', '<=', CarbonImmutable::parse($until, $timezone)->endOfDay()->setTimezone(config()->string('app.timezone')));
         }
+    }
+
+    /**
+     * @param  Builder<Activity>  $query
+     * @param  array<array-key, mixed>  $data
+     */
+    public static function causedBy(Builder $query, array $data): void
+    {
+        $type = $data['type'] ?? null;
+
+        if (! is_string($type) || $type === '') {
+            return;
+        }
+
+        if ($type === self::NO_CAUSER) {
+            $query->whereNull('causer_type');
+
+            return;
+        }
+
+        $ids = self::ids($data);
+
+        $query->where('causer_type', $type);
+
+        if ($ids !== []) {
+            $query->whereIn('causer_id', $ids);
+        }
+    }
+
+    /**
+     * @param  Builder<Activity>  $query
+     * @param  array<array-key, mixed>  $data
+     */
+    public static function about(Builder $query, array $data): void
+    {
+        $type = $data['type'] ?? null;
+
+        if (! is_string($type) || $type === '') {
+            return;
+        }
+
+        $ids = self::ids($data);
+
+        $query->where('subject_type', $type);
+
+        if ($ids !== []) {
+            $query->whereIn('subject_id', $ids);
+        }
+    }
+
+    /**
+     * @param  Builder<Activity>  $query
+     * @param  array<array-key, mixed>  $data
+     */
+    public static function impersonatedBy(Builder $query, array $data): void
+    {
+        $ids = self::ids($data);
+
+        if ($ids !== []) {
+            $query->where(function (Builder $query) use ($ids): void {
+                collect($ids)->each(fn (int|string $id): Builder => $query->orWhereJsonContains('properties->impersonator_id', is_numeric($id) ? (int) $id : $id));
+            });
+
+            return;
+        }
+
+        if (($data['only'] ?? false) === true) {
+            $query->whereNotNull('properties->impersonator_id');
+        }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function causerTypes(): array
+    {
+        return Activity::query()
+            ->whereNotNull('causer_type')
+            ->distinct()
+            ->orderBy('causer_type')
+            ->pluck('causer_type')
+            ->filter(fn (mixed $type): bool => is_string($type))
+            ->mapWithKeys(fn (string $type): array => [$type => self::typeLabel($type)])
+            ->put(self::NO_CAUSER, (string) __('common/audit.none'))
+            ->all();
+    }
+
+    public static function nameColumn(mixed $type): ?string
+    {
+        $model = self::modelOf($type);
+
+        if (! $model instanceof Model || ! method_exists($model, 'auditNameColumn')) {
+            return null;
+        }
+
+        $column = $model->auditNameColumn();
+
+        return is_string($column) ? $column : null;
+    }
+
+    /**
+     * @return array<array-key, string>
+     */
+    public static function records(mixed $type, string $search): array
+    {
+        $column = self::nameColumn($type);
+
+        if ($column === null) {
+            return [];
+        }
+
+        return self::recordQuery($type)
+            ->whereLike($column, "%$search%")
+            ->orderBy($column)
+            ->limit(self::RECORD_LIMIT)
+            ->get()
+            ->mapWithKeys(fn (Model $record): array => self::nameEntry($record))
+            ->all();
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $ids
+     * @return array<array-key, string>
+     */
+    public static function recordNames(mixed $type, array $ids): array
+    {
+        if (self::nameColumn($type) === null) {
+            return [];
+        }
+
+        return self::recordQuery($type)
+            ->whereKey($ids)
+            ->get()
+            ->mapWithKeys(fn (Model $record): array => self::nameEntry($record))
+            ->all();
     }
 
     /**
@@ -223,15 +363,43 @@ class AuditLog
         return $value === null || (is_array($value) && array_is_list($value) && collect($value)->every(fn (mixed $item): bool => is_scalar($item)));
     }
 
-    private static function subjectModel(Activity $entry): ?Model
+    /**
+     * @param  array<array-key, mixed>  $data
+     * @return array<int, int|string>
+     */
+    private static function ids(array $data): array
     {
-        $class = Relation::getMorphedModel((string) $entry->subject_type);
+        return collect(is_array($data['ids'] ?? null) ? $data['ids'] : [])
+            ->filter(fn (mixed $id): bool => is_int($id) || is_string($id))
+            ->values()
+            ->all();
+    }
+
+    private static function modelOf(mixed $type): ?Model
+    {
+        $class = is_string($type) ? Relation::getMorphedModel($type) : null;
 
         if ($class === null) {
             return null;
         }
 
         return new $class;
+    }
+
+    /**
+     * @return Builder<Model>
+     */
+    private static function recordQuery(mixed $type): Builder
+    {
+        /** @var Model $model */
+        $model = self::modelOf($type);
+
+        return $model->newQuery()->withoutGlobalScope(SoftDeletingScope::class);
+    }
+
+    private static function subjectModel(Activity $entry): ?Model
+    {
+        return self::modelOf($entry->subject_type);
     }
 
     private static function recordName(?Model $record): ?string

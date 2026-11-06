@@ -46,6 +46,7 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `internal.controls.users.view-audit-log`     | ✓                    |
 | `system.access`                              | ✓                    |
 | `system.horizon.view`                        | ✓                    |
+| `system.audit-log.view`                      | ✓                    |
 
 A role with `bypass-authorization` passes every check.
 

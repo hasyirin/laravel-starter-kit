@@ -14,7 +14,11 @@
     <x-card body="divided">
         <x-slot:footer>
             <flux:card.actions>
-                <flux:button :href="route('internal.controls.organizations.show', $organization)" variant="subtle" wire:navigate>
+                <flux:button
+                    :href="route('internal.controls.organizations.show', ['organization' => $organization, 'tab' => 'branches'])"
+                    variant="subtle"
+                    wire:navigate
+                >
                     {{ __('common/buttons.back') }}
                 </flux:button>
 

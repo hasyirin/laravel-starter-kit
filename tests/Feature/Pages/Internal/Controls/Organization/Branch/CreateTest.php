@@ -87,3 +87,15 @@ test('the browser cannot change the organization of the form', function (): void
 
     Livewire::test(Create::class, ['organization' => $this->organization])->set('form.organization', Organization::factory()->create()->id);
 })->throws(CannotUpdateLockedPropertyException::class);
+
+test('the create page leads back to the branches tab of the organization', function (): void {
+    grantPermissions($this->actor, 'internal.controls.organizations.update');
+    $tab = route('internal.controls.organizations.show', ['organization' => $this->organization, 'tab' => 'branches']);
+
+    $html = $this->get(route('internal.controls.organizations.branches.create', $this->organization))
+        ->assertOk()
+        ->assertSeeInOrder([route('internal.controls.organizations.index'), route('internal.controls.organizations.show', $this->organization), $tab, __('organization/branches.create.title')], false)
+        ->getContent();
+
+    expect(substr_count($html, 'href="'.$tab.'"'))->toBe(2);
+});

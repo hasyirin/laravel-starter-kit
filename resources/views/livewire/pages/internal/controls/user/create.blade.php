@@ -6,6 +6,6 @@
 
         <flux:heading size="xl">{{ __('user/users.create.title') }}</flux:heading>
 
-        @include('livewire.pages.internal.controls.user.partials.details', ['submit' => __('common/buttons.save')])
+        @include('livewire.pages.internal.controls.user.partials.details', ['submit' => __('common/buttons.save'), 'back' => route('internal.controls.users.index')])
     </div>
 </flux:main>

@@ -81,3 +81,14 @@ test('the owner department is read-only, also with update', function (): void {
 
     expect($owner->fresh()->name)->toBe(config('system.owner.department.name'));
 });
+
+test('a department leads back to the departments tab of its organization', function (): void {
+    $tab = route('internal.controls.organizations.show', ['organization' => $this->organization, 'tab' => 'departments']);
+
+    $html = $this->get(route('internal.controls.organizations.departments.show', [$this->organization, $this->department]))
+        ->assertOk()
+        ->assertSeeInOrder([route('internal.controls.organizations.index'), route('internal.controls.organizations.show', $this->organization), $tab, 'Finance'], false)
+        ->getContent();
+
+    expect(substr_count($html, 'href="'.$tab.'"'))->toBe(2);
+});

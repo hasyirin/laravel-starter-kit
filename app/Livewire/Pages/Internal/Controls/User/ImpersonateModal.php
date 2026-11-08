@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Internal\Controls\User;
 
+use App\Domain\Shared\Organization\Models\Branch;
+use App\Domain\Shared\Organization\Models\Department;
+use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Actions\StartImpersonation;
 use App\Domain\User\Concerns\PasswordValidationRules;
@@ -20,7 +23,7 @@ class ImpersonateModal extends Modal
     use PasswordValidationRules;
 
     #[Locked]
-    public ?Role $role = null;
+    public Role|Organization|Department|Branch|null $parent = null;
 
     #[Locked]
     public bool $startsOnIndexPage = false;
@@ -75,11 +78,7 @@ class ImpersonateModal extends Modal
             return route('internal.controls.users.index');
         }
 
-        if ($this->role instanceof Role) {
-            return route('internal.controls.roles.users.show', [$this->role, $user]);
-        }
-
-        return route('internal.controls.users.show', $user);
+        return Show::url($user, $this->parent);
     }
 
     private function opensStartPage(User $user): bool
@@ -92,7 +91,7 @@ class ImpersonateModal extends Modal
             return $user->can('viewAny', User::class);
         }
 
-        if ($this->role instanceof Role && $user->cannot('view', $this->role)) {
+        if ($this->parent !== null && $user->cannot('view', $this->parent)) {
             return false;
         }
 

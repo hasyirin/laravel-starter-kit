@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
@@ -71,12 +72,24 @@ test('starting from the show page of a role stores that page as the start url', 
     $role = Role::query()->create(['name' => 'clerk', 'guard_name' => 'web']);
     grantPermissions($this->actor, 'internal.controls.roles.view');
 
-    Livewire::test(ImpersonateModal::class, ['role' => $role])
+    Livewire::test(ImpersonateModal::class, ['parent' => $role])
         ->call('show', $this->user->id)
         ->set('password', 'password')
         ->call('impersonate');
 
     expect(Impersonation::startUrl())->toBe(route('internal.controls.roles.users.show', [$role, $this->user]));
+});
+
+test('starting from the show page of a department stores that page as the start url', function (): void {
+    $department = Department::factory()->create();
+    grantPermissions($this->actor, 'internal.controls.organizations.view');
+
+    Livewire::test(ImpersonateModal::class, ['parent' => $department])
+        ->call('show', $this->user->id)
+        ->set('password', 'password')
+        ->call('impersonate');
+
+    expect(Impersonation::startUrl())->toBe(route('internal.controls.organizations.departments.users.show', [$department->organization_id, $department, $this->user]));
 });
 
 test('the users index opens when the impersonated user can open it', function (): void {
@@ -104,7 +117,7 @@ test('the show page of a role opens only when the impersonated user can view the
     grantPermissions($this->actor, 'internal.controls.roles.view');
     grantPermissions($this->user, 'internal.access');
 
-    Livewire::test(ImpersonateModal::class, ['role' => $role])
+    Livewire::test(ImpersonateModal::class, ['parent' => $role])
         ->call('show', $this->user->id)
         ->set('password', 'password')
         ->call('impersonate')

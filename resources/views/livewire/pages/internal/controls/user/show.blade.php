@@ -2,18 +2,7 @@
 
 <flux:main container>
     <div class="space-y-8">
-        @isset($role)
-            <x-breadcrumbs
-                :items="[
-                    ['label' => __('permission/roles.title'), 'href' => route('internal.controls.roles.index')],
-                    ['label' => $role->label, 'href' => route('internal.controls.roles.show', $role)],
-                    ['label' => __('permission/roles.tabs.users'), 'href' => route('internal.controls.roles.show', ['role' => $role, 'tab' => 'users'])],
-                    ['label' => $user->email],
-                ]"
-            />
-        @else
-            <x-breadcrumbs :items="[['label' => __('user/users.title'), 'href' => route('internal.controls.users.index')], ['label' => $user->email]]" />
-        @endisset
+        <x-breadcrumbs :items="$this->breadcrumbs" />
 
         <div class="flex items-center gap-4">
             <flux:avatar size="lg" :name="$user->name" :initials="$user->initials()" />
@@ -35,13 +24,13 @@
             @endif
         </div>
 
-        @include('livewire.pages.internal.controls.user.partials.details', ['submit' => __('common/buttons.update')])
+        @include('livewire.pages.internal.controls.user.partials.details', ['submit' => __('common/buttons.update'), 'back' => $this->backUrl])
 
         <livewire:pages.internal.controls.user.tabs :$user />
     </div>
 
     @if(Impersonation::allows(auth()->user(), $user))
-        <livewire:pages.internal.controls.user.impersonate-modal :$role />
+        <livewire:pages.internal.controls.user.impersonate-modal :parent="$this->parent()" />
     @endif
 
     @can('update', $user)

@@ -47,7 +47,7 @@ Put page tests in `tests/Feature/Pages/`. The internal and system areas have the
 - A user gets their permissions from their active profile, and from roles and permissions given to the user directly. See **Profiles** in the README.
 - The two areas are separate. `system.access` does not open the internal area, so give both permissions to a user who needs both areas.
 - The `system-admin` role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
-- Other permissions control the parts of each area: `internal.controls.roles.*` and `internal.controls.users.*` for the roles and users pages, and `system.horizon.view` for Horizon.
+- Other permissions control the parts of each area: `internal.controls.roles.*`, `internal.controls.users.*`, and `internal.controls.organizations.*` for the roles, users, and organizations pages, and `system.horizon.view` for Horizon.
 
 ## After Login
 

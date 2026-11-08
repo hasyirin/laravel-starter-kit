@@ -9,6 +9,7 @@ use App\Domain\User\Models\User;
 use App\Livewire\Component;
 use App\Livewire\Components\Tab;
 use App\Livewire\Concerns\InteractsWithTabs;
+use App\Livewire\DataTables\Internal\Organization\BranchDataTable;
 use App\Livewire\DataTables\Internal\Organization\DepartmentDataTable;
 use App\Livewire\DataTables\Internal\Organization\UserDataTable;
 use Illuminate\Contracts\View\View;
@@ -30,6 +31,10 @@ class Tabs extends Component
             Tab::make('departments')
                 ->label((string) __('organization/organizations.tabs.departments'))
                 ->content(DepartmentDataTable::class)
+                ->params(['organization' => $this->organization]),
+            Tab::make('branches')
+                ->label((string) __('organization/organizations.tabs.branches'))
+                ->content(BranchDataTable::class)
                 ->params(['organization' => $this->organization]),
             Tab::make('positions')
                 ->label((string) __('organization/organizations.tabs.positions'))

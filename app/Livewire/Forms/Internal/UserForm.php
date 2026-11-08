@@ -75,28 +75,6 @@ class UserForm extends Form
     }
 
     /**
-     * @throws AuthorizationException
-     */
-    public function save(): User
-    {
-        $this->email = str($this->email)->lower()->value();
-        $this->validate();
-
-        $roles = $this->editable('roles') ? $this->roles : null;
-        $permissions = $this->editable('permissions') ? $this->permissions : null;
-
-        if (! $this->user instanceof User) {
-            return CreateUser::make()->execute($this->actor(), $this->name, $this->email, $this->password, $this->placement(), $roles, $permissions);
-        }
-
-        $password = $this->password === '' ? null : $this->password;
-
-        UpdateUser::make()->execute($this->actor(), $this->user, $this->name, $this->email, $password, $this->placement(), $roles, $permissions);
-
-        return $this->user;
-    }
-
-    /**
      * @return array<string, mixed>
      */
     public function rules(): array
@@ -181,5 +159,27 @@ class UserForm extends Form
         return collect($names)
             ->map(fn (mixed $name): string => (string) $name)
             ->values();
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function save(): User
+    {
+        $this->email = str($this->email)->lower()->value();
+        $this->validate();
+
+        $roles = $this->editable('roles') ? $this->roles : null;
+        $permissions = $this->editable('permissions') ? $this->permissions : null;
+
+        if (! $this->user instanceof User) {
+            return CreateUser::make()->execute($this->actor(), $this->name, $this->email, $this->password, $this->placement(), $roles, $permissions);
+        }
+
+        $password = $this->password === '' ? null : $this->password;
+
+        UpdateUser::make()->execute($this->actor(), $this->user, $this->name, $this->email, $password, $this->placement(), $roles, $permissions);
+
+        return $this->user;
     }
 }

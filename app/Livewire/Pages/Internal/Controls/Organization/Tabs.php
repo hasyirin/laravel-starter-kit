@@ -9,6 +9,7 @@ use App\Domain\User\Models\User;
 use App\Livewire\Component;
 use App\Livewire\Components\Tab;
 use App\Livewire\Concerns\InteractsWithTabs;
+use App\Livewire\DataTables\Internal\Organization\DepartmentDataTable;
 use App\Livewire\DataTables\Internal\Organization\UserDataTable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
@@ -26,6 +27,10 @@ class Tabs extends Component
     public function tabs(): array
     {
         return [
+            Tab::make('departments')
+                ->label((string) __('organization/organizations.tabs.departments'))
+                ->content(DepartmentDataTable::class)
+                ->params(['organization' => $this->organization]),
             Tab::make('users')
                 ->label((string) __('organization/organizations.tabs.users'))
                 ->content(UserDataTable::class)

@@ -52,6 +52,14 @@ return [
                     'impersonate' => 'internal.controls.users.impersonate',
                     'view-audit-log' => 'internal.controls.users.view-audit-log',
                 ],
+                'organizations' => [
+                    'view-any' => 'internal.controls.organizations.view-any',
+                    'view' => 'internal.controls.organizations.view',
+                    'create' => 'internal.controls.organizations.create',
+                    'update' => 'internal.controls.organizations.update',
+                    'delete' => 'internal.controls.organizations.delete',
+                    'view-audit-log' => 'internal.controls.organizations.view-audit-log',
+                ],
             ],
         ],
         'system' => [

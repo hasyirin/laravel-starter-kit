@@ -54,6 +54,7 @@ return new class extends Migration
         DB::statement('create unique index organizations_code_unique on organizations (code) where deleted_at is null');
         DB::statement('create unique index departments_organization_id_code_unique on departments (organization_id, code) where deleted_at is null');
         DB::statement('create unique index branches_organization_id_code_unique on branches (organization_id, code) where deleted_at is null');
+        DB::statement('create unique index positions_organization_id_department_id_name_unique on positions (organization_id, coalesce(department_id, 0), name) where deleted_at is null');
 
         DB::statement('create unique index organizations_is_owner_unique on organizations (is_owner) where is_owner = true and deleted_at is null');
         DB::statement('create unique index departments_is_owner_unique on departments (is_owner) where is_owner = true and deleted_at is null');

@@ -66,6 +66,50 @@ class AddressForm extends Form
 
     private ?PostOffice $postOffice = null;
 
+    public function set(Model&Addressable $addressable): static
+    {
+        $this->addressable = $addressable;
+
+        return $this->copy($addressable->address($this->type)->first());
+    }
+
+    /**
+     * @return array<string, list<mixed>>
+     */
+    public function rules(): array
+    {
+        $core = $this->coreRequired();
+        $required = $core ? 'required' : 'nullable';
+
+        $rules = [
+            'line_1' => [$required, 'string', 'max:255'],
+            'line_2' => ['nullable', 'string', 'max:255'],
+            'line_3' => ['nullable', 'string', 'max:255'],
+            'postcode' => [
+                'bail',
+                $required,
+                'string',
+                Rule::exists(Postcode::class, 'code')
+                    ->withoutTrashed()
+                    ->when($this->post_office_id !== null, fn (Exists $rule) => $rule->where('post_office_id', $this->post_office_id)),
+                Rule::when($this->local, [new LocalPostcode]),
+            ],
+            'post_office_id' => [
+                'bail',
+                $required,
+                'integer',
+                Rule::exists(PostOffice::class, 'id')->withoutTrashed(),
+                Rule::when($this->local, [new LocalPostOffice]),
+            ],
+        ];
+
+        if (! $this->showingDistricts) {
+            return $rules;
+        }
+
+        return [...$rules, ...$this->districtRules($core)];
+    }
+
     public function required(bool $required = true): static
     {
         $this->required = $required;
@@ -101,13 +145,6 @@ class AddressForm extends Form
         return $this;
     }
 
-    public function set(Model&Addressable $addressable): static
-    {
-        $this->addressable = $addressable;
-
-        return $this->copy($addressable->address($this->type)->first());
-    }
-
     public function copy(?\Hasyirin\Address\Models\Address $address): static
     {
         $this->line_1 = $address?->line_1;
@@ -119,17 +156,6 @@ class AddressForm extends Form
         $this->subdistrict_id = $address?->subdistrict_id;
 
         return $this;
-    }
-
-    public function save((Model&Addressable)|null $addressable = null): ?Address
-    {
-        $this->validate();
-
-        $model = $addressable ?? $this->addressable;
-
-        throw_if(! $model instanceof Model, LogicException::class, 'Pass the model of the address to set() or save().');
-
-        return SaveAddress::make()->execute($model, $this->values(), $this->type);
     }
 
     /**
@@ -247,43 +273,6 @@ class AddressForm extends Form
     }
 
     /**
-     * @return array<string, list<mixed>>
-     */
-    public function rules(): array
-    {
-        $core = $this->coreRequired();
-        $required = $core ? 'required' : 'nullable';
-
-        $rules = [
-            'line_1' => [$required, 'string', 'max:255'],
-            'line_2' => ['nullable', 'string', 'max:255'],
-            'line_3' => ['nullable', 'string', 'max:255'],
-            'postcode' => [
-                'bail',
-                $required,
-                'string',
-                Rule::exists(Postcode::class, 'code')
-                    ->withoutTrashed()
-                    ->when($this->post_office_id !== null, fn (Exists $rule) => $rule->where('post_office_id', $this->post_office_id)),
-                Rule::when($this->local, [new LocalPostcode]),
-            ],
-            'post_office_id' => [
-                'bail',
-                $required,
-                'integer',
-                Rule::exists(PostOffice::class, 'id')->withoutTrashed(),
-                Rule::when($this->local, [new LocalPostOffice]),
-            ],
-        ];
-
-        if (! $this->showingDistricts) {
-            return $rules;
-        }
-
-        return [...$rules, ...$this->districtRules($core)];
-    }
-
-    /**
      * @return array<string, string>
      */
     public function validationAttributes(): array
@@ -384,5 +373,16 @@ class AddressForm extends Form
         $this->postOffice = PostOffice::query()->with('state')->find($this->post_office_id);
 
         return $this->postOffice;
+    }
+
+    public function save((Model&Addressable)|null $addressable = null): ?Address
+    {
+        $this->validate();
+
+        $model = $addressable ?? $this->addressable;
+
+        throw_if(! $model instanceof Model, LogicException::class, 'Pass the model of the address to set() or save().');
+
+        return SaveAddress::make()->execute($model, $this->values(), $this->type);
     }
 }

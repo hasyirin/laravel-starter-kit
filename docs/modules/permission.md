@@ -24,29 +24,35 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 
 <!-- generated:permission-matrix -->
 
-| Permission                                   | System Administrator |
-|----------------------------------------------|----------------------|
-| `bypass-authorization`                       | ✓                    |
-| `internal.access`                            | ✓                    |
-| `internal.controls.roles.view-any`           | ✓                    |
-| `internal.controls.roles.view`               | ✓                    |
-| `internal.controls.roles.create`             | ✓                    |
-| `internal.controls.roles.update`             | ✓                    |
-| `internal.controls.roles.update-permissions` | ✓                    |
-| `internal.controls.roles.delete`             | ✓                    |
-| `internal.controls.roles.view-audit-log`     | ✓                    |
-| `internal.controls.users.view-any`           | ✓                    |
-| `internal.controls.users.view`               | ✓                    |
-| `internal.controls.users.create`             | ✓                    |
-| `internal.controls.users.update`             | ✓                    |
-| `internal.controls.users.update-permissions` | ✓                    |
-| `internal.controls.users.update-roles`       | ✓                    |
-| `internal.controls.users.delete`             | ✓                    |
-| `internal.controls.users.impersonate`        | ✓                    |
-| `internal.controls.users.view-audit-log`     | ✓                    |
-| `system.access`                              | ✓                    |
-| `system.horizon.view`                        | ✓                    |
-| `system.audit-log.view`                      | ✓                    |
+| Permission                                       | System Administrator |
+|--------------------------------------------------|----------------------|
+| `bypass-authorization`                           | ✓                    |
+| `internal.access`                                | ✓                    |
+| `internal.controls.roles.view-any`               | ✓                    |
+| `internal.controls.roles.view`                   | ✓                    |
+| `internal.controls.roles.create`                 | ✓                    |
+| `internal.controls.roles.update`                 | ✓                    |
+| `internal.controls.roles.update-permissions`     | ✓                    |
+| `internal.controls.roles.delete`                 | ✓                    |
+| `internal.controls.roles.view-audit-log`         | ✓                    |
+| `internal.controls.users.view-any`               | ✓                    |
+| `internal.controls.users.view`                   | ✓                    |
+| `internal.controls.users.create`                 | ✓                    |
+| `internal.controls.users.update`                 | ✓                    |
+| `internal.controls.users.update-permissions`     | ✓                    |
+| `internal.controls.users.update-roles`           | ✓                    |
+| `internal.controls.users.delete`                 | ✓                    |
+| `internal.controls.users.impersonate`            | ✓                    |
+| `internal.controls.users.view-audit-log`         | ✓                    |
+| `internal.controls.organizations.view-any`       | ✓                    |
+| `internal.controls.organizations.view`           | ✓                    |
+| `internal.controls.organizations.create`         | ✓                    |
+| `internal.controls.organizations.update`         | ✓                    |
+| `internal.controls.organizations.delete`         | ✓                    |
+| `internal.controls.organizations.view-audit-log` | ✓                    |
+| `system.access`                                  | ✓                    |
+| `system.horizon.view`                            | ✓                    |
+| `system.audit-log.view`                          | ✓                    |
 
 A role with `bypass-authorization` passes every check.
 

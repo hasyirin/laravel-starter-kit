@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Pages\Internal\Controls\Organization\Branch\Create as BranchCreate;
+use App\Livewire\Pages\Internal\Controls\Organization\Branch\Show as BranchShow;
+use App\Livewire\Pages\Internal\Controls\Organization\Create as OrganizationCreate;
+use App\Livewire\Pages\Internal\Controls\Organization\Department\Create as DepartmentCreate;
+use App\Livewire\Pages\Internal\Controls\Organization\Department\Show as DepartmentShow;
+use App\Livewire\Pages\Internal\Controls\Organization\Index as OrganizationIndex;
+use App\Livewire\Pages\Internal\Controls\Organization\Show as OrganizationShow;
 use App\Livewire\Pages\Internal\Controls\Role\Create as RoleCreate;
 use App\Livewire\Pages\Internal\Controls\Role\Index as RoleIndex;
 use App\Livewire\Pages\Internal\Controls\Role\Show as RoleShow;
@@ -22,6 +29,14 @@ Route::prefix('controls')->name('controls.')->group(function (): void {
     Route::livewire('roles/create', RoleCreate::class)->name('roles.create');
     Route::livewire('roles/{role}', RoleShow::class)->name('roles.show');
     Route::livewire('roles/{role}/users/{user}', Show::class)->name('roles.users.show');
+
+    Route::livewire('organizations', OrganizationIndex::class)->name('organizations.index');
+    Route::livewire('organizations/create', OrganizationCreate::class)->name('organizations.create');
+    Route::livewire('organizations/{organization}', OrganizationShow::class)->name('organizations.show');
+    Route::livewire('organizations/{organization}/departments/create', DepartmentCreate::class)->name('organizations.departments.create');
+    Route::livewire('organizations/{organization}/departments/{department}', DepartmentShow::class)->name('organizations.departments.show')->scopeBindings();
+    Route::livewire('organizations/{organization}/branches/create', BranchCreate::class)->name('organizations.branches.create');
+    Route::livewire('organizations/{organization}/branches/{branch}', BranchShow::class)->name('organizations.branches.show')->scopeBindings();
 });
 
 Route::redirect('settings', '/settings/user-information')->name('settings');

@@ -41,22 +41,6 @@ class RoleForm extends Form
     }
 
     /**
-     * @throws AuthorizationException
-     */
-    public function save(): Role
-    {
-        $this->validate();
-
-        $permissions = $this->editable('permissions') ? $this->permissions : null;
-
-        if (! $this->role instanceof Role) {
-            return CreateRole::make()->execute($this->actor(), $this->name, $permissions);
-        }
-
-        return UpdateRole::make()->execute($this->actor(), $this->role, $this->editable('name') ? $this->name : null, $permissions);
-    }
-
-    /**
      * @return array<string, mixed>
      */
     public function rules(): array
@@ -102,5 +86,21 @@ class RoleForm extends Form
     private function bypassPermission(): string
     {
         return config()->string('system.permissions.bypass-authorization');
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function save(): Role
+    {
+        $this->validate();
+
+        $permissions = $this->editable('permissions') ? $this->permissions : null;
+
+        if (! $this->role instanceof Role) {
+            return CreateRole::make()->execute($this->actor(), $this->name, $permissions);
+        }
+
+        return UpdateRole::make()->execute($this->actor(), $this->role, $this->editable('name') ? $this->name : null, $permissions);
     }
 }

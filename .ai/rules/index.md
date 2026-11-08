@@ -9,6 +9,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Livewire/DataTables/** | .ai/rules/data-tables.md |
 | docs/** | .ai/rules/docs.md |
 | app/Domain/**/Factories/*.php | .ai/rules/factories.md |
+| app/Livewire/Forms/** | .ai/rules/forms.md |
 | lang/** | .ai/rules/lang.md |
 | app/Livewire/** | .ai/rules/livewire.md |
 | **/*.md | .ai/rules/md.md |

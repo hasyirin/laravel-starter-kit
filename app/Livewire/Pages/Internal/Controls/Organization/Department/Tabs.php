@@ -5,18 +5,23 @@ declare(strict_types=1);
 namespace App\Livewire\Pages\Internal\Controls\Organization\Department;
 
 use App\Domain\Shared\Organization\Models\Department;
+use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\User;
 use App\Livewire\Component;
 use App\Livewire\Components\Tab;
 use App\Livewire\Concerns\InteractsWithTabs;
 use App\Livewire\DataTables\Internal\Organization\UserDataTable;
 use App\Livewire\Pages\Internal\Controls\Organization\Audit;
+use App\Livewire\Pages\Internal\Controls\Organization\Positions;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 
 class Tabs extends Component
 {
     use InteractsWithTabs;
+
+    #[Locked]
+    public Organization $organization;
 
     #[Locked]
     public Department $department;
@@ -27,6 +32,10 @@ class Tabs extends Component
     public function tabs(): array
     {
         return [
+            Tab::make('positions')
+                ->label((string) __('organization/departments.tabs.positions'))
+                ->content(Positions::class)
+                ->params(['organization' => $this->organization, 'department' => $this->department]),
             Tab::make('users')
                 ->label((string) __('organization/departments.tabs.users'))
                 ->content(UserDataTable::class)

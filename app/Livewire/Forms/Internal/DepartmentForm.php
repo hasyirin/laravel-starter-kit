@@ -33,13 +33,6 @@ class DepartmentForm extends Form
         return $this;
     }
 
-    public function save(): Department
-    {
-        $this->validate();
-
-        return SaveDepartment::make()->execute($this->organization, $this->department ?? new Department, $this->code, $this->name);
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -57,5 +50,12 @@ class DepartmentForm extends Form
             ],
             'name' => ['required', 'string', 'max:255'],
         ];
+    }
+
+    public function save(): Department
+    {
+        $this->validate();
+
+        return SaveDepartment::make()->execute($this->organization, $this->department ?? new Department, $this->code, $this->name);
     }
 }

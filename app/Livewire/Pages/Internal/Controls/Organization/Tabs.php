@@ -31,6 +31,10 @@ class Tabs extends Component
                 ->label((string) __('organization/organizations.tabs.departments'))
                 ->content(DepartmentDataTable::class)
                 ->params(['organization' => $this->organization]),
+            Tab::make('positions')
+                ->label((string) __('organization/organizations.tabs.positions'))
+                ->content(Positions::class)
+                ->params(['organization' => $this->organization]),
             Tab::make('users')
                 ->label((string) __('organization/organizations.tabs.users'))
                 ->content(UserDataTable::class)

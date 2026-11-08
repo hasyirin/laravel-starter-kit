@@ -20,23 +20,23 @@ beforeEach(function (): void {
 });
 
 test('the department users tab shows with view-any on users', function (): void {
-    Livewire::test(Tabs::class, ['department' => $this->department])
+    Livewire::test(Tabs::class, ['organization' => $this->department->organization, 'department' => $this->department])
         ->assertDontSeeLivewire(UserDataTable::class);
 
     grantPermissions($this->actor, 'internal.controls.users.view-any');
 
     Livewire::withQueryParams(['tab' => 'users'])
-        ->test(Tabs::class, ['department' => $this->department])
+        ->test(Tabs::class, ['organization' => $this->department->organization, 'department' => $this->department])
         ->assertSeeLivewire(UserDataTable::class);
 });
 
 test('the department audit tab shows with view-audit-log', function (): void {
-    Livewire::test(Tabs::class, ['department' => $this->department])
+    Livewire::test(Tabs::class, ['organization' => $this->department->organization, 'department' => $this->department])
         ->assertDontSeeLivewire(Audit::class);
 
     grantPermissions($this->actor, 'internal.controls.organizations.view-audit-log');
 
     Livewire::withQueryParams(['tab' => 'audit'])
-        ->test(Tabs::class, ['department' => $this->department])
+        ->test(Tabs::class, ['organization' => $this->department->organization, 'department' => $this->department])
         ->assertSeeLivewire(Audit::class);
 });

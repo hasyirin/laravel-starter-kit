@@ -18,6 +18,6 @@
 
         @include('livewire.pages.internal.controls.organization.department.partials.details', ['submit' => __('common/buttons.update')])
 
-        <livewire:pages.internal.controls.organization.department.tabs :$department />
+        <livewire:pages.internal.controls.organization.department.tabs :$organization :$department />
     </div>
 </flux:main>

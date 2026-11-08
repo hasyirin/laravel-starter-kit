@@ -28,13 +28,6 @@ class OrganizationForm extends Form
         return $this;
     }
 
-    public function save(): Organization
-    {
-        $this->validate();
-
-        return SaveOrganization::make()->execute($this->organization ?? new Organization, $this->code, $this->name);
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -44,5 +37,12 @@ class OrganizationForm extends Form
             'code' => ['required', 'string', 'max:10', Rule::unique('organizations', 'code')->withoutTrashed()->ignore($this->organization?->id)],
             'name' => ['required', 'string', 'max:255'],
         ];
+    }
+
+    public function save(): Organization
+    {
+        $this->validate();
+
+        return SaveOrganization::make()->execute($this->organization ?? new Organization, $this->code, $this->name);
     }
 }

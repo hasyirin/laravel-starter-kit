@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Layouts\Internal;
 
+use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\User;
 use App\Livewire\Components\Navigation;
@@ -21,6 +22,7 @@ class Sidebar extends Navigation
             Item::make(label: (string) __('navigation.controls'), icon: 'adjustments-horizontal', children: [
                 Item::make(label: (string) __('navigation.users'), icon: 'users', route: 'internal.controls.users.index', active: 'internal.controls.users.*', accessible: ['viewAny', User::class]),
                 Item::make(label: (string) __('navigation.roles'), icon: 'shield-check', route: 'internal.controls.roles.index', active: 'internal.controls.roles.*', accessible: ['viewAny', Role::class]),
+                Item::make(label: (string) __('navigation.organizations'), icon: 'building-office-2', route: 'internal.controls.organizations.index', active: 'internal.controls.organizations.*', accessible: ['viewAny', Organization::class]),
             ]),
             Spacer::make(),
             Item::make(label: (string) __('navigation.system'), icon: 'shield-check', route: 'system.dashboard', accessible: config('system.permissions.system.access')),

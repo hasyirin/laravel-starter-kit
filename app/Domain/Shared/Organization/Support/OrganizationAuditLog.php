@@ -9,8 +9,6 @@ use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Spatie\Activitylog\Models\Activity;
 
@@ -36,26 +34,28 @@ class OrganizationAuditLog
     {
         $children = match (true) {
             $record instanceof Organization => [
-                new Department()->getMorphClass() => $record->departments(),
-                new Branch()->getMorphClass() => $record->branches(),
-                new Position()->getMorphClass() => $record->positions(),
+                new Department()->getMorphClass() => Department::withTrashed()->whereBelongsTo($record)->select('id'),
+                new Branch()->getMorphClass() => Branch::withTrashed()->whereBelongsTo($record)->select('id'),
+                new Position()->getMorphClass() => Position::withTrashed()->whereBelongsTo($record)->select('id'),
             ],
             $record instanceof Department => [
-                new Position()->getMorphClass() => $record->positions(),
+                new Position()->getMorphClass() => Position::withTrashed()->whereBelongsTo($record)->select('id'),
             ],
             default => [],
         };
 
         return Activity::query()
-            ->with(['causer' => fn (MorphTo $causer): MorphTo => $causer->withTrashed()])
+            ->with([
+                'causer' => fn (MorphTo $causer): MorphTo => $causer->withTrashed(),
+                'subject' => fn (MorphTo $subject): MorphTo => $subject->withTrashed(),
+            ])
             ->where(function (Builder $query) use ($record, $children): void {
                 $query->whereMorphedTo('subject', $record);
 
-                foreach ($children as $type => $relation) {
-                    /** @var HasMany<Model, Organization|Department> $relation */
+                foreach ($children as $type => $ids) {
                     $query->orWhere(fn (Builder $query): Builder => $query
                         ->where('subject_type', $type)
-                        ->whereIn('subject_id', $relation->withTrashed()->select('id')));
+                        ->whereIn('subject_id', $ids));
                 }
             });
     }

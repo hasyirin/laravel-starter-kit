@@ -14,6 +14,7 @@ return [
     'controls' => 'Controls',
     'users' => 'Users',
     'roles' => 'Roles',
+    'organizations' => 'Organizations',
     'horizon' => 'Horizon',
     'audit_log' => 'Audit log',
     'breadcrumbs' => [

@@ -16,3 +16,6 @@ Call the `auth()`, `config()`, `cache()`, `context()`, and `logger()` helpers in
 
 ## Name each test as a rule
 A module doc can list the test names of the module as its rules. Write each name as one rule in plain words, for example `a system role cannot be deleted`.
+
+## Run tests in parallel
+Never run tests in a single process. Always pass `--parallel`, for example `php artisan test --compact --parallel tests/Feature/Pages`, also for a narrow set of tests and for the full suite.

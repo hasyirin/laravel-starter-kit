@@ -469,6 +469,16 @@ test('a user opened from a role leads back to the role', function (): void {
         ->assertDontSee(route('internal.controls.users.index'));
 });
 
+test('the back button of a user opened from a role leads to the users tab of the role', function (): void {
+    grantPermissions($this->actor, 'internal.controls.roles.view');
+    $role = Role::query()->create(['name' => 'editor']);
+    $tab = route('internal.controls.roles.show', ['role' => $role, 'tab' => 'users']);
+
+    $html = $this->get(route('internal.controls.roles.users.show', [$role, $this->subject]))->assertOk()->getContent();
+
+    expect(substr_count($html, 'href="'.$tab.'"'))->toBe(2);
+});
+
 test('a user opened from a role needs view on the role', function (): void {
     $role = Role::query()->create(['name' => 'editor']);
 

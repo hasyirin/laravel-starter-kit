@@ -4,6 +4,7 @@
             :items="[
                 ['label' => __('organization/organizations.title'), 'href' => route('internal.controls.organizations.index')],
                 ['label' => $organization->name, 'href' => route('internal.controls.organizations.show', $organization)],
+                ['label' => __('organization/organizations.tabs.branches'), 'href' => route('internal.controls.organizations.show', ['organization' => $organization, 'tab' => 'branches'])],
                 ['label' => __('organization/branches.create.title')],
             ]"
         />

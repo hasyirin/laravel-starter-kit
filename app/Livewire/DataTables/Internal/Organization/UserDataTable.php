@@ -12,6 +12,7 @@ use App\Domain\User\Models\User;
 use App\Filament\Actions\ViewAction;
 use App\Filament\Tables\Columns\TimestampColumn;
 use App\Livewire\DataTables\DataTable;
+use App\Livewire\Pages\Internal\Controls\User\Show;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
@@ -59,7 +60,7 @@ class UserDataTable extends DataTable
         return [
             ViewAction::make()
                 ->visible(fn (User $user): bool => $this->can('view', $user))
-                ->action(fn (User $user) => $this->redirect(route('internal.controls.users.show', $user), navigate: true)),
+                ->action(fn (User $user) => $this->redirect(Show::url($user, $this->record), navigate: true)),
         ];
     }
 }

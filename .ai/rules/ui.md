@@ -67,3 +67,6 @@ End a form or a dialog with its buttons at the right end. In a card footer, put 
 
 ## Label a plus button with the record name only
 A plus icon already says "add". So label a button with a plus icon with only the singular name of its record, such as "User" or "Passkey". Do not write "Add", "New", or "Create" in it. This includes `App\Filament\Actions\CreateAction`, which throws when it has no label. A modal heading has no icon, so it keeps `common/records.add`.
+
+## Lead a child page back to its parent's tab
+A page opened from a tab of a parent page, such as a department from an organization's Departments tab, leads back to that tab. Its breadcrumbs are: the parent list, the parent, the tab label linking to the parent with `?tab=<tab>`, then the page itself, for example `route('internal.controls.organizations.show', ['organization' => $organization, 'tab' => 'departments'])`. Its Back button goes to the same tab URL. This holds for the child's create page too.

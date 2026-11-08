@@ -110,13 +110,7 @@
     <x-card body="divided">
         <x-slot:footer>
             <flux:card.actions>
-                <flux:button
-                    :href="isset($role) ? route('internal.controls.roles.show', $role) : route('internal.controls.users.index')"
-                    variant="subtle"
-                    wire:navigate
-                >
-                    {{ __('common/buttons.back') }}
-                </flux:button>
+                <flux:button :href="$back" variant="subtle" wire:navigate>{{ __('common/buttons.back') }}</flux:button>
 
                 @unless($disabled)
                     <flux:button variant="primary" type="submit">{{ $submit }}</flux:button>

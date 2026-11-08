@@ -33,10 +33,13 @@ Route::prefix('controls')->name('controls.')->group(function (): void {
     Route::livewire('organizations', OrganizationIndex::class)->name('organizations.index');
     Route::livewire('organizations/create', OrganizationCreate::class)->name('organizations.create');
     Route::livewire('organizations/{organization}', OrganizationShow::class)->name('organizations.show');
+    Route::livewire('organizations/{organization}/users/{user}', Show::class)->name('organizations.users.show');
     Route::livewire('organizations/{organization}/departments/create', DepartmentCreate::class)->name('organizations.departments.create');
     Route::livewire('organizations/{organization}/departments/{department}', DepartmentShow::class)->name('organizations.departments.show')->scopeBindings();
+    Route::livewire('organizations/{organization}/departments/{department}/users/{user}', Show::class)->name('organizations.departments.users.show');
     Route::livewire('organizations/{organization}/branches/create', BranchCreate::class)->name('organizations.branches.create');
     Route::livewire('organizations/{organization}/branches/{branch}', BranchShow::class)->name('organizations.branches.show')->scopeBindings();
+    Route::livewire('organizations/{organization}/branches/{branch}/users/{user}', Show::class)->name('organizations.branches.users.show');
 });
 
 Route::redirect('settings', '/settings/user-information')->name('settings');

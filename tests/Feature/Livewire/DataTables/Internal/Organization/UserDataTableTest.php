@@ -43,8 +43,14 @@ test('the list needs view on the record and view-any on users', function (string
     Livewire::test(UserDataTable::class, ['record' => $this->organization])->assertForbidden();
 })->with(['internal.controls.organizations.view', 'internal.controls.users.view-any']);
 
-test('the row click opens the user', function (): void {
-    Livewire::test(UserDataTable::class, ['record' => $this->organization])
-        ->callAction(TestAction::make('view')->table($this->placed))
-        ->assertRedirect(route('internal.controls.users.show', $this->placed));
-});
+test('the row click opens the user under the record', function (string $record, string $user, string $route, array $parents): void {
+    $parameters = [...collect($parents)->map(fn (string $parent): Organization|Department|Branch => $this->{$parent})->all(), $this->{$user}];
+
+    Livewire::test(UserDataTable::class, ['record' => $this->{$record}])
+        ->callAction(TestAction::make('view')->table($this->{$user}))
+        ->assertRedirect(route($route, $parameters));
+})->with([
+    'organization' => ['organization', 'placed', 'internal.controls.organizations.users.show', ['organization']],
+    'department' => ['department', 'placed', 'internal.controls.organizations.departments.users.show', ['organization', 'department']],
+    'branch' => ['branch', 'elsewhere', 'internal.controls.organizations.branches.users.show', ['organization', 'branch']],
+]);

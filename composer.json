@@ -109,7 +109,7 @@
             "@types:check",
             "@docs:check",
             "@putenv XDEBUG_MODE=coverage",
-            "@php artisan test --tia"
+            "@php artisan test --tia --parallel"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

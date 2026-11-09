@@ -42,6 +42,11 @@ class PositionModal extends RecordModal
         return $departments;
     }
 
+    public function editable(string $part): bool
+    {
+        return ! $this->isDisabled() && $this->form->editable($part);
+    }
+
     /**
      * @return HasMany<Position, Organization>
      */

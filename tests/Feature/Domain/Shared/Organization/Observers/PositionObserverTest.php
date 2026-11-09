@@ -29,13 +29,24 @@ test('a position cannot move to a department of another organization', function 
         ->and($position->fresh()?->department_id)->toBe($departmentId);
 });
 
-test('a position can move to another department of its organization', function (): void {
+test('the department of a position cannot be changed after creation', function (bool $toAnother): void {
     $position = Position::factory()->forDepartment(Department::factory()->create())->create();
+    $departmentId = $position->department_id;
+    $target = Department::factory()->create(['organization_id' => $position->organization_id]);
+
+    expect(fn (): bool => $position->update(['department_id' => $toAnother ? $target->id : null]))->toThrow(LogicException::class, 'The department of a position cannot be changed.')
+        ->and($position->fresh()?->department_id)->toBe($departmentId);
+})->with([
+    'to another department' => [true],
+    'to none' => [false],
+]);
+
+test('a position without a department cannot get one', function (): void {
+    $position = Position::factory()->create();
     $department = Department::factory()->create(['organization_id' => $position->organization_id]);
 
-    $position->update(['department_id' => $department->id]);
-
-    expect($position->fresh()?->department_id)->toBe($department->id);
+    expect(fn (): bool => $position->update(['department_id' => $department->id]))->toThrow(LogicException::class, 'The department of a position cannot be changed.')
+        ->and($position->fresh()?->department_id)->toBeNull();
 });
 
 test('a position accepts the ids of its organization and department as strings', function (): void {

@@ -88,7 +88,7 @@ class Show extends Page
         return $crumb['href'];
     }
 
-    public function isDisabled(?string $part = null): bool
+    public function isDisabled(): bool
     {
         return $this->disabled === true || $this->cannot('update', $this->user);
     }

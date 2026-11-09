@@ -27,7 +27,7 @@ class Show extends Page
         $this->form->set($this->organization);
     }
 
-    public function isDisabled(?string $part = null): bool
+    public function isDisabled(): bool
     {
         return $this->disabled === true || $this->cannot('update', $this->organization);
     }

@@ -70,7 +70,7 @@ When the user can change only some parts of a record, check each part with the p
 The prop is reactive, so the browser cannot change it, and the component cannot set it itself. To disable a component by its own rule, override `isDisabled()`:
 
 ```php
-public function isDisabled(?string $part = null): bool
+public function isDisabled(): bool
 {
     return $this->disabled || $this->project->isArchived();
 }
@@ -91,27 +91,31 @@ public function save(): void
 
 ### Disable One Part
 
-`isDisabled()` and `ensureEnabled()` take an optional part, such as `roles`. Without an override, a part follows the whole component. To lock one part by a rule, check the part in the override. Keep `$this->disabled` in the check, so that a disabled component also disables every part. The typed abilities of the policies are a good rule, for example the `$type` of `App\Domain\User\Policies\UserPolicy::update()`:
+`isDisabled()` is for the whole component. To lock one field by its own rule, such as a value that is fixed after creation, give the form an `editable(string $part)` method. The typed abilities of the policies are a good rule, for example the `$type` of `App\Domain\User\Policies\UserPolicy::update()`:
 
 ```php
-public function isDisabled(?string $part = null): bool
+public function editable(string $part): bool
 {
-    return $this->disabled
-        || ($part !== null && $this->cannot('update', [$this->user, $part]));
+    return $this->can('update', [$this->user, $part]);
 }
 ```
 
-The view asks for the part, and the action checks the same part when the user changed it:
+The component wraps it, so that a disabled component also locks every field:
+
+```php
+public function editable(string $part): bool
+{
+    return ! $this->isDisabled() && $this->form->editable($part);
+}
+```
+
+The view asks the component. Do not add `$disabled ||`, because `editable()` already includes it:
 
 ```blade
-<x-checkbox wire:model="form.roles" :options="$this->roles" :disabled="$this->isDisabled('roles')" />
+<x-checkbox wire:model="form.roles" :options="$this->roles" :disabled="! $this->editable('roles')" />
 ```
 
-```php
-if ($this->form->roles !== $this->originalRoles) {
-    $this->ensureEnabled('roles');
-}
-```
+The form's `save()` checks the same part, because a browser can send any value. It ignores the value of a locked field, as `UserForm` does with the roles. An action that changes only one part answers 403 instead: `abort_unless($this->editable('roles'), 403);`.
 
 `App\Livewire\Components\FileUpload` uses the trait. A disabled file upload ignores uploads, removes, and moves without an error.
 

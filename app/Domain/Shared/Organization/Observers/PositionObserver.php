@@ -24,5 +24,6 @@ class PositionObserver
     public function updating(Position $position): void
     {
         throw_if($position->isDirty('organization_id'), LogicException::class, 'The organization of a position cannot be changed.');
+        throw_if($position->isDirty('department_id'), LogicException::class, 'The department of a position cannot be changed.');
     }
 }

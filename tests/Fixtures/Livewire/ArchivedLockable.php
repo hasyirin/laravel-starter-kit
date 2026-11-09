@@ -8,7 +8,7 @@ class ArchivedLockable extends Lockable
 {
     public bool $archived = true;
 
-    public function isDisabled(?string $part = null): bool
+    public function isDisabled(): bool
     {
         return $this->disabled || $this->archived;
     }

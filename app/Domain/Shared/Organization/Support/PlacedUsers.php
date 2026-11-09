@@ -23,9 +23,7 @@ class PlacedUsers
                 $record instanceof Organization => $profile->where('organization_id', $record->id),
                 $record instanceof Branch => $profile->where('branch_id', $record->id),
                 $record instanceof Position => $profile->where('position_id', $record->id),
-                $record instanceof Department => $profile->where(fn (Builder $placement): Builder => $placement
-                    ->where('department_id', $record->id)
-                    ->orWhereIn('position_id', $record->positions()->withTrashed()->select('id'))),
+                $record instanceof Department => $profile->where('department_id', $record->id),
             };
         });
     }

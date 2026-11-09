@@ -62,9 +62,9 @@ abstract class RecordModal extends Modal
         parent::show();
     }
 
-    public function isDisabled(?string $part = null): bool
+    public function isDisabled(): bool
     {
-        return parent::isDisabled($part)
+        return parent::isDisabled()
             || ($this->showing && $this->cannot($this->record->exists ? 'update' : 'create', $this->record));
     }
 

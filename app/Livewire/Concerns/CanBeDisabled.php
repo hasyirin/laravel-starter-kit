@@ -12,7 +12,7 @@ trait CanBeDisabled
     #[Reactive]
     public ?bool $disabled = false;
 
-    public function isDisabled(?string $part = null): bool
+    public function isDisabled(): bool
     {
         return $this->disabled === true;
     }
@@ -22,8 +22,8 @@ trait CanBeDisabled
         $view->with('disabled', $this->isDisabled());
     }
 
-    protected function ensureEnabled(?string $part = null): void
+    protected function ensureEnabled(): void
     {
-        abort_if($this->isDisabled($part), 403);
+        abort_if($this->isDisabled(), 403);
     }
 }

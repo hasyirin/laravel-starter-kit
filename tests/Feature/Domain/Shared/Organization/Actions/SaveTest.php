@@ -49,17 +49,18 @@ test('saving creates and updates a position of the organization', function (): v
     expect($position->fresh()->name)->toBe('Senior Clerk');
 });
 
-test('a position can move to another department or to none', function (): void {
+test('a position cannot move to another department or to none', function (?string $target): void {
     $organization = Organization::factory()->create();
-    $position = Position::factory()->for($organization)->forDepartment(Department::factory()->for($organization)->create())->create();
-    $other = Department::factory()->for($organization)->create();
+    $department = Department::factory()->for($organization)->create();
+    $position = Position::factory()->for($organization)->forDepartment($department)->create();
+    $other = $target === null ? null : Department::factory()->for($organization)->create();
 
-    SavePosition::make()->execute($organization, $position, $other, $position->name);
-    expect($position->fresh()->department_id)->toBe($other->id);
-
-    SavePosition::make()->execute($organization, $position, null, $position->name);
-    expect($position->fresh()->department_id)->toBeNull();
-});
+    expect(fn (): Position => SavePosition::make()->execute($organization, $position, $other, $position->name))->toThrow(LogicException::class)
+        ->and($position->fresh()->department_id)->toBe($department->id);
+})->with([
+    'to another department' => ['other'],
+    'to none' => [null],
+]);
 
 test('saving the owner organization is refused', function (): void {
     expect(fn (): Organization => SaveOrganization::make()->execute(Organization::owner(), 'X', 'X'))->toThrow(LogicException::class);

@@ -6,13 +6,7 @@
             {{ __('permission/roles.details') }}
         </x-slot:heading>
 
-        <x-input
-            wire:model="form.name"
-            :label="__('common/inputs.name')"
-            autocomplete="off"
-            required
-            :disabled="$disabled || (isset($role) && ! $this->editable('name'))"
-        />
+        <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required :disabled="! $this->editable('name')" />
     </x-card>
 
     <x-card accordion body="divided">

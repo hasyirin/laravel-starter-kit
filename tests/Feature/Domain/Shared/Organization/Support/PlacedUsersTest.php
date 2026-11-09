@@ -38,11 +38,3 @@ test('an older profile does not place a user', function (): void {
         expect(PlacedUsers::of($record)->exists())->toBeFalse();
     }
 });
-
-test('a user holding a position of the department is placed at the department, also after the position moved there', function (): void {
-    $other = Department::factory()->for($this->organization)->create();
-
-    $this->position->update(['department_id' => $other->id]);
-
-    expect(PlacedUsers::of($other)->pluck('id')->all())->toBe([$this->user->id]);
-});

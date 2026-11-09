@@ -38,7 +38,7 @@ A unit of an organization that does one kind of work, for example finance.
 A place where an organization works, for example its headquarters.
 
 **Position**:
-A job in an organization, for example clerk. Many users can hold one position.
+A job in an organization, for example clerk. A position can belong to one department, and that department never changes. Many users can hold one position.
 
 **Owner**:
 The organization that runs the app.

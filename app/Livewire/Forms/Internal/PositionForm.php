@@ -21,6 +21,9 @@ class PositionForm extends Form
     #[Locked]
     public Position $position;
 
+    #[Locked]
+    public ?Department $department = null;
+
     public ?int $department_id = null;
 
     public string $name = '';
@@ -29,10 +32,21 @@ class PositionForm extends Form
     {
         $this->organization = $organization;
         $this->position = $position;
-        $this->department_id = $position->exists ? $position->department_id : $department?->id;
+        $this->department = $department;
+        $this->department_id = $this->initialDepartmentId();
         $this->name = $position->name ?? '';
 
         return $this;
+    }
+
+    public function editable(string $part): bool
+    {
+        return $part !== 'department' || (! $this->position->exists && ! $this->department instanceof Department);
+    }
+
+    private function initialDepartmentId(): ?int
+    {
+        return $this->position->exists ? $this->position->department_id : $this->department?->id;
     }
 
     /**
@@ -65,6 +79,10 @@ class PositionForm extends Form
 
     public function save(): Position
     {
+        if (! $this->editable('department')) {
+            $this->department_id = $this->initialDepartmentId();
+        }
+
         $this->validate();
 
         $department = $this->department_id === null ? null : Department::query()->findOrFail($this->department_id);

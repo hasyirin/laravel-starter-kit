@@ -6,14 +6,16 @@
                     {{ __($this->record->exists ? 'common/records.edit' : 'common/records.add', ['record' => $this::label()]) }}
                 </flux:heading>
 
-                <x-select
-                    wire:model="form.department_id"
-                    :label="__('organization/departments.department')"
-                    :options="$this->departments"
-                    :placeholder="__('organization/positions.no_department')"
-                    clearable
-                    :$disabled
-                />
+                @unless($department)
+                    <x-select
+                        wire:model="form.department_id"
+                        :label="__('organization/departments.department')"
+                        :options="$this->departments"
+                        :placeholder="__('organization/positions.no_department')"
+                        clearable
+                        :disabled="! $this->editable('department')"
+                    />
+                @endunless
 
                 <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required :$disabled />
 

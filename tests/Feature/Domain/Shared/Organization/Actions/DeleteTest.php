@@ -64,16 +64,3 @@ test('a record with placed users cannot be deleted', function (string $record, s
     ['branch', DeleteBranch::class],
     ['position', DeletePosition::class],
 ]);
-
-test('deleting a department is blocked by a user holding one of its positions after the position moved there', function (): void {
-    $other = Department::factory()->for($this->organization)->create();
-    Profile::factory()->for(User::factory())->create([
-        'organization_id' => $this->organization->id,
-        'department_id' => $this->department->id,
-        'position_id' => $this->position->id,
-    ]);
-    $this->position->update(['department_id' => $other->id]);
-
-    expect(fn () => DeleteDepartment::make()->execute($other))->toThrow(LogicException::class)
-        ->and($other->fresh()->trashed())->toBeFalse();
-});

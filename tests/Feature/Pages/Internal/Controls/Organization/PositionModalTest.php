@@ -49,26 +49,55 @@ test('a position added from a department tab starts in that department', functio
         ->assertSet('form.department_id', $this->department->id);
 });
 
-test('a position can move to another department of the organization or to none', function (): void {
+test('the department field is hidden on a department page', function (): void {
+    $position = Position::factory()->for($this->organization)->forDepartment($this->department)->create();
+
+    Livewire::test(PositionModal::class, ['organization' => $this->organization, 'department' => $this->department])
+        ->call('show')
+        ->assertDontSeeHtml('wire:model="form.department_id"')
+        ->call('show', $position->id)
+        ->assertDontSeeHtml('wire:model="form.department_id"');
+});
+
+test('a position added from a department page stays in that department', function (): void {
+    $other = Department::factory()->for($this->organization)->create();
+
+    Livewire::test(PositionModal::class, ['organization' => $this->organization, 'department' => $this->department])
+        ->call('show')
+        ->set('form.name', 'Clerk')
+        ->set('form.department_id', $other->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Position::query()->where('name', 'Clerk')->firstOrFail()->department_id)->toBe($this->department->id);
+});
+
+test('editing a position keeps its department', function (bool $toAnother): void {
     $position = Position::factory()->for($this->organization)->forDepartment($this->department)->create();
     $other = Department::factory()->for($this->organization)->create();
 
     Livewire::test(PositionModal::class, ['organization' => $this->organization])
         ->call('show', $position->id)
         ->assertSet('form.department_id', $this->department->id)
-        ->set('form.department_id', $other->id)
+        ->set('form.department_id', $toAnother ? $other->id : null)
+        ->set('form.name', 'Senior Clerk')
         ->call('save')
         ->assertHasNoErrors();
 
-    expect($position->fresh()->department_id)->toBe($other->id);
+    expect($position->fresh())
+        ->department_id->toBe($this->department->id)
+        ->name->toBe('Senior Clerk');
+})->with([
+    'to another department' => [true],
+    'to none' => [false],
+]);
 
-    Livewire::test(PositionModal::class, ['organization' => $this->organization])
-        ->call('show', $position->id)
-        ->set('form.department_id')
-        ->call('save')
-        ->assertHasNoErrors();
+test('the department can be chosen only when adding a position on the organization page', function (): void {
+    $position = Position::factory()->for($this->organization)->create();
+    $modal = Livewire::test(PositionModal::class, ['organization' => $this->organization]);
 
-    expect($position->fresh()->department_id)->toBeNull();
+    expect($modal->call('show')->instance()->editable('department'))->toBeTrue()
+        ->and($modal->call('show', $position->id)->instance()->editable('department'))->toBeFalse();
 });
 
 test('a department of another organization is refused', function (): void {

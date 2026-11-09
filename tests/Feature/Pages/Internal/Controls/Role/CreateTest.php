@@ -72,3 +72,9 @@ test('bypass-authorization is refused without bypass', function (): void {
 
     expect(Role::query()->where('name', 'owner')->exists())->toBeFalse();
 });
+
+test('the name of a new role is editable', function (): void {
+    grantPermissions($this->actor, 'internal.controls.roles.create');
+
+    expect(Livewire::test(Create::class)->instance()->editable('name'))->toBeTrue();
+});

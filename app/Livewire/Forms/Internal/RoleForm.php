@@ -55,7 +55,7 @@ class RoleForm extends Form
     public function editable(string $part): bool
     {
         if (! $this->role instanceof Role) {
-            return $this->can('create', [Role::class, $part]);
+            return $part === 'name' || $this->can('create', [Role::class, $part]);
         }
 
         return ($part !== 'name' || ! $this->role->is_system) && $this->can('update', [$this->role, $part]);

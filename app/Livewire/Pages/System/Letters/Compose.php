@@ -20,6 +20,11 @@ class Compose extends Page
 {
     use ListsCarbonCopyTargets;
 
+    protected function acrossOrganizations(): bool
+    {
+        return true;
+    }
+
     private const int PICKER_LIMIT = 20;
 
     public ComposeLetterForm $form;
@@ -81,10 +86,10 @@ class Compose extends Page
         if ($search !== '') {
             $query->where(fn (Builder $match): Builder => $match
                 ->whereKey(ctype_digit($search) ? [(int) $search] : [])
-                ->when($this->hasNameColumn($type), fn (Builder $named): Builder => $named->orWhereLike('name', "%$search%")));
+                ->when($this->sourceHasName, fn (Builder $named): Builder => $named->orWhereLike('name', "%$search%")));
         }
 
-        $sources = $query->limit(self::PICKER_LIMIT)->get()->filter(fn (Model $source): bool => $this->can('view', $source));
+        $sources = $query->lazyById(self::PICKER_LIMIT * 5)->filter(fn (Model $source): bool => $this->can('view', $source))->take(self::PICKER_LIMIT)->collect();
         $picked = $this->pickedSource;
 
         if ($picked instanceof Model) {
@@ -115,6 +120,20 @@ class Compose extends Page
             ->get()
             ->mapWithKeys(fn (Letter $letter): array => [$letter->id => trim(($letter->reference_number ?? "#{$letter->id}").' '.($letter->date?->toDateString() ?? ''))])
             ->all();
+    }
+
+    #[Computed]
+    public function sourceHasName(): bool
+    {
+        $type = $this->letterType;
+
+        if (! $type instanceof LetterType) {
+            return false;
+        }
+
+        $model = new ($type->source());
+
+        return Schema::connection($model->getConnectionName())->hasColumn($model->getTable(), 'name');
     }
 
     #[Computed]
@@ -163,7 +182,7 @@ class Compose extends Page
         $this->authorizeCompose();
         $source = $this->pickedSource;
 
-        if (! $source instanceof Model || $this->letterId === null) {
+        if (! $source instanceof Model || $this->letterId === null || $this->letterId === '') {
             return;
         }
 
@@ -196,19 +215,12 @@ class Compose extends Page
 
     private function resetStart(): void
     {
-        unset($this->letterType, $this->signers, $this->sources, $this->letters, $this->pickedSource);
+        unset($this->letterType, $this->signers, $this->sources, $this->letters, $this->pickedSource, $this->sourceHasName);
 
         $this->sourceId = null;
         $this->letterId = null;
         $this->sourceSearch = '';
         $this->form->startBlank();
-    }
-
-    private function hasNameColumn(LetterType $type): bool
-    {
-        $model = new ($type->source());
-
-        return Schema::connection($model->getConnectionName())->hasColumn($model->getTable(), 'name');
     }
 
     private function sourceLabel(Model $source): string

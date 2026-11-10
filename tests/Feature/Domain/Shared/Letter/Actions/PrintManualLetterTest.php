@@ -197,3 +197,21 @@ test('a signer without a position is refused', function (): void {
     expect(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'x'], manualDetails($signer)))->toThrow(ValidationException::class);
     expect(manualEntries()->count())->toBe(0);
 });
+
+test('a letter start logs the letter id', function (): void {
+    $letter = Letter::factory()->ofType('printed')->create(['source_type' => $this->organization->getMorphClass(), 'source_id' => $this->organization->id]);
+
+    printManual('printed', noticeData(), ['remark' => 'x'], source: $this->organization, letter: $letter);
+
+    expect(data_get(manualEntries()->sole()->properties, 'letter_id'))->toBe($letter->id);
+});
+
+test('a letter of another source or type is refused', function (): void {
+    $other = Organization::factory()->create();
+    $foreign = Letter::factory()->ofType('printed')->create(['source_type' => $other->getMorphClass(), 'source_id' => $other->id]);
+    $wrongType = Letter::factory()->ofType('notice')->create(['source_type' => $this->organization->getMorphClass(), 'source_id' => $this->organization->id]);
+
+    expect(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'x'], source: $this->organization, letter: $foreign))->toThrow(LogicException::class)
+        ->and(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'x'], source: $this->organization, letter: $wrongType))->toThrow(LogicException::class)
+        ->and(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'x'], letter: $foreign))->toThrow(LogicException::class);
+});

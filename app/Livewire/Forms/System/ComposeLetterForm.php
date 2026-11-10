@@ -7,6 +7,7 @@ namespace App\Livewire\Forms\System;
 use App\Domain\Shared\Letter\Actions\PrintManualLetter;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
 use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Letter\Support\Field;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PdfFile;
@@ -15,7 +16,6 @@ use App\Domain\User\Models\User;
 use App\Livewire\Concerns\HandlesLetterFields;
 use App\Livewire\Form;
 use Carbon\CarbonImmutable;
-use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -131,8 +131,8 @@ class ComposeLetterForm extends Form
             $this->authorize('view', $this->source);
         }
 
-        $data = $this->prefixed('data', fn (): array => $this->payload($type->fields(), $this->data));
-        $extra = $this->prefixed('extra', fn (): array => $this->payload($type->extraFields(), $this->extra));
+        $data = $this->payloadOf('data', $type->fields(), $this->data);
+        $extra = $this->payloadOf('extra', $type->extraFields(), $this->extra);
 
         try {
             return PrintManualLetter::make()->execute(
@@ -148,6 +148,11 @@ class ComposeLetterForm extends Form
         } catch (ValidationException $validationException) {
             throw $this->withFormKeys($validationException);
         }
+    }
+
+    protected function acrossOrganizations(): bool
+    {
+        return true;
     }
 
     /**
@@ -186,17 +191,16 @@ class ComposeLetterForm extends Form
     }
 
     /**
-     * @template TReturn
-     *
-     * @param  Closure(): TReturn  $callback
-     * @return TReturn
+     * @param  list<Field>  $fields
+     * @param  array<string, mixed>  $values
+     * @return array<string, mixed>
      */
-    private function prefixed(string $part, Closure $callback): mixed
+    private function payloadOf(string $part, array $fields, array $values): array
     {
         try {
-            return $callback();
+            return $this->payload($fields, $values);
         } catch (ValidationException $validationException) {
-            throw ValidationException::withMessages(collect($validationException->errors())->mapWithKeys(fn (mixed $messages, int|string $key): array => ["form.$part.$key" => $messages])->all());
+            throw $this->withFormKeys(PrintManualLetter::prefixErrors($validationException, $part));
         }
     }
 

@@ -19,7 +19,6 @@ use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
 use Carbon\CarbonImmutable;
-use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -43,6 +42,8 @@ class PrintManualLetter
 
         throw_unless($type->allowedFor($admin), LogicException::class, "The letter type [{$key}] is not allowed for this user.");
         throw_if($source instanceof Model && ! $source instanceof ($type->source()), LogicException::class, "The source is not a source of the letter type [{$key}].");
+
+        throw_if($letter instanceof Letter && (! $source instanceof Model || $letter->type !== $key || ! $letter->source?->is($source)), LogicException::class, "The letter does not belong to the source and the letter type [{$key}].");
 
         $this->checkSigner($type, $key, $details->signer);
 
@@ -78,7 +79,7 @@ class PrintManualLetter
             ->generatePdfContent();
 
         if (! $preview) {
-            $this->log($type, $key, $validatedData, $validatedExtra, $details, $admin, $source);
+            $this->log($type, $key, $validatedData, $validatedExtra, $details, $admin, $source, $letter);
         }
 
         return new PdfFile(str($details->referenceNumber ?? 'letter')->slug()->append('.pdf')->toString(), $content);
@@ -92,24 +93,18 @@ class PrintManualLetter
      */
     private function validated(string $part, array $values, array $fields, array $owners): array
     {
-        $validated = $this->prefixed($part, fn (): array => validator($values, Field::rules($fields, $owners))->validate());
+        try {
+            $validated = validator($values, Field::rules($fields, $owners))->validate();
+        } catch (ValidationException $validationException) {
+            throw self::prefixErrors($validationException, $part);
+        }
 
         return collect($validated)->mapWithKeys(fn (mixed $value, int|string $key): array => [(string) $key => $value])->all();
     }
 
-    /**
-     * @template TReturn
-     *
-     * @param  Closure(): TReturn  $callback
-     * @return TReturn
-     */
-    private function prefixed(string $part, Closure $callback): mixed
+    public static function prefixErrors(ValidationException $exception, string $part): ValidationException
     {
-        try {
-            return $callback();
-        } catch (ValidationException $validationException) {
-            throw ValidationException::withMessages(collect($validationException->errors())->mapWithKeys(fn (mixed $messages, int|string $key): array => ["$part.$key" => $messages])->all());
-        }
+        return ValidationException::withMessages(collect($exception->errors())->mapWithKeys(fn (mixed $messages, int|string $key): array => ["$part.$key" => $messages])->all());
     }
 
     private function checkSigner(LetterType $type, string $key, ?User $signer): void
@@ -129,9 +124,9 @@ class PrintManualLetter
      * @param  array<string, mixed>  $data
      * @param  array<string, mixed>  $extra
      */
-    private function log(LetterType $type, string $key, array $data, array $extra, PrintDetails $details, User $admin, ?Model $source): void
+    private function log(LetterType $type, string $key, array $data, array $extra, PrintDetails $details, User $admin, ?Model $source, ?Letter $letter): void
     {
-        DB::transaction(function () use ($type, $key, $data, $extra, $details, $admin, $source): void {
+        DB::transaction(function () use ($type, $key, $data, $extra, $details, $admin, $source, $letter): void {
             /** @var AuditEntry $entry */
             $entry = activity()->causedBy($admin)->event(self::EVENT)->log(self::EVENT);
 
@@ -142,6 +137,7 @@ class PrintManualLetter
                 'details' => $details->toArray(),
                 'source_type' => $source?->getMorphClass(),
                 'source_id' => $source?->getKey(),
+                'letter_id' => $letter?->getKey(),
             ]);
             $entry->save();
         });

@@ -28,6 +28,18 @@ trait ListsCarbonCopyTargets
     #[Computed]
     public function departments(): array
     {
+        if ($this->acrossOrganizations()) {
+            /** @var array<string, string> $all */
+            $all = Department::query()
+                ->with('organization')
+                ->orderBy('name')
+                ->get()
+                ->mapWithKeys(fn (Department $department): array => [$department->id => "{$department->organization?->name}: {$department->name}"])
+                ->all();
+
+            return $all;
+        }
+
         /** @var array<string, string> $departments */
         $departments = Department::query()
             ->where('organization_id', auth()->user()?->profile?->organization_id)
@@ -36,5 +48,10 @@ trait ListsCarbonCopyTargets
             ->all();
 
         return $departments;
+    }
+
+    protected function acrossOrganizations(): bool
+    {
+        return false;
     }
 }

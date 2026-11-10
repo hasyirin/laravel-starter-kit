@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
@@ -18,6 +20,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Spatie\LaravelPdf\Facades\Pdf;
@@ -25,6 +28,7 @@ use Tests\Fixtures\Models\Permit;
 use Tests\Fixtures\Policies\PermitPolicy;
 use Tests\Fixtures\Support\PermitLetter;
 use Tests\Fixtures\Support\PermitManualLetter;
+use Tests\Fixtures\Support\PermitManualSignedLetter;
 use Tests\Fixtures\Support\PermitSignedLetter;
 
 beforeEach(function (): void {
@@ -41,7 +45,7 @@ beforeEach(function (): void {
     });
     Relation::morphMap(['permit' => Permit::class]);
     Gate::policy(Permit::class, PermitPolicy::class);
-    config(['system.letters.types' => ['manual' => PermitManualLetter::class, 'plain' => PermitLetter::class, 'signed' => PermitSignedLetter::class]]);
+    config(['system.letters.types' => ['manual' => PermitManualLetter::class, 'plain' => PermitLetter::class, 'signed' => PermitSignedLetter::class, 'manual_signed' => PermitManualSignedLetter::class]]);
 
     $this->organization = Organization::factory()->create();
     $this->admin = User::factory()->create();
@@ -195,4 +199,80 @@ test('a signer must have a position and be in the list', function (): void {
 
 test('a required signer is checked', function (): void {
     compose('signed')->call('print')->assertHasErrors(['form.signer_id']);
+});
+
+function otherOrganizationStaff(string $name = 'Outsider'): User
+{
+    $organization = Organization::factory()->create();
+    $user = User::factory()->create(['name' => $name]);
+    Profile::factory()->for($organization)->for($user)->for(Position::factory()->for($organization)->create())->create();
+
+    return $user;
+}
+
+test('an admin without an organization can pick a signer and print a type that needs one', function (): void {
+    $admin = User::factory()->create();
+    Profile::factory()->for($admin)->create(['organization_id' => null]);
+    grantPermissions($admin, 'system.access', 'system.letters.compose');
+    $signer = otherOrganizationStaff();
+    $this->actingAs($admin);
+
+    compose('manual_signed')->set('form.data.title', 'T')->set('form.extra.remark', 'R')->set('form.signer_id', $signer->id)->call('print')->assertHasNoErrors()->assertFileDownloaded();
+});
+
+test('an admin can pick staff and departments of another organization', function (): void {
+    $signer = otherOrganizationStaff('Outsider');
+    $department = Department::factory()->for(Organization::factory()->create(['name' => 'Beta']))->create(['name' => 'Ops']);
+
+    $component = compose('manual')->set('form.data.title', 'T')->set('form.extra.remark', 'R');
+
+    expect($component->instance()->signers())->toHaveKey($signer->id)
+        ->and($component->instance()->departments())->toHaveKey($department->id)
+        ->and($component->instance()->departments()[$department->id])->toBe('Beta: Ops');
+    $component->set('form.signer_id', $signer->id)
+        ->set('form.carbon_copies', [['kind' => 'department', 'target' => $department->id, 'text' => '']])
+        ->call('print')->assertHasNoErrors();
+});
+
+test('a letter start keeps a saved signer from another organization', function (): void {
+    $signer = otherOrganizationStaff();
+    $letter = $this->permit->letters()->create(['type' => 'manual', 'extra' => ['remark' => 'R']]);
+    $letter->act(Act::Sign, $signer);
+
+    compose()->set('start', 'letter')->set('sourceId', (string) $this->permit->id)->set('letterId', (string) $letter->id)
+        ->assertSet('form.signer_id', $signer->id);
+});
+
+test('a source that stops being viewable after the start cannot be printed', function (): void {
+    $component = compose()->set('start', 'source')->set('sourceId', (string) $this->permit->id)
+        ->set('form.extra.remark', 'R');
+    $this->permit->update(['hidden' => true]);
+
+    $component->call('print')->assertForbidden();
+});
+
+test('a letter id of another source is not found', function (): void {
+    $other = Permit::query()->create(['name' => 'Other']);
+    $foreign = $other->letters()->create(['type' => 'manual']);
+
+    compose()->set('start', 'letter')->set('sourceId', (string) $this->permit->id)->set('letterId', (string) $foreign->id)->assertNotFound();
+});
+
+test('an empty letter id is ignored', function (): void {
+    compose()->set('start', 'letter')->set('sourceId', (string) $this->permit->id)->set('letterId', '')->assertOk();
+});
+
+test('the source cannot be set from the browser', function (): void {
+    expect(fn () => compose()->set('form.source', $this->permit))->toThrow(CannotUpdateLockedPropertyException::class);
+});
+
+test('the source picker skips sources that cannot be viewed until it finds enough', function (): void {
+    Permit::query()->whereKey($this->permit->id)->update(['hidden' => true]);
+    foreach (range(1, 25) as $number) {
+        Permit::query()->create(['name' => "Hidden $number", 'hidden' => true]);
+    }
+
+    $visible = Permit::query()->create(['name' => 'Visible']);
+
+    expect(array_keys(compose()->set('start', 'source')->instance()->sources()))->toBe([$visible->id]);
 });

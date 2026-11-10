@@ -26,6 +26,11 @@ trait HandlesLetterFields
      */
     abstract protected function mediaOwners(): array;
 
+    protected function acrossOrganizations(): bool
+    {
+        return false;
+    }
+
     protected function printer(): User
     {
         /** @var User $printer */
@@ -153,9 +158,11 @@ trait HandlesLetterFields
      */
     protected function copyRules(mixed $kind, string $path): array
     {
-        $departments = Rule::exists('departments', 'id')
-            ->where('organization_id', $this->printer()->profile?->organization_id)
-            ->withoutTrashed();
+        $departments = Rule::exists('departments', 'id')->withoutTrashed();
+
+        if (! $this->acrossOrganizations()) {
+            $departments->where('organization_id', $this->printer()->profile?->organization_id);
+        }
 
         return match ($kind) {
             'organization' => ["$path.target" => ['required', Rule::exists('organizations', 'id')->withoutTrashed()]],
@@ -172,12 +179,16 @@ trait HandlesLetterFields
         $printer = $this->printer();
         $organizationId = $printer->profile?->organization_id;
 
-        if (! $type instanceof LetterType || $type->signer() === SignerRequirement::Hidden || $organizationId === null) {
+        $across = $this->acrossOrganizations();
+
+        if (! $type instanceof LetterType || $type->signer() === SignerRequirement::Hidden || (! $across && $organizationId === null)) {
             return [];
         }
 
         $users = User::query()
-            ->whereHas('profile', fn (Builder $profile): Builder => $profile->whereNotNull('position_id')->where('organization_id', $organizationId))
+            ->whereHas('profile', fn (Builder $profile): Builder => $profile
+                ->whereNotNull('position_id')
+                ->unless($across, fn (Builder $own): Builder => $own->where('organization_id', $organizationId)))
             ->orderBy('name');
 
         /** @var array<int, string> $signers */

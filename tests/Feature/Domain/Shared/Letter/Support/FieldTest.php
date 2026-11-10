@@ -127,3 +127,58 @@ it('accepts a temporary upload as an image', function (): void {
 
     expect(Validator::make(['logo' => $upload], Field::rules([Field::image('logo')]))->passes())->toBeTrue();
 });
+
+it('treats a group with only empty children as absent', function (): void {
+    $rules = Field::rules(groupFields());
+
+    expect(Validator::make(['minorWorks' => ['works' => [], 'contractor' => null]], $rules)->passes())->toBeTrue();
+});
+
+it('still requires the children of a filled group', function (): void {
+    $rules = Field::rules(groupFields());
+
+    expect(Validator::make(['minorWorks' => ['works' => [], 'contractor' => 'Ali']], $rules)->fails())->toBeTrue()
+        ->and(Validator::make(['minorWorks' => ['works' => ['Paint'], 'contractor' => null]], $rules)->fails())->toBeTrue();
+});
+
+it('refuses a temporary upload that is not an image', function (): void {
+    Storage::fake('local');
+    UploadedFile::fake()->create('note.pdf', 5, 'application/pdf')->storeAs('livewire-tmp', 'note.pdf', 'local');
+    $upload = new TemporaryUploadedFile('note.pdf', 'local');
+
+    expect(Validator::make(['logo' => $upload], Field::rules([Field::image('logo')]))->fails())->toBeTrue();
+});
+
+it('refuses a malformed uuid as an image', function (): void {
+    $owner = Crest::query()->create(['name' => 'Owner']);
+
+    expect(Validator::make(['logo' => 'not-a-uuid'], Field::rules([Field::image('logo')], [$owner]))->fails())->toBeTrue();
+});
+
+it('refuses an svg as an image', function (): void {
+    $crest = Crest::query()->create(['name' => 'Crest']);
+    $svg = tempnam(sys_get_temp_dir(), 'svg');
+    file_put_contents($svg, '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>');
+    $uuid = $crest->addMedia($svg)->usingFileName('logo.svg')->toMediaCollection()->uuid;
+
+    expect(Validator::make(['logo' => $uuid], Field::rules([Field::image('logo')], [$crest]))->fails())->toBeTrue();
+});
+
+it('refuses an invalid table row', function (): void {
+    $rules = Field::rules([Field::table('rows', [Field::text('name'), Field::number('qty')])]);
+
+    expect(Validator::make(['rows' => [['name' => 'A', 'qty' => 1]]], $rules)->passes())->toBeTrue()
+        ->and(Validator::make(['rows' => [['name' => 'A', 'qty' => 'many']]], $rules)->fails())->toBeTrue()
+        ->and(Validator::make(['rows' => [['qty' => 1]]], $rules)->fails())->toBeTrue()
+        ->and(Validator::make(['rows' => ['text']], $rules)->fails())->toBeTrue();
+});
+
+it('refuses a wrong number, date or yes-no value', function (): void {
+    $rules = Field::rules([Field::number('amount'), Field::date('on'), Field::yesNo('urgent')]);
+    $valid = ['amount' => 5, 'on' => '2026-03-01', 'urgent' => true];
+
+    expect(Validator::make($valid, $rules)->passes())->toBeTrue()
+        ->and(Validator::make([...$valid, 'amount' => 'abc'], $rules)->fails())->toBeTrue()
+        ->and(Validator::make([...$valid, 'on' => 'not a date'], $rules)->fails())->toBeTrue()
+        ->and(Validator::make([...$valid, 'urgent' => 'maybe'], $rules)->fails())->toBeTrue();
+});

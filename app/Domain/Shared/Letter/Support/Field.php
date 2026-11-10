@@ -14,6 +14,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final readonly class Field
 {
+    public const array RASTER_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+
     /**
      * @param  array<string, string>  $options
      * @param  list<Field>  $children
@@ -110,13 +112,14 @@ final readonly class Field
 
     /**
      * @param  list<Model>  $mediaOwners
+     * @param  array<int, string>|null  $filledWith
      * @return array<string, list<mixed>>
      */
-    private function ruleSet(string $key, array $mediaOwners, ?string $group): array
+    private function ruleSet(string $key, array $mediaOwners, ?array $filledWith): array
     {
         $presence = match (true) {
-            $this->isOptional || $this->type === FieldType::Group => ['nullable'],
-            $group !== null => ['required_with:'.$group],
+            $this->isOptional || $this->type === FieldType::Group || $filledWith === [] => ['nullable'],
+            $filledWith !== null => ['nullable', 'required_with:'.implode(',', $filledWith)],
             default => ['required'],
         };
 
@@ -154,10 +157,24 @@ final readonly class Field
      */
     private function groupRules(string $key, array $mediaOwners): array
     {
+        $leaves = collect($this->children)->mapWithKeys(fn (Field $child): array => [$child->name => $child->leafKeys($key.'.'.$child->name)]);
+
         return collect($this->children)
-            ->flatMap(fn (Field $child): array => $child->ruleSet($key.'.'.$child->name, $mediaOwners, $key))
+            ->flatMap(fn (Field $child): array => $child->ruleSet($key.'.'.$child->name, $mediaOwners, $leaves->except($child->name)->flatten()->map(fn (mixed $leaf): string => (string) $leaf)->values()->all()))
             ->prepend(['nullable', 'array'], $key)
             ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function leafKeys(string $key): array
+    {
+        if ($this->type !== FieldType::Group) {
+            return [$key];
+        }
+
+        return collect($this->children)->flatMap(fn (Field $child): array => $child->leafKeys($key.'.'.$child->name))->map(fn (mixed $leaf): string => (string) $leaf)->values()->all();
     }
 
     /**
@@ -167,15 +184,11 @@ final readonly class Field
     private function imageRule(array $mediaOwners): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail) use ($mediaOwners): void {
-            if ($value instanceof TemporaryUploadedFile) {
-                if (! str_starts_with($value->getMimeType(), 'image/')) {
-                    $fail(__('validation.image', ['attribute' => $attribute]));
-                }
+            $valid = $value instanceof TemporaryUploadedFile
+                ? in_array($value->getMimeType(), self::RASTER_TYPES, true)
+                : is_string($value) && self::ownedImage($value, $mediaOwners) instanceof Media;
 
-                return;
-            }
-
-            if (! is_string($value) || ! $this->ownsImage($value, $mediaOwners)) {
+            if (! $valid) {
                 $fail(__('validation.image', ['attribute' => $attribute]));
             }
         };
@@ -184,20 +197,20 @@ final readonly class Field
     /**
      * @param  list<Model>  $mediaOwners
      */
-    private function ownsImage(string $uuid, array $mediaOwners): bool
+    public static function ownedImage(string $uuid, array $mediaOwners): ?Media
     {
         $owners = collect($mediaOwners)->filter(fn (Model $owner): bool => $owner->exists);
 
         if ($owners->isEmpty() || ! str($uuid)->isUuid()) {
-            return false;
+            return null;
         }
 
         return Media::query()
             ->where('uuid', $uuid)
-            ->where('mime_type', 'like', 'image/%')
+            ->whereIn('mime_type', self::RASTER_TYPES)
             ->where(fn (Builder $query) => $owners->each(fn (Model $owner) => $query->orWhere(
                 fn (Builder $match) => $match->where('model_type', $owner->getMorphClass())->where('model_id', $owner->getKey()),
             )))
-            ->exists();
+            ->first();
     }
 }

@@ -82,7 +82,7 @@ it('turns an image uuid into a data uri and keeps the uuid in the array', functi
     $crest = Crest::query()->create(['name' => 'Crest']);
     $uuid = $crest->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection()->uuid;
 
-    $data = LetterData::from([Field::image('logo')], ['logo' => $uuid]);
+    $data = LetterData::from([Field::image('logo')], ['logo' => $uuid], [$crest]);
 
     expect($data->logo)->toStartWith('data:image/png;base64,')
         ->and($data->toArray())->toBe(['logo' => $uuid]);
@@ -107,4 +107,61 @@ it('turns the data into an array that json can store', function (): void {
     $values = ['issuedOn' => '2026-03-01', 'works' => ['items' => ['a']], 'rows' => [['name' => 'A']]];
 
     expect(LetterData::from($fields, $values)->toArray())->toBe($values);
+});
+
+it('refuses the image uuid of another model', function (): void {
+    $uuid = Crest::query()->create(['name' => 'First'])->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection()->uuid;
+    $other = Crest::query()->create(['name' => 'Second']);
+
+    LetterData::from([Field::image('logo')], ['logo' => $uuid], [$other]);
+})->throws(InvalidArgumentException::class);
+
+it('refuses an image uuid when there is no owner', function (): void {
+    $uuid = Crest::query()->create(['name' => 'First'])->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection()->uuid;
+
+    LetterData::from([Field::image('logo')], ['logo' => $uuid]);
+})->throws(InvalidArgumentException::class);
+
+it('refuses an svg image', function (): void {
+    $crest = Crest::query()->create(['name' => 'Crest']);
+    $svg = tempnam(sys_get_temp_dir(), 'svg');
+    file_put_contents($svg, '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>');
+    $uuid = $crest->addMedia($svg)->usingFileName('logo.svg')->toMediaCollection()->uuid;
+
+    LetterData::from([Field::image('logo')], ['logo' => $uuid], [$crest]);
+})->throws(InvalidArgumentException::class);
+
+it('refuses a temporary upload that is not a raster image', function (): void {
+    Storage::fake('local');
+    UploadedFile::fake()->create('note.pdf', 5, 'application/pdf')->storeAs('livewire-tmp', 'note.pdf', 'local');
+
+    LetterData::from([Field::image('logo')], ['logo' => new TemporaryUploadedFile('note.pdf', 'local')]);
+})->throws(InvalidArgumentException::class);
+
+it('refuses to store the data of a temporary upload', function (): void {
+    Storage::fake('local');
+    UploadedFile::fake()->image('logo.png')->storeAs('livewire-tmp', 'logo.png', 'local');
+    $data = LetterData::from([Field::image('logo')], ['logo' => new TemporaryUploadedFile('logo.png', 'local')]);
+
+    $data->toArray();
+})->throws(LogicException::class);
+
+it('stores an empty image as null', function (): void {
+    expect(LetterData::from([Field::image('logo')->optional()], ['logo' => ''])->toArray())->toBe(['logo' => null]);
+});
+
+it('stores an empty table as an empty list', function (): void {
+    expect(LetterData::from([Field::table('rows', [Field::text('name')])], ['rows' => ''])->toArray())->toBe(['rows' => []]);
+});
+
+it('passes the media owners to the rows of a table and to a group', function (): void {
+    $crest = Crest::query()->create(['name' => 'Crest']);
+    $uuid = $crest->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection()->uuid;
+    $fields = [Field::table('rows', [Field::image('logo')]), Field::group('g', 'G', [Field::image('logo')])];
+
+    $data = LetterData::from($fields, ['rows' => [['logo' => $uuid]], 'g' => ['logo' => $uuid]], [$crest]);
+
+    expect($data->rows[0]->logo)->toStartWith('data:image/png')
+        ->and($data->g->logo)->toStartWith('data:image/png')
+        ->and($data->toArray())->toBe(['rows' => [['logo' => $uuid]], 'g' => ['logo' => $uuid]]);
 });

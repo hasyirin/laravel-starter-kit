@@ -7,6 +7,7 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Tests\Fixtures\Support\PrintedNoticeLetter;
+use Tests\Fixtures\Support\RestrictedNoticeLetter;
 
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
@@ -34,6 +35,14 @@ test('a user who can view the source previews the letter as a pdf', function ():
         ->and($response->headers->get('Content-Disposition'))->toContain('inline');
     Pdf::assertSee('Draft');
     expect($this->letter->fresh()?->reference_number)->toBeNull();
+});
+
+test('a user who can view the source gets a 403 for a letter type that is not allowed for the user', function (): void {
+    config(['system.letters.types' => ['restricted' => RestrictedNoticeLetter::class]]);
+    grantPermissions($this->user, 'internal.controls.organizations.view');
+    $letter = Letter::factory()->ofType('restricted')->create();
+
+    $this->actingAs($this->user)->get(route('letters.preview', $letter))->assertForbidden();
 });
 
 test('a missing letter gets a 404', function (): void {

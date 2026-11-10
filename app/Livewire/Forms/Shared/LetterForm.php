@@ -217,7 +217,7 @@ class LetterForm extends Form
             'type' => $this->type = $this->letter->exists ? $this->letter->type : '',
             'reference_number' => $this->reference_number = $this->letter->reference_number ?? '',
             'sequence_number' => $this->sequence_number = $this->letter->sequence_number,
-            'date' => $this->date = $this->letter->exists ? $this->letter->date : CarbonImmutable::today(),
+            'date' => $this->date = $this->letter->exists ? $this->letter->date : CarbonImmutable::today(config()->string('system.timezone')),
             'signer' => $this->signer_id = $this->letter->exists ? $this->letter->signature?->actor_id : null,
             'carbon_copies' => $this->carbon_copies = $this->savedCopies(),
             'with_letterhead' => $this->with_letterhead = $this->letter->with_letterhead,

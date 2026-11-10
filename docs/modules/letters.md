@@ -89,19 +89,22 @@ An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that b
 
 Override these methods only when the letter type needs them.
 
-| Method                | Default                       | Meaning                                                                                    |
-| --------------------- | ----------------------------- | ------------------------------------------------------------------------------------------ |
-| `locale()`            | `system.locale`               | The locale of the text and of the date.                                                    |
-| `dateFormat()`        | `d MMMM y`                    | The ICU format of the letter date.                                                         |
-| `signer()`            | optional                      | `SignerRequirement::Required`, `SignerRequirement::Optional`, or `SignerRequirement::Hidden`.                                    |
-| `signers()`           | all users                     | Narrows the users who can sign.                                                            |
-| `allowedFor()`        | everyone                      | Says which printers may use the letter type.                                               |
-| `keepsPrints()`       | false                         | If true, each print is stored as a kept print.                                             |
-| `letterhead()`        | none                          | A fixed `Letterhead` or `LetterheadView`. It wins over the stored letterheads.             |
-| `offersLetterhead()`  | true                          | Shows the letterhead switch in the letter form.                                            |
-| `offersComputerSigned()` | false                      | Shows the computer-signed switch in the letter form.                                       |
-| `lockedFields()`      | none                          | Names of extra fields and form parts that the user cannot change.                          |
-| `extraFields()`       | none                          | Fields that the user types for one letter, for example a remark. The view gets them as `$extra`. |
+| Method                   | Default                 | Meaning                                                                                          |
+| ------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `label()`                | the headline of the key | The name of the letter type in the letter form, the letters table, and the compose page.         |
+| `locale()`               | `system.locale`         | The locale of the text and of the date.                                                          |
+| `dateFormat()`           | `d MMMM y`              | The ICU format of the letter date.                                                               |
+| `signer()`               | optional                | `SignerRequirement::Required`, `SignerRequirement::Optional`, or `SignerRequirement::Hidden`.    |
+| `signers()`              | all users               | Narrows the users who can sign.                                                                  |
+| `allowedFor()`           | everyone                | Says which printers may use the letter type. See [Access](#access).                              |
+| `keepsPrints()`          | false                   | If true, each print is stored as a kept print.                                                   |
+| `letterhead()`           | none                    | A fixed `Letterhead` or `LetterheadView`. It wins over the stored letterheads.                   |
+| `offersLetterhead()`     | true                    | Shows the letterhead switch in the letter form.                                                  |
+| `offersComputerSigned()` | false                   | Shows the computer-signed switch in the letter form.                                             |
+| `lockedFields()`         | none                    | Names of extra fields and form parts that the user cannot change.                                |
+| `extraFields()`          | none                    | Fields that the user types for one letter, for example a remark. The view gets them as `$extra`. |
+
+A new letter gets today as its date, in `system.timezone`. A letter printed without a date also uses today in `system.timezone`.
 
 ### 3. Write the View
 
@@ -175,11 +178,11 @@ The table renders its own letter modal. If two tables share a page, each table t
 
 `numbering()` returns a `NumberingMode`.
 
-| Mode                      | Behavior                                                                  |
-| ------------------------- | ------------------------------------------------------------------------- |
-| `NumberingMode::Manual`                  | The user types the reference number. The default.                         |
-| `NumberingMode::Automatic`               | The app gives the next number at the first print.                         |
-| `NumberingMode::AutomaticWithOverride`   | Like automatic numbering. The user can also type a sequence number.               |
+| Mode                                   | Behavior                                                            |
+| -------------------------------------- | ------------------------------------------------------------------- |
+| `NumberingMode::Manual`                | The user types the reference number. The default.                   |
+| `NumberingMode::Automatic`             | The app gives the next number at the first print.                   |
+| `NumberingMode::AutomaticWithOverride` | Like automatic numbering. The user can also type a sequence number. |
 
 `reference(int $number, Letter $letter)` turns the number into the reference number. The default returns the number as text.
 
@@ -187,7 +190,9 @@ The table renders its own letter modal. If two tables share a page, each table t
 
 `sequenceKey()` returns a list of parts. The parts make the key of the sequence. The default is the key of the letter type and the organization of the signer. Without a signer, the key uses the organization of the printer. Each key has its own count.
 
-To share one count between letter types, return the same parts from both. For example, a per-file `Bil.` returns the file id as a part. A part must be a string or an integer.
+To share one count between letter types, return the same parts from both. For example, a per-file `Bil.` returns the file id as a part.
+
+A part must be a string or an integer. `ReferenceSequence::key()` refuses any other part with a `LogicException`. If the default key finds no organization, the letter gets no number. This happens when the letter has no signer and the printer has no organization. The print then fails with the `letters/letters.organization_required` message.
 
 The letter stores its key at the first number. The key does not change later, even if the signer changes.
 
@@ -314,6 +319,8 @@ return $pdf->download('sales.pdf');
 
 A letter type can override `sourceAbility()`. For example, it can return `archive` for `create`.
 
+`LetterPolicy` also asks `LetterType::allowedFor()` for `print`, `create`, `update`, and `delete`. A user that the letter type does not allow can still view the letter. That user cannot print it, preview it, upload its signed scan, change it, or delete it. The letters table hides these actions.
+
 `LetterPolicy` and `AuditEntryPolicy` are two stated exceptions to the rule that a policy extends `Policy` and checks permissions with `hasPermission()`.
 
 - `LetterPolicy` has no permissions. The source decides, so each app controls its letters through the policy of its source.
@@ -326,7 +333,7 @@ In the letter form:
 - The signed scan upload needs `print`, not `update`. Scans come back after the source is locked.
 - The preview route `letters.preview` needs `print`.
 
-Letterheads use `LetterheadPolicy` and the `internal.controls.letterheads.*` permissions. A user with `system.letters.compose` can open the manual letter page.
+Letterheads use `LetterheadPolicy` and the `internal.controls.letterheads.*` permissions.
 
 ## Manual Letters
 
@@ -491,6 +498,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - extra values are kept
 - an extra image is stored in the data collection and its uuid is kept
 - an extra image that is kept by uuid is not stored twice
+- a refused save leaves no stored image and keeps the upload for a retry
 - a typed reference number keeps the sequence key of the printer organization
 - a typed duplicate reference number is refused
 - a typed reference number of a deleted letter is refused
@@ -553,6 +561,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a letter whose source is gone passes no ability
 - create without a type passes when the user may create one letter type of the source
 - create without a type fails when the source has no letter type
+- a letter type that is not allowed for the user passes only view
+- create without a type skips letter types that are not allowed for the user
 
 ### LetterheadPolicy
 
@@ -610,6 +620,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it refuses a value that fails its field rule
 - it maps letter abilities to source abilities
 - it has safe defaults
+- the label is the headline of the config key by default
+- a letter type can override its label
 
 ### LetterTypes
 
@@ -678,6 +690,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - users without system.letters.compose cannot open the page
 - users with system.letters.compose can open the page
 - a user without the permission cannot run an action
+- the type list shows the label of each letter type
 - a blank start gives empty fields
 - a source start fills the mapping
 - a source start without the view ability of the source is refused
@@ -689,6 +702,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a group that is on with no filled child is refused
 - a missing required value shows an error on its field
 - an upload ends on the audit entry
+- the same upload prints again after a fix
 - a signer must have a position and be in the list
 - a required signer is checked
 - an admin without an organization can pick a signer and print a type that needs one

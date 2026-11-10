@@ -19,6 +19,7 @@ return [
     'kept_prints' => 'Kept prints',
     'letter' => 'Letter',
     'no_letterhead' => 'No letterhead',
+    'organization_required' => 'The signer or the printer needs an organization to get a reference number.',
     'preview' => 'Preview',
     'print' => 'Print',
     'print_failed' => 'The letter cannot be printed.',

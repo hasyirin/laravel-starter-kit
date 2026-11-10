@@ -85,7 +85,8 @@ test('without a signer the key uses the printer organization', function (): void
 test('a printer without an organization and no signer is refused', function (): void {
     $printer = User::factory()->create();
 
-    expect(fn (): Letter => assignNumber(Letter::factory()->ofType('numbered')->create(), $printer))->toThrow(LogicException::class);
+    expect(fn (): Letter => assignNumber(Letter::factory()->ofType('numbered')->create(), $printer))
+        ->toThrow(ValidationException::class, __('letters/letters.organization_required'));
 });
 
 test('the key does not change when the signer changes after the number', function (): void {

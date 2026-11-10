@@ -49,7 +49,7 @@ class Compose extends Page
     public function types(): array
     {
         return collect($this->form->types())
-            ->mapWithKeys(fn (LetterType $type, string $key): array => [$key => str($key)->headline()->value()])
+            ->map(fn (LetterType $type): string => $type->label())
             ->all();
     }
 

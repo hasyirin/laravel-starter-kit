@@ -26,6 +26,7 @@ use Livewire\Livewire;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Tests\Fixtures\Models\Permit;
 use Tests\Fixtures\Policies\PermitPolicy;
+use Tests\Fixtures\Support\PermitLabelledLetter;
 use Tests\Fixtures\Support\PermitLetter;
 use Tests\Fixtures\Support\PermitManualLetter;
 use Tests\Fixtures\Support\PermitManualSignedLetter;
@@ -84,6 +85,12 @@ test('a user without the permission cannot run an action', function (): void {
     $this->actingAs($user);
 
     $component->call('print')->assertForbidden();
+});
+
+test('the type list shows the label of each letter type', function (): void {
+    config(['system.letters.types' => ['plain' => PermitLetter::class, 'labelled' => PermitLabelledLetter::class]]);
+
+    expect(Livewire::test(Compose::class)->instance()->types())->toBe(['plain' => 'Plain', 'labelled' => 'Permit Approval']);
 });
 
 test('a blank start gives empty fields', function (): void {
@@ -183,6 +190,20 @@ test('an upload ends on the audit entry', function (): void {
 
     $entry = manualEntry();
     expect($entry->getMedia()->sole()->uuid)->toBe(data_get($entry->properties, 'extra.stamp'));
+});
+
+test('the same upload prints again after a fix', function (): void {
+    $item = Livewire::test(FileUpload::class, ['fileRules' => ['image']])->set('uploads', UploadedFile::fake()->image('stamp.png', 40, 40))->get('items')[0];
+
+    compose()->set('form.data.title', 'Typo')->set('form.extra.remark', 'R')->set('form.extra.stamp', [$item])
+        ->call('print')->assertHasNoErrors()
+        ->set('form.data.title', 'Fixed')
+        ->call('print')->assertHasNoErrors();
+
+    $entries = AuditEntry::query()->where('event', 'printed-manual-letter')->get();
+
+    expect($entries)->toHaveCount(2)
+        ->and($entries->map(fn (AuditEntry $entry): int => (int) $entry->getMedia()->sole()->size)->min())->toBeGreaterThan(0);
 });
 
 test('a signer must have a position and be in the list', function (): void {

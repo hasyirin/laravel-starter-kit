@@ -26,8 +26,11 @@ use Spatie\LaravelPdf\Facades\Pdf;
 use Tests\Fixtures\Models\Permit;
 use Tests\Fixtures\Policies\PermitPolicy;
 use Tests\Fixtures\Policies\ToggledLetterPolicy;
+use Tests\Fixtures\Support\PermitLabelledLetter;
 use Tests\Fixtures\Support\PermitLetter;
+use Tests\Fixtures\Support\PermitNumberedLetter;
 use Tests\Fixtures\Support\PermitPrintLetter;
+use Tests\Fixtures\Support\PermitRestrictedLetter;
 use Tests\Fixtures\Support\PermitSignedLetter;
 
 beforeEach(function (): void {
@@ -82,6 +85,16 @@ test('the table shows the type, reference number, signer, and signed scan of eac
         ->assertTableColumnStateSet('signed_scan', true, $signed)
         ->assertTableColumnStateSet('signed_scan', false, $plain)
         ->assertSeeText(['Siti', 'Director']);
+});
+
+test('the type column shows the label of the letter type', function (): void {
+    config(['system.letters.types' => ['permit' => PermitLetter::class, 'labelled' => PermitLabelledLetter::class]]);
+    $labelled = tableLetter('labelled');
+    $plain = tableLetter();
+
+    letterTable()
+        ->assertTableColumnFormattedStateSet('type', 'Permit Approval', $labelled)
+        ->assertTableColumnFormattedStateSet('type', 'Permit', $plain);
 });
 
 test('ten letters take the same number of queries as one', function (): void {
@@ -153,6 +166,16 @@ test('the row actions follow the letter policy', function (bool $update, bool $p
     'both' => [true, true, ['edit', 'print', 'preview', 'upload_scan'], []],
 ]);
 
+test('the table hides print for a letter type that is not allowed for the user', function (): void {
+    config(['system.letters.types' => ['restricted' => PermitRestrictedLetter::class]]);
+    $letter = tableLetter('restricted');
+
+    $table = letterTable();
+    foreach (['edit', 'print', 'preview', 'upload_scan', 'delete'] as $name) {
+        $table->assertActionHidden(TestAction::make($name)->table($letter));
+    }
+});
+
 test('the row click runs the edit action', function (): void {
     $letter = tableLetter();
 
@@ -180,6 +203,17 @@ test('the print action says why a letter cannot be printed', function (): void {
     letterTable()->callAction(TestAction::make('print')->table($letter))
         ->assertNoFileDownloaded()
         ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('letters/letters.reference_number_required'));
+});
+
+test('the print action says why a printer without an organization gets no reference number', function (): void {
+    Pdf::fake();
+    config(['system.letters.types' => ['numbered' => PermitNumberedLetter::class]]);
+    $this->actingAs(User::factory()->create());
+    $letter = tableLetter('numbered');
+
+    letterTable()->callAction(TestAction::make('print')->table($letter))
+        ->assertNoFileDownloaded()
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('letters/letters.organization_required'));
 });
 
 test('the delete action asks for confirmation and soft deletes the letter', function (): void {

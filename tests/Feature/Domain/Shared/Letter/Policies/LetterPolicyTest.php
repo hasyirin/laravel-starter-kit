@@ -13,6 +13,7 @@ use Tests\Fixtures\Models\Permit;
 use Tests\Fixtures\Policies\PermitPolicy;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\PermitLetter;
+use Tests\Fixtures\Support\PermitRestrictedLetter;
 
 beforeEach(function (): void {
     Schema::create('permits', function (Blueprint $table): void {
@@ -102,6 +103,25 @@ test('create without a type passes when the user may create one letter type of t
 
 test('create without a type fails when the source has no letter type', function (): void {
     config(['system.letters.types' => []]);
+
+    expect($this->user->can('create', Permit::query()->create(['name' => 'Open'])->letters()->make()))->toBeFalse();
+});
+
+test('a letter type that is not allowed for the user passes only view', function (string $ability, bool $allowed): void {
+    config(['system.letters.types' => ['restricted' => PermitRestrictedLetter::class]]);
+    $letter = Permit::query()->create(['name' => 'Open'])->letters()->create(['type' => 'restricted']);
+
+    expect($this->user->can($ability, $letter))->toBe($allowed);
+})->with([
+    'view' => ['view', true],
+    'print' => ['print', false],
+    'create' => ['create', false],
+    'update' => ['update', false],
+    'delete' => ['delete', false],
+]);
+
+test('create without a type skips letter types that are not allowed for the user', function (): void {
+    config(['system.letters.types' => ['restricted' => PermitRestrictedLetter::class]]);
 
     expect($this->user->can('create', Permit::query()->create(['name' => 'Open'])->letters()->make()))->toBeFalse();
 });

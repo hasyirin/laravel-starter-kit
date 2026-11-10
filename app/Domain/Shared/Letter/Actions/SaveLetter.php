@@ -48,10 +48,12 @@ class SaveLetter
         $original = $letter->getRawOriginal();
         $exists = $letter->exists;
         $recentlyCreated = $letter->wasRecentlyCreated;
+        $this->storedImages = [];
 
         try {
             return $this->save($letter, $type, $key, $source, $user, $details, $validated);
         } catch (Throwable $throwable) {
+            $this->removeStoredImages();
             $letter->setRawAttributes($original, sync: true);
             $letter->exists = $exists;
             $letter->wasRecentlyCreated = $recentlyCreated;

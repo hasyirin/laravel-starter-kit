@@ -13,6 +13,7 @@ use Carbon\CarbonImmutable;
 use Hasyirin\RunningNumber\Enums\ResetInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 use LogicException;
 
 abstract class LetterType
@@ -33,6 +34,11 @@ abstract class LetterType
      * @return array<string, mixed>
      */
     abstract public function data(Model $source, CarbonImmutable $date): array;
+
+    public function label(): string
+    {
+        return str(LetterTypes::keyOf($this))->headline()->value();
+    }
 
     public function locale(): string
     {
@@ -105,17 +111,19 @@ abstract class LetterType
     }
 
     /**
-     * @return list<string|int|null>
+     * @return list<string|int>
      */
     public function sequenceKey(Letter $letter, User $printer): array
     {
         $signature = $letter->signature;
 
-        if ($signature === null) {
-            return [LetterTypes::keyOf($this), $printer->profile?->organization_id];
-        }
+        $organizationId = $signature === null
+            ? $printer->profile?->organization_id
+            : $signature->profile()->withTrashed()->first()?->organization_id;
 
-        return [LetterTypes::keyOf($this), $signature->profile()->withTrashed()->first()?->organization_id];
+        throw_if($organizationId === null, ValidationException::withMessages(['reference_number' => __('letters/letters.organization_required')]));
+
+        return [LetterTypes::keyOf($this), $organizationId];
     }
 
     public function sequenceReset(): ResetInterval

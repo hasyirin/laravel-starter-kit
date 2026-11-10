@@ -194,6 +194,21 @@ test('an extra image that is kept by uuid is not stored twice', function (): voi
         ->and($letter->fresh()->extra['stamp'])->toBe($uuid);
 });
 
+test('a refused save leaves no stored image and keeps the upload for a retry', function (): void {
+    saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
+    $upload = extraUpload();
+    $letter = new Letter;
+
+    expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => $upload], $letter))->toThrow(ValidationException::class);
+    expect(Storage::disk('media')->allFiles())->toBeEmpty();
+
+    $media = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => $upload], $letter)->fresh()->getMedia(LetterMedia::Data);
+
+    expect($media)->toHaveCount(1)
+        ->and(Storage::disk('media')->allFiles())->toContain("{$media->first()->id}/stamp.png")
+        ->each->toStartWith("{$media->first()->id}/");
+});
+
 test('a typed reference number keeps the sequence key of the printer organization', function (): void {
     expect(saveLetter('notice', numberDetails('REF/1'))->fresh()?->sequence_key)->toBe("notice:{$this->organization->id}");
 });

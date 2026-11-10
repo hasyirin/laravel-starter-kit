@@ -8,6 +8,7 @@ use App\Domain\Shared\Organization\Models\Organization;
 use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Support\NoticeLetter;
+use Tests\Fixtures\Support\PermitLabelledLetter;
 
 beforeEach(function (): void {
     config()->set('system.letters.types', ['notice' => NoticeLetter::class]);
@@ -60,4 +61,16 @@ it('has safe defaults', function (): void {
         ->and($type->offersComputerSigned())->toBeFalse()
         ->and($type->lockedFields())->toBeEmpty()
         ->and($type->extraFields())->toBeEmpty();
+});
+
+test('the label is the headline of the config key by default', function (): void {
+    config()->set('system.letters.types', ['late_notice' => NoticeLetter::class]);
+
+    expect(new NoticeLetter()->label())->toBe('Late Notice');
+});
+
+test('a letter type can override its label', function (): void {
+    config()->set('system.letters.types', ['labelled' => PermitLabelledLetter::class]);
+
+    expect(new PermitLabelledLetter()->label())->toBe('Permit Approval');
 });

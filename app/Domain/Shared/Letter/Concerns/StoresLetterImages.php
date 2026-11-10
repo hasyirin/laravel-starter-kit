@@ -8,9 +8,14 @@ use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Letter\Enums\FieldType;
 use App\Domain\Shared\Letter\Support\Field;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Spatie\MediaLibrary\MediaCollections\Filesystem;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 trait StoresLetterImages
 {
+    /** @var list<Media> */
+    private array $storedImages = [];
+
     /**
      * @param  list<Field>  $fields
      * @param  array<array-key, mixed>  $values
@@ -39,8 +44,17 @@ trait StoresLetterImages
             ->usingFileName($file->getClientOriginalName())
             ->toMediaCollection($collection);
 
-        $file->delete();
+        $this->storedImages[] = $media;
 
         return $media->uuid;
+    }
+
+    protected function removeStoredImages(): void
+    {
+        foreach ($this->storedImages as $media) {
+            resolve(Filesystem::class)->removeAllFiles($media);
+        }
+
+        $this->storedImages = [];
     }
 }

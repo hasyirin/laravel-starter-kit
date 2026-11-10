@@ -15,6 +15,7 @@ use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Livewire\Components\FileUpload;
 use App\Livewire\Components\LetterModal;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
@@ -29,6 +30,7 @@ use Tests\Fixtures\Policies\ToggledLetterPolicy;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\PermitExtraLetter;
 use Tests\Fixtures\Support\PermitGuardedLetter;
+use Tests\Fixtures\Support\PermitLabelledLetter;
 use Tests\Fixtures\Support\PermitLetter;
 use Tests\Fixtures\Support\PermitLockedLetter;
 use Tests\Fixtures\Support\PermitOverrideLetter;
@@ -97,6 +99,19 @@ test('the type list has only the types for this source that the user may use', f
     $types = openModal()->instance()->types();
 
     expect(array_keys($types))->toBe(['plain', 'permit', 'extra', 'override', 'signed', 'guarded', 'table', 'viewhead']);
+});
+
+test('a new letter takes today in the system timezone', function (): void {
+    config(['system.timezone' => 'Asia/Kuala_Lumpur']);
+    $this->travelTo(CarbonImmutable::parse('2026-03-04 23:30:00', 'UTC'));
+
+    expect(openModal()->get('form.date')?->toDateString())->toBe('2026-03-05');
+});
+
+test('the type list shows the label of each letter type', function (): void {
+    config(['system.letters.types' => ['permit' => PermitLetter::class, 'labelled' => PermitLabelledLetter::class]]);
+
+    expect(openModal()->instance()->types())->toBe(['permit' => 'Permit', 'labelled' => 'Permit Approval']);
 });
 
 test('the only type is chosen at once', function (): void {

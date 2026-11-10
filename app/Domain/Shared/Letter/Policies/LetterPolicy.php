@@ -51,7 +51,7 @@ class LetterPolicy
         }
 
         return collect(LetterTypes::forSource($source))
-            ->contains(fn (LetterType $type): bool => $user->can($type->sourceAbility('create'), $source));
+            ->contains(fn (LetterType $type): bool => $type->allowedFor($user) && $user->can($type->sourceAbility('create'), $source));
     }
 
     private function allowedBySource(User $user, Letter $letter, string $ability): bool
@@ -62,6 +62,12 @@ class LetterPolicy
             return false;
         }
 
-        return $user->can($letter->letter_type->sourceAbility($ability), $source);
+        $type = $letter->letter_type;
+
+        if ($ability !== 'view' && ! $type->allowedFor($user)) {
+            return false;
+        }
+
+        return $user->can($type->sourceAbility($ability), $source);
     }
 }

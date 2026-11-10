@@ -125,7 +125,7 @@ class LetterDataTable extends DataTable
         return [
             TextColumn::make('type')
                 ->label((string) __('letters/letters.type'))
-                ->formatStateUsing(fn (string $state): string => str($state)->headline()->value()),
+                ->formatStateUsing(fn (Letter $record): string => $record->letter_type->label()),
             TextColumn::make('reference_number')->label((string) __('letters/letters.reference_number'))->searchable(),
             TextColumn::make('date')
                 ->label((string) __('letters/letters.date'))

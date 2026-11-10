@@ -5,23 +5,23 @@ declare(strict_types=1);
 namespace App\Domain\User\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
-use App\Domain\Shared\Sms\Exceptions\SmsThrottled;
 use App\Domain\Shared\Sms\Support\CallingCodes;
-use App\Domain\Shared\Sms\Support\SmsLimit;
+use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PasswordResetCode;
 use App\Domain\User\Support\SmsCode;
+use App\Domain\User\Support\SmsCodeLimit;
 
 class SendPasswordResetCode
 {
     use Actionable;
 
     /**
-     * @throws SmsThrottled
+     * @throws SmsCodeThrottled
      */
     public function execute(string $phone, string $ip): void
     {
-        SmsLimit::attempt("password-reset:phone:{$phone}", "password-reset:ip:{$ip}");
+        SmsCodeLimit::attempt("password-reset:phone:{$phone}", "password-reset:ip:{$ip}");
 
         if (! CallingCodes::allows($phone)) {
             return;

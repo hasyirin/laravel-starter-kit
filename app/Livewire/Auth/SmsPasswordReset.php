@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Auth;
 
-use App\Domain\Shared\Sms\Exceptions\SmsThrottled;
 use App\Domain\User\Actions\ConfirmPasswordResetCode;
 use App\Domain\User\Actions\SendPasswordResetCode;
+use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Rules\PhoneNumber;
 use App\Livewire\Component;
 use Illuminate\Contracts\View\View;
@@ -27,8 +27,8 @@ class SmsPasswordReset extends Component
 
         try {
             SendPasswordResetCode::make()->execute($this->phone, (string) request()->ip());
-        } catch (SmsThrottled $smsThrottled) {
-            $this->addError('phone', (string) __('auth/sms-password-reset.throttled', ['seconds' => $smsThrottled->seconds]));
+        } catch (SmsCodeThrottled $smsCodeThrottled) {
+            $this->addError('phone', (string) __('auth/sms-password-reset.throttled', ['seconds' => $smsCodeThrottled->seconds]));
 
             return;
         }

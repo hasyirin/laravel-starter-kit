@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Sms\Support;
+namespace App\Domain\User\Support;
 
-use App\Domain\Shared\Sms\Exceptions\SmsThrottled;
+use App\Domain\User\Exceptions\SmsCodeThrottled;
 use Illuminate\Support\Facades\RateLimiter;
 
-final class SmsLimit
+final class SmsCodeLimit
 {
     /**
      * @var array<string, array{attempts: int, seconds: int}>
@@ -18,7 +18,7 @@ final class SmsLimit
     ];
 
     /**
-     * @throws SmsThrottled
+     * @throws SmsCodeThrottled
      */
     public static function attempt(string ...$keys): void
     {
@@ -32,7 +32,7 @@ final class SmsLimit
             ->map(fn (array $window): int => RateLimiter::availableIn($window['key']))
             ->max();
 
-        throw_if($wait !== null, SmsThrottled::class, $wait);
+        throw_if($wait !== null, SmsCodeThrottled::class, $wait);
 
         $windows->each(fn (array $window): int => RateLimiter::hit($window['key'], $window['seconds']));
     }

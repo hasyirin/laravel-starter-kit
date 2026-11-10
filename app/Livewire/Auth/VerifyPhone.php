@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\Auth;
 
-use App\Domain\Shared\Sms\Exceptions\SmsThrottled;
 use App\Domain\Shared\Sms\Support\CallingCodes;
 use App\Domain\User\Actions\ConfirmPhone;
 use App\Domain\User\Actions\SendPhoneVerificationCode;
+use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use App\Domain\User\Support\SmsCode;
@@ -81,8 +81,8 @@ class VerifyPhone extends Component
 
         try {
             SendPhoneVerificationCode::make()->execute($this->user());
-        } catch (SmsThrottled $smsThrottled) {
-            $this->notice = (string) __('auth/verify-phone.throttled', ['seconds' => $smsThrottled->seconds]);
+        } catch (SmsCodeThrottled $smsCodeThrottled) {
+            $this->notice = (string) __('auth/verify-phone.throttled', ['seconds' => $smsCodeThrottled->seconds]);
 
             return false;
         }

@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Domain\User\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
-use App\Domain\Shared\Sms\Exceptions\SmsThrottled;
-use App\Domain\Shared\Sms\Support\SmsLimit;
+use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\SmsCodeLimit;
 
 class SendPhoneVerificationCode
 {
     use Actionable;
 
     /**
-     * @throws SmsThrottled
+     * @throws SmsCodeThrottled
      */
     public function execute(User $user): void
     {
@@ -22,7 +22,7 @@ class SendPhoneVerificationCode
             return;
         }
 
-        SmsLimit::attempt("phone-verification:{$user->id}");
+        SmsCodeLimit::attempt("phone-verification:{$user->id}");
 
         $user->sendPhoneVerificationNotification();
     }

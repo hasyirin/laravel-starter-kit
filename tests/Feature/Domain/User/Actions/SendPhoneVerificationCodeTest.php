@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Domain\Shared\Sms\Exceptions\SmsThrottled;
 use App\Domain\User\Actions\SendPhoneVerificationCode;
+use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PhoneVerificationCode;
 use App\Domain\User\Support\SmsCode;
@@ -24,7 +24,7 @@ test('a user can get one code per minute and five per hour', function (): void {
     $user = User::factory()->unverifiedPhone()->create();
 
     SendPhoneVerificationCode::make()->execute($user);
-    expect(fn () => SendPhoneVerificationCode::make()->execute($user))->toThrow(SmsThrottled::class);
+    expect(fn () => SendPhoneVerificationCode::make()->execute($user))->toThrow(SmsCodeThrottled::class);
 
     foreach (range(2, 5) as $sms) {
         $this->travel(60)->seconds();
@@ -32,7 +32,7 @@ test('a user can get one code per minute and five per hour', function (): void {
     }
 
     $this->travel(60)->seconds();
-    expect(fn () => SendPhoneVerificationCode::make()->execute($user))->toThrow(SmsThrottled::class);
+    expect(fn () => SendPhoneVerificationCode::make()->execute($user))->toThrow(SmsCodeThrottled::class);
     Notification::assertSentToTimes($user, PhoneVerificationCode::class, 5);
 });
 

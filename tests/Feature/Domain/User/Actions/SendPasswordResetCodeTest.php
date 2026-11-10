@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Domain\Shared\Sms\Exceptions\SmsThrottled;
 use App\Domain\User\Actions\SendPasswordResetCode;
+use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PasswordResetCode;
 use App\Domain\User\Support\SmsCode;
@@ -36,6 +36,6 @@ test('no reset code goes to a number that is unknown, unverified, deleted, or ou
 test('each number and each address can ask for one reset code per minute, also for an unknown number', function (): void {
     SendPasswordResetCode::make()->execute('+60123456789', '127.0.0.1');
 
-    expect(fn () => SendPasswordResetCode::make()->execute('+60123456789', '127.0.0.2'))->toThrow(SmsThrottled::class)
-        ->and(fn () => SendPasswordResetCode::make()->execute('+60198765432', '127.0.0.1'))->toThrow(SmsThrottled::class);
+    expect(fn () => SendPasswordResetCode::make()->execute('+60123456789', '127.0.0.2'))->toThrow(SmsCodeThrottled::class)
+        ->and(fn () => SendPasswordResetCode::make()->execute('+60198765432', '127.0.0.1'))->toThrow(SmsCodeThrottled::class);
 });

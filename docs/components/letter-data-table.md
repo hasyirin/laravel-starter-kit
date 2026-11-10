@@ -2,7 +2,7 @@
 
 `App\Livewire\DataTables\LetterDataTable` is a [DataTable](data-table.md) of the letters of one letter source. An app puts it on the page of the source. It also renders the letter modal, so the app adds one tag only.
 
-```blade
+```html
 <livewire:data-tables.letter-data-table :source="$approval" />
 ```
 

@@ -100,3 +100,26 @@ test('the subdistrict field shows only when the district has subdistricts', func
         ->set('address.district_id', $this->muarDistrict->id)
         ->assertSeeHtml('wire:model.live="address.subdistrict_id"');
 });
+
+test('the address shows the map only with withLocation', function (): void {
+    $hidden = HTMLDocument::createFromString(Livewire::test(AddressFormHost::class)->html(), LIBXML_NOERROR);
+    $shown = HTMLDocument::createFromString(Livewire::test(AddressFormHost::class, ['location' => 'optional'])->html(), LIBXML_NOERROR);
+    $options = json_decode((string) $shown->querySelector('[x-data="map"]')?->getAttribute('data-map'), true);
+
+    expect($hidden->querySelector('[x-data="map"]'))->toBeNull()
+        ->and($options)->latitudeModel->toBe('address.latitude')->longitudeModel->toBe('address.longitude')->clickable->toBeTrue();
+});
+
+test('the address passes its location attributes to the map', function (): void {
+    $document = HTMLDocument::createFromString(Livewire::test(AddressFormHost::class, ['location' => 'optional', 'clickable' => false])->html(), LIBXML_NOERROR);
+    $map = $document->querySelector('[x-data="map"]');
+
+    expect(json_decode((string) $map?->getAttribute('data-map'), true)['clickable'])->toBeFalse()
+        ->and($document->querySelector('[location\:clickable]'))->toBeNull();
+});
+
+test('a required location of a required address marks the latitude and the longitude', function (): void {
+    $document = HTMLDocument::createFromString(Livewire::test(AddressFormHost::class, ['required' => true, 'location' => 'required'])->html(), LIBXML_NOERROR);
+
+    expect($document->querySelectorAll('[x-data="map"] [data-input-label] [aria-hidden="true"]'))->toHaveCount(2);
+});

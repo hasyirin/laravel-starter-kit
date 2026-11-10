@@ -8,6 +8,7 @@ use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
 
@@ -15,16 +16,13 @@ class ChangeUserProfile
 {
     use Actionable;
 
-    private const array PLACEMENT_KEYS = ['organization_id', 'branch_id', 'department_id', 'position_id'];
-
     /**
-     * @param  array{organization_id: ?int, branch_id: ?int, department_id: ?int, position_id: ?int}|null  $placement
      * @param  array<int, string>|null  $roles
      * @param  array<int, string>|null  $permissions
      *
      * @throws AuthorizationException
      */
-    public function execute(User $actor, User $user, ?array $placement = null, ?array $roles = null, ?array $permissions = null): ?Profile
+    public function execute(User $actor, User $user, ?Placement $placement = null, ?array $roles = null, ?array $permissions = null): ?Profile
     {
         return $user->getConnection()->transaction(function () use ($actor, $user, $placement, $roles, $permissions): ?Profile {
             $user->newQueryWithoutRelationships()
@@ -39,11 +37,11 @@ class ChangeUserProfile
             throw_if(! $actorBypasses && $user->checkPermissionTo($this->bypassPermission()), AuthorizationException::class);
 
             $current = $user->profile()->first();
-            $currentPlacement = $this->placementOf($current?->only(self::PLACEMENT_KEYS) ?? []);
+            $currentPlacement = Placement::of($current);
             $currentRoles = $this->normalized($current?->getRoleNames());
             $currentPermissions = $this->normalized($current?->getPermissionNames());
 
-            $newPlacement = $this->placementOf($placement ?? $currentPlacement);
+            $newPlacement = $placement ?? $currentPlacement;
             $newRoles = $this->normalized(collect($roles ?? $currentRoles->all()));
 
             $newPermissions = $this->normalized(collect($permissions ?? $currentPermissions->all()));
@@ -57,7 +55,7 @@ class ChangeUserProfile
             $this->guardProtected($actorBypasses, $self, $newPermissions, $currentPermissions, collect([$this->bypassPermission()]));
 
             $unchanged = $current instanceof Profile
-                && $newPlacement === $currentPlacement
+                && $newPlacement->toArray() === $currentPlacement->toArray()
                 && $newRoles->all() === $currentRoles->all()
                 && $newPermissions->all() === $currentPermissions->all();
 
@@ -66,7 +64,7 @@ class ChangeUserProfile
             }
 
             $profile = $user->profiles()
-                ->make($newPlacement)
+                ->make($newPlacement->toArray())
                 ->syncRoles($newRoles->all())
                 ->syncPermissions($newPermissions->all());
 
@@ -93,26 +91,6 @@ class ChangeUserProfile
         throw_if($added->isNotEmpty() && ! $actorBypasses, AuthorizationException::class);
 
         throw_if($removed->isNotEmpty() && $self, AuthorizationException::class);
-    }
-
-    /**
-     * @param  array<string, mixed>  $values
-     * @return array<string, ?int>
-     */
-    private function placementOf(array $values): array
-    {
-        return collect(self::PLACEMENT_KEYS)
-            ->mapWithKeys(fn (string $key): array => [$key => $this->idOf($values[$key] ?? null)])
-            ->all();
-    }
-
-    private function idOf(mixed $value): ?int
-    {
-        if (! is_numeric($value)) {
-            return null;
-        }
-
-        return (int) $value;
     }
 
     /**

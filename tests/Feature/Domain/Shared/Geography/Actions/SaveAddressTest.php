@@ -83,7 +83,7 @@ test('empty values create no address when the model has none', function (): void
     $this->assertDatabaseEmpty(Address::class);
 });
 
-test('a save without district values keeps the saved district in the same state', function (): void {
+test('a save without district values keeps the saved district while the city stays', function (): void {
     $district = District::factory()->for($this->johor)->create();
     SaveAddress::make()->execute($this->venue, [...$this->values, 'district_id' => $district->id]);
 
@@ -103,4 +103,64 @@ test('a move to another state clears the saved district and subdistrict', functi
 
     expect($address?->district_id)->toBeNull()
         ->and($address?->subdistrict_id)->toBeNull();
+});
+
+test('a save without district values clears the saved district when the city changes in the same state', function (): void {
+    $district = District::factory()->for($this->johor)->create();
+    $subdistrict = Subdistrict::factory()->for($district)->create();
+    SaveAddress::make()->execute($this->venue, [...$this->values, 'district_id' => $district->id, 'subdistrict_id' => $subdistrict->id]);
+    $batuPahat = PostOffice::factory()->for($this->johor)->create(['name' => 'Batu Pahat']);
+    Postcode::factory()->for($batuPahat)->create(['code' => '83000']);
+
+    $address = SaveAddress::make()->execute($this->venue, [...$this->values, 'postcode' => '83000', 'post_office_id' => $batuPahat->id]);
+
+    expect($address?->district_id)->toBeNull()
+        ->and($address?->subdistrict_id)->toBeNull();
+});
+
+test('a save with district values keeps them when the city changes in the same state', function (): void {
+    $district = District::factory()->for($this->johor)->create();
+    $batuPahat = PostOffice::factory()->for($this->johor)->create(['name' => 'Batu Pahat']);
+    Postcode::factory()->for($batuPahat)->create(['code' => '83000']);
+    SaveAddress::make()->execute($this->venue, $this->values);
+
+    $address = SaveAddress::make()->execute($this->venue, [...$this->values, 'postcode' => '83000', 'post_office_id' => $batuPahat->id, 'district_id' => $district->id, 'subdistrict_id' => null]);
+
+    expect($address?->district_id)->toBe($district->id);
+});
+
+describe('a save without location values', function (): void {
+    beforeEach(function (): void {
+        SaveAddress::make()->execute($this->venue, [...$this->values, 'latitude' => 2.0442, 'longitude' => 102.5689]);
+    });
+
+    test('keeps the saved location when the address is the same', function (): void {
+        $address = SaveAddress::make()->execute($this->venue, $this->values);
+
+        expect($address)->latitude->toBe(2.0442)->longitude->toBe(102.5689);
+    });
+
+    test('clears the saved location when the address moves', function (string $key, mixed $value): void {
+        if ($key === 'post_office_id') {
+            $value = PostOffice::factory()->for($this->johor)->create(['name' => 'Parit Jawa'])->id;
+            Postcode::factory()->create(['code' => '84000', 'post_office_id' => $value]);
+        }
+
+        $address = SaveAddress::make()->execute($this->venue, [...$this->values, $key => $value]);
+
+        expect($address)->latitude->toBeNull()->longitude->toBeNull();
+    })->with([
+        'line 1' => ['line_1', '2 Jalan Dua'],
+        'line 2' => ['line_2', 'Taman Sri'],
+        'postcode' => ['postcode', '84300'],
+        'post office' => ['post_office_id', null],
+    ]);
+});
+
+test('a save with location values writes them, also when the address moves', function (): void {
+    SaveAddress::make()->execute($this->venue, [...$this->values, 'latitude' => 2.0442, 'longitude' => 102.5689]);
+
+    $address = SaveAddress::make()->execute($this->venue, [...$this->values, 'line_1' => '2 Jalan Dua', 'latitude' => 2.05, 'longitude' => 102.57]);
+
+    expect($address)->latitude->toBe(2.05)->longitude->toBe(102.57);
 });

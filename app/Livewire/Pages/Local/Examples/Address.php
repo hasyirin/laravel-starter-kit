@@ -24,6 +24,11 @@ class Address extends Component
     }
 
     #[Locked]
+    public ?LocationMode $location = null {
+        set(LocationMode|string|null $location) => is_string($location) ? LocationMode::from($location) : $location;
+    }
+
+    #[Locked]
     public ?string $label = null;
 
     public AddressForm $address;
@@ -32,11 +37,13 @@ class Address extends Component
     {
         $this->address->required($this->required);
 
-        if (! $this->districts instanceof DistrictsMode) {
-            return;
+        if ($this->districts instanceof DistrictsMode) {
+            $this->address->withDistricts(required: $this->districts === DistrictsMode::Required);
         }
 
-        $this->address->withDistricts(required: $this->districts === DistrictsMode::Required);
+        if ($this->location instanceof LocationMode) {
+            $this->address->withLocation(required: $this->location === LocationMode::Required);
+        }
     }
 
     public function save(): void

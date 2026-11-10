@@ -100,6 +100,7 @@ The user whom an impersonator uses the app as.
 
 **Action**:
 One thing that a user did to a record, such as prepare or approve it. It holds the user, the time, and the profile that was active then.
+_Avoid_: Action class, which is the code's name for one operation
 
 **Actor**:
 The user who did an action.
@@ -140,6 +141,10 @@ The postal address of a record: up to three lines, a postcode, a city, and the s
 **City**:
 The post office that delivers the mail to an address. It is the name after the postcode, as on a MyKad. The code calls it a post office.
 _Avoid_: Town, locality
+
+**Location**:
+The point of an address on the map, as a latitude and a longitude.
+_Avoid_: Coordinates, lat lng, pin, geolocation
 
 **Subdistrict**:
 A part of a district, called a mukim in Malay. The bundled data has subdistricts only for Negeri Sembilan and Kemaman.

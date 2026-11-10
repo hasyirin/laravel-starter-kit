@@ -284,6 +284,8 @@ test('the browser cannot change a locked property', function (string $property, 
     'showingDistricts' => ['showingDistricts', true],
     'districtsRequired' => ['districtsRequired', true],
     'local' => ['local', true],
+    'showingLocation' => ['showingLocation', true],
+    'locationRequired' => ['locationRequired', true],
 ]);
 
 describe('districts', function (): void {
@@ -450,6 +452,119 @@ describe('districts', function (): void {
         $cityQueries = collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], '"post_offices"."id" = ?'));
 
         expect($cityQueries)->toHaveCount(1);
+    });
+});
+
+describe('location', function (): void {
+    test('an optional location can stay empty', function (): void {
+        Livewire::test(AddressFormHost::class, ['location' => 'optional'])
+            ->set('address.line_1', '1 Jalan Satu')
+            ->set('address.postcode', '84000')
+            ->call('save')
+            ->assertHasNoErrors();
+    });
+
+    test('a location needs both the latitude and the longitude', function (): void {
+        Livewire::test(AddressFormHost::class, ['location' => 'optional'])
+            ->set('address.line_1', '1 Jalan Satu')
+            ->set('address.postcode', '84000')
+            ->set('address.latitude', 2.0442)
+            ->call('save')
+            ->assertHasErrors(['address.longitude' => 'required'])
+            ->set('address.latitude', null)
+            ->set('address.longitude', 102.5689)
+            ->call('save')
+            ->assertHasErrors(['address.latitude' => 'required']);
+    });
+
+    test('the latitude and the longitude must be on the earth', function (): void {
+        Livewire::test(AddressFormHost::class, ['location' => 'optional'])
+            ->set('address.line_1', '1 Jalan Satu')
+            ->set('address.postcode', '84000')
+            ->set('address.latitude', 90.5)
+            ->set('address.longitude', -180.5)
+            ->call('save')
+            ->assertHasErrors(['address.latitude' => 'between', 'address.longitude' => 'between']);
+    });
+
+    test('a required location is needed', function (): void {
+        Livewire::test(AddressFormHost::class, ['required' => true, 'location' => 'required'])
+            ->set('address.line_1', '1 Jalan Satu')
+            ->set('address.postcode', '84000')
+            ->call('save')
+            ->assertHasErrors(['address.latitude' => 'required', 'address.longitude' => 'required']);
+    });
+
+    test('a required location is not needed for an empty optional address', function (): void {
+        Livewire::test(AddressFormHost::class, ['location' => 'required'])
+            ->call('save')
+            ->assertHasNoErrors();
+    });
+
+    test('a location alone counts as a filled address', function (): void {
+        Livewire::test(AddressFormHost::class, ['location' => 'optional'])
+            ->set('address.latitude', 2.0442)
+            ->set('address.longitude', 102.5689)
+            ->call('save')
+            ->assertHasErrors(['address.line_1' => 'required', 'address.postcode' => 'required', 'address.post_office_id' => 'required']);
+    });
+
+    test('an empty coordinate from the browser becomes null', function (): void {
+        Livewire::test(AddressFormHost::class, ['location' => 'optional'])
+            ->set('address.latitude', '')
+            ->assertSet('address.latitude', null);
+    });
+
+    test('save writes the location rounded to six decimals, and set reads it back', function (): void {
+        $component = Livewire::test(AddressFormHost::class, ['location' => 'optional'])
+            ->set('address.line_1', '1 Jalan Satu')
+            ->set('address.postcode', '84000')
+            ->set('address.latitude', 2.04420049)
+            ->set('address.longitude', 102.56891151)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $venue = $component->instance()->venue;
+
+        expect($venue->address)->latitude->toBe(2.0442)->longitude->toBe(102.568912);
+
+        Livewire::test(AddressFormHost::class, ['venue' => $venue->fresh(), 'location' => 'optional'])
+            ->assertSet('address.latitude', 2.0442)
+            ->assertSet('address.longitude', 102.568912);
+    });
+
+    test('a hidden location stays as saved while the address stays the same', function (): void {
+        $venue = Venue::query()->create(['name' => 'Dewan Besar']);
+        $venue->address()->create(['line_1' => '1 Jalan Satu', 'postcode' => '84000', 'post_office_id' => $this->muar->id, 'latitude' => 2.0442, 'longitude' => 102.5689]);
+
+        $component = Livewire::test(AddressFormHost::class, ['venue' => $venue])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($component->instance()->address->values())->not->toHaveKey('latitude')
+            ->and($venue->fresh()->address)->latitude->toBe(2.0442)->longitude->toBe(102.5689);
+    });
+
+    test('a hidden location is cleared when the address moves', function (): void {
+        $venue = Venue::query()->create(['name' => 'Dewan Besar']);
+        $venue->address()->create(['line_1' => '1 Jalan Satu', 'postcode' => '84000', 'post_office_id' => $this->muar->id, 'latitude' => 2.0442, 'longitude' => 102.5689]);
+
+        Livewire::test(AddressFormHost::class, ['venue' => $venue])
+            ->set('address.line_1', '2 Jalan Dua')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($venue->fresh()->address)->line_1->toBe('2 Jalan Dua')->latitude->toBeNull()->longitude->toBeNull();
+    });
+
+    test('copy brings the location of the other address', function (): void {
+        $other = Venue::query()->create(['name' => 'Dewan Kecil']);
+        $other->address()->create(['line_1' => '1 Jalan Satu', 'postcode' => '84000', 'post_office_id' => $this->muar->id, 'latitude' => 2.0442, 'longitude' => 102.5689]);
+
+        Livewire::test(AddressFormHost::class, ['location' => 'optional'])
+            ->call('copyFrom', $other->id)
+            ->assertSet('address.latitude', 2.0442)
+            ->assertSet('address.longitude', 102.5689);
     });
 });
 

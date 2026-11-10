@@ -7,8 +7,10 @@ use App\Domain\User\Exceptions\SmsPasswordResetLocked;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\SmsPasswordResetStarted;
 use App\Domain\User\Support\SmsCode;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
 
 test('the right code gives a reset token and emails the user', function (): void {
@@ -21,6 +23,16 @@ test('the right code gives a reset token and emails the user', function (): void
     expect($reset['email'])->toBe($user->email)
         ->and(Password::broker()->tokenExists($user, $reset['token']))->toBeTrue();
     Notification::assertSentTo($user, SmsPasswordResetStarted::class);
+});
+
+test('the alert email goes out on the queue, so a mail outage cannot stop the reset', function (): void {
+    Queue::fake();
+    User::factory()->create(['phone' => '+60123456789']);
+    $code = SmsCode::forPasswordReset('+60123456789')->issue();
+
+    ConfirmPasswordResetCode::make()->execute('+60123456789', $code);
+
+    Queue::assertPushed(SendQueuedNotifications::class, fn (SendQueuedNotifications $job): bool => $job->notification instanceof SmsPasswordResetStarted);
 });
 
 test('a wrong code gives no token', function (): void {

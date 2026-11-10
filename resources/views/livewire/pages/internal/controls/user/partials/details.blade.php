@@ -8,19 +8,13 @@
             {{ __('user/users.user_information') }}
         </x-slot:heading>
 
-        <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required />
+        <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required class="sm:col-span-2" />
 
         <x-input wire:model="form.email" type="email" :label="__('common/inputs.email')" autocomplete="off" required />
 
         <x-input.phone wire:model="form.phone" :label="__('common/inputs.phone')" autocomplete="off" />
 
-        <x-input.password
-            wire:model="form.password"
-            :label="__('common/inputs.password')"
-            autocomplete="new-password"
-            :required="! isset($user)"
-            class="sm:col-start-1"
-        />
+        <x-input.password wire:model="form.password" :label="__('common/inputs.password')" autocomplete="new-password" :required="! isset($user)" />
 
         <x-input.password
             wire:model="form.password_confirmation"

@@ -117,3 +117,8 @@ function browserScript(string $body): string
 
     return "async () => {\n{$helpers}\n{$body}\n}";
 }
+
+function wrongSmsCode(string $code): string
+{
+    return $code === '000000' ? '111111' : '000000';
+}

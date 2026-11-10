@@ -12,6 +12,7 @@ use App\Domain\Shared\Permission\Seeders\RoleSeeder;
 use App\Domain\User\Actions\ChangeUserProfile;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
 
 beforeEach(function (): void {
@@ -23,17 +24,14 @@ beforeEach(function (): void {
     $this->user = User::factory()->create();
 });
 
-/**
- * @return array<string, int>
- */
-function changeUserProfilePlacement(Department $department): array
+function changeUserProfilePlacement(Department $department): Placement
 {
-    return [
-        'organization_id' => $department->organization_id,
-        'branch_id' => Branch::factory()->for($department->organization)->create()->id,
-        'department_id' => $department->id,
-        'position_id' => Position::factory()->forDepartment($department)->create()->id,
-    ];
+    return new Placement(
+        organizationId: $department->organization_id,
+        branchId: Branch::factory()->for($department->organization)->create()->id,
+        departmentId: $department->id,
+        positionId: Position::factory()->forDepartment($department)->create()->id,
+    );
 }
 
 /**
@@ -54,7 +52,7 @@ function changeUserProfileSnapshot(?Profile $profile): array
 
 test('a new profile copies the placement, roles, and permissions it was not given', function (string $given): void {
     $placement = changeUserProfilePlacement(Department::factory()->create());
-    Profile::factory()->for($this->user)->state($placement)->withRoles('editor')->withPermissions('system.access')->create();
+    Profile::factory()->for($this->user)->state($placement->toArray())->withRoles('editor')->withPermissions('system.access')->create();
 
     $newPlacement = changeUserProfilePlacement(Department::factory()->create());
     $arguments = [
@@ -66,7 +64,7 @@ test('a new profile copies the placement, roles, and permissions it was not give
     $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, ...$arguments);
 
     expect(changeUserProfileSnapshot($profile))->toBe([
-        'placement' => $given === 'placement' ? $newPlacement : $placement,
+        'placement' => $given === 'placement' ? $newPlacement->toArray() : $placement->toArray(),
         'roles' => $given === 'roles' ? ['viewer'] : ['editor'],
         'permissions' => $given === 'permissions' ? ['internal.controls.users.view'] : ['system.access'],
     ])->and($this->user->profiles()->count())->toBe(2);
@@ -74,9 +72,15 @@ test('a new profile copies the placement, roles, and permissions it was not give
 
 test('nothing changes when the sets are the same', function (): void {
     $placement = changeUserProfilePlacement(Department::factory()->create());
-    Profile::factory()->for($this->user)->state($placement)->withRoles('editor', 'viewer')->withPermissions('system.access')->create();
+    Profile::factory()->for($this->user)->state($placement->toArray())->withRoles('editor', 'viewer')->withPermissions('system.access')->create();
 
-    $profile = ChangeUserProfile::make()->execute($this->actor, $this->user, $placement, ['viewer', 'editor'], ['system.access']);
+    $profile = ChangeUserProfile::make()->execute(
+        actor: $this->actor,
+        user: $this->user,
+        placement: $placement,
+        roles: ['viewer', 'editor'],
+        permissions: ['system.access'],
+    );
 
     expect($profile)->toBeNull()
         ->and($this->user->profiles()->count())->toBe(1);
@@ -185,7 +189,13 @@ test('a user without bypass-authorization cannot change the profile of a user wh
 })->with(['placement', 'roles', 'permissions']);
 
 test('the department, branch, and position must fit the organization', function (): void {
-    $placement = [...changeUserProfilePlacement(Department::factory()->create()), 'organization_id' => Organization::factory()->create()->id];
+    $fitting = changeUserProfilePlacement(Department::factory()->create());
+    $placement = new Placement(
+        organizationId: Organization::factory()->create()->id,
+        branchId: $fitting->branchId,
+        departmentId: $fitting->departmentId,
+        positionId: $fitting->positionId,
+    );
 
     expect(fn (): ?Profile => ChangeUserProfile::make()->execute($this->actor, $this->user, $placement))->toThrow(LogicException::class)
         ->and($this->user->profiles()->count())->toBe(0);

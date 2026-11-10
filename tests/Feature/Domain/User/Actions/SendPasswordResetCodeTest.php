@@ -6,7 +6,7 @@ use App\Domain\User\Actions\SendPasswordResetCode;
 use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Exceptions\SmsPasswordResetLocked;
 use App\Domain\User\Models\User;
-use App\Domain\User\Notifications\PasswordResetCode;
+use App\Domain\User\Notifications\PasswordResetCodeSms;
 use App\Domain\User\Support\SmsCode;
 use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Notification;
@@ -18,8 +18,8 @@ test('a verified number gets a reset code', function (): void {
 
     SendPasswordResetCode::make()->execute('+60123456789', '127.0.0.1');
 
-    Notification::assertSentTo($user, PasswordResetCode::class,
-        fn (PasswordResetCode $notification): bool => SmsCode::forPasswordReset('+60123456789')->check($notification->code));
+    Notification::assertSentTo($user, PasswordResetCodeSms::class,
+        fn (PasswordResetCodeSms $notification): bool => SmsCode::forPasswordReset('+60123456789')->check($notification->code));
 });
 
 test('no reset code goes to a number that is unknown, unverified, deleted, or outside the calling codes', function (Closure $makeUser, string $phone): void {
@@ -47,7 +47,7 @@ test('the reset code goes out after the response, so every number gets the same 
 
     resolve(DeferredCallbackCollection::class)->invoke();
 
-    Notification::assertSentTo($user, PasswordResetCode::class);
+    Notification::assertSentTo($user, PasswordResetCodeSms::class);
 });
 
 test('no reset code goes to a locked number', function (): void {

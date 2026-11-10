@@ -9,7 +9,7 @@ use App\Domain\Shared\Sms\Contracts\SmsNotification;
 use App\Domain\User\Support\SmsCode;
 use Illuminate\Notifications\Notification;
 
-class PasswordResetCode extends Notification implements SmsNotification
+class PasswordResetCodeSms extends Notification implements SmsNotification
 {
     public function __construct(public readonly string $code) {}
 

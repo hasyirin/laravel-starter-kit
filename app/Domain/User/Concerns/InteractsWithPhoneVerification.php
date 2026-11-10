@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Concerns;
 
-use App\Domain\User\Notifications\PhoneVerificationCode;
+use App\Domain\User\Notifications\PhoneVerificationCodeSms;
 use App\Domain\User\Support\SmsCode;
 
 trait InteractsWithPhoneVerification
@@ -27,7 +27,7 @@ trait InteractsWithPhoneVerification
             return;
         }
 
-        $this->notify(new PhoneVerificationCode(SmsCode::forVerification($phone)->issue()));
+        $this->notify(new PhoneVerificationCodeSms(SmsCode::forVerification($phone)->issue()));
     }
 
     public function getPhoneForVerification(): ?string

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
-use App\Domain\User\Notifications\PasswordResetCode;
+use App\Domain\User\Notifications\PasswordResetCodeSms;
 use App\Domain\User\Notifications\PasswordWasReset;
 use App\Domain\User\Notifications\SmsPasswordResetStarted;
 use App\Domain\User\Rules\PhoneNumber;
@@ -112,7 +112,7 @@ test('a wrong code shows an error', function (): void {
     Notification::fake();
     $user = User::factory()->create(['phone' => '+60123456789']);
     $component = Livewire::test(SmsPasswordReset::class)->set('phone', '+60123456789')->call('send');
-    $code = Notification::sent($user, PasswordResetCode::class)->first()->code;
+    $code = Notification::sent($user, PasswordResetCodeSms::class)->first()->code;
 
     $component->set('code', wrongSmsCode($code))->call('confirm')->assertHasErrors(['code' => 'The code is wrong or has expired.']);
 });
@@ -122,7 +122,7 @@ test('a user can reset the password with an sms code', function (): void {
     Notification::fake();
     $user = User::factory()->create(['phone' => '+60123456789']);
     $component = Livewire::test(SmsPasswordReset::class)->set('phone', '+60123456789')->call('send');
-    $code = Notification::sent($user, PasswordResetCode::class)->first()->code;
+    $code = Notification::sent($user, PasswordResetCodeSms::class)->first()->code;
 
     $redirect = $component->set('code', $code)->call('confirm')->effects['redirect'];
     $token = str($redirect)->after('/reset-password/')->before('?')->value();

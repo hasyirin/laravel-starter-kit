@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Domain\User\Actions\SendPhoneVerificationCode;
 use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Models\User;
-use App\Domain\User\Notifications\PhoneVerificationCode;
+use App\Domain\User\Notifications\PhoneVerificationCodeSms;
 use App\Domain\User\Support\SmsCode;
 use Illuminate\Support\Facades\Notification;
 
@@ -15,8 +15,8 @@ test('sending a code texts a new code to the number of the user', function (): v
 
     SendPhoneVerificationCode::make()->execute($user);
 
-    Notification::assertSentTo($user, PhoneVerificationCode::class,
-        fn (PhoneVerificationCode $notification): bool => SmsCode::forVerification('+60123456789')->check($notification->code));
+    Notification::assertSentTo($user, PhoneVerificationCodeSms::class,
+        fn (PhoneVerificationCodeSms $notification): bool => SmsCode::forVerification('+60123456789')->check($notification->code));
 });
 
 test('a user can get one code per minute and five per hour', function (): void {
@@ -33,7 +33,7 @@ test('a user can get one code per minute and five per hour', function (): void {
 
     $this->travel(60)->seconds();
     expect(fn () => SendPhoneVerificationCode::make()->execute($user))->toThrow(SmsCodeThrottled::class);
-    Notification::assertSentToTimes($user, PhoneVerificationCode::class, 5);
+    Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 5);
 });
 
 test('a user without a phone number gets no code', function (): void {

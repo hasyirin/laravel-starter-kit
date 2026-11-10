@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
-use App\Domain\User\Notifications\PhoneVerificationCode;
+use App\Domain\User\Notifications\PhoneVerificationCodeSms;
 use App\Domain\User\Support\Impersonation;
 use App\Livewire\Auth\VerifyPhone;
 use Illuminate\Support\Facades\Notification;
@@ -28,7 +28,7 @@ test('opening the page sends a code', function (): void {
 
     Livewire::test(VerifyPhone::class)->assertSee('+60123456789');
 
-    Notification::assertSentToTimes($user, PhoneVerificationCode::class, 1);
+    Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 1);
 });
 
 test('opening the page again sends no code while the last one is unused', function (): void {
@@ -39,7 +39,7 @@ test('opening the page again sends no code while the last one is unused', functi
     $this->travel(5)->minutes();
     Livewire::test(VerifyPhone::class);
 
-    Notification::assertSentToTimes($user, PhoneVerificationCode::class, 1);
+    Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 1);
 });
 
 test('opening the page sends a new code once the last one expired', function (): void {
@@ -50,7 +50,7 @@ test('opening the page sends a new code once the last one expired', function ():
     $this->travel(10)->minutes();
     Livewire::test(VerifyPhone::class);
 
-    Notification::assertSentToTimes($user, PhoneVerificationCode::class, 2);
+    Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 2);
 });
 
 test('opening the page sends no code during impersonation', function (): void {
@@ -71,7 +71,7 @@ test('the resend button sends a new code', function (): void {
 
     $component->call('send')->assertSee(__('auth/verify-phone.sent'));
 
-    Notification::assertSentToTimes($user, PhoneVerificationCode::class, 2);
+    Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 2);
 });
 
 test('resending too soon says when to try again', function (): void {
@@ -80,14 +80,14 @@ test('resending too soon says when to try again', function (): void {
 
     Livewire::test(VerifyPhone::class)->call('send')->assertSee('Too many codes. Try again in');
 
-    Notification::assertSentToTimes($user, PhoneVerificationCode::class, 1);
+    Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 1);
 });
 
 test('the right code verifies the phone number and leaves the page', function (): void {
     Notification::fake();
     $this->actingAs($user = User::factory()->unverifiedPhone()->create());
     $component = Livewire::test(VerifyPhone::class);
-    $code = Notification::sent($user, PhoneVerificationCode::class)->first()->code;
+    $code = Notification::sent($user, PhoneVerificationCodeSms::class)->first()->code;
 
     $component->set('code', $code)->call('confirm')->assertRedirect(route('dashboard'));
 
@@ -98,7 +98,7 @@ test('a wrong code shows an error', function (): void {
     Notification::fake();
     $this->actingAs($user = User::factory()->unverifiedPhone()->create());
     $component = Livewire::test(VerifyPhone::class);
-    $code = Notification::sent($user, PhoneVerificationCode::class)->first()->code;
+    $code = Notification::sent($user, PhoneVerificationCodeSms::class)->first()->code;
 
     $component->set('code', wrongSmsCode($code))->call('confirm')->assertHasErrors(['code' => 'The code is wrong or has expired.']);
 
@@ -143,5 +143,5 @@ test('a holder of bypass-authorization can still verify a phone number', functio
 
     Livewire::test(VerifyPhone::class)->assertSee(__('auth/verify-phone.submit'));
 
-    Notification::assertSentToTimes($user, PhoneVerificationCode::class, 1);
+    Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 1);
 });

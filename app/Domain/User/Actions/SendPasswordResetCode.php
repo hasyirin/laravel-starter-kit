@@ -9,7 +9,7 @@ use App\Domain\Shared\Sms\Support\CallingCodes;
 use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Exceptions\SmsPasswordResetLocked;
 use App\Domain\User\Models\User;
-use App\Domain\User\Notifications\PasswordResetCode;
+use App\Domain\User\Notifications\PasswordResetCodeSms;
 use App\Domain\User\Support\SmsCode;
 use App\Domain\User\Support\SmsCodeLimit;
 use App\Domain\User\Support\SmsPasswordResetLock;
@@ -45,6 +45,6 @@ class SendPasswordResetCode
             return;
         }
 
-        $user->notify(new PasswordResetCode(SmsCode::forPasswordReset($phone)->issue()));
+        $user->notify(new PasswordResetCodeSms(SmsCode::forPasswordReset($phone)->issue()));
     }
 }

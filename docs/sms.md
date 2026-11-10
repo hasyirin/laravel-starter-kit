@@ -51,7 +51,7 @@ Notification::fake();
 
 SendPhoneVerificationCode::make()->execute($user);
 
-$code = Notification::sent($user, PhoneVerificationCode::class)->first()->code;
+$code = Notification::sent($user, PhoneVerificationCodeSms::class)->first()->code;
 ```
 
 To test a gateway, bind `Tests\Fixtures\Gateways\FakeGateway`. It records each SMS in `$sent`.

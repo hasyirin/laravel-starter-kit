@@ -1,4 +1,4 @@
-<flux:main>
+<flux:main container>
     @include('partials.settings-heading')
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.preferences.title') }}</flux:heading>

@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
+use App\Domain\User\Rules\PhoneNumber;
 use App\Livewire\Settings\UserInformation;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
@@ -125,4 +127,59 @@ test('the verification email can be sent six times a minute', function (): void 
 
     Notification::assertSentToTimes($user, VerifyEmail::class, 6);
     $component->assertDispatched('toast-show', fn (string $name, array $params): bool => str_starts_with($params['slots']['text'], 'Too many verification emails.'));
+});
+
+test('the phone number can be changed, and the change unverifies it', function (): void {
+    $this->actingAs($user = User::factory()->create());
+
+    Livewire::test(UserInformation::class)->set('phone', '+60198765432')->call('save')->assertHasNoErrors();
+
+    expect($user->refresh()->phone)->toBe('+60198765432')
+        ->and($user->phone_verified_at)->toBeNull();
+});
+
+test('saving the same phone number keeps it verified', function (): void {
+    $this->actingAs($user = User::factory()->create());
+
+    Livewire::test(UserInformation::class)->set('name', 'Test User')->call('save')->assertHasNoErrors();
+
+    expect($user->refresh()->phone_verified_at)->not->toBeNull();
+});
+
+test('the phone number is required', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(UserInformation::class)->set('phone', '')->call('save')->assertHasErrors(['phone' => 'required']);
+});
+
+test('a holder of bypass-authorization may remove the phone number', function (): void {
+    $this->seed(PermissionSeeder::class);
+    $this->actingAs($user = User::factory()->create());
+    grantPermissions($user, 'bypass-authorization');
+
+    Livewire::test(UserInformation::class)->set('phone', '')->call('save')->assertHasNoErrors();
+
+    expect($user->refresh()->phone)->toBeNull()
+        ->and($user->phone_verified_at)->toBeNull();
+});
+
+test('a phone number in local format is refused', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(UserInformation::class)->set('phone', '0123456789')->call('save')->assertHasErrors(['phone' => PhoneNumber::class]);
+});
+
+test('a phone number that another user has is taken', function (): void {
+    User::factory()->create(['phone' => '+60198765432']);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(UserInformation::class)->set('phone', '+60198765432')->call('save')->assertHasErrors(['phone' => 'unique']);
+});
+
+test('an unverified phone number links to the phone verification page', function (): void {
+    $this->actingAs(User::factory()->unverifiedPhone()->create());
+
+    Livewire::test(UserInformation::class)
+        ->assertSee(__('user/settings.user_information.phone_unverified'))
+        ->assertSee(route('phone-verification.notice'));
 });

@@ -27,6 +27,7 @@ test('changing the email clears the verification', function (): void {
         user: $this->user,
         name: 'New Name',
         email: 'new@example.com',
+        phone: $this->user->phone,
         password: null,
         placement: $this->placement,
     );
@@ -45,6 +46,7 @@ test('keeping the email keeps the verification', function (): void {
         user: $this->user,
         name: 'New Name',
         email: $this->user->email,
+        phone: $this->user->phone,
         password: null,
         placement: $this->placement,
     );
@@ -60,6 +62,7 @@ test('a blank password keeps the old one', function (): void {
         user: $this->user,
         name: $this->user->name,
         email: $this->user->email,
+        phone: $this->user->phone,
         password: null,
         placement: $this->placement,
     );
@@ -71,6 +74,7 @@ test('a blank password keeps the old one', function (): void {
         user: $this->user,
         name: $this->user->name,
         email: $this->user->email,
+        phone: $this->user->phone,
         password: 'new-password',
         placement: $this->placement,
     );
@@ -93,6 +97,7 @@ test('changing the placement makes a new profile and keeps the roles', function 
         user: $this->user,
         name: $this->user->name,
         email: $this->user->email,
+        phone: $this->user->phone,
         password: null,
         placement: $placement,
     );
@@ -115,6 +120,7 @@ test('the placement, the roles, and the permissions change in one new profile', 
         user: $this->user,
         name: $this->user->name,
         email: $this->user->email,
+        phone: $this->user->phone,
         password: null,
         placement: $placement,
         roles: ['editor'],
@@ -137,6 +143,7 @@ test('a user without bypass-authorization cannot change a user who has it', func
         user: $this->user,
         name: 'New Name',
         email: 'new@example.com',
+        phone: $this->user->phone,
         password: 'new-password',
         placement: $this->placement,
     ))
@@ -147,4 +154,34 @@ test('a user without bypass-authorization cannot change a user who has it', func
         ->and($fresh->email)->not->toBe('new@example.com')
         ->and(Hash::check('old-password', $fresh->password))->toBeTrue()
         ->and($this->user->profiles()->count())->toBe(1);
+});
+
+test('changing the phone number clears the verification', function (): void {
+    UpdateUser::make()->execute(
+        actor: $this->actor,
+        user: $this->user,
+        name: $this->user->name,
+        email: $this->user->email,
+        phone: '+60198765432',
+        password: null,
+        placement: $this->placement,
+    );
+
+    $fresh = $this->user->fresh();
+    expect($fresh->phone)->toBe('+60198765432')
+        ->and($fresh->phone_verified_at)->toBeNull();
+});
+
+test('keeping the phone number keeps the verification', function (): void {
+    UpdateUser::make()->execute(
+        actor: $this->actor,
+        user: $this->user,
+        name: 'New Name',
+        email: $this->user->email,
+        phone: $this->user->phone,
+        password: null,
+        placement: $this->placement,
+    );
+
+    expect($this->user->fresh()->phone_verified_at)->not->toBeNull();
 });

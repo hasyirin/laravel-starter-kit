@@ -30,6 +30,8 @@
                 placeholder="email@example.com"
             />
 
+            <x-input.phone name="phone" :label="__('common/inputs.phone')" :value="old('phone')" required autocomplete="tel" />
+
             <!-- Password -->
             <x-input.password
                 name="password"

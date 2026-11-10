@@ -23,15 +23,17 @@ class CreateUser
         User $actor,
         string $name,
         string $email,
+        ?string $phone,
         string $password,
         Placement $placement,
         ?array $roles = null,
         ?array $permissions = null,
     ): User {
-        return (new User)->getConnection()->transaction(function () use ($actor, $name, $email, $password, $placement, $roles, $permissions): User {
+        return (new User)->getConnection()->transaction(function () use ($actor, $name, $email, $phone, $password, $placement, $roles, $permissions): User {
             $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
+                'phone' => $phone,
                 'password' => $password,
             ]);
 

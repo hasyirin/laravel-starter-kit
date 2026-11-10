@@ -11,15 +11,20 @@ class UpdateUserInformation
 {
     use Actionable;
 
-    public function execute(User $user, string $name, string $email): void
+    public function execute(User $user, string $name, string $email, ?string $phone): void
     {
         $user->fill([
             'name' => $name,
             'email' => $email,
+            'phone' => $phone,
         ]);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
+        }
+
+        if ($user->isDirty('phone')) {
+            $user->phone_verified_at = null;
         }
 
         $user->save();

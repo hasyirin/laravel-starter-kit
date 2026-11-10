@@ -495,3 +495,24 @@ test('the impersonate button shows only when the policy allows it', function ():
         ->assertSee('data-test="impersonate-button"', false)
         ->assertSeeLivewire(ImpersonateModal::class);
 });
+
+test('changing the phone number on the form unverifies it', function (): void {
+    Livewire::test(Show::class, ['user' => $this->subject])
+        ->set('form.phone', '+60198765432')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->subject->fresh()->phone_verified_at)->toBeNull();
+});
+
+test('removing bypass from a user without a phone number asks for one', function (): void {
+    $this->seed(RoleSeeder::class);
+    grantPermissions($this->actor, 'bypass-authorization');
+    $subject = User::factory()->withoutPhone()->create();
+    grantRoles($subject, 'system-admin');
+
+    Livewire::test(Show::class, ['user' => $subject])
+        ->set('form.roles', [])
+        ->call('save')
+        ->assertHasErrors(['form.phone' => 'required']);
+});

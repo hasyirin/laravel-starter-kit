@@ -24,16 +24,21 @@ class UpdateUser
         User $user,
         string $name,
         string $email,
+        ?string $phone,
         ?string $password,
         Placement $placement,
         ?array $roles = null,
         ?array $permissions = null,
     ): void {
-        $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $password, $placement, $roles, $permissions): void {
-            $user->fill(['name' => $name, 'email' => $email]);
+        $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $phone, $password, $placement, $roles, $permissions): void {
+            $user->fill(['name' => $name, 'email' => $email, 'phone' => $phone]);
 
             if ($user->isDirty('email')) {
                 $user->email_verified_at = null;
+            }
+
+            if ($user->isDirty('phone')) {
+                $user->phone_verified_at = null;
             }
 
             if ($password !== null) {

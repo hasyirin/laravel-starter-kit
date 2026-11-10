@@ -27,6 +27,7 @@ test('creating a user gives them a first profile with the placement', function (
         actor: User::factory()->create(),
         name: 'Ada Lovelace',
         email: 'ada@example.com',
+        phone: '+60123456781',
         password: 'secret-password',
         placement: $placement,
     );
@@ -47,6 +48,7 @@ test('the first profile gets the given roles and permissions', function (): void
         actor: User::factory()->create(),
         name: 'Ada Lovelace',
         email: 'ada@example.com',
+        phone: '+60123456782',
         password: 'secret-password',
         placement: new Placement,
         roles: ['editor'],
@@ -66,6 +68,7 @@ test('a refused bypass role leaves no user behind', function (): void {
         actor: User::factory()->create(),
         name: 'Ada Lovelace',
         email: 'ada@example.com',
+        phone: '+60123456783',
         password: 'secret-password',
         placement: new Placement,
         roles: ['system-admin'],
@@ -73,4 +76,18 @@ test('a refused bypass role leaves no user behind', function (): void {
         ->toThrow(AuthorizationException::class);
 
     $this->assertDatabaseMissing('users', ['email' => 'ada@example.com']);
+});
+
+test('a new user starts with an unverified phone number', function (): void {
+    $user = CreateUser::make()->execute(
+        actor: User::factory()->create(),
+        name: 'New Person',
+        email: 'new.person@example.com',
+        phone: '+60123456789',
+        password: 'password',
+        placement: new Placement,
+    );
+
+    expect($user->phone)->toBe('+60123456789')
+        ->and($user->phone_verified_at)->toBeNull();
 });

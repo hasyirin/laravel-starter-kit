@@ -11,12 +11,12 @@ Route::middleware(EnsureLocalEnvironment::class)->group(__DIR__.'/local.php');
 
 Route::middleware(['auth'])->group(__DIR__.'/app.php');
 
-Route::middleware(['auth', 'verified', 'can:'.config()->string('system.permissions.internal.access')])
+Route::middleware(['auth', 'verified', 'phone.verified', 'can:'.config()->string('system.permissions.internal.access')])
     ->prefix('internal')
     ->name('internal.')
     ->group(__DIR__.'/internal.php');
 
-Route::middleware(['auth', 'verified', 'can:'.config()->string('system.permissions.system.access')])
+Route::middleware(['auth', 'verified', 'phone.verified', 'can:'.config()->string('system.permissions.system.access')])
     ->prefix('system')
     ->name('system.')
     ->group(__DIR__.'/system.php');

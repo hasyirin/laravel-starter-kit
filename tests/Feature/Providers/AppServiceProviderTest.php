@@ -52,6 +52,25 @@ test('an open page that needs a verified email sends the user to verify it once 
     'an unverified email' => [false, 302, fn (): string => route('verification.notice')],
 ]);
 
+test('an open page that needs a verified phone number sends the user to verify it once the number is unverified', function (bool $verified, int $status, ?string $location): void {
+    $user = User::factory()->create();
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+    $page = $this->get(route('security.edit'));
+
+    if (! $verified) {
+        $user->forceFill(['phone_verified_at' => null])->save();
+    }
+
+    $response = callLivewireAction($page, 'settings.security', 'closeModal');
+
+    $response->assertStatus($status);
+
+    expect($response->headers->get('Location'))->toBe($location);
+})->with([
+    'a verified phone number' => [true, 200, null],
+    'an unverified phone number' => [false, 302, fn (): string => route('phone-verification.notice')],
+]);
+
 test('the kit sends sms through the log gateway by default', function (): void {
     expect(resolve(SmsGateway::class))->toBeInstanceOf(LogGateway::class);
 });

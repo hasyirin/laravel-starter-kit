@@ -6,8 +6,9 @@ namespace App\Providers;
 
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
+use App\Http\Middleware\EnsureEmailIsVerified;
+use App\Http\Middleware\EnsurePhoneIsVerified;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -62,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
 
         Blaze::optimize()->in(resource_path('views/components'));
 
-        Livewire::addPersistentMiddleware([EnsureEmailIsVerified::class]);
+        Livewire::addPersistentMiddleware([EnsureEmailIsVerified::class, EnsurePhoneIsVerified::class]);
 
         Gate::before(fn (?User $user): ?true => $user?->checkPermissionTo(config('system.permissions.bypass-authorization')) ? true : null);
 

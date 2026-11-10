@@ -18,6 +18,6 @@ Route::redirect('settings', '/settings/user-information')->name('settings');
 
 require __DIR__.'/settings.php';
 
-Route::middleware(['verified'])->group(function (): void {
+Route::middleware(['verified', 'phone.verified'])->group(function (): void {
     Route::livewire('dashboard', Dashboard::class)->name('dashboard');
 });

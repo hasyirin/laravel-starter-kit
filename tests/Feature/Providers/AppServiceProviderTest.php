@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Sms\Contracts\SmsGateway;
+use App\Domain\Shared\Sms\Gateways\LogGateway;
 use App\Domain\User\Models\User;
 use App\Providers\AppServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Tests\Fixtures\Gateways\FakeGateway;
 
 test('booting in production with debug mode on turns debug mode off and throws', function (): void {
     app()->detectEnvironment(fn (): string => 'production');
@@ -48,3 +51,19 @@ test('an open page that needs a verified email sends the user to verify it once 
     'a verified email' => [true, 200, null],
     'an unverified email' => [false, 302, fn (): string => route('verification.notice')],
 ]);
+
+test('the kit sends sms through the log gateway by default', function (): void {
+    expect(resolve(SmsGateway::class))->toBeInstanceOf(LogGateway::class);
+});
+
+test('the sms gateway comes from config', function (): void {
+    config(['system.sms.gateway' => FakeGateway::class]);
+
+    expect(resolve(SmsGateway::class))->toBeInstanceOf(FakeGateway::class);
+});
+
+test('a configured sms gateway that does not implement SmsGateway is refused', function (): void {
+    config(['system.sms.gateway' => stdClass::class]);
+
+    expect(fn () => resolve(SmsGateway::class))->toThrow(LogicException::class, 'system.sms.gateway must name a class that implements SmsGateway.');
+});

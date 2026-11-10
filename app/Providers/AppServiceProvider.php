@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
@@ -15,10 +16,22 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Blaze\Blaze;
 use Livewire\Livewire;
+use LogicException;
 use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(function (): SmsGateway {
+            $gateway = resolve(config()->string('system.sms.gateway'));
+
+            throw_unless($gateway instanceof SmsGateway, LogicException::class, 'system.sms.gateway must name a class that implements SmsGateway.');
+
+            return $gateway;
+        });
+    }
+
     public function boot(): void
     {
         $this->preventDebugModeInProduction();

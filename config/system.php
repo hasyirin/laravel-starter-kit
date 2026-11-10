@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Sms\Gateways\LogGateway;
 use App\Livewire\Components\Navigation\Style;
 
 return [
@@ -12,6 +13,11 @@ return [
     'locales' => ['en-MY', 'ms-MY', 'en-GB', 'en-US'],
 
     'country' => 'MY',
+
+    'sms' => [
+        'gateway' => LogGateway::class,
+        'calling_codes' => ['+60'],
+    ],
 
     'navigation' => [
         'app' => Style::Sidebar,

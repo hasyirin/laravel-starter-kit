@@ -18,4 +18,9 @@ class PermitPolicy
     {
         return ! $permit->locked;
     }
+
+    public function archive(User $user, Permit $permit): bool
+    {
+        return $permit->name === 'Archivable';
+    }
 }

@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
+use App\Domain\Shared\Letter\Support\LetterheadView;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
@@ -26,12 +28,16 @@ use Tests\Fixtures\Policies\PermitPolicy;
 use Tests\Fixtures\Policies\ToggledLetterPolicy;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\PermitExtraLetter;
+use Tests\Fixtures\Support\PermitGuardedLetter;
 use Tests\Fixtures\Support\PermitLetter;
 use Tests\Fixtures\Support\PermitLockedLetter;
 use Tests\Fixtures\Support\PermitOverrideLetter;
 use Tests\Fixtures\Support\PermitPlainLetter;
 use Tests\Fixtures\Support\PermitRestrictedLetter;
 use Tests\Fixtures\Support\PermitSignedLetter;
+use Tests\Fixtures\Support\PermitStrictLetter;
+use Tests\Fixtures\Support\PermitTableLetter;
+use Tests\Fixtures\Support\PermitViewHeadLetter;
 
 beforeEach(function (): void {
     Storage::fake('media');
@@ -53,6 +59,10 @@ beforeEach(function (): void {
         'signed' => PermitSignedLetter::class,
         'locked' => PermitLockedLetter::class,
         'restricted' => PermitRestrictedLetter::class,
+        'strict' => PermitStrictLetter::class,
+        'guarded' => PermitGuardedLetter::class,
+        'table' => PermitTableLetter::class,
+        'viewhead' => PermitViewHeadLetter::class,
         'notice' => NoticeLetter::class,
     ]]);
 
@@ -86,7 +96,7 @@ function savedLetter(string $type, array $attributes = []): Letter
 test('the type list has only the types for this source that the user may use', function (): void {
     $types = openModal()->instance()->types();
 
-    expect(array_keys($types))->toBe(['plain', 'permit', 'extra', 'override', 'signed', 'locked']);
+    expect(array_keys($types))->toBe(['plain', 'permit', 'extra', 'override', 'signed', 'guarded', 'table', 'viewhead']);
 });
 
 test('the only type is chosen at once', function (): void {
@@ -147,13 +157,12 @@ test('the letterhead of the printer shows by name, and no match shows no letterh
 });
 
 test('the letterhead of the signer wins over the letterhead of the printer', function (): void {
-    $other = Organization::factory()->create();
-    $department = Department::factory()->for($other)->create();
+    $department = Department::factory()->for($this->organization)->create();
     Letterhead::factory()->for($this->organization)->create(['name' => 'Printer Office']);
-    Letterhead::factory()->for($other)->create(['name' => 'Signer Office', 'department_id' => $department->id]);
+    Letterhead::factory()->for($this->organization)->create(['name' => 'Signer Office', 'department_id' => $department->id]);
     $signer = User::factory()->create();
-    $position = Position::factory()->for($other)->create(['department_id' => $department->id]);
-    Profile::factory()->for($other)->for($signer)->create(['department_id' => $department->id, 'position_id' => $position->id]);
+    $position = Position::factory()->for($this->organization)->create(['department_id' => $department->id]);
+    Profile::factory()->for($this->organization)->for($signer)->create(['department_id' => $department->id, 'position_id' => $position->id]);
 
     openModal()->set('form.type', 'permit')->set('form.signer_id', $signer->id)->assertSee('Signer Office');
 });
@@ -304,8 +313,10 @@ test('a user who can neither print nor update sees every part read-only', functi
 });
 
 test('a user with only update cannot change the signer', function (): void {
-    $signer = modalSigner();
+    $existing = modalSigner('Existing');
+    $other = modalSigner('Other');
     $letter = savedLetter('signed');
+    $letter->act(Act::Sign, $existing);
     letterAbilities(update: true, print: false);
 
     $component = openModal($letter);
@@ -313,9 +324,107 @@ test('a user with only update cannot change the signer', function (): void {
     expect($component->instance()->editable('signer'))->toBeFalse()
         ->and($component->instance()->editable('date'))->toBeTrue();
 
-    $component->set('form.signer_id', $signer->id)->call('save');
+    $component->set('form.signer_id', $other->id)->set('form.date', '2027-01-01')->call('save')->assertHasNoErrors();
 
-    expect($letter->refresh()->signature)->toBeNull();
+    expect($letter->refresh()->date?->toDateString())->toBe('2027-01-01')
+        ->and($letter->signature?->actor?->is($existing))->toBeTrue();
+});
+
+test('a user with only update saves a letter whose signer moved to another organization', function (): void {
+    $signer = modalSigner('Mover');
+    $letter = savedLetter('signed');
+    $letter->act(Act::Sign, $signer);
+    modalSigner('Filler');
+    $elsewhere = Organization::factory()->create();
+    Profile::factory()->for($elsewhere)->for($signer)->create(['position_id' => Position::factory()->for($elsewhere)->create()->id]);
+    letterAbilities(update: true, print: false);
+
+    openModal($letter)->set('form.date', '2027-02-02')->call('save')->assertHasNoErrors();
+
+    expect($letter->refresh()->date?->toDateString())->toBe('2027-02-02')
+        ->and($letter->signature?->actor?->is($signer))->toBeTrue();
+});
+
+test('a user with only update saves a letter whose carbon copy department was deleted', function (): void {
+    $department = Department::factory()->for($this->organization)->create(['name' => 'Gone']);
+    $letter = savedLetter('permit', ['carbon_copies' => [new CarbonCopy('Gone', 'department', $department->id)]]);
+    $department->delete();
+    letterAbilities(update: true, print: false);
+
+    openModal($letter)->set('form.date', '2027-02-02')->call('save')->assertHasNoErrors();
+
+    expect($letter->refresh()->date?->toDateString())->toBe('2027-02-02')
+        ->and($letter->carbon_copies)->toEqual([new CarbonCopy('Gone', 'department', $department->id)]);
+});
+
+test('a type whose create ability the user lacks is not listed and cannot be saved', function (): void {
+    expect(openModal()->instance()->types())->not->toHaveKey('strict');
+
+    openModal()->set('form.type', 'strict')->call('save')->assertHasErrors(['form.type']);
+
+    $this->permit->update(['name' => 'Archivable']);
+
+    expect(openModal()->instance()->types())->toHaveKey('strict');
+});
+
+test('on a new letter the print parts follow the print ability of the chosen type', function (): void {
+    $signer = modalSigner();
+
+    $component = openModal()->set('form.type', 'guarded');
+
+    expect($component->instance()->editable('signer'))->toBeFalse()
+        ->and($component->instance()->editable('carbon_copies'))->toBeFalse()
+        ->and($component->instance()->editable('computer_signed'))->toBeFalse()
+        ->and($component->instance()->editable('date'))->toBeTrue();
+
+    $component->set('form.signer_id', $signer->id)->set('form.computer_signed', true)->call('save')->assertHasNoErrors();
+
+    $letter = $this->permit->letters()->firstOrFail();
+
+    expect($letter->signature)->toBeNull()
+        ->and($letter->computer_signed)->toBeFalse();
+
+    $this->permit->update(['name' => 'Archivable']);
+
+    expect(openModal()->set('form.type', 'guarded')->instance()->editable('signer'))->toBeTrue();
+});
+
+test('a new letter hides a type that locks a required extra field', function (): void {
+    expect(openModal()->instance()->types())->not->toHaveKey('locked');
+
+    $letter = savedLetter('locked', ['extra' => ['remark' => 'Kept', 'guarantor' => null, 'stamp' => null]]);
+
+    openModal($letter)->assertSet('form.type', 'locked')->call('save')->assertHasNoErrors();
+});
+
+test('a crafted carbon copy row is a validation error', function (): void {
+    openModal()->set('form.type', 'permit')->set('form.carbon_copies', ['x'])->call('save')->assertHasErrors(['form.carbon_copies.0']);
+    openModal()->set('form.type', 'permit')->set('form.carbon_copies', [['text' => 'x']])->call('save')->assertHasErrors(['form.carbon_copies.0.kind']);
+});
+
+test('the letterhead of a signer outside the list is not used', function (): void {
+    $other = Organization::factory()->create();
+    Letterhead::factory()->for($other)->create(['name' => 'Foreign Office']);
+    $outside = modalSigner('Outside', $other);
+
+    openModal()->set('form.type', 'permit')->set('form.signer_id', $outside->id)->assertDontSee('Foreign Office')->assertSee(__('letters/letters.no_letterhead'));
+});
+
+test('a letterhead set by the type shows a label, not a view path', function (): void {
+    PermitViewHeadLetter::$letterheadView = new LetterheadView('tests::letters.letterhead-office', 20);
+
+    openModal()->set('form.type', 'viewhead')->assertSee(__('letters/letters.type_letterhead'))->assertDontSee('tests::letters.letterhead-office');
+});
+
+test('an error in a table row names the row', function (): void {
+    openModal()
+        ->set('form.type', 'table')
+        ->set('form.extra', ['lines' => [
+            ['_groups' => ['detail' => false], 'detail' => ['note' => '']],
+            ['_groups' => ['detail' => true], 'detail' => ['note' => '']],
+        ]])
+        ->call('save')
+        ->assertHasErrors(['form.extra.lines.1.detail']);
 });
 
 test('a locked field keeps its saved value', function (): void {
@@ -400,9 +509,10 @@ test('editing a letter fills the form from it', function (): void {
 test('the type of a saved letter cannot change', function (): void {
     $letter = savedLetter('permit');
 
-    openModal($letter)->set('form.type', 'plain')->call('save');
+    openModal($letter)->set('form.type', 'plain')->set('form.date', '2027-01-01')->call('save')->assertHasNoErrors();
 
-    expect($letter->refresh()->type)->toBe('permit');
+    expect($letter->refresh()->type)->toBe('permit')
+        ->and($letter->date?->toDateString())->toBe('2027-01-01');
 });
 
 test('adding a letter needs create on the source', function (): void {

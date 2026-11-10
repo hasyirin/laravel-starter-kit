@@ -27,4 +27,5 @@ return [
     'signer_required' => 'Choose a signer.',
     'signer_without_position' => 'The signer has no position.',
     'type' => 'Letter type',
+    'type_letterhead' => 'Letter type letterhead',
 ];

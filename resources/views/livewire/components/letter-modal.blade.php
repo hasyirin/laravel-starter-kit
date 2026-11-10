@@ -59,13 +59,13 @@
                                         />
                                     </div>
                                     <div class="grow">
-                                        @if($copy['kind'] === 'organization')
+                                        @if(data_get($copy, 'kind') === 'organization')
                                             <x-select
                                                 wire:model="form.carbon_copies.{{ $index }}.target"
                                                 :options="$this->organizations"
                                                 :disabled="! $this->editable('carbon_copies')"
                                             />
-                                        @elseif($copy['kind'] === 'department')
+                                        @elseif(data_get($copy, 'kind') === 'department')
                                             <x-select
                                                 wire:model="form.carbon_copies.{{ $index }}.target"
                                                 :options="$this->departments"

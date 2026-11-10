@@ -121,7 +121,8 @@ class LetterModal extends RecordModal
             return (string) __('letters/letters.no_letterhead');
         }
 
-        $signer = $this->form->signer_id === null ? null : User::query()->find($this->form->signer_id);
+        $signerId = $this->form->signer_id;
+        $signer = $signerId !== null && array_key_exists($signerId, $this->signers) ? User::query()->find($signerId) : null;
         $letterhead = ResolveLetterhead::make()->execute(
             $type,
             $signer instanceof User ? Placement::of($signer->profile) : null,
@@ -131,7 +132,7 @@ class LetterModal extends RecordModal
         return match (true) {
             $letterhead instanceof Letterhead => $letterhead->name,
             ! $letterhead instanceof LetterheadView => (string) __('letters/letters.no_letterhead'),
-            default => $letterhead->view,
+            default => (string) __('letters/letters.type_letterhead'),
         };
     }
 

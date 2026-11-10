@@ -86,18 +86,22 @@ class LetterForm extends Form
     public function rules(): array
     {
         $copyRules = collect($this->carbon_copies)
-            ->flatMap(fn (array $row, int $index): array => $this->copyRules($row['kind'], "carbon_copies.$index"))
+            ->flatMap(fn (mixed $row, int $index): array => $this->copyRules(data_get($row, 'kind'), "carbon_copies.$index"))
             ->all();
+
+        $signerRules = $this->editable('signer') ? ['nullable', 'integer', Rule::in(array_keys($this->signers()))] : [];
+        $copiesEditable = $this->editable('carbon_copies');
 
         return [
             'type' => ['required', Rule::in(array_keys($this->types()))],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'sequence_number' => ['nullable', 'integer', 'min:1'],
             'date' => ['nullable', 'date'],
-            'signer_id' => ['nullable', 'integer', Rule::in(array_keys($this->signers()))],
-            'carbon_copies' => ['array'],
-            'carbon_copies.*.kind' => ['required', Rule::in(['organization', 'department', 'text'])],
-            ...$copyRules,
+            'signer_id' => $signerRules,
+            'carbon_copies' => $copiesEditable ? ['array'] : [],
+            'carbon_copies.*' => $copiesEditable ? ['array'] : [],
+            'carbon_copies.*.kind' => $copiesEditable ? ['required', Rule::in(['organization', 'department', 'text'])] : [],
+            ...($copiesEditable ? $copyRules : []),
             'with_letterhead' => ['boolean'],
             'computer_signed' => ['boolean'],
         ];
@@ -114,9 +118,10 @@ class LetterForm extends Form
     public function types(): array
     {
         $printer = $this->printer();
+        $new = ! $this->letter->exists;
 
         return collect(LetterTypes::forSource($this->source))
-            ->filter(fn (LetterType $type): bool => $type->allowedFor($printer))
+            ->filter(fn (LetterType $type): bool => $type->allowedFor($printer) && (! $new || $this->creatable($type)))
             ->all();
     }
 
@@ -164,7 +169,7 @@ class LetterForm extends Form
         }
 
         if (! $this->letter->exists) {
-            return true;
+            return ! in_array($part, self::PRINT_PARTS, true) || $this->can($type->sourceAbility('print'), $this->source);
         }
 
         return $this->can(in_array($part, self::PRINT_PARTS, true) ? 'print' : 'update', $this->letter);
@@ -184,6 +189,10 @@ class LetterForm extends Form
 
         $type = $this->letterType();
         assert($type instanceof LetterType);
+
+        if (! $this->letter->exists) {
+            $this->authorize('create', $this->source->morphMany(Letter::class, 'source')->make(['type' => $this->type]));
+        }
 
         try {
             return SaveLetter::make()->execute(
@@ -305,9 +314,29 @@ class LetterForm extends Form
         };
     }
 
+    private function creatable(LetterType $type): bool
+    {
+        $lockedRequired = collect($type->extraFields())->contains(
+            fn (Field $field): bool => in_array($field->name, $type->lockedFields(), true) && ! $field->isOptional && $field->type !== FieldType::Group,
+        );
+
+        return ! $lockedRequired && $this->can($type->sourceAbility('create'), $this->source);
+    }
+
+    private function signer(): ?User
+    {
+        if (! $this->editable('signer')) {
+            $actor = $this->letter->exists ? $this->letter->signature?->actor : null;
+
+            return $actor instanceof User ? $actor : null;
+        }
+
+        return $this->signer_id === null ? null : User::query()->findOrFail($this->signer_id);
+    }
+
     private function details(LetterType $type): PrintDetails
     {
-        $signer = $this->signer_id === null ? null : User::query()->findOrFail($this->signer_id);
+        $signer = $this->signer();
 
         return new PrintDetails(
             $type->numbering() === NumberingMode::Manual && $this->reference_number !== '' ? $this->reference_number : null,
@@ -325,6 +354,10 @@ class LetterForm extends Form
      */
     private function copies(): array
     {
+        if (! $this->editable('carbon_copies')) {
+            return $this->letter->exists ? $this->letter->carbon_copies : [];
+        }
+
         $copies = collect($this->carbon_copies)
             ->map(function (array $row): CarbonCopy {
                 if ($row['kind'] === 'organization') {
@@ -414,7 +447,7 @@ class LetterForm extends Form
             FieldType::Group => $this->groupPayload($field, $value, $groupOn, $path),
             FieldType::Image => $this->imagePayload($value, $path),
             FieldType::Table => is_array($value)
-                ? collect($value)->map(fn (mixed $row): mixed => is_array($row) ? $this->payload($field->children, $row, $path.'.*.') : $row)->values()->all()
+                ? collect($value)->map(fn (mixed $row, int|string $index): mixed => is_array($row) ? $this->payload($field->children, $row, "$path.$index.") : $row)->values()->all()
                 : null,
             default => $value === '' ? null : $value,
         };

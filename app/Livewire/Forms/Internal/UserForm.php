@@ -9,6 +9,7 @@ use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Actions\UpdateUser;
 use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Placement;
 use App\Livewire\Form;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
@@ -117,17 +118,14 @@ class UserForm extends Form
         ];
     }
 
-    /**
-     * @return array{organization_id: ?int, branch_id: ?int, department_id: ?int, position_id: ?int}
-     */
-    public function placement(): array
+    public function placement(): Placement
     {
-        return [
-            'organization_id' => $this->organization_id,
-            'branch_id' => $this->branch_id,
-            'department_id' => $this->department_id,
-            'position_id' => $this->position_id,
-        ];
+        return new Placement(
+            organizationId: $this->organization_id,
+            branchId: $this->branch_id,
+            departmentId: $this->department_id,
+            positionId: $this->position_id,
+        );
     }
 
     public function editable(string $part): bool
@@ -173,12 +171,29 @@ class UserForm extends Form
         $permissions = $this->editable('permissions') ? $this->permissions : null;
 
         if (! $this->user instanceof User) {
-            return CreateUser::make()->execute($this->actor(), $this->name, $this->email, $this->password, $this->placement(), $roles, $permissions);
+            return CreateUser::make()->execute(
+                actor: $this->actor(),
+                name: $this->name,
+                email: $this->email,
+                password: $this->password,
+                placement: $this->placement(),
+                roles: $roles,
+                permissions: $permissions,
+            );
         }
 
         $password = $this->password === '' ? null : $this->password;
 
-        UpdateUser::make()->execute($this->actor(), $this->user, $this->name, $this->email, $password, $this->placement(), $roles, $permissions);
+        UpdateUser::make()->execute(
+            actor: $this->actor(),
+            user: $this->user,
+            name: $this->name,
+            email: $this->email,
+            password: $password,
+            placement: $this->placement(),
+            roles: $roles,
+            permissions: $permissions,
+        );
 
         return $this->user;
     }

@@ -6,6 +6,7 @@ namespace App\Domain\User\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class CreateUser
@@ -13,7 +14,6 @@ class CreateUser
     use Actionable;
 
     /**
-     * @param  array{organization_id: ?int, branch_id: ?int, department_id: ?int, position_id: ?int}  $placement
      * @param  array<int, string>|null  $roles
      * @param  array<int, string>|null  $permissions
      *
@@ -24,7 +24,7 @@ class CreateUser
         string $name,
         string $email,
         string $password,
-        array $placement,
+        Placement $placement,
         ?array $roles = null,
         ?array $permissions = null,
     ): User {
@@ -35,7 +35,13 @@ class CreateUser
                 'password' => $password,
             ]);
 
-            ChangeUserProfile::make()->execute($actor, $user, $placement, $roles, $permissions);
+            ChangeUserProfile::make()->execute(
+                actor: $actor,
+                user: $user,
+                placement: $placement,
+                roles: $roles,
+                permissions: $permissions,
+            );
 
             return $user;
         });

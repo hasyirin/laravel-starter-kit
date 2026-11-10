@@ -8,6 +8,9 @@ paths:
 ## Write one Action class per operation
 Put each operation that changes data or applies a domain rule in its own class in `app/Domain/<Context>/Actions/`. Name the class after the operation, for example `UpdateUserInformation`. Use the `App\Domain\Shared\Common\Concerns\Actions\Actionable` trait. Give the class one public `execute()` method with typed parameters and a return type. Every Action class uses the trait, and `ActionableTest` fails when one does not. Fortify's Action classes keep the method names of their Fortify contracts instead of `execute()`.
 
+## Pass values that travel together as one value object
+Give an Action class typed arguments. If a call has more than 4 arguments, name them. Make a `final readonly` class in the context's `Support/` folder only if one group of values goes through 2 or more Action classes, or a caller other than a form builds it. `Placement` is the example. Do not make a data class for each form.
+
 ## Get an Action class from the container
 Call an Action class through `UpdateUserInformation::make()` in every caller: a component, a job, a command, or another Action class. `make()` resolves the Action class from the container, so a test can swap it. Never take an Action class as a parameter, and never create it with `new`.
 

@@ -100,6 +100,7 @@ The user whom an impersonator uses the app as.
 
 **Action**:
 One thing that a user did to a record, such as prepare or approve it. It holds the user, the time, and the profile that was active then.
+_Avoid_: Action class, which is the code's name for one operation
 
 **Actor**:
 The user who did an action.

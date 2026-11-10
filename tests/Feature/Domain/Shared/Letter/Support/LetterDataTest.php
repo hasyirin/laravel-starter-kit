@@ -154,14 +154,13 @@ it('stores an empty table as an empty list', function (): void {
     expect(LetterData::from([Field::table('rows', [Field::text('name')])], ['rows' => ''])->toArray())->toBe(['rows' => []]);
 });
 
-it('passes the media owners to the rows of a table and to a group', function (): void {
+it('passes the media owners to the fields of a group', function (): void {
     $crest = Crest::query()->create(['name' => 'Crest']);
     $uuid = $crest->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection()->uuid;
-    $fields = [Field::table('rows', [Field::image('logo')]), Field::group('g', 'G', [Field::image('logo')])];
+    $fields = [Field::group('g', 'G', [Field::image('logo')])];
 
-    $data = LetterData::from($fields, ['rows' => [['logo' => $uuid]], 'g' => ['logo' => $uuid]], [$crest]);
+    $data = LetterData::from($fields, ['g' => ['logo' => $uuid]], [$crest]);
 
-    expect($data->rows[0]->logo)->toStartWith('data:image/png')
-        ->and($data->g->logo)->toStartWith('data:image/png')
-        ->and($data->toArray())->toBe(['rows' => [['logo' => $uuid]], 'g' => ['logo' => $uuid]]);
+    expect($data->g->logo)->toStartWith('data:image/png')
+        ->and($data->toArray())->toBe(['g' => ['logo' => $uuid]]);
 });

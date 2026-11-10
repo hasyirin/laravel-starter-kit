@@ -10,6 +10,7 @@ use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use LogicException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final readonly class Field
@@ -72,6 +73,12 @@ final readonly class Field
      */
     public static function table(string $name, array $columns): self
     {
+        foreach ($columns as $column) {
+            if ($column->type === FieldType::Image) {
+                throw new LogicException("Table [{$name}] cannot have the image column [{$column->name}].");
+            }
+        }
+
         return new self($name, FieldType::Table, children: $columns);
     }
 

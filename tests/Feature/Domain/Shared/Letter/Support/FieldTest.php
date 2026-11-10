@@ -71,6 +71,11 @@ it('gives group, list and table rules with dot keys', function (): void {
         ->and($rules['minorWorks'])->toContain('nullable', 'array');
 });
 
+it('refuses an image column in a table', function (): void {
+    expect(fn (): Field => Field::table('items', [Field::text('description'), Field::image('photo')]))
+        ->toThrow(LogicException::class, 'Table [items] cannot have the image column [photo].');
+});
+
 it('gives table columns a rule under each row', function (): void {
     $rules = Field::rules([Field::table('items', [Field::text('description')])]);
 

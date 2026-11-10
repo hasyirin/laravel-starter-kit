@@ -60,6 +60,33 @@ test('a locked field is disabled and the others are not', function (): void {
         ->and($document->querySelector('input[wire\:model="form.data.note"]')?->hasAttribute('disabled'))->toBeFalse();
 });
 
+test('a locked field of every type is disabled', function (Field $field, array $values, string $selector): void {
+    $document = renderDataFields([$field], $values, [$field->name]);
+    $controls = $document->querySelectorAll($selector);
+
+    expect($controls)->not->toBeEmpty();
+
+    foreach ($controls as $control) {
+        expect($control->hasAttribute('disabled'))->toBeTrue();
+    }
+})->with([
+    'text' => [Field::text('f'), [], 'input[wire\:model="form.data.f"]'],
+    'lines' => [Field::lines('f'), [], 'textarea[wire\:model="form.data.f"]'],
+    'date' => [Field::date('f'), [], 'ui-date-picker[wire\:model\.self="form.data.f"]'],
+    'number' => [Field::number('f'), [], 'input[data-input-control]'],
+    'yes no' => [Field::yesNo('f'), [], 'ui-switch[wire\:model="form.data.f"]'],
+    'choice' => [Field::choice('f', ['a' => 'A']), [], '[wire\:model="form.data.f"]'],
+    'list' => [Field::list('f'), ['f' => ['one', 'two']], 'input[wire\:model^="form.data.f."]'],
+    'table' => [Field::table('f', [Field::text('c'), Field::number('n')]), ['f' => [['c' => 'x', 'n' => 1]]], 'input[wire\:model="form.data.f.0.c"], input[data-input-control]'],
+    'group switch' => [Field::group('f', 'Group', [Field::text('c')]), [], 'ui-switch[wire\:model\.live="form.data._groups.f"]'],
+]);
+
+test('a locked image upload is disabled', function (): void {
+    $html = (string) test()->blade('<x-letter.data-fields :$fields prefix="form.data" :locked="[\'logo\']" />', ['fields' => [Field::image('logo')]]);
+
+    expect($html)->toContain('&quot;disabled&quot;:true');
+});
+
 test('a locked group disables the fields inside it', function (): void {
     $document = renderDataFields(
         [Field::group('extra', 'Extra', [Field::text('reason')])],

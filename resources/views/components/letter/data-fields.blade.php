@@ -92,7 +92,7 @@
                                 class="grow"
                                 :fields="$field->children"
                                 :prefix="$key.'.'.$index"
-                                :values="$current[$index] ?? []"
+                                :values="is_array($current[$index] ?? null) ? $current[$index] : []"
                                 :disabled="$fieldDisabled"
                                 grouped
                             />

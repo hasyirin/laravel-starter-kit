@@ -126,6 +126,23 @@ test('a signer without a position is refused', function (): void {
     expect(Letter::query()->count())->toBe(0);
 });
 
+test('the unchanged signer who lost the position passes', function (): void {
+    $signer = signerWithPosition();
+    $letter = saveLetter('notice', details($signer));
+    Profile::factory()->for($signer)->create();
+
+    saveLetter('notice', details($signer->fresh()), letter: $letter);
+
+    expect($letter->fresh()->signature?->actor?->is($signer))->toBeTrue();
+});
+
+test('changing to a signer without a position is still refused', function (): void {
+    $letter = saveLetter('notice', details(signerWithPosition()));
+
+    expect(fn (): Letter => saveLetter('notice', details(signerWithPosition(null)), letter: $letter))
+        ->toThrow(ValidationException::class);
+});
+
 test('a letter type that requires a signer refuses no signer', function (): void {
     expect(fn (): Letter => saveLetter('signed', details()))->toThrow(ValidationException::class);
     expect(Letter::query()->count())->toBe(0);

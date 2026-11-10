@@ -345,6 +345,19 @@ test('a user with only update saves a letter whose signer moved to another organ
         ->and($letter->signature?->actor?->is($signer))->toBeTrue();
 });
 
+test('a user with only update saves a letter whose signer lost the position', function (): void {
+    $signer = modalSigner('Demoted');
+    $letter = savedLetter('signed');
+    $letter->act(Act::Sign, $signer);
+    Profile::factory()->for($this->organization)->for($signer)->create();
+    letterAbilities(update: true, print: false);
+
+    openModal($letter)->set('form.date', '2027-03-03')->call('save')->assertHasNoErrors();
+
+    expect($letter->refresh()->date?->toDateString())->toBe('2027-03-03')
+        ->and($letter->signature?->actor?->is($signer))->toBeTrue();
+});
+
 test('a user with only update saves a letter whose carbon copy department was deleted', function (): void {
     $department = Department::factory()->for($this->organization)->create(['name' => 'Gone']);
     $letter = savedLetter('permit', ['carbon_copies' => [new CarbonCopy('Gone', 'department', $department->id)]]);

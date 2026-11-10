@@ -37,7 +37,7 @@ class SaveLetter
 
         throw_unless($type->allowedFor($user), LogicException::class, "The letter type [{$key}] is not allowed for this user.");
 
-        $this->checkSigner($type, $key, $details->signer);
+        $this->checkSigner($letter, $type, $key, $details->signer);
 
         $extraRules = Field::rules($type->extraFields(), [$letter]);
 
@@ -164,13 +164,17 @@ class SaveLetter
         return ValidationException::withMessages(['reference_number' => __('letters/letters.reference_number_taken')]);
     }
 
-    private function checkSigner(LetterType $type, string $key, ?User $signer): void
+    private function checkSigner(Letter $letter, LetterType $type, string $key, ?User $signer): void
     {
         throw_if($signer instanceof User && $type->signer() === SignerRequirement::Hidden, LogicException::class, "The letter type [{$key}] has no signer.");
 
         if (! $signer instanceof User) {
             throw_if($type->signer() === SignerRequirement::Required, ValidationException::withMessages(['signer' => __('letters/letters.signer_required')]));
 
+            return;
+        }
+
+        if ($letter->exists && $letter->signature?->actor_id === $signer->id) {
             return;
         }
 

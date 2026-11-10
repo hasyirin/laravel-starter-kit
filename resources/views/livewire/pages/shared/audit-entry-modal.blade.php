@@ -1,3 +1,4 @@
+@use(App\Domain\Shared\Common\Models\AuditEntry)
 @use(App\Domain\User\Models\Profile)
 @use(App\Domain\Shared\Common\Support\AuditLog)
 
@@ -9,7 +10,7 @@
 
             <div class="space-y-6">
                 <div>
-                    <flux:heading size="lg">{{ AuditLog::subjectLabel($entry) }}</flux:heading>
+                    <flux:heading size="lg">{{ $entry->subject_type ? AuditLog::subjectLabel($entry) : AuditLog::eventLabel($entry) }}</flux:heading>
 
                     <flux:subheading>{{ AuditLog::summary($entry) }}</flux:subheading>
 
@@ -17,6 +18,52 @@
                         <flux:subheading>{{ __('user/users.impersonation.by', ['name' => $impersonator]) }}</flux:subheading>
                     @endif
                 </div>
+
+                @if($entry instanceof AuditEntry && $entry->event === 'printed-manual-letter')
+                    <div class="space-y-2">
+                        <flux:heading>{{ __('common/audit.letter.type') }}</flux:heading>
+
+                        <flux:text>{{ $entry->getProperty('type') }}</flux:text>
+                    </div>
+
+                    @foreach(['data', 'extra', 'details'] as $property)
+                        @php($values = AuditLog::values($entry, $property))
+
+                        @if($values->isNotEmpty())
+                            <div class="space-y-2" wire:key="values-{{ $property }}">
+                                <flux:heading>{{ __("common/audit.letter.$property") }}</flux:heading>
+
+                                <dl class="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
+                                    @foreach($values as $label => $value)
+                                        <dt class="font-medium">{{ $label }}</dt>
+                                        <dd class="break-all">{{ $value }}</dd>
+                                    @endforeach
+                                </dl>
+                            </div>
+                        @endif
+                    @endforeach
+
+                    @if($entry->media->isNotEmpty())
+                        <div class="space-y-2">
+                            <flux:heading>{{ __('common/audit.letter.images') }}</flux:heading>
+
+                            <div class="flex flex-wrap gap-4">
+                                @foreach($entry->media as $media)
+                                    <a href="{{ route('media.show', $media) }}" target="_blank" class="space-y-1 text-sm" wire:key="media-{{ $media->id }}">
+                                        @if($media->hasGeneratedConversion('preview'))
+                                            <img
+                                                src="{{ route('media.show', [$media, 'preview']) }}"
+                                                alt="{{ $media->file_name }}"
+                                                class="max-h-32 rounded border"
+                                            />
+                                        @endif
+                                        <span class="block">{{ $media->file_name }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                @endif
 
                 @if($changes->isEmpty())
                     <flux:text>{{ __('common/audit.no_changes') }}</flux:text>

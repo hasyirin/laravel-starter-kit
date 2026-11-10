@@ -305,6 +305,19 @@ class AuditLog
     }
 
     /**
+     * @return Collection<string, string>
+     */
+    public static function values(Activity $entry, string $property): Collection
+    {
+        $values = $entry->getProperty($property);
+
+        return collect(is_array($values) ? $values : [])
+            ->mapWithKeys(fn (mixed $value, int|string $key): array => [
+                self::fieldLabel((string) $key) => is_scalar($value) ? (string) $value : (string) json_encode($value),
+            ]);
+    }
+
+    /**
      * @return array{0: array<array-key, mixed>, 1: array<array-key, mixed>}
      */
     private static function changeSets(Activity $entry): array

@@ -19,6 +19,13 @@ return [
     'none' => 'None',
     'yes' => 'Yes',
     'no' => 'No',
+    'letter' => [
+        'type' => 'Letter type',
+        'data' => 'Letter data',
+        'extra' => 'Extra values',
+        'details' => 'Print details',
+        'images' => 'Images',
+    ],
     'events' => [
         'created' => 'Created',
         'updated' => 'Updated',

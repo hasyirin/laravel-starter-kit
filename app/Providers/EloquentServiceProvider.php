@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Shared\Actor\Models\Action;
+use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\Shared\Geography\Models\Address;
 use App\Domain\Shared\Geography\Models\Country;
 use App\Domain\Shared\Geography\Models\District;
@@ -34,6 +35,7 @@ class EloquentServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'action' => Action::class,
             'address' => Address::class,
+            'audit_entry' => AuditEntry::class,
             'branch' => Branch::class,
             'country' => Country::class,
             'department' => Department::class,

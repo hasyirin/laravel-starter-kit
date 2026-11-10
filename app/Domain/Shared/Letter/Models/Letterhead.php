@@ -9,9 +9,11 @@ use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Common\Models\Model;
 use App\Domain\Shared\Letter\Enums\LetterheadImage;
 use App\Domain\Shared\Letter\Factories\LetterheadFactory;
+use App\Domain\Shared\Letter\Observers\LetterheadObserver;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +26,7 @@ use LogicException;
  * @property int|null $department_id
  * @property string $name
  */
+#[ObservedBy(LetterheadObserver::class)]
 class Letterhead extends Model implements HasMedia
 {
     /** @use HasFactory<LetterheadFactory> */

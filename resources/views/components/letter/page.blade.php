@@ -14,6 +14,14 @@
     $footerImage = isset($footer) ? $footer->attributes->get('src') : null;
     $footerHtml = isset($footer) && $footerImage === null ? $footer : null;
     $firstFooterImage = isset($firstFooter) ? $firstFooter->attributes->get('src') : null;
+
+    if ($firstHeaderHtml !== null && $headerHtml !== null) {
+        throw new \LogicException('A letter page cannot have an HTML first header and an HTML header. Give the letterhead one mode: first page only or every page.');
+    }
+
+    if (isset($firstFooter) && $firstFooterImage === null) {
+        throw new \LogicException('A letter page cannot have an HTML first footer. A first-page-only footer must be an image.');
+    }
 @endphp
 
 <!doctype html>

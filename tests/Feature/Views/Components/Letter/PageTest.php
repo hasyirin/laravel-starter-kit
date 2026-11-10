@@ -8,6 +8,7 @@ use Dom\Element;
 use Dom\HTMLDocument;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\View\ViewException;
 
 /**
  * @param  view-string  $view
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\File;
 function renderLetterPage(string $view, array $viewData = []): string
 {
     $path = storage_path('framework/testing/'.str()->uuid7().'.pdf');
+
+    test()->letterPagePath = $path;
 
     RenderPdf::make()->execute($view, $viewData, Preferences::current())->save($path);
 
@@ -63,13 +66,37 @@ function letterPageImages(string $path): Collection
         ->values();
 }
 
+function letterPagePoints(float $millimeters): float
+{
+    return $millimeters * 72 / 25.4;
+}
+
+beforeEach(function (): void {
+    $this->letterPagePath = null;
+});
+
+afterEach(function (): void {
+    if ($this->letterPagePath !== null) {
+        File::delete($this->letterPagePath);
+    }
+});
+
+it('refuses an html first header with an html header', function (): void {
+    expect(fn () => $this->blade('<x-letter.page><x-slot:firstHeader>First</x-slot:firstHeader><x-slot:header>Every</x-slot:header>Body</x-letter.page>'))
+        ->toThrow(ViewException::class, 'A letter page cannot have an HTML first header and an HTML header.');
+});
+
+it('refuses an html first footer', function (): void {
+    expect(fn () => $this->blade('<x-letter.page><x-slot:firstFooter>First</x-slot:firstFooter>Body</x-letter.page>'))
+        ->toThrow(ViewException::class, 'A letter page cannot have an HTML first footer.');
+});
+
 it('prints a first page image header and footer on page 1 only', function (): void {
     $path = renderLetterPage('tests::letters.image-letterhead', ['image' => letterPageImage(), 'everyPage' => false]);
 
     expect(letterPageWords($path))->toHaveCount(3)
         ->and(letterPageImages($path)->pluck('page')->all())->toBe([1, 1]);
 
-    File::delete($path);
 })->group('chrome');
 
 it('prints an every page image header and footer on each page at full width', function (): void {
@@ -79,7 +106,6 @@ it('prints an every page image header and footer on each page at full width', fu
         ->and(letterPageImages($path)->pluck('page')->all())->toBe([1, 1, 2, 2, 3, 3])
         ->and(letterPageImages($path)->pluck('ppi')->all())->each->toBeBetween(299, 301);
 
-    File::delete($path);
 })->group('chrome');
 
 it('prints an html header and footer on each page', function (): void {
@@ -93,25 +119,22 @@ it('prints an html header and footer on each page', function (): void {
         expect($words->pluck('text'))->toContain('Office', 'Footer');
     });
 
-    File::delete($path);
 })->group('chrome');
 
 it('keeps body text clear of an html header and footer', function (): void {
     $path = renderLetterPage('tests::letters.html-letterhead');
 
-    letterPageWords($path)->each(function (Collection $words): void {
-        $header = $words->where('text', 'Office');
-        $footer = $words->where('text', 'Footer');
+    $pages = letterPageWords($path);
+
+    expect($pages)->toHaveCount(3);
+
+    $pages->each(function (Collection $words): void {
         $body = $words->where('text', 'Line');
 
-        expect($header)->not->toBeEmpty()
-            ->and($footer)->not->toBeEmpty()
-            ->and($body)->not->toBeEmpty()
-            ->and($body->min('top'))->toBeGreaterThan($header->max('bottom'))
-            ->and($body->max('bottom'))->toBeLessThan($footer->min('top'));
+        expect($body)->not->toBeEmpty()
+            ->and($body->min('top'))->toBeGreaterThanOrEqual(letterPagePoints(40) - 0.5)
+            ->and($body->max('bottom'))->toBeLessThanOrEqual(letterPagePoints(297 - 25 - 20) + 0.5);
     });
-
-    File::delete($path);
 })->group('chrome');
 
 it('prints page numbers as page of pages', function (): void {
@@ -125,5 +148,4 @@ it('prints page numbers as page of pages', function (): void {
         expect($words->pluck('text')->implode(' '))->toContain(($index + 1).' / 3');
     });
 
-    File::delete($path);
 })->group('chrome');

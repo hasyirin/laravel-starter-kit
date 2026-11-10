@@ -101,6 +101,24 @@ erDiagram
         datetime updated_at
         datetime deleted_at
     }
+    letters {
+        integer id PK
+        string type
+        string source_type
+        integer source_id
+        string reference_number
+        string sequence_key
+        integer sequence_number
+        integer sequence_cycle
+        date date
+        json carbon_copies
+        json extra
+        boolean with_letterhead
+        boolean computer_signed
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     media {
         integer id PK
         string model_type
@@ -278,6 +296,7 @@ These polymorphic column pairs can point to any table, so the diagram draws no l
 - `activity_log.subject_type` and `activity_log.subject_id`
 - `activity_log.causer_type` and `activity_log.causer_id`
 - `addresses.addressable_type` and `addresses.addressable_id`
+- `letters.source_type` and `letters.source_id`
 - `media.model_type` and `media.model_id`
 - `model_has_permissions.model_type` and `model_has_permissions.model_id`
 - `model_has_roles.model_type` and `model_has_roles.model_id`

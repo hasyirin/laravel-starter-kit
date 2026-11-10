@@ -13,6 +13,7 @@ enum Act: string implements HasLabel
     use EnumExtension, InteractsWithLabel;
 
     case Prepare = 'prepare';
+    case Sign = 'sign';
 
     public function label(): string
     {

@@ -12,6 +12,7 @@ use App\Domain\Shared\Geography\Models\Postcode;
 use App\Domain\Shared\Geography\Models\PostOffice;
 use App\Domain\Shared\Geography\Models\State;
 use App\Domain\Shared\Geography\Models\Subdistrict;
+use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
@@ -37,6 +38,7 @@ class EloquentServiceProvider extends ServiceProvider
             'country' => Country::class,
             'department' => Department::class,
             'district' => District::class,
+            'letter' => Letter::class,
             'letterhead' => Letterhead::class,
             'organization' => Organization::class,
             'position' => Position::class,

@@ -1,11 +1,20 @@
 @import 'tailwindcss' source(none);
 
 @source '../views/letters';
-@source '../views/components/letter*';
+@source '../views/components/letter';
 
 @page {
     size: A4;
-    margin: 25mm 20mm;
+    margin: 25mm 0;
+
+    @bottom-center {
+        content: counter(page) ' / ' counter(pages);
+        padding: 5mm 20mm 0;
+        font-family: var(--font-sans);
+        font-size: 9pt;
+        text-align: right;
+        vertical-align: top;
+    }
 }
 
 @theme {

@@ -42,7 +42,7 @@ class PrintLetter
         $extra = $this->extraData($letter, $type);
 
         if (! $preview) {
-            AssignReferenceNumber::make()->execute($letter, $printer);
+            AssignReferenceNumber::make()->execute($letter, $printer, $date);
         }
 
         $signerProfile = $this->signerProfile($letter);

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Actor\Enums\Act;
+use App\Domain\Shared\Letter\Actions\AssignReferenceNumber;
 use App\Domain\Shared\Letter\Actions\PrintLetter;
 use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
@@ -14,11 +15,16 @@ use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
+use Tests\Fixtures\Models\Crest;
 use Tests\Fixtures\Support\BrokenMappingLetter;
+use Tests\Fixtures\Support\CrestLetter;
 use Tests\Fixtures\Support\ExtraNoticeLetter;
 use Tests\Fixtures\Support\MalayNoticeLetter;
 use Tests\Fixtures\Support\NumberedPrintedLetter;
@@ -195,6 +201,46 @@ test('a refused print assigns no number and no date and leaves the sequence', fu
 
     printLetter(printable('numbered'));
     expect(Letter::query()->whereNotNull('reference_number')->value('reference_number'))->toBe('N/1');
+});
+
+test('a deleted image in the mapped data refuses the print and assigns no number', function (): void {
+    Pdf::fake();
+    Schema::create('crests', function (Blueprint $table): void {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+        $table->softDeletes();
+    });
+    Relation::morphMap(['crest' => Crest::class]);
+    config(['system.letters.types' => ['crest' => CrestLetter::class]]);
+    $crest = Crest::query()->create(['name' => 'Crest']);
+    $media = $crest->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection();
+    config(['test.crest_logo' => $media->uuid]);
+    $media->delete();
+    $letter = Letter::factory()->ofType('crest')->create(['source_type' => 'crest', 'source_id' => $crest->id]);
+
+    expect(fn (): PdfFile => printLetter($letter))->toThrow(ValidationException::class);
+
+    expect($letter->fresh()?->reference_number)->toBeNull()->and($letter->fresh()?->date)->toBeNull();
+});
+
+test('the stored date is the date the data was built with', function (): void {
+    Pdf::fake();
+    $letter = printable('numbered');
+
+    AssignReferenceNumber::make()->execute($letter, $this->printer, CarbonImmutable::parse('2026-01-02'));
+
+    expect($letter->fresh()?->date?->toDateString())->toBe('2026-01-02');
+});
+
+test('a print stores the date it rendered', function (): void {
+    Pdf::fake();
+    $this->travelTo(CarbonImmutable::parse('2026-07-04 23:59:59', config()->string('system.timezone')));
+    $letter = printable('numbered');
+
+    printLetter($letter);
+
+    expect($letter->fresh()?->date?->toDateString())->toBe('2026-07-04');
 });
 
 test('a letter type mapping error is not reported as a deleted file', function (): void {

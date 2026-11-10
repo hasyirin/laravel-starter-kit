@@ -17,12 +17,12 @@ class AssignReferenceNumber
 {
     use Actionable;
 
-    public function execute(Letter $letter, User $printer): Letter
+    public function execute(Letter $letter, User $printer, ?CarbonImmutable $date = null): Letter
     {
         $locked = $letter->getConnection()->transaction(function () use ($letter, $printer): Letter {
             $locked = Letter::query()->lockForUpdate()->findOrFail($letter->id);
 
-            $locked->date ??= CarbonImmutable::today(config()->string('system.timezone'));
+            $locked->date ??= $date ?? CarbonImmutable::today(config()->string('system.timezone'));
 
             if ($locked->reference_number !== null) {
                 $locked->save();

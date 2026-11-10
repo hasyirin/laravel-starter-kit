@@ -19,7 +19,7 @@ class AssignReferenceNumber
 
     public function execute(Letter $letter, User $printer, ?CarbonImmutable $date = null): Letter
     {
-        $locked = $letter->getConnection()->transaction(function () use ($letter, $printer): Letter {
+        $locked = $letter->getConnection()->transaction(function () use ($letter, $printer, $date): Letter {
             $locked = Letter::query()->lockForUpdate()->findOrFail($letter->id);
 
             $locked->date ??= $date ?? CarbonImmutable::today(config()->string('system.timezone'));

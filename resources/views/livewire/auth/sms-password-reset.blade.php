@@ -16,6 +16,10 @@
             <flux:error name="phone" />
 
             <flux:button variant="ghost" class="cursor-pointer text-sm" wire:click="send">{{ __('auth/sms-password-reset.resend') }}</flux:button>
+
+            <flux:button variant="ghost" class="cursor-pointer text-sm" wire:click="changeNumber">
+                {{ __('auth/sms-password-reset.change_number') }}
+            </flux:button>
         </div>
     @else
         <form wire:submit="send" class="flex flex-col gap-6">

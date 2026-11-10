@@ -56,6 +56,19 @@ test('a failed sms goes to the log, and the page shows the same next step', func
     Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'The provider refused the SMS.');
 });
 
+test('the code step leads back to the number, to change it', function (): void {
+    Livewire::test(SmsPasswordReset::class)
+        ->set('phone', '+60123456789')
+        ->call('send')
+        ->assertSee('Use another number')
+        ->set('code', '123456')
+        ->call('changeNumber')
+        ->assertSet('showingCodeStep', false)
+        ->assertSet('phone', '+60123456789')
+        ->assertSet('code', '')
+        ->assertSee('Send code');
+});
+
 test('a phone number in local format is refused', function (): void {
     Livewire::test(SmsPasswordReset::class)
         ->set('phone', '0123456789')

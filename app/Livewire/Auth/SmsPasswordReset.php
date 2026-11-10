@@ -58,6 +58,12 @@ class SmsPasswordReset extends Component
         $this->redirect(route('password.reset', ['token' => $reset['token'], 'email' => $reset['email']]));
     }
 
+    public function changeNumber(): void
+    {
+        $this->reset('code', 'showingCodeStep');
+        $this->resetErrorBag();
+    }
+
     private function lockedMessage(SmsPasswordResetLocked $smsPasswordResetLocked): string
     {
         $time = CarbonInterval::seconds($smsPasswordResetLocked->seconds)

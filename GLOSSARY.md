@@ -133,6 +133,55 @@ _Avoid_: Activity, activity log, history
 One change in the audit log: the record, the event, the user who made it, and the old and new values.
 _Avoid_: Activity, log entry
 
+### Letters
+
+**Letter**:
+Signed correspondence from the owner to a recipient, with a reference number. A report or a bill is not a letter.
+_Avoid_: Document, printable, surat
+
+**Letter type**:
+A kind of letter, for example a demolition notice or a permit approval. It sets the text, the layout, and the numbering of its letters.
+_Avoid_: Template
+
+**Letter source**:
+The record that a letter is about, for example an approval or a notice.
+_Avoid_: Subject, which is the title line of a letter
+
+**Letter data**:
+The named values that a letter prints, for example the recipient, the title, and the fees. Each letter type declares its letter data.
+_Avoid_: Variables, placeholders
+
+**Manual letter**:
+A letter that a system administrator makes from letter data typed or changed by hand, outside the letter records. It has no letter row and takes no number from a sequence.
+_Avoid_: Hack, override
+
+**Letterhead**:
+The header image, and an optional footer image, that a letter prints for an organization. A letterhead can also be for one branch or one department of that organization.
+_Avoid_: Kop surat, header
+
+**Carbon copy**:
+A party who gets a copy of a letter. The letter lists its carbon copies after the signature.
+_Avoid_: CC, s.k.
+
+**Reference number**:
+The number that identifies a letter. A letter gets it once, and it is never given to another letter.
+_Avoid_: Letter number, file reference, Bil., No. Rujukan
+
+**Signer**:
+The staff member whose name and position a letter prints above the signature line. Some letters have no signer, and a person signs them by hand.
+
+**Preview**:
+A PDF of a letter that is marked as a draft and has no reference number yet. The app never keeps a preview.
+_Avoid_: Draft print
+
+**Print**:
+One PDF of a letter, made at one time with one signer and one set of carbon copies.
+_Avoid_: Copy, version
+
+**Kept print**:
+A print that the app stores, with the user who made it and the time. Only some letters keep their prints.
+_Avoid_: History, which the audit log means
+
 ### Addresses
 
 **Address**:

@@ -9,10 +9,9 @@ use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\LetterheadView;
 use App\Domain\Shared\Letter\Support\LetterType;
-use App\Domain\Shared\Organization\Models\Department;
-use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Placement;
+use App\Livewire\Concerns\ListsCarbonCopyTargets;
 use App\Livewire\Forms\Shared\LetterForm;
 use App\Livewire\RecordModal;
 use Illuminate\Contracts\View\View;
@@ -25,6 +24,8 @@ use Livewire\Attributes\On;
 /** @extends RecordModal<Letter> */
 class LetterModal extends RecordModal
 {
+    use ListsCarbonCopyTargets;
+
     #[Locked]
     public Model $source;
 
@@ -103,34 +104,6 @@ class LetterModal extends RecordModal
     public function signers(): array
     {
         return $this->form->signers();
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    #[Computed]
-    public function organizations(): array
-    {
-        /** @var array<string, string> $organizations */
-        $organizations = Organization::query()->orderBy('name')->pluck('name', 'id')->all();
-
-        return $organizations;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    #[Computed]
-    public function departments(): array
-    {
-        /** @var array<string, string> $departments */
-        $departments = Department::query()
-            ->where('organization_id', auth()->user()?->profile?->organization_id)
-            ->orderBy('name')
-            ->pluck('name', 'id')
-            ->all();
-
-        return $departments;
     }
 
     #[Computed]

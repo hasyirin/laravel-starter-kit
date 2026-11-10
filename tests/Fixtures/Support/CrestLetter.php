@@ -14,7 +14,7 @@ class CrestLetter extends LetterType
 {
     public function view(): string
     {
-        return 'tests::letters.plain';
+        return 'tests::letters.crest';
     }
 
     /**

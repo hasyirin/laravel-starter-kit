@@ -8,21 +8,15 @@ use App\Domain\Shared\Actor\Models\Action;
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
-use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\LetterData;
-use App\Domain\Shared\Letter\Support\LetterheadView;
 use App\Domain\Shared\Letter\Support\LetterType;
-use App\Domain\Shared\Letter\Support\LetterView;
 use App\Domain\Shared\Letter\Support\PdfFile;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
-use App\Domain\User\Support\Placement;
 use App\Domain\User\Support\Preferences;
 use Carbon\CarbonImmutable;
-use DateTimeZone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
-use IntlDateFormatter;
 use InvalidArgumentException;
 use LogicException;
 
@@ -47,15 +41,15 @@ class PrintLetter
 
         $signerProfile = $this->signerProfile($letter);
 
-        $view = new LetterView(
+        $view = BuildLetterView::make()->execute(
+            $type,
             $letter->reference_number,
             $date,
-            $this->formatDate($type, $date),
-            $signerProfile?->name,
-            $signerProfile?->position?->name,
+            $signerProfile,
             $letter->carbon_copies,
-            $letter->with_letterhead ? $this->letterhead($type, $signerProfile, $printer) : null,
+            $letter->with_letterhead,
             $letter->computer_signed,
+            $printer,
         );
 
         $content = RenderPdf::make()
@@ -89,27 +83,6 @@ class PrintLetter
         }
 
         return $signature->profile()->withTrashed()->with(['user', 'position'])->first();
-    }
-
-    private function letterhead(LetterType $type, ?Profile $signerProfile, User $printer): Letterhead|LetterheadView|null
-    {
-        return ResolveLetterhead::make()->execute(
-            $type,
-            $signerProfile instanceof Profile ? Placement::of($signerProfile) : null,
-            Placement::of($printer->profile),
-        );
-    }
-
-    private function formatDate(LetterType $type, CarbonImmutable $date): string
-    {
-        return (string) new IntlDateFormatter(
-            $type->locale(),
-            IntlDateFormatter::NONE,
-            IntlDateFormatter::NONE,
-            new DateTimeZone($date->format('P')),
-            IntlDateFormatter::GREGORIAN,
-            $type->dateFormat(),
-        )->format($date);
     }
 
     private function keep(Letter $letter, User $printer, PdfFile $file): void

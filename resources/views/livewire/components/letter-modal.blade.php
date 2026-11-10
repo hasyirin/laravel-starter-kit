@@ -47,64 +47,13 @@
                         />
                     @endif
 
-                    <x-field :label="__('letters/letters.copies')" name="form.carbon_copies">
-                        <div class="space-y-2">
-                            @foreach($form->carbon_copies as $index => $copy)
-                                <div class="flex items-start gap-2" wire:key="copy-{{ $index }}">
-                                    <div class="w-40 shrink-0">
-                                        <x-select
-                                            wire:model.live="form.carbon_copies.{{ $index }}.kind"
-                                            :options="['organization' => __('letters/letters.copy_organization'), 'department' => __('letters/letters.copy_department'), 'text' => __('letters/letters.copy_text')]"
-                                            :disabled="! $this->editable('carbon_copies')"
-                                        />
-                                    </div>
-                                    <div class="grow">
-                                        @if(data_get($copy, 'kind') === 'organization')
-                                            <x-select
-                                                wire:model="form.carbon_copies.{{ $index }}.target"
-                                                :options="$this->organizations"
-                                                :disabled="! $this->editable('carbon_copies')"
-                                            />
-                                        @elseif(data_get($copy, 'kind') === 'department')
-                                            <x-select
-                                                wire:model="form.carbon_copies.{{ $index }}.target"
-                                                :options="$this->departments"
-                                                :disabled="! $this->editable('carbon_copies')"
-                                            />
-                                        @else
-                                            <x-input
-                                                wire:model="form.carbon_copies.{{ $index }}.text"
-                                                autocomplete="off"
-                                                :disabled="! $this->editable('carbon_copies')"
-                                            />
-                                        @endif
-                                    </div>
-                                    @if($this->editable('carbon_copies'))
-                                        <flux:button
-                                            icon="trash"
-                                            variant="ghost"
-                                            :aria-label="__('common/buttons.delete')"
-                                            x-on:click="{{ '$wire.$set('.json_encode('form.carbon_copies').', $wire.$get('.json_encode('form.carbon_copies').').filter((_, position) => position !== '.json_encode($index).'))' }}"
-                                        />
-                                    @endif
-                                </div>
-                            @endforeach
-                            @if($this->editable('carbon_copies'))
-                                <flux:button
-                                    icon="plus"
-                                    size="sm"
-                                    x-on:click="
-                                        $wire.$set('form.carbon_copies', [
-                                            ...($wire.$get('form.carbon_copies') ?? []),
-                                            { kind: 'text', target: null, text: '' },
-                                        ])
-                                    "
-                                >
-                                    {{ __('letters/letters.copy') }}
-                                </flux:button>
-                            @endif
-                        </div>
-                    </x-field>
+                    <x-letter.copy-fields
+                        prefix="form.carbon_copies"
+                        :rows="$form->carbon_copies"
+                        :organizations="$this->organizations"
+                        :departments="$this->departments"
+                        :disabled="! $this->editable('carbon_copies')"
+                    />
 
                     @if($this->letterType->offersLetterhead())
                         <x-switch

@@ -14,21 +14,19 @@ use App\Domain\Shared\Letter\Support\Field;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PrintDetails;
-use App\Domain\Shared\Organization\Models\Department;
-use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\User;
+use App\Livewire\Concerns\HandlesLetterFields;
 use App\Livewire\Form;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class LetterForm extends Form
 {
+    use HandlesLetterFields;
+
     private const array PARTS = ['type', 'reference_number', 'sequence_number', 'date', 'signer', 'carbon_copies', 'with_letterhead', 'computer_signed', 'extra'];
 
     private const array PRINT_PARTS = ['signer', 'carbon_copies', 'with_letterhead', 'computer_signed'];
@@ -85,12 +83,7 @@ class LetterForm extends Form
      */
     public function rules(): array
     {
-        $copyRules = collect($this->carbon_copies)
-            ->flatMap(fn (mixed $row, int $index): array => $this->copyRules(data_get($row, 'kind'), "carbon_copies.$index"))
-            ->all();
-
         $signerRules = $this->editable('signer') ? ['nullable', 'integer', Rule::in(array_keys($this->signers()))] : [];
-        $copiesEditable = $this->editable('carbon_copies');
 
         return [
             'type' => ['required', Rule::in(array_keys($this->types()))],
@@ -98,10 +91,7 @@ class LetterForm extends Form
             'sequence_number' => ['nullable', 'integer', 'min:1'],
             'date' => ['nullable', 'date'],
             'signer_id' => $signerRules,
-            'carbon_copies' => $copiesEditable ? ['array'] : [],
-            'carbon_copies.*' => $copiesEditable ? ['array'] : [],
-            'carbon_copies.*.kind' => $copiesEditable ? ['required', Rule::in(['organization', 'department', 'text'])] : [],
-            ...($copiesEditable ? $copyRules : []),
+            ...$this->copyRowRules($this->editable('carbon_copies')),
             'with_letterhead' => ['boolean'],
             'computer_signed' => ['boolean'],
         ];
@@ -130,22 +120,7 @@ class LetterForm extends Form
      */
     public function signers(): array
     {
-        $type = $this->letterType();
-        $printer = $this->printer();
-        $organizationId = $printer->profile?->organization_id;
-
-        if (! $type instanceof LetterType || $type->signer() === SignerRequirement::Hidden || $organizationId === null) {
-            return [];
-        }
-
-        $users = User::query()
-            ->whereHas('profile', fn (Builder $profile): Builder => $profile->whereNotNull('position_id')->where('organization_id', $organizationId))
-            ->orderBy('name');
-
-        /** @var array<int, string> $signers */
-        $signers = $type->signers($users, $printer)->pluck('name', 'id')->all();
-
-        return $signers;
+        return $this->signerOptions($this->letterType());
     }
 
     public function chooseType(): void
@@ -208,12 +183,12 @@ class LetterForm extends Form
         }
     }
 
-    private function printer(): User
+    /**
+     * @return list<Model>
+     */
+    protected function mediaOwners(): array
     {
-        /** @var User $printer */
-        $printer = auth()->user();
-
-        return $printer;
+        return [$this->letter];
     }
 
     private function onlyType(): string
@@ -287,31 +262,7 @@ class LetterForm extends Form
      */
     private function savedCopies(): array
     {
-        $rows = collect($this->letter->exists ? $this->letter->carbon_copies : [])
-            ->map(fn (CarbonCopy $copy): array => match (true) {
-                $copy->type === 'organization' && $copy->id !== null => ['kind' => 'organization', 'target' => $copy->id, 'text' => ''],
-                $copy->type === 'department' && $copy->id !== null => ['kind' => 'department', 'target' => $copy->id, 'text' => ''],
-                default => ['kind' => 'text', 'target' => null, 'text' => $copy->name],
-            })
-            ->all();
-
-        return array_values($rows);
-    }
-
-    /**
-     * @return array<string, list<mixed>>
-     */
-    private function copyRules(mixed $kind, string $path): array
-    {
-        $departments = Rule::exists('departments', 'id')
-            ->where('organization_id', $this->printer()->profile?->organization_id)
-            ->withoutTrashed();
-
-        return match ($kind) {
-            'organization' => ["$path.target" => ['required', Rule::exists('organizations', 'id')->withoutTrashed()]],
-            'department' => ["$path.target" => ['required', $departments]],
-            default => ["$path.text" => ['required', 'string', 'max:255']],
-        };
+        return $this->copyRows($this->letter->exists ? $this->letter->carbon_copies : []);
     }
 
     private function creatable(LetterType $type): bool
@@ -358,139 +309,7 @@ class LetterForm extends Form
             return $this->letter->exists ? $this->letter->carbon_copies : [];
         }
 
-        $copies = collect($this->carbon_copies)
-            ->map(function (array $row): CarbonCopy {
-                if ($row['kind'] === 'organization') {
-                    $organization = Organization::query()->findOrFail((int) $row['target']);
-
-                    return new CarbonCopy($organization->name, 'organization', $organization->id);
-                }
-
-                if ($row['kind'] === 'department') {
-                    $department = Department::query()->findOrFail((int) $row['target']);
-
-                    return new CarbonCopy($department->name, 'department', $department->id);
-                }
-
-                return new CarbonCopy($row['text']);
-            })
-            ->all();
-
-        return array_values($copies);
-    }
-
-    /**
-     * @param  list<Field>  $fields
-     * @param  array<array-key, mixed>  $values
-     * @return array<string, mixed>
-     */
-    private function formValues(array $fields, array $values): array
-    {
-        $form = [];
-        $groups = [];
-
-        foreach ($fields as $field) {
-            $value = $values[$field->name] ?? null;
-
-            if ($field->type === FieldType::Group) {
-                $groups[$field->name] = is_array($value);
-                $form[$field->name] = $this->formValues($field->children, is_array($value) ? $value : []);
-
-                continue;
-            }
-
-            $form[$field->name] = $field->type === FieldType::Image ? $this->imageItems($value) : $value;
-        }
-
-        return $groups === [] ? $form : [...$form, '_groups' => $groups];
-    }
-
-    /**
-     * @return list<array{uuid: string, name: string, size: int, mime_type: string, preview: bool}>
-     */
-    private function imageItems(mixed $uuid): array
-    {
-        $media = is_string($uuid) ? Field::ownedImage($uuid, [$this->letter]) : null;
-
-        if (! $media instanceof Media) {
-            return [];
-        }
-
-        return [[
-            'uuid' => $media->uuid,
-            'name' => $media->file_name,
-            'size' => $media->size,
-            'mime_type' => $media->mime_type,
-            'preview' => $media->hasGeneratedConversion('preview'),
-        ]];
-    }
-
-    /**
-     * @param  list<Field>  $fields
-     * @param  array<array-key, mixed>  $values
-     * @return array<string, mixed>
-     */
-    private function payload(array $fields, array $values, string $path = ''): array
-    {
-        $groups = is_array($values['_groups'] ?? null) ? $values['_groups'] : [];
-
-        return collect($fields)
-            ->mapWithKeys(fn (Field $field): array => [
-                $field->name => $this->payloadValue($field, $values[$field->name] ?? null, (bool) ($groups[$field->name] ?? false), $path.$field->name),
-            ])
-            ->all();
-    }
-
-    private function payloadValue(Field $field, mixed $value, bool $groupOn, string $path): mixed
-    {
-        return match ($field->type) {
-            FieldType::Group => $this->groupPayload($field, $value, $groupOn, $path),
-            FieldType::Image => $this->imagePayload($value, $path),
-            FieldType::Table => is_array($value)
-                ? collect($value)->map(fn (mixed $row, int|string $index): mixed => is_array($row) ? $this->payload($field->children, $row, "$path.$index.") : $row)->values()->all()
-                : null,
-            default => $value === '' ? null : $value,
-        };
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function groupPayload(Field $field, mixed $value, bool $groupOn, string $path): ?array
-    {
-        if (! $groupOn) {
-            return null;
-        }
-
-        $children = $this->payload($field->children, is_array($value) ? $value : [], $path.'.');
-        $filled = collect($children)->contains(fn (mixed $child): bool => $child !== null && $child !== []);
-
-        if (! $filled) {
-            throw ValidationException::withMessages([$path => __('validation.required', ['attribute' => $field->label ?? $field->name])]);
-        }
-
-        return $children;
-    }
-
-    private function imagePayload(mixed $items, string $path): TemporaryUploadedFile|string|null
-    {
-        $item = is_array($items) ? collect($items)->first() : null;
-
-        if (! is_array($item)) {
-            return null;
-        }
-
-        if (! isset($item['upload'])) {
-            return is_string($item['uuid'] ?? null) ? $item['uuid'] : null;
-        }
-
-        $file = is_string($item['upload']) ? TemporaryUploadedFile::unserializeFromLivewireRequest($item['upload']) : null;
-
-        if (! $file instanceof TemporaryUploadedFile || ! $file->exists()) {
-            throw ValidationException::withMessages([$path => __('common/uploads.expired', ['name' => is_string($item['name'] ?? null) ? $item['name'] : ''])]);
-        }
-
-        return $file;
+        return $this->copiesFromRows($this->carbon_copies);
     }
 
     private function withFormKeys(ValidationException $exception): ValidationException

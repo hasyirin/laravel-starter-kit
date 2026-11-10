@@ -88,6 +88,9 @@ return [
             'audit-log' => [
                 'view' => 'system.audit-log.view',
             ],
+            'letters' => [
+                'compose' => 'system.letters.compose',
+            ],
         ],
     ],
 ];

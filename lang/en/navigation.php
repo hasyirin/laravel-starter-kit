@@ -17,6 +17,7 @@ return [
     'organizations' => 'Organizations',
     'horizon' => 'Horizon',
     'audit_log' => 'Audit log',
+    'manual_letter' => 'Manual letter',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',
         'home' => 'Home',

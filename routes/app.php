@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\StopImpersonationController;
+use App\Livewire\Auth\VerifyPhone;
 use App\Livewire\Pages\App\Dashboard;
 use Illuminate\Support\Facades\Route;
 
 Route::get('media/{media:uuid}/{conversion?}', MediaController::class)->name('media.show');
 
 Route::post('impersonation/stop', StopImpersonationController::class)->name('impersonation.stop');
+
+Route::livewire('phone/verify', VerifyPhone::class)->middleware('verified')->name('phone-verification.notice');
 
 Route::redirect('settings', '/settings/user-information')->name('settings');
 

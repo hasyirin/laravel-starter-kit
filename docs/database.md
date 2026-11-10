@@ -225,6 +225,47 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
+    running_number_skips {
+        integer id PK
+        integer running_number_id FK
+        integer number
+        string formatted_number
+        string reason
+        integer reset_cycle
+        datetime used_at
+        datetime created_at
+        datetime updated_at
+    }
+    running_number_undos {
+        integer id PK
+        integer running_number_id FK
+        integer number
+        string formatted_number
+        string mode
+        string reason
+        integer reset_cycle
+        datetime reclaimed_at
+        datetime created_at
+        datetime updated_at
+    }
+    running_numbers {
+        integer id PK
+        string type
+        string reset_interval
+        integer reset_month
+        integer reset_day
+        integer reset_weekday
+        integer reset_hour
+        string timezone
+        integer reset_cycle
+        string undo_mode
+        string format
+        integer number
+        integer padding
+        datetime last_reset_at
+        datetime created_at
+        datetime updated_at
+    }
     states {
         integer id PK
         integer country_id FK
@@ -281,6 +322,8 @@ erDiagram
     profiles |o--o{ actions : "profile_id"
     roles ||--o{ model_has_roles : "role_id"
     roles ||--o{ role_has_permissions : "role_id"
+    running_numbers ||--o{ running_number_skips : "running_number_id"
+    running_numbers ||--o{ running_number_undos : "running_number_id"
     states |o--o{ addresses : "state_id"
     states ||--o{ districts : "state_id"
     states ||--o{ post_offices : "state_id"

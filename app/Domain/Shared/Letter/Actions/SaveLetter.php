@@ -8,14 +8,17 @@ use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\Shared\Letter\Enums\FieldType;
 use App\Domain\Shared\Letter\Enums\LetterMedia;
+use App\Domain\Shared\Letter\Enums\NumberingMode;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Support\Field;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PrintDetails;
+use App\Domain\Shared\Letter\Support\ReferenceSequence;
 use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use LogicException;
@@ -39,10 +42,9 @@ class SaveLetter
 
         $validated = validator($extra, $extraRules)->validate();
 
-        return $letter->getConnection()->transaction(function () use ($letter, $type, $key, $source, $details, $validated): Letter {
+        return $letter->getConnection()->transaction(function () use ($letter, $type, $key, $source, $user, $details, $validated): Letter {
             $letter->type = $key;
             $letter->source()->associate($source);
-            $letter->reference_number = $details->referenceNumber;
             $letter->date = $details->date;
             $letter->carbon_copies = $details->carbonCopies;
             $letter->computer_signed = $details->computerSigned;
@@ -54,8 +56,70 @@ class SaveLetter
 
             $this->syncSigner($letter, $details->signer);
 
+            $this->number($letter, $type, $user, $details);
+
             return $letter;
         });
+    }
+
+    private function number(Letter $letter, LetterType $type, User $printer, PrintDetails $details): void
+    {
+        $mode = $type->numbering();
+
+        if ($mode === NumberingMode::Automatic) {
+            return;
+        }
+
+        if ($mode === NumberingMode::Manual) {
+            $this->storeReference($letter, $type, $printer, $details->referenceNumber);
+
+            return;
+        }
+
+        $number = $details->sequenceNumber;
+
+        if ($number === null || $number === $letter->sequence_number) {
+            return;
+        }
+
+        $letter->sequence_number = $number;
+        $letter->sequence_cycle = null;
+        $this->storeReference($letter, $type, $printer, $type->reference($number, $letter));
+
+        ReferenceSequence::for($type, (string) $letter->sequence_key)->reserve($number);
+    }
+
+    private function storeReference(Letter $letter, LetterType $type, User $printer, ?string $reference): void
+    {
+        if ($reference === null) {
+            $letter->reference_number = null;
+            $letter->save();
+
+            return;
+        }
+
+        $letter->unsetRelation('signature');
+        $letter->sequence_key ??= ReferenceSequence::key($type->sequenceKey($letter, $printer));
+        $letter->reference_number = $reference;
+
+        $taken = Letter::withTrashed()
+            ->whereKeyNot($letter->id)
+            ->where('sequence_key', $letter->sequence_key)
+            ->where('reference_number', $reference)
+            ->exists();
+
+        throw_if($taken, $this->takenError());
+
+        try {
+            $letter->save();
+        } catch (UniqueConstraintViolationException) {
+            throw $this->takenError();
+        }
+    }
+
+    private function takenError(): ValidationException
+    {
+        return ValidationException::withMessages(['reference_number' => __('letters/letters.reference_number_taken')]);
     }
 
     private function checkSigner(LetterType $type, string $key, ?User $signer): void

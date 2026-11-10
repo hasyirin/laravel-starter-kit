@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Letter\Support;
 
+use App\Domain\Shared\Letter\Enums\NumberingMode;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
+use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
+use Hasyirin\RunningNumber\Enums\ResetInterval;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
@@ -84,6 +87,31 @@ abstract class LetterType
     public function extraFields(): array
     {
         return [];
+    }
+
+    public function numbering(): NumberingMode
+    {
+        return NumberingMode::Manual;
+    }
+
+    /**
+     * @return list<string|int|null>
+     */
+    public function sequenceKey(Letter $letter, User $printer): array
+    {
+        $profile = $letter->signature->profile ?? $printer->profile;
+
+        return [LetterTypes::keyOf($this), $profile?->organization_id];
+    }
+
+    public function sequenceReset(): ResetInterval
+    {
+        return ResetInterval::NEVER;
+    }
+
+    public function reference(int $number, Letter $letter): string
+    {
+        return (string) $number;
     }
 
     public function sourceAbility(string $letterAbility): string

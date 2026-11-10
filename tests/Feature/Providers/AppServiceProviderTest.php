@@ -30,20 +30,21 @@ test('scheduled tasks run on the clock of the business, not in the time zone of 
     expect(resolve(Schedule::class)->command('inspire')->timezone)->toBe(config('system.timezone'));
 });
 
-test('an open page that needs a verified email sends the user to verify it once the email is unverified', function (bool $verified, ?string $location): void {
+test('an open page that needs a verified email sends the user to verify it once the email is unverified', function (bool $verified, int $status, ?string $location): void {
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
-    preg_match('/wire:snapshot="([^"]+)"/', (string) $this->get(route('security.edit'))->getContent(), $match);
+    $page = $this->get(route('security.edit'));
 
     if (! $verified) {
         $user->forceFill(['email_verified_at' => null])->save();
     }
 
-    $payload = json_encode(['components' => [['snapshot' => html_entity_decode($match[1]), 'updates' => [], 'calls' => [['method' => 'closeModal', 'params' => [], 'metadata' => []]]]]]);
-    $response = $this->call('POST', resolve('livewire')->getUpdateUri(), server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => '*/*', 'HTTP_X_LIVEWIRE' => '1'], content: $payload);
+    $response = callLivewireAction($page, 'settings.security', 'closeModal');
+
+    $response->assertStatus($status);
 
     expect($response->headers->get('Location'))->toBe($location);
 })->with([
-    'a verified email' => [true, null],
-    'an unverified email' => [false, fn (): string => route('verification.notice')],
+    'a verified email' => [true, 200, null],
+    'an unverified email' => [false, 302, fn (): string => route('verification.notice')],
 ]);

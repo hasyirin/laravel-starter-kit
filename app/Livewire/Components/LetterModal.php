@@ -1,0 +1,173 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Livewire\Components;
+
+use App\Domain\Shared\Letter\Actions\ResolveLetterhead;
+use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Letter\Models\Letterhead;
+use App\Domain\Shared\Letter\Support\LetterheadView;
+use App\Domain\Shared\Letter\Support\LetterType;
+use App\Domain\Shared\Organization\Models\Department;
+use App\Domain\Shared\Organization\Models\Organization;
+use App\Domain\User\Models\User;
+use App\Domain\User\Support\Placement;
+use App\Livewire\Forms\Shared\LetterForm;
+use App\Livewire\RecordModal;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
+
+/** @extends RecordModal<Letter> */
+class LetterModal extends RecordModal
+{
+    #[Locked]
+    public Model $source;
+
+    public LetterForm $form;
+
+    public static function label(): string
+    {
+        return (string) __('letters/letters.letter');
+    }
+
+    public function isDisabled(): bool
+    {
+        if ($this->disabled === true) {
+            return true;
+        }
+
+        if (! $this->showing) {
+            return false;
+        }
+
+        if (! $this->record->exists) {
+            return $this->cannot('create', $this->record);
+        }
+
+        return $this->cannot('update', $this->record) && $this->cannot('print', $this->record);
+    }
+
+    public function editable(string $part): bool
+    {
+        return ! $this->isDisabled() && $this->form->editable($part);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function types(): array
+    {
+        return collect($this->form->types())
+            ->mapWithKeys(fn (LetterType $type, string $key): array => [$key => str($key)->headline()->value()])
+            ->all();
+    }
+
+    #[Computed]
+    public function letterType(): ?LetterType
+    {
+        return $this->form->letterType();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    #[Computed]
+    public function signers(): array
+    {
+        return $this->form->signers();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function organizations(): array
+    {
+        /** @var array<string, string> $organizations */
+        $organizations = Organization::query()->orderBy('name')->pluck('name', 'id')->all();
+
+        return $organizations;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function departments(): array
+    {
+        /** @var array<string, string> $departments */
+        $departments = Department::query()
+            ->where('organization_id', auth()->user()?->profile?->organization_id)
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
+
+        return $departments;
+    }
+
+    #[Computed]
+    public function letterheadName(): string
+    {
+        $type = $this->letterType;
+        /** @var User $printer */
+        $printer = auth()->user();
+
+        if (! $type instanceof LetterType) {
+            return (string) __('letters/letters.no_letterhead');
+        }
+
+        $signer = $this->form->signer_id === null ? null : User::query()->find($this->form->signer_id);
+        $letterhead = ResolveLetterhead::make()->execute(
+            $type,
+            $signer instanceof User ? Placement::of($signer->profile) : null,
+            Placement::of($printer->profile),
+        );
+
+        return match (true) {
+            $letterhead instanceof Letterhead => $letterhead->name,
+            ! $letterhead instanceof LetterheadView => (string) __('letters/letters.no_letterhead'),
+            default => $letterhead->view,
+        };
+    }
+
+    public function updatedFormType(): void
+    {
+        $this->form->chooseType();
+    }
+
+    public function updatedFormComputerSigned(): void
+    {
+        if ($this->form->computer_signed) {
+            $this->form->with_letterhead = true;
+        }
+    }
+
+    /**
+     * @return MorphMany<Letter, Model>
+     */
+    protected function query(): MorphMany
+    {
+        return $this->source->morphMany(Letter::class, 'source');
+    }
+
+    protected function fillForm(): void
+    {
+        $this->form->set($this->source, $this->record);
+        unset($this->letterType, $this->types, $this->signers);
+    }
+
+    protected function persist(): void
+    {
+        $this->form->save();
+    }
+
+    public function render(): View
+    {
+        return view('livewire.components.letter-modal');
+    }
+}

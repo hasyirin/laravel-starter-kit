@@ -11,6 +11,7 @@ use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Hasyirin\RunningNumber\Enums\ResetInterval;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
@@ -46,6 +47,15 @@ abstract class LetterType
     public function signer(): SignerRequirement
     {
         return SignerRequirement::Optional;
+    }
+
+    /**
+     * @param  Builder<User>  $users
+     * @return Builder<User>
+     */
+    public function signers(Builder $users, User $printer): Builder
+    {
+        return $users;
     }
 
     public function allowedFor(User $printer): bool

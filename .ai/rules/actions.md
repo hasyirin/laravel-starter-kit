@@ -16,3 +16,6 @@ An Action class takes models and plain values, not the request. It never shows a
 
 ## Let the transition class hold a state step's work
 A state step needs no Action class: its transition class holds the work, with the checks in `reason()` and the changes in `apply()`. Pass input to the step as arguments of its transition class. Give each extra constructor parameter a default, because `allowedFor()` builds the transition class without input. An Action class calls `$model->state->transitionTo()` only when the step is one part of a bigger operation.
+
+## Never keep a hidden value that may be stale
+A form can hide a part of a record, such as the districts or the location of an address. The values then do not hold that part, and the Action class keeps its saved value. Keep it only while it still fits the values that the user changed. If a rule can check it, check it: `SaveAddress` clears a district that is not in the new state. If nothing can check it, clear it when a value it depends on changes: `SaveAddress` clears a hidden location when a line, the postcode, or the city changes. A missing value shows, so a page that shows the part asks for it again. A stale value shows as correct.

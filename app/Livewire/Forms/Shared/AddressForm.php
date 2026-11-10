@@ -43,6 +43,10 @@ class AddressForm extends Form
 
     public ?int $subdistrict_id = null;
 
+    public ?float $latitude = null;
+
+    public ?float $longitude = null;
+
     /**
      * @var (Model&Addressable)|null
      */
@@ -63,6 +67,12 @@ class AddressForm extends Form
 
     #[Locked]
     public bool $districtsRequired = false;
+
+    #[Locked]
+    public bool $showingLocation = false;
+
+    #[Locked]
+    public bool $locationRequired = false;
 
     private ?PostOffice $postOffice = null;
 
@@ -103,11 +113,15 @@ class AddressForm extends Form
             ],
         ];
 
-        if (! $this->showingDistricts) {
-            return $rules;
+        if ($this->showingDistricts) {
+            $rules = [...$rules, ...$this->districtRules($core)];
         }
 
-        return [...$rules, ...$this->districtRules($core)];
+        if ($this->showingLocation) {
+            $rules = [...$rules, ...$this->locationRules($core)];
+        }
+
+        return $rules;
     }
 
     public function required(bool $required = true): static
@@ -145,6 +159,14 @@ class AddressForm extends Form
         return $this;
     }
 
+    public function withLocation(bool $required = false): static
+    {
+        $this->showingLocation = true;
+        $this->locationRequired = $required;
+
+        return $this;
+    }
+
     public function copy(?\Hasyirin\Address\Models\Address $address): static
     {
         $this->line_1 = $address?->line_1;
@@ -154,12 +176,14 @@ class AddressForm extends Form
         $this->post_office_id = $address?->post_office_id;
         $this->district_id = $address?->district_id;
         $this->subdistrict_id = $address?->subdistrict_id;
+        $this->latitude = $address?->latitude;
+        $this->longitude = $address?->longitude;
 
         return $this;
     }
 
     /**
-     * @return array{line_1: ?string, line_2: ?string, line_3: ?string, postcode: ?string, post_office_id: ?int, district_id?: ?int, subdistrict_id?: ?int}
+     * @return array{line_1: ?string, line_2: ?string, line_3: ?string, postcode: ?string, post_office_id: ?int, district_id?: ?int, subdistrict_id?: ?int, latitude?: ?float, longitude?: ?float}
      */
     public function values(): array
     {
@@ -171,11 +195,15 @@ class AddressForm extends Form
             'post_office_id' => $this->post_office_id,
         ];
 
-        if (! $this->showingDistricts) {
-            return $values;
+        if ($this->showingDistricts) {
+            $values = [...$values, 'district_id' => $this->district_id, 'subdistrict_id' => $this->subdistrict_id];
         }
 
-        return [...$values, 'district_id' => $this->district_id, 'subdistrict_id' => $this->subdistrict_id];
+        if ($this->showingLocation) {
+            $values = [...$values, 'latitude' => $this->coordinate($this->latitude), 'longitude' => $this->coordinate($this->longitude)];
+        }
+
+        return $values;
     }
 
     /**
@@ -285,6 +313,8 @@ class AddressForm extends Form
             'post_office_id' => (string) __('common/inputs.city'),
             'district_id' => (string) __('common/inputs.district'),
             'subdistrict_id' => (string) __('common/inputs.subdistrict'),
+            'latitude' => (string) __('common/inputs.latitude'),
+            'longitude' => (string) __('common/inputs.longitude'),
         ];
     }
 
@@ -313,6 +343,38 @@ class AddressForm extends Form
                 Rule::exists(Subdistrict::class, 'id')->withoutTrashed()->where('district_id', $this->district_id),
             ],
         ];
+    }
+
+    /**
+     * @return array<string, list<mixed>>
+     */
+    private function locationRules(bool $core): array
+    {
+        $required = $this->locationRequired && $core;
+
+        return [
+            'latitude' => [
+                Rule::requiredIf($required || $this->longitude !== null),
+                'nullable',
+                'numeric',
+                'between:-90,90',
+            ],
+            'longitude' => [
+                Rule::requiredIf($required || $this->latitude !== null),
+                'nullable',
+                'numeric',
+                'between:-180,180',
+            ],
+        ];
+    }
+
+    private function coordinate(?float $value): ?float
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return round($value, 6);
     }
 
     private function syncDistrict(): void

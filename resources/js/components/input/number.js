@@ -32,7 +32,12 @@ function unformat(value, { comma, separator, unsigned }) {
 
     text = text.replace(separator, '.');
 
-    return unsigned ? text.replace(/-/g, '') : text;
+    if (unsigned) {
+        text = text.replace(/-/g, '');
+    }
+
+    // A minus sign or a separator alone is not a number yet, and a float property cannot take it. The property stays empty until a digit follows.
+    return text === '' || Number.isFinite(Number(text)) ? text : '';
 }
 
 function same(left, right) {

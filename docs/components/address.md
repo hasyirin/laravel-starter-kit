@@ -122,7 +122,7 @@ The district fields are hidden by default. `withDistricts()` shows District and 
 - The District list has the districts of the city's state, so it fills after the user picks the city. When the state has one district, the form selects it.
 - Subdistrict shows only when the district has subdistricts. The bundled data has them only for Negeri Sembilan and Kemaman. A required subdistrict is required only when the district has subdistricts.
 - A city in another state clears the district and the subdistrict. A new district clears the subdistrict.
-- While the fields are hidden, the form leaves the saved district as it is. If the address moves to another state, `SaveAddress` clears a saved district that is not in the new state.
+- While the fields are hidden, the form leaves the saved district as it is while the city stays the same. If the city changes, `SaveAddress` clears the saved district and subdistrict, because only the state can check a district against the city. A page with the district fields then asks for them again.
 
 ## Local Area
 
@@ -157,6 +157,27 @@ public function scopeLocal(Builder $query): void
 Read the area with `PostOffice::query()->local()`. On `State` and `District`, the static `local()` returns one model instead.
 
 `local()` fails at once when `address.locality.state` is not set. When the config also sets a district, `local()` with `withDistricts()` preselects that district. The user then picks only the subdistrict.
+
+## Location
+
+`withLocation()` shows a [map](map.md) below the address, with Latitude and Longitude inputs. The form saves them to `latitude` and `longitude` of the address. `withLocation(required: true)` makes the location required.
+
+```blade
+<livewire:pages.local.examples.address location="optional" />
+```
+
+- Both values are needed, or neither. The latitude must be between -90 and 90, and the longitude between -180 and 180.
+- The form rounds both values to 6 decimals.
+- A location counts as a filled part. So a location alone makes line 1, the postcode, and the city required.
+- A required location is required only when the address is required or filled, like the districts.
+- `copy()` always fills the location. `values()` includes it only when the form shows it.
+- While the map is hidden, `SaveAddress` keeps the saved location only if the lines, the postcode, and the city stay the same. If any of them changes, it clears the location, because nothing can check the old location against the new address. A page with the map then asks for it again.
+
+Attributes that start with `location:` go to the map without the prefix. Bind a boolean with a colon, so it is not the string "false":
+
+```html
+<x-address :form="$address" :location:clickable="false" />
+```
 
 ## Address Type
 
@@ -257,7 +278,7 @@ $organizations = Organization::query()->with(['address.postOffice', 'address.sta
 
 ### Attributes
 
-`disabled` disables every field. Without it, the address follows the card around it. `class` goes to the wrapper.
+`disabled` disables every field. Without it, the address follows the card around it. Attributes that start with `location:` go to the map without the prefix. `class` goes to the wrapper.
 
 ### Form Methods
 
@@ -266,6 +287,7 @@ $organizations = Organization::query()->with(['address.postOffice', 'address.sta
 | `AddressForm::required()`       | Makes line 1, the postcode, and the city required.                                                  |
 | `AddressForm::local()`          | Accepts only addresses in the local area.                                                           |
 | `AddressForm::withDistricts()`  | Shows District and Subdistrict. With `required: true`, they are required.                           |
+| `AddressForm::withLocation()`   | Shows the map with Latitude and Longitude. With `required: true`, the location is required.         |
 | `AddressForm::type()`           | Sets the address type. Call it before `set()`.                                                      |
 | `AddressForm::set()`            | Keeps the model and fills the form from its saved address.                                          |
 | `AddressForm::copy()`           | Fills the form from another saved address, and keeps the model.                                     |

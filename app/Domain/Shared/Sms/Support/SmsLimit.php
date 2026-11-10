@@ -32,9 +32,7 @@ final class SmsLimit
             ->map(fn (array $window): int => RateLimiter::availableIn($window['key']))
             ->max();
 
-        if ($wait !== null) {
-            throw new SmsThrottled($wait);
-        }
+        throw_if($wait !== null, SmsThrottled::class, $wait);
 
         $windows->each(fn (array $window): int => RateLimiter::hit($window['key'], $window['seconds']));
     }

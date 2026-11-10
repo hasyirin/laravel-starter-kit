@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PasswordResetCode;
 use App\Domain\User\Notifications\PasswordWasReset;
 use App\Domain\User\Notifications\SmsPasswordResetStarted;
 use App\Domain\User\Rules\PhoneNumber;
 use App\Livewire\Auth\SmsPasswordReset;
+use Illuminate\Support\Defer\DeferredCallbackCollection;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
@@ -36,6 +39,22 @@ test('sending a code shows the same next step whether or not the number has an a
         ->assertSet('showingCodeStep', true)
         ->assertSee(__('auth/sms-password-reset.sent'));
 })->with(['a number of a user' => ['+60123456789'], 'an unknown number' => ['+60198765432']]);
+
+test('a failed sms goes to the log, and the page shows the same next step', function (): void {
+    Exceptions::fake();
+    $this->mock(SmsGateway::class)->expects('send')->andThrow(new RuntimeException('The provider refused the SMS.'));
+    User::factory()->create(['phone' => '+60123456789']);
+
+    Livewire::test(SmsPasswordReset::class)
+        ->set('phone', '+60123456789')
+        ->call('send')
+        ->assertHasNoErrors()
+        ->assertSet('showingCodeStep', true);
+
+    resolve(DeferredCallbackCollection::class)->invoke();
+
+    Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'The provider refused the SMS.');
+});
 
 test('a phone number in local format is refused', function (): void {
     Livewire::test(SmsPasswordReset::class)
@@ -76,6 +95,7 @@ test('a number that locks during the code step says when to try again', function
 });
 
 test('a wrong code shows an error', function (): void {
+    $this->withoutDefer();
     Notification::fake();
     $user = User::factory()->create(['phone' => '+60123456789']);
     $component = Livewire::test(SmsPasswordReset::class)->set('phone', '+60123456789')->call('send');
@@ -85,6 +105,7 @@ test('a wrong code shows an error', function (): void {
 });
 
 test('a user can reset the password with an sms code', function (): void {
+    $this->withoutDefer();
     Notification::fake();
     $user = User::factory()->create(['phone' => '+60123456789']);
     $component = Livewire::test(SmsPasswordReset::class)->set('phone', '+60123456789')->call('send');

@@ -31,6 +31,14 @@ class SendPasswordResetCode
             return;
         }
 
+        // The code goes out after the response, so the response takes the same time for every number.
+        defer(function () use ($phone): void {
+            $this->send($phone);
+        });
+    }
+
+    private function send(string $phone): void
+    {
         $user = User::query()->where('phone', $phone)->whereNotNull('phone_verified_at')->first();
 
         if (! $user instanceof User) {

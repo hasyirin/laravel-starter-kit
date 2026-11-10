@@ -105,3 +105,22 @@ test('two checks at the same time each use up a try', function (): void {
 
     expect($sms->unused())->toBeFalse();
 });
+
+test('a code that runs out during a check does not pass that check', function (): void {
+    $sms = SmsCode::forVerification('+60123456789');
+    $code = $sms->issue();
+    $interleaved = false;
+    Event::listen(CacheHit::class, function (CacheHit $event) use (&$interleaved, $sms, $code): void {
+        if ($interleaved || ! str_starts_with($event->key, 'sms-code:')) {
+            return;
+        }
+
+        $interleaved = true;
+
+        foreach (range(1, 5) as $try) {
+            $sms->check(wrongSmsCode($code));
+        }
+    });
+
+    expect($sms->check($code))->toBeFalse();
+});

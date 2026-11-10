@@ -41,14 +41,14 @@ final readonly class SmsCode
 
     public function check(string $code): bool
     {
-        $hash = cache()->get($this->cacheKey());
-
-        if (! is_string($hash)) {
+        if (! $this->unused()) {
             return false;
         }
 
+        // The try counts before the read, so a code that runs out during this check does not pass.
         $tries = (int) cache()->increment($this->triesKey());
-        $passed = $tries <= self::TRIES && hash_equals($hash, $this->hash($code));
+        $hash = cache()->get($this->cacheKey());
+        $passed = is_string($hash) && $tries <= self::TRIES && hash_equals($hash, $this->hash($code));
 
         if ($passed || $tries >= self::TRIES) {
             cache()->forget($this->cacheKey());

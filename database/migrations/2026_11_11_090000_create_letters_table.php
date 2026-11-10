@@ -28,7 +28,7 @@ return new class extends Migration
             $table->softDeletesTz();
         });
 
-        DB::statement('create unique index letters_sequence_reference_unique on letters (sequence_key, reference_number) where deleted_at is null and reference_number is not null');
+        DB::statement("create unique index letters_sequence_reference_unique on letters (coalesce(sequence_key, ''), reference_number) where deleted_at is null and reference_number is not null");
     }
 
     public function down(): void

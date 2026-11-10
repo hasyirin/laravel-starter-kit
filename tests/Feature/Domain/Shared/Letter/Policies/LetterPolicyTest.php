@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Tests\Fixtures\Models\Permit;
 use Tests\Fixtures\Policies\PermitPolicy;
 use Tests\Fixtures\Support\NoticeLetter;
+use Tests\Fixtures\Support\PermitLetter;
 
 beforeEach(function (): void {
     Schema::create('permits', function (Blueprint $table): void {
@@ -87,4 +88,20 @@ test('a letter whose source is gone passes no ability', function (): void {
     $letter = Letter::query()->forceCreate(['type' => 'notice', 'source_type' => 'permit', 'source_id' => 999]);
 
     expect($this->user->can('view', $letter))->toBeFalse();
+});
+
+test('create without a type passes when the user may create one letter type of the source', function (): void {
+    config(['system.letters.types' => ['permit' => PermitLetter::class]]);
+
+    $open = Permit::query()->create(['name' => 'Open']);
+    $locked = Permit::query()->create(['name' => 'Locked', 'locked' => true]);
+
+    expect($this->user->can('create', $open->letters()->make()))->toBeTrue()
+        ->and($this->user->can('create', $locked->letters()->make()))->toBeFalse();
+});
+
+test('create without a type fails when the source has no letter type', function (): void {
+    config(['system.letters.types' => []]);
+
+    expect($this->user->can('create', Permit::query()->create(['name' => 'Open'])->letters()->make()))->toBeFalse();
 });

@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use InvalidArgumentException;
 
 /**
  * @property int $id
@@ -66,6 +67,16 @@ class Letter extends Model implements HasMedia
         'computer_signed' => false,
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'date' => 'immutable_date',
+            'extra' => 'array',
+            'with_letterhead' => 'boolean',
+            'computer_signed' => 'boolean',
+        ];
+    }
+
     protected static function newFactory(): LetterFactory
     {
         return LetterFactory::new();
@@ -94,14 +105,34 @@ class Letter extends Model implements HasMedia
         $this->addMediaCollection(LetterMedia::Data->value);
     }
 
-    protected function casts(): array
+    /**
+     * @param  array<array-key, mixed>  $copies
+     */
+    private function encodeCopies(array $copies): string
     {
-        return [
-            'date' => 'immutable_date',
-            'extra' => 'array',
-            'with_letterhead' => 'boolean',
-            'computer_signed' => 'boolean',
-        ];
+        return json_encode(
+            collect($copies)->map(fn (mixed $copy): array => $this->copyToArray($copy))->all(),
+            JSON_THROW_ON_ERROR,
+        );
+    }
+
+    /**
+     * @return array{name: string, type: string|null, id: int|null}
+     */
+    private function copyToArray(mixed $copy): array
+    {
+        if ($copy instanceof CarbonCopy) {
+            return $copy->toArray();
+        }
+
+        if (is_array($copy) && is_string($copy['name'] ?? null)) {
+            $type = $copy['type'] ?? null;
+            $id = $copy['id'] ?? null;
+
+            return new CarbonCopy($copy['name'], is_string($type) ? $type : null, is_int($id) ? $id : null)->toArray();
+        }
+
+        throw new InvalidArgumentException('A carbon copy must be a CarbonCopy or an array with a string name.');
     }
 
     /**
@@ -127,17 +158,6 @@ class Letter extends Model implements HasMedia
                     ->all();
             },
             set: fn (array $copies): string => $this->encodeCopies($copies),
-        );
-    }
-
-    /**
-     * @param  array<array-key, mixed>  $copies
-     */
-    private function encodeCopies(array $copies): string
-    {
-        return json_encode(
-            collect($copies)->map(fn (mixed $copy): mixed => $copy instanceof CarbonCopy ? $copy->toArray() : $copy)->all(),
-            JSON_THROW_ON_ERROR,
         );
     }
 }

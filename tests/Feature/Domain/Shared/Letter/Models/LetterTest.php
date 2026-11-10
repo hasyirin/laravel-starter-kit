@@ -102,3 +102,36 @@ test('a reference number is unique within its sequence key while the letter is n
 
     expect($this->permit->letters()->create($attributes))->toBeInstanceOf(Letter::class);
 });
+
+test('two letters without a sequence key cannot share a reference number', function (): void {
+    $attributes = ['type' => 'notice', 'reference_number' => 'REF/1'];
+    $this->permit->letters()->create($attributes);
+
+    expect(fn () => $this->permit->letters()->create($attributes))->toThrow(QueryException::class);
+});
+
+test('a carbon copy that is not a carbon copy is refused', function (mixed $copy): void {
+    expect(fn () => $this->permit->letters()->create(['type' => 'notice', 'carbon_copies' => [$copy]]))
+        ->toThrow(InvalidArgumentException::class);
+})->with([
+    'a string' => ['Finance'],
+    'an array without a name' => [['type' => 'department']],
+    'an array with a non-string name' => [['name' => 5]],
+]);
+
+test('a carbon copy array is stored as a carbon copy', function (): void {
+    $letter = $this->permit->letters()->create(['type' => 'notice', 'carbon_copies' => [['name' => 'Finance']]]);
+
+    expect($letter->fresh()->carbon_copies)->toEqual([new CarbonCopy('Finance')]);
+});
+
+test('the factory makes a letter of the registered type', function (): void {
+    expect(Letter::factory()->create()->type)->toBe('notice');
+    expect(Letter::factory()->ofType('other')->make()->type)->toBe('other');
+});
+
+test('the factory asks for a registered letter type', function (): void {
+    config(['system.letters.types' => []]);
+
+    expect(fn () => Letter::factory()->make())->toThrow(LogicException::class);
+});

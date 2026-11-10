@@ -11,6 +11,7 @@ use App\Domain\Shared\Letter\Support\ReferenceSequence;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 class AssignReferenceNumber
 {
@@ -21,7 +22,11 @@ class AssignReferenceNumber
         $locked = $letter->getConnection()->transaction(function () use ($letter, $printer): Letter {
             $locked = Letter::query()->lockForUpdate()->findOrFail($letter->id);
 
+            $locked->date ??= CarbonImmutable::today(config()->string('system.timezone'));
+
             if ($locked->reference_number !== null) {
+                $locked->save();
+
                 return $locked;
             }
 
@@ -29,14 +34,21 @@ class AssignReferenceNumber
 
             throw_if($type->numbering() === NumberingMode::Manual, ValidationException::withMessages(['reference_number' => __('letters/letters.reference_number_required')]));
 
-            $locked->date ??= CarbonImmutable::today(config()->string('system.timezone'));
             $locked->sequence_key ??= ReferenceSequence::key($type->sequenceKey($locked, $printer));
 
             $next = ReferenceSequence::for($type, $locked->sequence_key)->next();
+            $reference = $type->reference($next['number'], $locked);
+
+            $taken = Letter::withTrashed()
+                ->where('sequence_key', $locked->sequence_key)
+                ->where('reference_number', $reference)
+                ->exists();
+
+            throw_if($taken, LogicException::class, "The letter type [{$locked->type}] gave the reference number [{$reference}] again. Its reference() must include the reset period of its sequence.");
 
             $locked->sequence_number = $next['number'];
             $locked->sequence_cycle = $next['cycle'];
-            $locked->reference_number = $type->reference($next['number'], $locked);
+            $locked->reference_number = $reference;
             $locked->save();
 
             return $locked;

@@ -99,9 +99,13 @@ abstract class LetterType
      */
     public function sequenceKey(Letter $letter, User $printer): array
     {
-        $profile = $letter->signature->profile ?? $printer->profile;
+        $signature = $letter->signature;
 
-        return [LetterTypes::keyOf($this), $profile?->organization_id];
+        if ($signature === null) {
+            return [LetterTypes::keyOf($this), $printer->profile?->organization_id];
+        }
+
+        return [LetterTypes::keyOf($this), $signature->profile()->withTrashed()->first()?->organization_id];
     }
 
     public function sequenceReset(): ResetInterval

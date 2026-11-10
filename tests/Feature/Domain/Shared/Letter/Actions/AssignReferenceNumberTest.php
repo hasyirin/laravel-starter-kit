@@ -8,6 +8,7 @@ use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
+use Hasyirin\RunningNumber\Models\RunningNumber;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\NumberedNoticeLetter;
@@ -142,4 +143,45 @@ test('a stale second instance gets the first instance number', function (): void
     expect($second->reference_number)->toBe('N/1')
         ->and($stale->reference_number)->toBe('N/1')
         ->and(assignNumber(Letter::factory()->ofType('numbered')->create())->reference_number)->toBe('N/2');
+});
+
+test('a backdated letter takes the year of the day its number is given', function (): void {
+    $this->travelTo('2026-12-30 10:00:00');
+    assignNumber(Letter::factory()->ofType('yearly')->create());
+
+    $this->travelTo('2027-01-05 10:00:00');
+    $letter = assignNumber(Letter::factory()->ofType('yearly')->create(['date' => '2026-12-20']));
+
+    expect($letter->reference_number)->toBe('N/1/2027')
+        ->and($letter->date?->toDateString())->toBe('2026-12-20');
+});
+
+test('a number that repeats the reference of a deleted letter is refused and not used', function (): void {
+    $key = "numbered:{$this->organization->id}";
+    assignNumber(Letter::factory()->ofType('numbered')->create());
+    Letter::factory()->ofType('numbered')->create(['sequence_key' => $key, 'reference_number' => 'N/2'])->delete();
+    $letter = Letter::factory()->ofType('numbered')->create();
+
+    expect(fn (): Letter => assignNumber($letter))->toThrow(LogicException::class, 'numbered');
+    expect(RunningNumber::query()->type("letter:{$key}")->value('number'))->toBe(1)
+        ->and($letter->fresh()?->reference_number)->toBeNull();
+});
+
+test('the key uses the organization of a deleted signature profile', function (): void {
+    $signingOrganization = Organization::factory()->create();
+    $signer = userIn($signingOrganization);
+    $letter = Letter::factory()->ofType('numbered')->create();
+    $letter->act(Act::Sign, $signer);
+    Profile::query()->where('user_id', $signer->id)->delete();
+
+    expect(assignNumber($letter)->sequence_key)->toBe("numbered:{$signingOrganization->id}");
+});
+
+test('a letter that already has a reference number but no date gets today', function (): void {
+    $this->travelTo('2026-05-06 10:00:00');
+    $letter = Letter::factory()->ofType('notice')->create(['reference_number' => 'REF/9']);
+
+    assignNumber($letter);
+
+    expect($letter->fresh()?->date?->toDateString())->toBe('2026-05-06');
 });

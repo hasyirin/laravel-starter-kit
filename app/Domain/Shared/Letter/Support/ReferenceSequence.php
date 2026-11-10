@@ -8,7 +8,6 @@ use Hasyirin\RunningNumber\Contracts\RunningNumber;
 use Hasyirin\RunningNumber\Enums\UndoMode;
 use Hasyirin\RunningNumber\Exceptions\RunningNumberAlreadyIssued;
 use Hasyirin\RunningNumber\Exceptions\RunningNumberNotUndoable;
-use Hasyirin\RunningNumber\Exceptions\RunningNumberTypeNotRegistered;
 use Hasyirin\RunningNumber\Models\RunningNumber as RunningNumberRow;
 use Hasyirin\RunningNumber\PendingRunningNumber;
 use LogicException;
@@ -43,22 +42,26 @@ final readonly class ReferenceSequence
      */
     public function next(): array
     {
-        $number = (int) $this->registered(fn (): string => $this->pending()->format('{number}')->padding(0)->generate());
+        $this->register();
 
-        return ['number' => $number, 'cycle' => $this->cycle() ?? 1];
+        $number = (int) $this->pending()->format('{number}')->padding(0)->generate();
+
+        return ['number' => $number, 'cycle' => (int) $this->row()?->reset_cycle];
     }
 
     public function reserve(int $number): void
     {
+        $this->register();
+
         try {
-            $this->registered(fn () => $this->pending()->skip($number));
+            $this->pending()->skip($number);
         } catch (RunningNumberAlreadyIssued) {
         }
     }
 
     public function release(int $number, int $cycle): void
     {
-        if ($this->cycle() !== $cycle) {
+        if ($this->row()?->reset_cycle !== $cycle) {
             return;
         }
 
@@ -68,36 +71,31 @@ final readonly class ReferenceSequence
         }
     }
 
-    /**
-     * @template TResult
-     *
-     * @param  callable(): TResult  $call
-     * @return TResult
-     */
-    private function registered(callable $call): mixed
+    private function register(): void
     {
-        try {
-            return $call();
-        } catch (RunningNumberTypeNotRegistered) {
-            $this->pending()->register(
-                interval: $this->type->sequenceReset(),
-                undoMode: UndoMode::RECORD,
-                timezone: config()->string('system.timezone'),
-            );
+        $row = $this->row();
+        $interval = $this->type->sequenceReset();
+        $timezone = config()->string('system.timezone');
 
-            return $call();
+        if ($row?->undo_mode === UndoMode::RECORD && $row->reset_interval === $interval && $row->timezone === $timezone) {
+            return;
         }
+
+        $this->pending()->register(interval: $interval, undoMode: UndoMode::RECORD, timezone: $timezone);
     }
 
-    private function cycle(): ?int
+    private function row(): ?RunningNumberRow
     {
-        $cycle = RunningNumberRow::query()->type($this->key)->value('reset_cycle');
-
-        return $cycle === null ? null : (int) $cycle;
+        return RunningNumberRow::query()->type($this->type())->first();
     }
 
     private function pending(): PendingRunningNumber
     {
-        return resolve(RunningNumber::class)->for($this->key);
+        return resolve(RunningNumber::class)->for($this->type());
+    }
+
+    private function type(): string
+    {
+        return "letter:{$this->key}";
     }
 }

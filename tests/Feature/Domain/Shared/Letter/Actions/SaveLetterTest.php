@@ -265,3 +265,26 @@ test('an override number that a letter has is refused', function (): void {
 
     expect(fn (): Letter => saveLetter('override', numberDetails(sequenceNumber: 1)))->toThrow(ValidationException::class);
 });
+
+test('a refused new letter stays unsaved', function (): void {
+    saveLetter('notice', numberDetails('REF/1'));
+    $letter = new Letter;
+
+    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
+    expect($letter->exists)->toBeFalse()
+        ->and($letter->id)->toBeNull();
+});
+
+test('an override number below 1 is refused', function (): void {
+    expect(fn (): Letter => saveLetter('override', numberDetails(sequenceNumber: 0)))->toThrow(ValidationException::class);
+    expect(Letter::query()->count())->toBe(0);
+});
+
+test('clearing a typed reference number clears the sequence key', function (): void {
+    $letter = saveLetter('notice', numberDetails('REF/1'));
+
+    saveLetter('notice', numberDetails(), letter: $letter);
+
+    expect($letter->fresh()?->reference_number)->toBeNull()
+        ->and($letter->fresh()?->sequence_key)->toBeNull();
+});

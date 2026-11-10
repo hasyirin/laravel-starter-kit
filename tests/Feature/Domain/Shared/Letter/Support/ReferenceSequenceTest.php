@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Letter\Support\ReferenceSequence;
+use Hasyirin\RunningNumber\Contracts\RunningNumber as RunningNumberContract;
 use Hasyirin\RunningNumber\Enums\ResetInterval;
 use Hasyirin\RunningNumber\Enums\UndoMode;
 use Hasyirin\RunningNumber\Models\RunningNumber;
@@ -33,7 +34,7 @@ test('a key part that is not a string or an int is refused', function (): void {
 test('the first number registers the sequence with its reset and recorded undos', function (): void {
     expect(ReferenceSequence::for(new YearlyNoticeLetter, 'yearly:1')->next())->toBe(['number' => 1, 'cycle' => 1]);
 
-    $row = RunningNumber::query()->type('yearly:1')->sole();
+    $row = RunningNumber::query()->type('letter:yearly:1')->sole();
 
     expect($row->reset_interval)->toBe(ResetInterval::YEARLY)
         ->and($row->undo_mode)->toBe(UndoMode::RECORD)
@@ -109,4 +110,15 @@ test('releasing a number of an unknown sequence does nothing', function (): void
     numberedSequence()->release(1, 1);
 
     expect(RunningNumber::query()->count())->toBe(0);
+});
+
+test('a sequence with other settings is registered again with recorded undos and its reset', function (): void {
+    resolve(RunningNumberContract::class)->for('letter:yearly:1')->register(interval: ResetInterval::NEVER, undoMode: UndoMode::RECLAIM);
+
+    ReferenceSequence::for(new YearlyNoticeLetter, 'yearly:1')->next();
+
+    $row = RunningNumber::query()->type('letter:yearly:1')->sole();
+
+    expect($row->reset_interval)->toBe(ResetInterval::YEARLY)
+        ->and($row->undo_mode)->toBe(UndoMode::RECORD);
 });

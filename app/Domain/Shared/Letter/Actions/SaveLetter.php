@@ -22,6 +22,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use LogicException;
+use Throwable;
 
 class SaveLetter
 {
@@ -42,6 +43,28 @@ class SaveLetter
 
         $validated = validator($extra, $extraRules)->validate();
 
+        validator(['sequence_number' => $details->sequenceNumber], ['sequence_number' => ['nullable', 'integer', 'min:1']])->validate();
+
+        $original = $letter->getRawOriginal();
+        $exists = $letter->exists;
+        $recentlyCreated = $letter->wasRecentlyCreated;
+
+        try {
+            return $this->save($letter, $type, $key, $source, $user, $details, $validated);
+        } catch (Throwable $throwable) {
+            $letter->setRawAttributes($original, sync: true);
+            $letter->exists = $exists;
+            $letter->wasRecentlyCreated = $recentlyCreated;
+
+            throw $throwable;
+        }
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $validated
+     */
+    private function save(Letter $letter, LetterType $type, string $key, Model $source, User $user, PrintDetails $details, array $validated): Letter
+    {
         return $letter->getConnection()->transaction(function () use ($letter, $type, $key, $source, $user, $details, $validated): Letter {
             $letter->type = $key;
             $letter->source()->associate($source);
@@ -65,13 +88,14 @@ class SaveLetter
     private function number(Letter $letter, LetterType $type, User $printer, PrintDetails $details): void
     {
         $mode = $type->numbering();
+        $letter->unsetRelation('signature');
 
         if ($mode === NumberingMode::Automatic) {
             return;
         }
 
         if ($mode === NumberingMode::Manual) {
-            $this->storeReference($letter, $type, $printer, $details->referenceNumber);
+            $this->storeTyped($letter, $type, $printer, $details->referenceNumber);
 
             return;
         }
@@ -82,26 +106,39 @@ class SaveLetter
             return;
         }
 
+        $sequenceKey = $letter->sequence_key ?? ReferenceSequence::key($type->sequenceKey($letter, $printer));
+        $letter->sequence_key = $sequenceKey;
+        $reference = $type->reference($number, $letter);
+        $this->checkTaken($letter, $reference);
+
+        ReferenceSequence::for($type, $sequenceKey)->reserve($number);
+
         $letter->sequence_number = $number;
         $letter->sequence_cycle = null;
-        $this->storeReference($letter, $type, $printer, $type->reference($number, $letter));
-
-        ReferenceSequence::for($type, (string) $letter->sequence_key)->reserve($number);
+        $this->storeReference($letter, $reference);
     }
 
-    private function storeReference(Letter $letter, LetterType $type, User $printer, ?string $reference): void
+    private function storeTyped(Letter $letter, LetterType $type, User $printer, ?string $reference): void
     {
         if ($reference === null) {
             $letter->reference_number = null;
+
+            if ($letter->sequence_number === null) {
+                $letter->sequence_key = null;
+            }
+
             $letter->save();
 
             return;
         }
 
-        $letter->unsetRelation('signature');
         $letter->sequence_key ??= ReferenceSequence::key($type->sequenceKey($letter, $printer));
-        $letter->reference_number = $reference;
+        $this->checkTaken($letter, $reference);
+        $this->storeReference($letter, $reference);
+    }
 
+    private function checkTaken(Letter $letter, string $reference): void
+    {
         $taken = Letter::withTrashed()
             ->whereKeyNot($letter->id)
             ->where('sequence_key', $letter->sequence_key)
@@ -109,6 +146,11 @@ class SaveLetter
             ->exists();
 
         throw_if($taken, $this->takenError());
+    }
+
+    private function storeReference(Letter $letter, string $reference): void
+    {
+        $letter->reference_number = $reference;
 
         try {
             $letter->save();

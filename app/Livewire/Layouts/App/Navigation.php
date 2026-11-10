@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\Layouts\App;
 
-use App\Livewire\Components\Navigation;
+use App\Livewire\Components\Navigation as BaseNavigation;
 use App\Livewire\Components\Navigation\Group;
 use App\Livewire\Components\Navigation\Item;
 use App\Livewire\Components\Navigation\Spacer;
 
-class Sidebar extends Navigation
+class Navigation extends BaseNavigation
 {
     /** @return array<Group|Spacer|Item> */
     protected function items(): array

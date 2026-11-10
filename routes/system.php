@@ -9,4 +9,6 @@ use Illuminate\Support\Facades\Route;
 Route::livewire('/', Dashboard::class)->name('dashboard');
 Route::livewire('audit-log', AuditLog::class)->name('audit-log');
 
-Route::redirect('settings', '/settings/user-information')->name('settings');
+Route::redirect('settings', '/system/settings/user-information')->name('settings');
+
+require __DIR__.'/settings.php';

@@ -7,15 +7,16 @@ namespace App\Livewire\Settings;
 use App\Domain\User\Actions\UpdateUserInformation;
 use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Models\User;
+use App\Http\Enums\Area;
+use App\Livewire\Pages\Shared\Page;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
 #[Title('User information settings')]
-class UserInformation extends Component
+class UserInformation extends Page
 {
     use UserInformationValidationRules;
 
@@ -61,7 +62,7 @@ class UserInformation extends Component
         $user = auth()->user();
 
         if ($user->hasVerifiedEmail()) {
-            $this->redirectIntended(default: route('dashboard', absolute: false));
+            $this->redirectIntended(default: route(Area::current()->route('dashboard'), absolute: false));
 
             return;
         }

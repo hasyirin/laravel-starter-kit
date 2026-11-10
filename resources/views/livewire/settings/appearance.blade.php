@@ -1,6 +1,6 @@
 @use(App\Livewire\Components\Option)
 
-<flux:main>
+<flux:main container>
     @include('partials.settings-heading')
 
     <flux:heading level="2" class="sr-only">{{ __('user/settings.appearance.title') }}</flux:heading>

@@ -7,10 +7,10 @@ namespace App\Livewire\Components\Navigation;
 use App\Domain\User\Models\User;
 use Closure;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 
-final class Item implements Htmlable
+final class Item
 {
     /**
      * @var Collection<int, Item>
@@ -74,11 +74,6 @@ final class Item implements Htmlable
         return filled($this->route);
     }
 
-    public function toHtml(): string
-    {
-        return view('partials.navigation.item', ['item' => $this])->render();
-    }
-
     /**
      * @param  array<string, mixed>  $parameters
      * @param  (Closure(): bool)|array{0: string, 1?: mixed}|string|bool  $accessible
@@ -96,5 +91,10 @@ final class Item implements Htmlable
         Arrayable|array $children = [],
     ): self {
         return new self($label, $icon, $route, $parameters, $active, $href, $accessible, $badge, $children);
+    }
+
+    public function render(Style $style): View
+    {
+        return view("partials.navigation.{$style->value}.item", ['item' => $this, 'style' => $style]);
     }
 }

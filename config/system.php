@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Components\Navigation\Style;
+
 return [
     'timezone' => 'Asia/Kuala_Lumpur',
 
@@ -10,6 +12,10 @@ return [
     'locales' => ['en-MY', 'ms-MY', 'en-GB', 'en-US'],
 
     'country' => 'MY',
+
+    'navigation' => [
+        'app' => Style::Sidebar,
+    ],
 
     'owner' => [
         'organization' => ['code' => 'OWNER', 'name' => 'Owner Organization'],

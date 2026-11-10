@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
-use App\Livewire\Layouts\Local\Sidebar;
+use App\Livewire\Layouts\Local\Navigation;
 use Dom\HTMLDocument;
 
 $pages = collect(glob(dirname(__DIR__, 4).'/docs/components/*.md') ?: [])
@@ -50,7 +50,7 @@ test('the component docs show the local sidebar without a user menu to guests', 
     $response = $this->get(route('docs.components', 'input'));
 
     $response->assertOk()
-        ->assertSeeLivewire(Sidebar::class)
+        ->assertSeeLivewire(Navigation::class)
         ->assertDontSeeHtml('data-test="user-menu-button"');
 
     $document = HTMLDocument::createFromString((string) $response->getContent(), LIBXML_NOERROR);

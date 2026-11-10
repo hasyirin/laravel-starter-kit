@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Livewire\Pages\Shared\Page;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
 #[Title('Appearance settings')]
-class Appearance extends Component
+class Appearance extends Page
 {
     //
 }

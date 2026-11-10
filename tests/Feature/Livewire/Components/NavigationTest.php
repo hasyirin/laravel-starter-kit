@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Livewire\Components\Navigation\Item;
 use App\Livewire\Components\Navigation\Spacer;
+use App\Livewire\Components\Navigation\Style;
 use Livewire\Livewire;
 use Tests\Fixtures\Livewire\StubNavigation;
 
@@ -35,3 +36,14 @@ test('a navigation shows no spacer next to a section the user may not see', func
     'hidden section after it' => [fn (): array => [Item::make(label: 'Sales'), Spacer::make(), Item::make(label: 'System', accessible: false)], 0],
     'hidden section between two spacers' => [fn (): array => [Item::make(label: 'Sales'), Spacer::make(), Item::make(label: 'Payroll', accessible: false), Spacer::make(), Item::make(label: 'System')], 1],
 ]);
+
+test('a navigation in the top bar style shows its sections in a navbar with a spacer between them', function (): void {
+    $component = Livewire::test(StubNavigation::class, ['style' => Style::Topbar, 'entries' => [
+        Item::make(label: 'Sales'),
+        Spacer::make(),
+        Item::make(label: 'System'),
+    ]]);
+
+    $component->assertSeeInOrder(['data-flux-navbar', 'Sales', 'data-flux-spacer', 'System'], false)
+        ->assertDontSeeHtml('data-flux-sidebar');
+});

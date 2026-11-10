@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Livewire\Components\Navigation;
 
-use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View;
 
-final class Spacer implements Htmlable
+final class Spacer
 {
-    public function toHtml(): string
-    {
-        return view('partials.navigation.spacer')->render();
-    }
-
     public static function make(): self
     {
         return new self;
+    }
+
+    public function render(Style $style): View
+    {
+        return view("partials.navigation.{$style->value}.spacer");
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Concerns;
 
+use App\Http\Enums\Area;
+
 trait ConfirmsPassword
 {
     protected function passwordConfirmed(): bool
@@ -14,7 +16,7 @@ trait ConfirmsPassword
             return true;
         }
 
-        session()->put('url.intended', route('security.edit'));
+        session()->put('url.intended', route(Area::current()->route('security.edit')));
 
         $this->redirectRoute('password.confirm');
 

@@ -7,17 +7,17 @@ namespace App\Livewire\Settings;
 use App\Domain\User\Actions\UpdatePreferences;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences as UserPreferences;
+use App\Livewire\Pages\Shared\Page;
 use DateTimeZone;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 use Locale;
 
 #[Title('Preferences')]
-class Preferences extends Component
+class Preferences extends Page
 {
     public string $timezone = '';
 

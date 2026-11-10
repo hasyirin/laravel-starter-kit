@@ -1,3 +1,5 @@
+@use(App\Livewire\Components\Navigation\Style)
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
@@ -5,8 +7,12 @@
     </head>
 
     <body class="min-h-screen bg-zinc-100 antialiased dark:bg-zinc-900">
-        @include('layouts.partials.app.sidebar')
-        @include('layouts.partials.app.header')
+        @if(config('system.navigation.app') === Style::Topbar)
+            @include('layouts.partials.app.topbar')
+        @else
+            @include('layouts.partials.app.sidebar')
+            @include('layouts.partials.app.header')
+        @endif
 
         {{ $slot }}
 

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Livewire\Components\Navigation;
 
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 
-final class Group implements Htmlable
+final class Group
 {
     /**
      * @var Collection<int, Item>
@@ -28,9 +28,9 @@ final class Group implements Htmlable
         $this->accessible = $this->items->isNotEmpty();
     }
 
-    public function toHtml(): string
+    public function active(): bool
     {
-        return view('partials.navigation.group', ['group' => $this])->render();
+        return $this->items->contains(fn (Item $item): bool => $item->active());
     }
 
     /**
@@ -39,5 +39,10 @@ final class Group implements Htmlable
     public static function make(?string $label = null, Arrayable|array $items = []): self
     {
         return new self($label, $items);
+    }
+
+    public function render(Style $style): View
+    {
+        return view("partials.navigation.{$style->value}.group", ['group' => $this, 'style' => $style]);
     }
 }

@@ -54,3 +54,39 @@ test('force deleting a user deletes their profiles', function (): void {
 
     $this->assertModelMissing($profile);
 });
+
+test('a phone number is verified once it has a verification time', function (): void {
+    $user = User::factory()->unverifiedPhone()->create();
+
+    expect($user->hasVerifiedPhone())->toBeFalse();
+
+    $user->markPhoneAsVerified();
+
+    expect($user->fresh()->hasVerifiedPhone())->toBeTrue();
+});
+
+test('sms to a user goes to their phone number', function (): void {
+    $user = User::factory()->create(['phone' => '+60123456789']);
+
+    expect($user->routeNotificationFor('sms'))->toBe('+60123456789')
+        ->and($user->getPhoneForVerification())->toBe('+60123456789');
+});
+
+test('two users cannot share a phone number', function (): void {
+    User::factory()->create(['phone' => '+60123456789']);
+    User::factory()->create(['phone' => '+60123456789']);
+})->throws(UniqueConstraintViolationException::class);
+
+test('a deleted user does not block a new user with the same phone number', function (): void {
+    User::factory()->create(['phone' => '+60123456789'])->delete();
+
+    $user = User::factory()->create(['phone' => '+60123456789']);
+
+    expect(User::query()->where('phone', '+60123456789')->sole()->id)->toBe($user->id);
+});
+
+test('many users can have no phone number', function (): void {
+    User::factory()->withoutPhone()->count(2)->create();
+
+    expect(User::query()->whereNull('phone')->count())->toBe(2);
+});

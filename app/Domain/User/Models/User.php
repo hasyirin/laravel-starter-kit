@@ -11,6 +11,8 @@ use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Permission\Concerns\HasRoles;
 use App\Domain\User\Concerns\HasProfile;
+use App\Domain\User\Concerns\InteractsWithPhoneVerification;
+use App\Domain\User\Contracts\Models\MustVerifyPhone;
 use App\Domain\User\Factories\UserFactory;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -29,6 +31,8 @@ use Spatie\Activitylog\Models\Concerns\CausesActivity;
  * @property string $name
  * @property string $email
  * @property CarbonImmutable|null $email_verified_at
+ * @property string|null $phone
+ * @property CarbonImmutable|null $phone_verified_at
  * @property string $password
  * @property string|null $timezone
  * @property string|null $locale
@@ -40,7 +44,7 @@ use Spatie\Activitylog\Models\Concerns\CausesActivity;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  */
-class User extends Authenticatable implements HasActorName, HasMedia, MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements HasActorName, HasMedia, MustVerifyEmail, MustVerifyPhone, PasskeyUser
 {
     use CausesActivity;
 
@@ -51,12 +55,14 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     use HasRoles;
     use InteractsWithAuditLog;
     use InteractsWithMedia;
+    use InteractsWithPhoneVerification;
     use InteractsWithTimestamps;
     use SoftDeletes;
 
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'timezone',
         'locale',
@@ -79,6 +85,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
         return [
             'password' => 'hashed',
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
@@ -108,5 +115,10 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     public function getActorName(): string
     {
         return $this->name;
+    }
+
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->phone;
     }
 }

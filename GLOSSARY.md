@@ -10,8 +10,16 @@ The shared language of the kit and of each app built from it. An app adds its ow
 A person who signs in to the app. A user can have any number of profiles.
 
 **User information**:
-A user's name and email.
+A user's name, email, and phone number.
 _Avoid_: Account, account details, profile, profile information, user details
+
+**Phone number**:
+The mobile number where a user gets SMS. A user has at most one.
+_Avoid_: Mobile number, handphone number, HP number, contact number
+
+**SMS code**:
+A one-time code that the app sends by SMS. A user types it to prove that they hold the phone number.
+_Avoid_: OTP, TAC, PIN
 
 **Preferences**:
 A user's time zone and locale.

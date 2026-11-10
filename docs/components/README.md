@@ -34,6 +34,7 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 | [`<x-tabs>`](tabs.md)                     | A set of tabs in a Livewire component. A switch swaps only the content, and the URL keeps the tab.                |
 | [`<x-breadcrumbs>`](breadcrumbs.md)       | The path to the current page, which folds into a dropdown when it is long                                         |
 | [DataTable](data-table.md)                | A Filament table in its own Livewire component, with search, sort, filters, and row actions                       |
+| [Letter Data Table](letter-data-table.md) | The letters of one letter source, with create, edit, preview, print, signed scan, kept prints, and delete          |
 | [Modal](modal.md)                         | A dialog in its own Livewire component, with or without a record to create or edit                                |
 
 ## Live Docs

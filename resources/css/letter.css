@@ -2,6 +2,7 @@
 
 @source '../views/letters';
 @source '../views/components/letter';
+@source '../views/components/letter.blade.php';
 @source '../views/components/letterhead.blade.php';
 
 @page {
@@ -20,4 +21,14 @@
 
 @theme {
     --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+.letter-item {
+    counter-increment: letter-item;
+
+    &::before {
+        content: counter(letter-item) '.';
+        width: 1.5rem;
+        flex-shrink: 0;
+    }
 }

@@ -19,7 +19,6 @@ final class RenderPdf
     use Localizable;
 
     /**
-     * @param  view-string  $view
      * @param  array<string, mixed>  $viewData
      */
     public function execute(string $view, array $viewData, Preferences $preferences, bool $draft = false): PdfBuilder
@@ -27,7 +26,7 @@ final class RenderPdf
         $html = context()->scope(
             fn (): string => $this->withLocale(
                 (string) Locale::getPrimaryLanguage($preferences->locale),
-                fn (): string => view($view, $viewData)->render(),
+                fn (): string => view()->first([$view], $viewData)->render(),
             ),
             hidden: ['timezone' => $preferences->timezone, 'locale' => $preferences->locale, 'letter_draft' => $draft],
         );

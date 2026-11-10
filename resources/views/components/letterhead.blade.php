@@ -1,4 +1,5 @@
 @props([
+    'letter' => null,
     'letterhead' => null,
     'placement' => null,
 ])
@@ -8,6 +9,10 @@
     use App\Domain\Shared\Letter\Enums\LetterheadImage;
     use App\Domain\Shared\Letter\Models\Letterhead;
     use App\Domain\Shared\Letter\Support\LetterheadView;
+
+    if ($letter !== null) {
+        $letterhead = $letter->letterhead;
+    }
 
     if ($letterhead === null && $placement !== null) {
         $letterhead = FindLetterhead::make()->execute($placement);

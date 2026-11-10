@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Support;
 
-use Carbon\CarbonImmutable;
-
 final readonly class SmsCode
 {
     public const int MINUTES = 10;
@@ -34,46 +32,40 @@ final readonly class SmsCode
         $code = str((string) random_int(0, 999_999))->padLeft(6, '0')->value();
         $expiresAt = now()->addMinutes(self::MINUTES);
 
-        cache()->put($this->cacheKey(), [
-            'hash' => $this->hash($code),
-            'tries' => 0,
-            'expires_at' => $expiresAt->getTimestamp(),
-        ], $expiresAt);
+        // The tries go in first, so they never expire before the code.
+        cache()->put($this->triesKey(), 0, $expiresAt);
+        cache()->put($this->cacheKey(), $this->hash($code), $expiresAt);
 
         return $code;
     }
 
     public function check(string $code): bool
     {
-        /** @var array{hash: string, tries: int, expires_at: int}|null $entry */
-        $entry = cache()->get($this->cacheKey());
+        $hash = cache()->get($this->cacheKey());
 
-        if ($entry === null) {
+        if (! is_string($hash)) {
             return false;
         }
 
-        if (hash_equals($entry['hash'], $this->hash($code))) {
-            cache()->forget($this->cacheKey());
+        $tries = (int) cache()->increment($this->triesKey());
+        $passed = $tries <= self::TRIES && hash_equals($hash, $this->hash($code));
 
-            return true;
+        if ($passed || $tries >= self::TRIES) {
+            cache()->forget($this->cacheKey());
+            cache()->forget($this->triesKey());
         }
 
-        $tries = $entry['tries'] + 1;
-
-        if ($tries >= self::TRIES) {
-            cache()->forget($this->cacheKey());
-
-            return false;
-        }
-
-        cache()->put($this->cacheKey(), [...$entry, 'tries' => $tries], CarbonImmutable::createFromTimestamp($entry['expires_at']));
-
-        return false;
+        return $passed;
     }
 
     private function cacheKey(): string
     {
         return 'sms-code:'.hash('sha256', $this->key);
+    }
+
+    private function triesKey(): string
+    {
+        return $this->cacheKey().':tries';
     }
 
     private function hash(string $code): string

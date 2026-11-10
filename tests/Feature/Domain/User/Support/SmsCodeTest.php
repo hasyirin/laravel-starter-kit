@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\User\Support\SmsCode;
+use Illuminate\Cache\Events\CacheHit;
+use Illuminate\Support\Facades\Event;
 
 test('an issued code has six digits', function (): void {
     expect(SmsCode::forVerification('+60123456789')->issue())->toMatch('/^\d{6}$/');
@@ -82,4 +84,24 @@ test('a code works only for its number and its purpose', function (): void {
     expect(SmsCode::forVerification('+60198765432')->check($code))->toBeFalse()
         ->and(SmsCode::forPasswordReset('+60123456789')->check($code))->toBeFalse()
         ->and(SmsCode::forVerification('+60123456789')->check($code))->toBeTrue();
+});
+
+test('two checks at the same time each use up a try', function (): void {
+    $sms = SmsCode::forVerification('+60123456789');
+    $wrong = wrongSmsCode($sms->issue());
+    $interleaved = false;
+    Event::listen(CacheHit::class, function (CacheHit $event) use (&$interleaved, $sms, $wrong): void {
+        if ($interleaved || ! str_starts_with($event->key, 'sms-code:')) {
+            return;
+        }
+
+        $interleaved = true;
+        $sms->check($wrong);
+    });
+
+    foreach (range(1, 4) as $try) {
+        $sms->check($wrong);
+    }
+
+    expect($sms->unused())->toBeFalse();
 });

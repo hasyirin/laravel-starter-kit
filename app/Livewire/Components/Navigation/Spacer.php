@@ -8,13 +8,13 @@ use Illuminate\Contracts\View\View;
 
 final class Spacer
 {
-    public function render(Style $style): View
-    {
-        return view("partials.navigation.{$style->value}.spacer");
-    }
-
     public static function make(): self
     {
         return new self;
+    }
+
+    public function render(Style $style): View
+    {
+        return view("partials.navigation.{$style->value}.spacer");
     }
 }

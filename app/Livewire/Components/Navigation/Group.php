@@ -33,16 +33,16 @@ final class Group
         return $this->items->contains(fn (Item $item): bool => $item->active());
     }
 
-    public function render(Style $style): View
-    {
-        return view("partials.navigation.{$style->value}.group", ['group' => $this, 'style' => $style]);
-    }
-
     /**
      * @param  Arrayable<array-key, Item>|array<array-key, Item>  $items
      */
     public static function make(?string $label = null, Arrayable|array $items = []): self
     {
         return new self($label, $items);
+    }
+
+    public function render(Style $style): View
+    {
+        return view("partials.navigation.{$style->value}.group", ['group' => $this, 'style' => $style]);
     }
 }

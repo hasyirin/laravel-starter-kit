@@ -74,11 +74,6 @@ final class Item
         return filled($this->route);
     }
 
-    public function render(Style $style): View
-    {
-        return view("partials.navigation.{$style->value}.item", ['item' => $this, 'style' => $style]);
-    }
-
     /**
      * @param  array<string, mixed>  $parameters
      * @param  (Closure(): bool)|array{0: string, 1?: mixed}|string|bool  $accessible
@@ -96,5 +91,10 @@ final class Item
         Arrayable|array $children = [],
     ): self {
         return new self($label, $icon, $route, $parameters, $active, $href, $accessible, $badge, $children);
+    }
+
+    public function render(Style $style): View
+    {
+        return view("partials.navigation.{$style->value}.item", ['item' => $this, 'style' => $style]);
     }
 }

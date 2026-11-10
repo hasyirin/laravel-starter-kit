@@ -42,4 +42,6 @@ Route::prefix('controls')->name('controls.')->group(function (): void {
     Route::livewire('organizations/{organization}/branches/{branch}/users/{user}', Show::class)->name('organizations.branches.users.show');
 });
 
-Route::redirect('settings', '/settings/user-information')->name('settings');
+Route::redirect('settings', '/internal/settings/user-information')->name('settings');
+
+require __DIR__.'/settings.php';

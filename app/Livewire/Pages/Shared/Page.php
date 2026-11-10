@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Shared;
 
+use App\Http\Enums\Area;
 use App\Http\Middleware\EnsureLocalEnvironment;
 use App\Livewire\Component;
 use Illuminate\View\View;
@@ -14,12 +15,10 @@ abstract class Page extends Component
     {
         $middleware = request()->route()?->gatherMiddleware() ?? [];
 
-        return $view->layout(match (true) {
-            in_array(EnsureLocalEnvironment::class, $middleware, true) => 'layouts.local',
-            request()->routeIs('system.*') => 'layouts.system',
-            request()->routeIs('internal.*') => 'layouts.internal',
-            in_array('auth', $middleware, true) => 'layouts.app',
-            default => 'layouts.guest',
-        });
+        if (in_array(EnsureLocalEnvironment::class, $middleware, true)) {
+            return $view->layout('layouts.local');
+        }
+
+        return $view->layout('layouts.'.Area::current()->value);
     }
 }

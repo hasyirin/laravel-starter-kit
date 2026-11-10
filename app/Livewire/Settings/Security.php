@@ -8,6 +8,7 @@ use App\Domain\User\Actions\UpdatePassword;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
 use App\Livewire\Concerns\ConfirmsPassword;
+use App\Livewire\Pages\Shared\Page;
 use Exception;
 use Flux\Flux;
 use Illuminate\Validation\ValidationException;
@@ -21,11 +22,10 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
-use Livewire\Component;
 use UnexpectedValueException;
 
 #[Title('Security settings')]
-class Security extends Component
+class Security extends Page
 {
     use ConfirmsPassword;
     use PasswordValidationRules;

@@ -7,6 +7,7 @@ use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -74,6 +75,19 @@ function giveProfile(User $user, Collection $roles, Collection $permissions): vo
         ->create();
 
     $user->unsetRelation('profile');
+}
+
+function callLivewireAction(TestResponse $page, string $component, string $method): TestResponse
+{
+    preg_match_all('/wire:snapshot="([^"]+)"/', (string) $page->getContent(), $matches);
+
+    $snapshot = collect($matches[1])
+        ->map(fn (string $snapshot): string => html_entity_decode($snapshot))
+        ->first(fn (string $snapshot): bool => data_get(json_decode($snapshot, true), 'memo.name') === $component);
+
+    $payload = json_encode(['components' => [['snapshot' => $snapshot, 'updates' => [], 'calls' => [['method' => $method, 'params' => [], 'metadata' => []]]]]]);
+
+    return test()->call('POST', resolve('livewire')->getUpdateUri(), server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => '*/*', 'HTTP_X_LIVEWIRE' => '1'], content: $payload);
 }
 
 function browserScript(string $body): string

@@ -1,12 +1,7 @@
 @use(App\Domain\User\Support\Impersonation)
+@use(App\Http\Enums\Area)
 
 @php
-    $settingsRoute = match (true) {
-        request()->routeIs('internal.*') => 'internal.settings',
-        request()->routeIs('system.*') => 'system.settings',
-        default => 'settings',
-    };
-
     $impersonator = Impersonation::impersonator();
 @endphp
 
@@ -45,7 +40,7 @@
         </div>
         <flux:menu.separator />
         <flux:menu.radio.group>
-            <flux:menu.item :href="route($settingsRoute)" icon="cog" wire:navigate>{{ __('navigation.settings') }}</flux:menu.item>
+            <flux:menu.item :href="route(Area::current()->route('settings'))" icon="cog" wire:navigate>{{ __('navigation.settings') }}</flux:menu.item>
 
             @if(Impersonation::active())
                 <form method="POST" action="{{ route('impersonation.stop') }}" class="w-full">

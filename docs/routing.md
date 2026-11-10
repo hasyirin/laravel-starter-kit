@@ -14,7 +14,7 @@ Fortify registers the routes for login, registration, password reset, email veri
 ## Choose the Area
 
 - **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to this file. That middleware sends signed-in users away, so these routes would stop working for them.
-- **App**: pages for every signed-in user, such as the dashboard and the settings pages, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` middleware to a route that needs a verified email address.
+- **App**: pages for every signed-in user, such as the dashboard, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` middleware to a route that needs a verified email address.
 - **Internal**: the daily work of the staff, such as users, roles, orders, and reports.
 - **System**: the tools that run the app, such as Horizon.
 
@@ -76,11 +76,25 @@ Full-page Livewire components extend `App\Livewire\Pages\Shared\Page`. It gives 
 | Other routes with the `auth` middleware | `resources/views/layouts/app.blade.php`      |
 | All other routes                        | `resources/views/layouts/guest.blade.php`    |
 
-`Page` finds a local route by its `EnsureLocalEnvironment` middleware. The local layout works for guests too: it shows the user menu only to a signed-in user.
+`Page` finds a local route by its `EnsureLocalEnvironment` middleware. The local layout works for guests too: it shows the user menu only to a signed-in user. For all other routes, `Page` gets the area from `Area::current()`.
 
 A guest page keeps the guest layout for signed-in users too. A page that more than one area uses gets the layout of each area.
 
-Two groups of pages do not extend `Page`. The settings pages extend `Livewire\Component`, so they use the app layout in every area, from `livewire.component_layout`. The pages of Fortify, such as login, use `resources/views/layouts/auth.blade.php`.
+The pages of Fortify, such as login, do not extend `Page`. They use `resources/views/layouts/auth.blade.php`.
+
+## Settings Pages
+
+The app, internal, and system areas each have the four settings pages: user information, preferences, security, and appearance. `routes/settings.php` lists the pages once, and `routes/app.php`, `routes/internal.php`, and `routes/system.php` each load it. So each area gives the pages its own URLs and route names, and each page opens in the layout of its area:
+
+| Area     | Security page URL             | Route name               |
+|----------|-------------------------------|--------------------------|
+| App      | `/settings/security`          | `security.edit`          |
+| Internal | `/internal/settings/security` | `internal.security.edit` |
+| System   | `/system/settings/security`   | `system.security.edit`   |
+
+The three areas use the same components, in `app/Livewire/Settings`. Their links stay in the area of the page. This includes the settings menu and the return to the security page after the user confirms their password. `/.well-known/passkey-endpoints` gives the app security page, because it is not in an area.
+
+Add a new settings page to `routes/settings.php`, so that all three areas get it.
 
 ## Navigation
 
@@ -92,7 +106,7 @@ Two groups of pages do not extend `Page`. The settings pages extend `Livewire\Co
 - In the local environment, each area sidebar also shows a Docs link to `/docs/components`.
 - The local pages have their own sidebar, `app/Livewire/Layouts/Local/Sidebar.php`. It lists the component docs pages. Below the spacer, it links to App, Internal, and System, each only for users who can open that area. A guest sees no area links.
 - The logo at the top of each sidebar opens the dashboard of its own area. In the local sidebar, it opens `/docs/components`.
-- Each area has a settings route: `settings`, `internal.settings`, and `system.settings`. The user menu links to the settings route of the current area. For now, all three open the shared settings pages.
+- Each area has a settings route: `settings`, `internal.settings`, and `system.settings`. Each one opens the user information page of its own area. The user menu links to the settings route of the current area.
 
 ## Horizon
 
@@ -103,4 +117,5 @@ The system sidebar links to Horizon for users with `system.horizon.view`. The li
 ## Rules
 
 - **Give each URL one route.** Without the route cache, the last route for a URL wins. With the route cache, the first one wins, and `php artisan optimize` turns the cache on. So a second route for the same URL can work in development and fail in production.
-- **In the internal and system areas, start a redirect target with `/`.** In `routes/internal.php`, `Route::redirect('settings', 'settings/user-information')` sends the browser to `/internal/settings/user-information`, because the browser reads a target without `/` relative to the current URL. Write `Route::redirect('settings', '/settings/user-information')`.
+- **In the internal and system areas, write the full path of a redirect target.** The group adds its URL prefix to the route, but not to the target. So in `routes/internal.php`, write `Route::redirect('settings', '/internal/settings/user-information')`. Start the target with `/`, because the browser reads a target without `/` relative to the current URL.
+- **Get the current area from `Area::current()`.** Do not use `request()->routeIs()` to find the area. A Livewire update request has the route of Livewire, not the route of the page. So after an action, such as a save, `request()->routeIs('internal.*')` is false. `Area::current()` finds the route of the page in both cases. Use `$area->route('security.edit')` to get the name of a route in that area.

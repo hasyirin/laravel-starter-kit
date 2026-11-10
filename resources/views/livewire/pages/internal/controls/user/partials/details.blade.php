@@ -50,6 +50,25 @@
                             @endcan
                         @endif
                     </x-entry>
+
+                    <x-entry :label="__('user/users.phone_verified_at')">
+                        @if($user->phone === null)
+                            {{ __('user/users.no_phone') }}
+                        @elseif($user->hasVerifiedPhone())
+                            {{ Preferences::current()->datetime($user->phone_verified_at) }}
+                        @else
+                            <span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                                <span class="size-1.5 rounded-full bg-current"></span>
+                                {{ __('user/users.unverified') }}
+                            </span>
+
+                            @can('update', $user)
+                                <flux:modal.trigger name="verify-phone">
+                                    <flux:link as="button" variant="subtle">{{ __('user/users.mark_as_verified') }}</flux:link>
+                                </flux:modal.trigger>
+                            @endcan
+                        @endif
+                    </x-entry>
                 </div>
             </x-slot:footer>
         @endisset

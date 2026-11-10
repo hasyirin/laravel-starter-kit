@@ -32,24 +32,20 @@ class PrintLetter
 
     public function execute(Letter $letter, User $printer, bool $preview = false): PdfFile
     {
-        if (! $preview) {
-            AssignReferenceNumber::make()->execute($letter, $printer);
-        }
-
         $type = $letter->letter_type;
         $source = $letter->source;
 
         throw_unless($source instanceof Model, LogicException::class, "The source of letter [{$letter->id}] no longer exists.");
 
         $date = $letter->date ?? CarbonImmutable::today(config()->string('system.timezone'));
-        $signerProfile = $this->signerProfile($letter);
+        $data = $type->letterData($source, $date);
+        $extra = $this->extraData($letter, $type);
 
-        try {
-            $data = $type->letterData($source, $date);
-            $extra = LetterData::from($type->extraFields(), $letter->extra, [$letter]);
-        } catch (InvalidArgumentException) {
-            throw ValidationException::withMessages(['letter' => __('letters/letters.data_unreadable')]);
+        if (! $preview) {
+            AssignReferenceNumber::make()->execute($letter, $printer);
         }
+
+        $signerProfile = $this->signerProfile($letter);
 
         $view = new LetterView(
             $letter->reference_number,
@@ -60,7 +56,6 @@ class PrintLetter
             $letter->carbon_copies,
             $letter->with_letterhead ? $this->letterhead($type, $signerProfile, $printer) : null,
             $letter->computer_signed,
-            $preview,
         );
 
         $content = RenderPdf::make()
@@ -74,6 +69,15 @@ class PrintLetter
         }
 
         return $file;
+    }
+
+    private function extraData(Letter $letter, LetterType $type): LetterData
+    {
+        try {
+            return LetterData::from($type->extraFields(), $letter->extra, [$letter]);
+        } catch (InvalidArgumentException) {
+            throw ValidationException::withMessages(['letter' => __('letters/letters.data_unreadable')]);
+        }
     }
 
     private function signerProfile(Letter $letter): ?Profile

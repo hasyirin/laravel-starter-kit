@@ -17,7 +17,6 @@ function letterView(array $overrides = []): LetterView
         'carbonCopies' => [new CarbonCopy('Finance'), new CarbonCopy('Legal')],
         'letterhead' => null,
         'computerSigned' => false,
-        'draft' => false,
         ...$overrides,
     ]);
 }

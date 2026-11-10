@@ -21,6 +21,5 @@ final readonly class LetterView
         public array $carbonCopies,
         public Letterhead|LetterheadView|null $letterhead,
         public bool $computerSigned,
-        public bool $draft,
     ) {}
 }

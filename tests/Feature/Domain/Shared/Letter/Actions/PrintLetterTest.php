@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
+use Tests\Fixtures\Support\BrokenMappingLetter;
 use Tests\Fixtures\Support\ExtraNoticeLetter;
 use Tests\Fixtures\Support\MalayNoticeLetter;
 use Tests\Fixtures\Support\NumberedPrintedLetter;
@@ -182,6 +183,36 @@ test('a deleted image in the letter data refuses the print', function (): void {
     expect(fn (): PdfFile => printLetter($letter))->toThrow(ValidationException::class);
 });
 
+test('a refused print assigns no number and no date and leaves the sequence', function (): void {
+    Pdf::fake();
+    $refused = printable('numbered', ['extra' => ['remark' => 'x', 'stamp' => (string) str()->uuid()]]);
+
+    expect(fn (): PdfFile => printLetter($refused))->toThrow(ValidationException::class);
+
+    expect($refused->fresh()?->reference_number)->toBeNull()
+        ->and($refused->fresh()?->date)->toBeNull()
+        ->and($refused->fresh()?->sequence_number)->toBeNull();
+
+    printLetter(printable('numbered'));
+    expect(Letter::query()->whereNotNull('reference_number')->value('reference_number'))->toBe('N/1');
+});
+
+test('a letter type mapping error is not reported as a deleted file', function (): void {
+    Pdf::fake();
+    config(['system.letters.types' => ['broken' => BrokenMappingLetter::class]]);
+
+    expect(fn (): PdfFile => printLetter(printable('broken')))->toThrow(InvalidArgumentException::class);
+});
+
+test('a printer without a profile prints a letter with the letterhead option', function (): void {
+    Pdf::fake();
+    $printer = User::factory()->create();
+
+    PrintLetter::make()->execute(printable('printed', ['with_letterhead' => true]), $printer, preview: true);
+
+    Pdf::assertSee('Reminder');
+});
+
 test('a kept print stores the bytes with the printer and time', function (): void {
     Pdf::fake();
     $this->travelTo(CarbonImmutable::parse('2026-07-04 10:00:00'));
@@ -240,6 +271,8 @@ test('a real print keeps the downloaded bytes', function (): void {
 })->group('chrome');
 
 test('a real print numbers the items', function (): void {
+    expect(shell_exec('command -v pdftotext'))->not->toBeEmpty('pdftotext (poppler-utils) is required for this test.');
+
     $path = storage_path('framework/testing/'.str()->uuid7().'.pdf');
     file_put_contents($path, printLetter(printable('printed'), preview: true)->content);
 

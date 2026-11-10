@@ -18,6 +18,6 @@ class NumberedPrintedLetter extends NumberedNoticeLetter
      */
     public function extraFields(): array
     {
-        return [Field::text('remark')];
+        return [Field::text('remark'), Field::image('stamp')->optional()];
     }
 }

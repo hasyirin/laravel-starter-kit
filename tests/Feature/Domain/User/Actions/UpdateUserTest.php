@@ -6,10 +6,12 @@ use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\User\Actions\ConfirmPhone;
 use App\Domain\User\Actions\UpdateUser;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Placement;
+use App\Domain\User\Support\SmsCode;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Hash;
 
@@ -184,4 +186,22 @@ test('keeping the phone number keeps the verification', function (): void {
     );
 
     expect($this->user->fresh()->phone_verified_at)->not->toBeNull();
+});
+
+test('a staff number change saved after a confirm leaves the new number unverified', function (): void {
+    $user = User::factory()->unverifiedPhone()->create(['phone' => '+60123456789']);
+    $staff = User::query()->findOrFail($user->id);
+    ConfirmPhone::make()->execute($user, SmsCode::forVerification('+60123456789')->issue());
+
+    UpdateUser::make()->execute(
+        actor: $this->actor,
+        user: $staff,
+        name: $staff->name,
+        email: $staff->email,
+        phone: '+60198765432',
+        password: null,
+        placement: $this->placement,
+    );
+
+    expect($user->fresh()->hasVerifiedPhone())->toBeFalse();
 });

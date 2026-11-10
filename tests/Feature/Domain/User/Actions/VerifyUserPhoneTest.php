@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\User\Actions\UpdateUserInformation;
 use App\Domain\User\Actions\VerifyUserPhone;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -39,4 +40,14 @@ test('a user without bypass-authorization cannot verify the phone number of a us
 
     expect(fn () => VerifyUserPhone::make()->execute(User::factory()->create(), $user))->toThrow(AuthorizationException::class);
     expect($user->fresh()->phone_verified_at)->toBeNull();
+});
+
+test('staff do not verify a number that changed after their page loaded', function (): void {
+    $user = User::factory()->unverifiedPhone()->create(['phone' => '+60123456789']);
+    $staff = User::query()->findOrFail($user->id);
+    UpdateUserInformation::make()->execute($user, $user->name, $user->email, '+60198765432');
+
+    VerifyUserPhone::make()->execute(User::factory()->create(), $staff);
+
+    expect($user->fresh()->hasVerifiedPhone())->toBeFalse();
 });

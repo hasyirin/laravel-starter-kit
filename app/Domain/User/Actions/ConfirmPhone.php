@@ -18,10 +18,24 @@ class ConfirmPhone
      */
     public function execute(User $user, string $code): void
     {
-        if ($user->phone === null || ! SmsCode::forVerification($user->phone)->check($code)) {
-            throw ValidationException::withMessages(['code' => __('user/phone.code_invalid')]);
+        $phone = $user->phone;
+
+        if ($phone === null || ! SmsCode::forVerification($phone)->check($code)) {
+            throw $this->invalid();
         }
 
-        $user->markPhoneAsVerified();
+        $user->getConnection()->transaction(function () use ($user, $phone): void {
+            $user->newQueryWithoutRelationships()->whereKey($user->getKey())->lockForUpdate()->first();
+            $user->refresh();
+
+            throw_if($user->phone !== $phone, $this->invalid());
+
+            $user->markPhoneAsVerified();
+        });
+    }
+
+    private function invalid(): ValidationException
+    {
+        return ValidationException::withMessages(['code' => __('user/phone.code_invalid')]);
     }
 }

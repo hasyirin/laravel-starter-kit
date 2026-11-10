@@ -31,6 +31,9 @@ class UpdateUser
         ?array $permissions = null,
     ): void {
         $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $phone, $password, $placement, $roles, $permissions): void {
+            $user->newQueryWithoutRelationships()->whereKey($user->getKey())->lockForUpdate()->first();
+            $user->refresh();
+
             $user->fill(['name' => $name, 'email' => $email, 'phone' => $phone]);
 
             if ($user->isDirty('email')) {

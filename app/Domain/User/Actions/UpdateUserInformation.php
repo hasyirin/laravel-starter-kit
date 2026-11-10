@@ -13,20 +13,25 @@ class UpdateUserInformation
 
     public function execute(User $user, string $name, string $email, ?string $phone): void
     {
-        $user->fill([
-            'name' => $name,
-            'email' => $email,
-            'phone' => $phone,
-        ]);
+        $user->getConnection()->transaction(function () use ($user, $name, $email, $phone): void {
+            $user->newQueryWithoutRelationships()->whereKey($user->getKey())->lockForUpdate()->first();
+            $user->refresh();
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
+            $user->fill([
+                'name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+            ]);
 
-        if ($user->isDirty('phone')) {
-            $user->phone_verified_at = null;
-        }
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
 
-        $user->save();
+            if ($user->isDirty('phone')) {
+                $user->phone_verified_at = null;
+            }
+
+            $user->save();
+        });
     }
 }

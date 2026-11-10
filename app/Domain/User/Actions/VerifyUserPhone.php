@@ -21,10 +21,17 @@ class VerifyUserPhone
 
         throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
 
-        if ($user->phone === null || $user->hasVerifiedPhone()) {
-            return;
-        }
+        $phone = $user->phone;
 
-        $user->markPhoneAsVerified();
+        $user->getConnection()->transaction(function () use ($user, $phone): void {
+            $user->newQueryWithoutRelationships()->whereKey($user->getKey())->lockForUpdate()->first();
+            $user->refresh();
+
+            if ($phone === null || $user->phone !== $phone || $user->hasVerifiedPhone()) {
+                return;
+            }
+
+            $user->markPhoneAsVerified();
+        });
     }
 }

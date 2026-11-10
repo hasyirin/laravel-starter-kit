@@ -91,6 +91,16 @@ erDiagram
         datetime updated_at
         datetime deleted_at
     }
+    letterheads {
+        integer id PK
+        integer organization_id FK
+        integer branch_id FK
+        integer department_id FK
+        string name
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     media {
         integer id PK
         string model_type
@@ -231,15 +241,18 @@ erDiagram
         string timezone
         string locale
     }
+    branches |o--o{ letterheads : "branch_id"
     branches |o--o{ profiles : "branch_id"
     countries |o--o{ addresses : "country_id"
     countries ||--o{ states : "country_id"
+    departments |o--o{ letterheads : "department_id"
     departments |o--o{ positions : "department_id"
     departments |o--o{ profiles : "department_id"
     districts |o--o{ addresses : "district_id"
     districts ||--o{ subdistricts : "district_id"
     organizations ||--o{ branches : "organization_id"
     organizations ||--o{ departments : "organization_id"
+    organizations ||--o| letterheads : "organization_id"
     organizations ||--o{ positions : "organization_id"
     organizations |o--o{ profiles : "organization_id"
     permissions ||--o{ model_has_permissions : "permission_id"

@@ -2,6 +2,7 @@
 
 @source '../views/letters';
 @source '../views/components/letter';
+@source '../views/components/letterhead.blade.php';
 
 @page {
     size: A4;

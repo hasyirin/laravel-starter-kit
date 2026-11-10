@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Letter\Support;
 
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
+use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
@@ -52,6 +53,11 @@ abstract class LetterType
     public function keepsPrints(): bool
     {
         return false;
+    }
+
+    public function letterhead(): Letterhead|LetterheadView|null
+    {
+        return null;
     }
 
     public function offersLetterhead(): bool

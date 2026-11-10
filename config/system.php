@@ -70,6 +70,14 @@ return [
                     'delete' => 'internal.controls.organizations.delete',
                     'view-audit-log' => 'internal.controls.organizations.view-audit-log',
                 ],
+                'letterheads' => [
+                    'view-any' => 'internal.controls.letterheads.view-any',
+                    'view' => 'internal.controls.letterheads.view',
+                    'create' => 'internal.controls.letterheads.create',
+                    'update' => 'internal.controls.letterheads.update',
+                    'delete' => 'internal.controls.letterheads.delete',
+                    'view-audit-log' => 'internal.controls.letterheads.view-audit-log',
+                ],
             ],
         ],
         'system' => [

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
@@ -33,6 +34,14 @@ test('a profile shows the name of its user, also after the user is deleted', fun
     $user->delete();
 
     expect(Profile::query()->find($profile->id)?->name)->toBe('Ada Lovelace');
+});
+
+test('a profile shows its position, also after the position is deleted', function (): void {
+    $position = Position::factory()->create(['name' => 'Clerk']);
+    $profile = Profile::factory()->for($position->organization)->for($position)->create();
+    $position->delete();
+
+    expect(Profile::query()->find($profile->id)?->position?->name)->toBe('Clerk');
 });
 
 test('the roles of a profile cannot change after it is created', function (): void {

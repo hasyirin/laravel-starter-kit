@@ -57,3 +57,16 @@ test('the default checkbox of a number input fills the default with the decimals
         return [control('form.home_latitude').value, property('form.home_latitude')];
         SCRIPT)))->toBe(['3.13900', '3.13900']);
 });
+
+test('a minus sign alone keeps the property empty until a digit follows', function (): void {
+    $page = visit('/docs/components/input.number');
+
+    $page->type('[data-input-model="form.latitude"] [data-input-control]', '-');
+
+    expect($page->value('[data-input-model="form.latitude"] [data-input-control]'))->toBe('-')
+        ->and($page->script(browserScript("return property('form.latitude');")))->toBe('');
+
+    $page->type('[data-input-model="form.latitude"] [data-input-control]', '-5');
+
+    expect($page->script(browserScript("return property('form.latitude');")))->toBe('-5');
+});

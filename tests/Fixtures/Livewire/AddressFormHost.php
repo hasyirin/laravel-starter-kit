@@ -14,15 +14,22 @@ class AddressFormHost extends Component
     #[Locked]
     public Venue $venue;
 
+    #[Locked]
+    public bool $clickable = true;
+
     public AddressForm $address;
 
-    public function mount(?Venue $venue = null, ?string $type = null, bool $required = false, bool $create = false, ?string $districts = null, bool $local = false): void
+    public function mount(?Venue $venue = null, ?string $type = null, bool $required = false, bool $create = false, ?string $districts = null, bool $local = false, ?string $location = null): void
     {
         $this->venue = $venue ?? Venue::query()->create(['name' => 'Dewan Besar']);
         $this->address->required($required)->local($local)->type($type ?? 'primary');
 
         if ($districts !== null) {
             $this->address->withDistricts(required: $districts === 'required');
+        }
+
+        if ($location !== null) {
+            $this->address->withLocation(required: $location === 'required');
         }
 
         if (! $create) {
@@ -49,7 +56,7 @@ class AddressFormHost extends Component
     {
         return <<<'BLADE'
             <div>
-                <x-address :form="$address" />
+                <x-address :form="$address" :location:clickable="$clickable" />
             </div>
             BLADE;
     }

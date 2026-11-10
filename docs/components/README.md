@@ -27,7 +27,8 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 | [`<x-slider>`](slider.md)                 | A number, or a range of two numbers, picked with a handle                                                         |
 | [`<x-editor>`](editor.md)                 | Rich text with headings, lists, and links. The property gets HTML.                                                |
 | [`<x-autocomplete>`](autocomplete.md)     | A text field that suggests values while the user types                                                            |
-| [`<x-address>`](address.md)               | A Malaysian address: the lines, the postcode, the city, and the state, with optional districts                    |
+| [`<x-address>`](address.md)               | A Malaysian address: the lines, the postcode, the city, and the state, with optional districts and location       |
+| [`<x-map>`](map.md)                       | A location on a map, set by a click on the map or typed as a latitude and a longitude                           |
 | [`<x-file-upload>`](file-upload.md)       | Files that the page stores with a model through Media Library                                                     |
 | [`<x-tabs>`](tabs.md)                     | A set of tabs in a Livewire component. A switch swaps only the content, and the URL keeps the tab.                |
 | [`<x-breadcrumbs>`](breadcrumbs.md)       | The path to the current page, which folds into a dropdown when it is long                                         |

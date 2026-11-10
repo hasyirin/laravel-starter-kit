@@ -17,7 +17,7 @@ class SaveAddress
     use Actionable;
 
     /**
-     * @param  array{line_1?: ?string, line_2?: ?string, line_3?: ?string, postcode?: ?string, post_office_id?: ?int, district_id?: ?int, subdistrict_id?: ?int}  $values
+     * @param  array{line_1?: ?string, line_2?: ?string, line_3?: ?string, postcode?: ?string, post_office_id?: ?int, district_id?: ?int, subdistrict_id?: ?int, latitude?: ?float, longitude?: ?float}  $values
      */
     public function execute(Model&Addressable $addressable, array $values, string|UnitEnum $type = 'primary'): ?Address
     {
@@ -37,10 +37,17 @@ class SaveAddress
             'country_id' => $postOffice->state->country_id,
         ];
 
-        $districtId = array_key_exists('district_id', $values) ? $values['district_id'] : $saved?->district_id;
+        $hiddenDistrict = ! array_key_exists('district_id', $values);
+        $districtId = $hiddenDistrict ? $saved?->district_id : $values['district_id'];
 
-        if (! $this->inState($districtId, $postOffice->state_id)) {
+        // The state is the only check of a district against the city. So a hidden district is also cleared when the city changes.
+        if (! $this->inState($districtId, $postOffice->state_id) || ($hiddenDistrict && $this->changed($saved, $values, ['post_office_id']))) {
             $attributes = [...$attributes, 'district_id' => null, 'subdistrict_id' => null];
+        }
+
+        // Nothing can check a hidden location against the address. So the location is cleared when the address moves.
+        if (! array_key_exists('latitude', $values) && $this->changed($saved, $values, ['line_1', 'line_2', 'line_3', 'postcode', 'post_office_id'])) {
+            $attributes = [...$attributes, 'latitude' => null, 'longitude' => null];
         }
 
         $address = $addressable->address($type)->updateOrCreate([], $attributes);
@@ -48,6 +55,20 @@ class SaveAddress
         assert($address instanceof Address);
 
         return $address;
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     * @param  list<string>  $keys
+     */
+    private function changed(?\Hasyirin\Address\Models\Address $saved, array $values, array $keys): bool
+    {
+        if (! $saved instanceof \Hasyirin\Address\Models\Address) {
+            return false;
+        }
+
+        return collect($keys)
+            ->contains(fn (string $key): bool => (string) $saved->getAttribute($key) !== (string) ($values[$key] ?? null));
     }
 
     private function inState(?int $districtId, int $stateId): bool

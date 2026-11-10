@@ -11,6 +11,8 @@
     $postOffices = $form->postOffices();
     $districts = $form->showingDistricts ? $form->districts() : collect();
     $subdistricts = $form->showingDistricts ? $form->subdistricts() : collect();
+    $mapAttributes = collect($attributes->whereStartsWith('location:')->getAttributes())
+        ->mapWithKeys(fn (mixed $value, string $key): array => [str($key)->after('location:')->value() => $value]);
 
     $cityPlaceholder = match (true) {
         blank($form->postcode) => __('common/inputs.city_needs_postcode'),
@@ -19,7 +21,7 @@
     };
 @endphp
 
-<div {{ $attributes->except('disabled')->class('space-y-6') }}>
+<div {{ $attributes->except('disabled')->whereDoesntStartWith('location:')->class('space-y-6') }}>
     <div class="space-y-2">
         <x-input :label="$label ?? __('common/inputs.address')" :required="$form->required" :disabled="$disabled" wire:model="{{ $name }}.line_1" />
         <x-input :aria-label="__('common/inputs.address_line_2')" :disabled="$disabled" wire:model="{{ $name }}.line_2" />
@@ -74,5 +76,15 @@
                 />
             @endif
         </div>
+    @endif
+
+    @if($form->showingLocation)
+        <x-map
+            latitude-model="{{ $name }}.latitude"
+            longitude-model="{{ $name }}.longitude"
+            :required="$form->required && $form->locationRequired"
+            :disabled="$disabled"
+            :attributes="new \Illuminate\View\ComponentAttributeBag($mapAttributes->all())"
+        />
     @endif
 </div>

@@ -29,6 +29,10 @@ return [
         'queue_connection' => env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync')),
     ],
 
+    'letters' => [
+        'types' => [],
+    ],
+
     'roles' => [
         'system-admin' => 'system-admin',
     ],

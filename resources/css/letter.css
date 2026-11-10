@@ -1,0 +1,13 @@
+@import 'tailwindcss' source(none);
+
+@source '../views/letters';
+@source '../views/components/letter*';
+
+@page {
+    size: A4;
+    margin: 25mm 20mm;
+}
+
+@theme {
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+}

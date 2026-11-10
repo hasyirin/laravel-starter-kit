@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 
 /** @extends RecordModal<Letter> */
 class LetterModal extends RecordModal
@@ -29,9 +30,31 @@ class LetterModal extends RecordModal
 
     public LetterForm $form;
 
+    public static function scope(Model $source): string
+    {
+        $key = (string) $source->getKey();
+
+        return "{$source->getMorphClass()}:{$key}";
+    }
+
+    public static function scopedEvent(Model $source): string
+    {
+        return static::event().':'.static::scope($source);
+    }
+
     public static function label(): string
     {
         return (string) __('letters/letters.letter');
+    }
+
+    #[On('show')]
+    public function show(int|string|null $id = null, ?string $scope = null): void
+    {
+        if ($scope !== null && $scope !== static::scope($this->source)) {
+            return;
+        }
+
+        parent::show($id);
     }
 
     public function isDisabled(): bool
@@ -165,6 +188,8 @@ class LetterModal extends RecordModal
     protected function persist(): void
     {
         $this->form->save();
+
+        $this->dispatch(static::scopedEvent($this->source));
     }
 
     public function render(): View

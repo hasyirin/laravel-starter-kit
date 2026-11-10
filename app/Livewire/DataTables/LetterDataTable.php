@@ -38,7 +38,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Defer]
 class LetterDataTable extends DataTable
 {
-    private const array SCAN_RULES = ['mimes:pdf,jpg,jpeg,png', 'max:10240'];
+    public const array SCAN_RULES = ['mimes:pdf,jpg,jpeg,png', 'max:10240'];
 
     #[Locked]
     public Model $source;
@@ -65,7 +65,7 @@ class LetterDataTable extends DataTable
     {
         $letter = $this->findLetter($id);
 
-        $this->authorize('update', $letter);
+        $this->authorize('print', $letter);
 
         $this->scanLetterId = $letter->id;
         $this->scan = FileUpload::items($letter, LetterMedia::SignedScan);
@@ -77,7 +77,7 @@ class LetterDataTable extends DataTable
     {
         $letter = $this->findLetter((int) $this->scanLetterId);
 
-        $this->authorize('update', $letter);
+        $this->authorize('print', $letter);
         $this->validate(['scan' => ['array', 'max:1', new Uploads(self::SCAN_RULES)]]);
 
         UploadSignedScan::make()->execute($letter, $this->scan);
@@ -91,7 +91,7 @@ class LetterDataTable extends DataTable
      */
     protected function getListeners(): array
     {
-        return [...parent::getListeners(), LetterModal::event() => '$refresh'];
+        return [...parent::getListeners(), LetterModal::scopedEvent($this->source) => '$refresh'];
     }
 
     /**
@@ -113,7 +113,7 @@ class LetterDataTable extends DataTable
             CreateAction::make()
                 ->label((string) __('letters/letters.letter'))
                 ->visible(fn (): bool => $this->can('create', new Letter()->source()->associate($this->source)))
-                ->action(fn () => $this->dispatch('show')->to(LetterModal::class)),
+                ->action(fn () => $this->dispatch('show', scope: LetterModal::scope($this->source))->to(LetterModal::class)),
         ];
     }
 
@@ -146,7 +146,7 @@ class LetterDataTable extends DataTable
         return [
             EditAction::make()
                 ->visible(fn (Letter $letter): bool => $this->canAny(['update', 'print'], $letter))
-                ->action(fn (Letter $letter) => $this->dispatch('show', id: $letter->id)->to(LetterModal::class)),
+                ->action(fn (Letter $letter) => $this->dispatch('show', id: $letter->id, scope: LetterModal::scope($this->source))->to(LetterModal::class)),
 
             Action::make('preview')
                 ->label((string) __('letters/letters.preview'))
@@ -167,7 +167,7 @@ class LetterDataTable extends DataTable
                 ->label((string) __('letters/letters.upload_scan'))
                 ->icon('heroicon-m-arrow-up-tray')
                 ->color('gray')
-                ->visible(fn (Letter $letter): bool => $this->can('update', $letter))
+                ->visible(fn (Letter $letter): bool => $this->can('print', $letter))
                 ->action(fn (Letter $letter) => $this->openScan($letter->id)),
 
             Action::make('prints')
@@ -195,7 +195,7 @@ class LetterDataTable extends DataTable
         try {
             return PrintLetter::make()->execute($letter, $user)->download();
         } catch (ValidationException $validationException) {
-            Flux::toast(variant: 'danger', text: collect($validationException->errors())->flatten()->first());
+            Flux::toast(variant: 'danger', text: (string) (collect($validationException->errors())->flatten()->first() ?? __('letters/letters.print_failed')));
 
             return null;
         }

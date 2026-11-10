@@ -533,3 +533,23 @@ test('adding a letter needs create on the source', function (): void {
 
     Livewire::test(LetterModal::class, ['source' => $this->permit])->call('show')->assertForbidden();
 });
+
+test('the modal ignores a show event for another source', function (): void {
+    $other = Permit::query()->create(['name' => 'Other']);
+
+    Livewire::test(LetterModal::class, ['source' => test()->permit])
+        ->call('show', null, LetterModal::scope($other))
+        ->assertSet('showing', false)
+        ->call('show', null, LetterModal::scope(test()->permit))
+        ->assertSet('showing', true);
+});
+
+test('the modal tells only the table of its own source that it saved', function (): void {
+    $other = Permit::query()->create(['name' => 'Other']);
+
+    openModal()
+        ->set('form.type', 'plain')
+        ->call('save')
+        ->assertDispatched(LetterModal::scopedEvent(test()->permit))
+        ->assertNotDispatched(LetterModal::scopedEvent($other));
+});

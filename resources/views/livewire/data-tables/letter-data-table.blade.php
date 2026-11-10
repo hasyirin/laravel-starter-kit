@@ -8,7 +8,7 @@
             <form wire:submit="saveScan" class="space-y-6">
                 <flux:heading size="lg">{{ __('letters/letters.upload_scan') }}</flux:heading>
 
-                <x-file-upload wire:model="scan" :rules="['mimes:pdf,jpg,jpeg,png', 'max:10240']" />
+                <x-file-upload wire:model="scan" :rules="\App\Livewire\DataTables\LetterDataTable::SCAN_RULES" />
 
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>

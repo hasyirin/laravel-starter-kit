@@ -24,17 +24,17 @@ The newest letter is first. The table loads the source, the signer, and the medi
 
 The create action sits above the table. Each other action sits in the menu of a row. Every action follows `App\Domain\Shared\Letter\Policies\LetterPolicy`, so it asks the policy of the source.
 
-| Action             | Ability           | What it does                                                                                      |
-| ------------------ | ----------------- | ------------------------------------------------------------------------------------------------- |
-| Create             | `create`          | Opens the letter modal with a new letter.                                                         |
-| Edit               | `update` or `print` | Opens the letter modal with the letter. A row click runs it.                                    |
-| Preview            | `print`           | Opens the `letters.preview` route in a new tab. A preview has no reference number and keeps nothing. |
-| Print              | `print`           | Downloads the PDF with `PrintLetter`. A letter that cannot print shows a toast with the reason.    |
-| Upload signed scan | `update`          | Opens a dialog to upload one PDF or image as the signed scan.                                    |
-| Kept prints        | `view`            | Lists the kept prints with the printer and the time, each linked to the `media.show` route. Shown only when the letter has kept prints. |
-| Delete             | `delete`          | Asks for a confirmation, then runs `DeleteLetter`. The letter is soft deleted.                    |
+| Action             | Ability             | What it does                                                                                                                            |
+| ------------------ | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Create             | `create`            | Opens the letter modal with a new letter.                                                                                               |
+| Edit               | `update` or `print` | Opens the letter modal with the letter. A row click runs it.                                                                            |
+| Preview            | `print`             | Opens the `letters.preview` route in a new tab. A preview has no reference number and keeps nothing.                                    |
+| Print              | `print`             | Downloads the PDF with `PrintLetter`. A letter that cannot print shows a toast with the reason.                                         |
+| Upload signed scan | `print`             | Opens a dialog to upload one PDF or image as the signed scan. It needs `print` because scans return after the source is locked.        |
+| Kept prints        | `view`              | Lists the kept prints with the printer and the time, each linked to the `media.show` route. Shown only when the letter has kept prints. |
+| Delete             | `delete`            | Asks for a confirmation, then runs `DeleteLetter`. The letter is soft deleted.                                                          |
 
-The table listens to `App\Livewire\Components\LetterModal::event()` and loads again when the modal saves.
+Each table talks only to its own letter modal. The table sends the scope of its source with the `show` event, and the modal ignores a scope that is not its own. The modal tells the table with `LetterModal::scopedEvent()`, which holds the source. So a page can show the tables of two sources.
 
 ## Test a Table
 

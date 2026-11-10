@@ -12,7 +12,9 @@ use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 
 test('creating a user gives them a first profile with the placement', function (): void {
     $department = Department::factory()->create();
@@ -90,4 +92,36 @@ test('a new user starts with an unverified phone number', function (): void {
 
     expect($user->phone)->toBe('+60123456789')
         ->and($user->phone_verified_at)->toBeNull();
+});
+
+test('a new user gets a verification email', function (): void {
+    Notification::fake();
+
+    $user = CreateUser::make()->execute(
+        actor: User::factory()->create(),
+        name: 'New Person',
+        email: 'new.person@example.com',
+        phone: '+60123456789',
+        password: 'password',
+        placement: new Placement,
+    );
+
+    Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+test('a refused new user gets no verification email', function (): void {
+    Notification::fake();
+    $this->seed([PermissionSeeder::class, RoleSeeder::class]);
+
+    expect(fn (): User => CreateUser::make()->execute(
+        actor: User::factory()->create(),
+        name: 'New Admin',
+        email: 'new.admin@example.com',
+        phone: '+60123456789',
+        password: 'password',
+        placement: new Placement,
+        roles: ['system-admin'],
+    ))->toThrow(AuthorizationException::class);
+
+    Notification::assertNothingSent();
 });

@@ -29,7 +29,7 @@ class CreateUser
         ?array $roles = null,
         ?array $permissions = null,
     ): User {
-        return (new User)->getConnection()->transaction(function () use ($actor, $name, $email, $phone, $password, $placement, $roles, $permissions): User {
+        $user = (new User)->getConnection()->transaction(function () use ($actor, $name, $email, $phone, $password, $placement, $roles, $permissions): User {
             $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
@@ -47,5 +47,9 @@ class CreateUser
 
             return $user;
         });
+
+        $user->sendEmailVerificationNotification();
+
+        return $user;
     }
 }

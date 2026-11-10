@@ -16,6 +16,10 @@
             </flux:button>
         </form>
 
+        <div class="text-center text-sm">
+            <flux:link :href="route('password.sms')" wire:navigate>{{ __('auth/forgot-password.sms') }}</flux:link>
+        </div>
+
         <div class="space-x-1 text-center text-sm text-zinc-400 rtl:space-x-reverse">
             <span>{{ __('auth/forgot-password.return_to') }}</span>
             <flux:link :href="route('login')" wire:navigate>{{ __('auth/forgot-password.log_in') }}</flux:link>

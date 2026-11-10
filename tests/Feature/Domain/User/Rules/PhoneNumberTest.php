@@ -15,6 +15,7 @@ test('a phone number must be an international number', function (mixed $value, b
     'a number that starts with zero' => ['+0123456789', false],
     'a number that is too short' => ['+601234', false],
     'a number that is too long' => ['+6012345678901234', false],
+    'a number with a trailing newline' => ["+60123456789\n", false],
 ]);
 
 test('a phone number that is not international gets a message with an example', function (): void {

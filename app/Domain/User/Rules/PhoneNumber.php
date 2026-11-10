@@ -11,7 +11,7 @@ class PhoneNumber implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (is_string($value) && str($value)->isMatch('/^\+[1-9]\d{6,14}$/')) {
+        if (is_string($value) && str($value)->isMatch('/^\+[1-9]\d{6,14}\z/')) {
             return;
         }
 

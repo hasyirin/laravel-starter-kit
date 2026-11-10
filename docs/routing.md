@@ -98,15 +98,38 @@ Add a new settings page to `routes/settings.php`, so that all three areas get it
 
 ## Navigation
 
-- The app, internal, and system areas each have a sidebar: `app/Livewire/Layouts/*/Sidebar.php`. Below the spacer, each sidebar links to the other areas:
-  - The app sidebar links to Internal and System.
-  - The internal sidebar links to App and System.
-  - The system sidebar links to App and Internal.
-- A sidebar shows the Internal or System link only to users who have the matching permission. The App link goes back to the app dashboard, and it always shows.
-- In the local environment, each area sidebar also shows a Docs link to `/docs/components`.
-- The local pages have their own sidebar, `app/Livewire/Layouts/Local/Sidebar.php`. It lists the component docs pages. Below the spacer, it links to App, Internal, and System, each only for users who can open that area. A guest sees no area links.
-- The logo at the top of each sidebar opens the dashboard of its own area. In the local sidebar, it opens `/docs/components`.
+- The app, internal, and system areas each have a navigation: `app/Livewire/Layouts/*/Navigation.php`. Below the spacer, each navigation links to the other areas:
+  - The app navigation links to Internal and System.
+  - The internal navigation links to App and System.
+  - The system navigation links to App and Internal.
+- A navigation shows the Internal or System link only to users who have the matching permission. The App link goes back to the app dashboard, and it always shows.
+- In the local environment, each area navigation also shows a Docs link to `/docs/components`.
+- The local pages have their own navigation, `app/Livewire/Layouts/Local/Navigation.php`. It lists the component docs pages. Below the spacer, it links to App, Internal, and System, each only for users who can open that area. A guest sees no area links.
+- The logo opens the dashboard of its own area. On the local pages, it opens `/docs/components`.
 - Each area has a settings route: `settings`, `internal.settings`, and `system.settings`. Each one opens the user information page of its own area. The user menu links to the settings route of the current area.
+
+### Sidebar or Top Bar
+
+A navigation shows its items in one of two styles, the cases of `App\Livewire\Components\Navigation\Style`:
+
+- `Style::Sidebar` puts the items in a sidebar at the side of the page. The internal, system, and local areas always use it.
+- `Style::Topbar` puts the items in a bar at the top of the page. Use it for an app that the public uses, and keep the sidebar for staff.
+
+The app area uses the style in `system.navigation.app`. The default is `Style::Sidebar`. To use the top bar, change the value in `config/system.php`:
+
+```php
+'navigation' => [
+    'app' => Style::Topbar,
+],
+```
+
+Both styles show the same items, from the same `items()` method. In the top bar:
+
+- The logo comes first, then the items, then the user menu. The spacer pushes the items after it to the right, such as the links to the other areas.
+- An item with children opens a dropdown. A child with its own children opens a submenu in that dropdown.
+- A group with a label opens a dropdown. A group without a label shows a vertical line before its items.
+- On small screens, the bar hides the items. The menu button opens them in a drawer that looks like the sidebar.
+- A page that fills the `header` section gets a second bar below the top bar.
 
 ## Horizon
 

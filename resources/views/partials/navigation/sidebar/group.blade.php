@@ -8,5 +8,5 @@
 @endif
 
 @foreach($group->items as $item)
-    {{ $item }}
+    {{ $item->render($style) }}
 @endforeach

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
-use App\Livewire\Layouts\System\Sidebar;
+use App\Livewire\Layouts\System\Navigation;
 
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
@@ -24,7 +24,7 @@ test('each settings page of the system area opens in the system layout', functio
 
     $response = $this->get(route($route));
 
-    $response->assertOk()->assertSeeLivewire(Sidebar::class);
+    $response->assertOk()->assertSeeLivewire(Navigation::class);
 })->with([
     'user information' => 'system.user-information.edit',
     'preferences' => 'system.preferences.edit',

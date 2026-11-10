@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\Components\Navigation\Item;
+use App\Livewire\Components\Navigation\Style;
 use Dom\HTMLDocument;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
@@ -154,11 +155,14 @@ test('an item with an unknown route fails instead of linking nowhere', function 
     expect(fn (): ?string => $item->href())->toThrow(RouteNotFoundException::class);
 });
 
-test('an item uses Livewire navigation only for a route', function (Item $item, bool $navigates): void {
-    $view = $this->blade('{{ $item }}', ['item' => $item]);
+test('an item uses Livewire navigation only for a route', function (Style $style, Item $item, bool $navigates): void {
+    $view = $this->blade('{{ $item->render($style) }}', ['item' => $item, 'style' => $style]);
 
     expect(str_contains((string) $view, 'wire:navigate'))->toBe($navigates);
 })->with([
+    'in the sidebar' => Style::Sidebar,
+    'in the top bar' => Style::Topbar,
+])->with([
     'route' => [fn (): Item => Item::make(label: 'Dashboard', route: 'dashboard'), true],
     'href' => [fn (): Item => Item::make(label: 'Docs', href: 'https://laravel.com/docs'), false],
 ]);
@@ -168,10 +172,34 @@ test('an item with children renders them inside its group', function (): void {
         Item::make(label: 'Sales', href: 'https://example.com/sales'),
     ]);
 
-    $view = $this->blade('{{ $item }}', ['item' => $item]);
+    $view = $this->blade('{{ $item->render($style) }}', ['item' => $item, 'style' => Style::Sidebar]);
 
     $document = HTMLDocument::createFromString((string) $view, LIBXML_NOERROR);
     expect($document->querySelector('[data-flux-sidebar-group] [data-flux-sidebar-item][href="https://example.com/sales"]'))->not->toBeNull();
+});
+
+test('an item with children opens them in a dropdown in the top bar', function (): void {
+    $item = Item::make(label: 'Reports', children: [
+        Item::make(label: 'Sales', route: 'dashboard'),
+    ]);
+
+    $view = $this->blade('{{ $item->render($style) }}', ['item' => $item, 'style' => Style::Topbar]);
+
+    $document = HTMLDocument::createFromString((string) $view, LIBXML_NOERROR);
+    expect($document->querySelector('[data-flux-dropdown] [data-flux-menu] [data-flux-menu-item][href="'.route('dashboard').'"][wire\:navigate]'))->not->toBeNull();
+});
+
+test('a child with its own children opens a submenu in the top bar', function (): void {
+    $item = Item::make(label: 'Reports', children: [
+        Item::make(label: 'Finance', children: [
+            Item::make(label: 'Payroll', href: 'https://example.com/payroll'),
+        ]),
+    ]);
+
+    $view = $this->blade('{{ $item->render($style) }}', ['item' => $item, 'style' => Style::Topbar]);
+
+    $document = HTMLDocument::createFromString((string) $view, LIBXML_NOERROR);
+    expect($document->querySelector('[data-flux-dropdown] [data-flux-menu-submenu] [data-flux-menu-item][href="https://example.com/payroll"]'))->not->toBeNull();
 });
 
 test('an item with a permission is hidden from a guest', function (): void {

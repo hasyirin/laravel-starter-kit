@@ -1,7 +1,7 @@
 @if(filled($item->children))
     <flux:sidebar.group expandable :expanded="$item->active()" :icon="$item->icon" :heading="$item->label">
         @foreach($item->children as $child)
-            {{ $child }}
+            {{ $child->render($style) }}
         @endforeach
     </flux:sidebar.group>
 @else

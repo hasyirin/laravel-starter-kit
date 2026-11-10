@@ -4,5 +4,5 @@
         <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
     </flux:sidebar.header>
 
-    <livewire:layouts.local.sidebar />
+    <livewire:layouts.local.navigation />
 </flux:sidebar>

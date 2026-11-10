@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
-use App\Livewire\Layouts\System\Sidebar;
+use App\Livewire\Layouts\System\Navigation;
 use Dom\HTMLDocument;
 use Livewire\Livewire;
 
@@ -14,7 +14,7 @@ test('the system sidebar links back to the app dashboard below a spacer', functi
     grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
-    $component = Livewire::test(Sidebar::class);
+    $component = Livewire::test(Navigation::class);
 
     $component->assertSeeInOrder([route('system.dashboard'), 'data-flux-sidebar-spacer', route('dashboard')], false)
         ->assertDontSee(route('internal.dashboard'));
@@ -26,7 +26,7 @@ test('the system sidebar shows the internal link to users with internal access',
     grantPermissions($user, 'internal.access', 'system.access');
     $this->actingAs($user);
 
-    $component = Livewire::test(Sidebar::class);
+    $component = Livewire::test(Navigation::class);
 
     $component->assertSee(route('internal.dashboard'));
 });
@@ -37,11 +37,11 @@ test('the system sidebar shows the horizon link only to users who can view horiz
     grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
-    Livewire::test(Sidebar::class)->assertDontSee(route('horizon.index'));
+    Livewire::test(Navigation::class)->assertDontSee(route('horizon.index'));
 
     grantPermissions($user, 'system.horizon.view');
 
-    Livewire::test(Sidebar::class)->assertSeeInOrder([route('system.dashboard'), route('horizon.index'), 'data-flux-sidebar-spacer'], false);
+    Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('horizon.index'), 'data-flux-sidebar-spacer'], false);
 });
 
 test('the horizon link loads the whole page, without wire:navigate', function (): void {
@@ -50,19 +50,19 @@ test('the horizon link loads the whole page, without wire:navigate', function ()
     grantPermissions($user, 'system.access', 'system.horizon.view');
     $this->actingAs($user);
 
-    $document = HTMLDocument::createFromString(Livewire::test(Sidebar::class)->html(), LIBXML_NOERROR);
+    $document = HTMLDocument::createFromString(Livewire::test(Navigation::class)->html(), LIBXML_NOERROR);
     $link = $document->querySelector('a[href="'.route('horizon.index').'"]');
 
     expect($link)->not->toBeNull()
         ->and($link?->hasAttribute('wire:navigate'))->toBeFalse();
 });
 
-test('the sidebar links to the docs only in the local environment', function (string $environment, bool $shown): void {
+test('the navigation links to the docs only in the local environment', function (string $environment, bool $shown): void {
     $this->seed(PermissionSeeder::class);
     app()->detectEnvironment(fn (): string => $environment);
     $this->actingAs(User::factory()->create());
 
-    $component = Livewire::test(Sidebar::class);
+    $component = Livewire::test(Navigation::class);
 
     expect(str_contains($component->html(), 'href="'.route('docs.components').'"'))->toBe($shown);
 })->with([
@@ -76,9 +76,9 @@ test('the system sidebar shows the audit log link only to users who can view the
     grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
-    Livewire::test(Sidebar::class)->assertDontSee(route('system.audit-log'));
+    Livewire::test(Navigation::class)->assertDontSee(route('system.audit-log'));
 
     grantPermissions($user, 'system.audit-log.view');
 
-    Livewire::test(Sidebar::class)->assertSeeInOrder([route('system.dashboard'), route('system.audit-log'), 'data-flux-sidebar-spacer'], false);
+    Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.audit-log'), 'data-flux-sidebar-spacer'], false);
 });

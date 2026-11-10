@@ -54,6 +54,27 @@ test('asking again too soon says when to try again', function (): void {
         ->assertSee('Too many codes. Try again in');
 });
 
+test('a locked number says when to try again', function (): void {
+    lockSmsPasswordReset('+60123456789');
+
+    Livewire::test(SmsPasswordReset::class)
+        ->set('phone', '+60123456789')
+        ->call('send')
+        ->assertHasErrors('phone')
+        ->assertSet('showingCodeStep', false)
+        ->assertSee('Too many wrong codes for this number. Try again in 1 day, or reset your password by email.');
+});
+
+test('a number that locks during the code step says when to try again', function (): void {
+    $component = Livewire::test(SmsPasswordReset::class)->set('phone', '+60123456789')->call('send');
+    lockSmsPasswordReset('+60123456789');
+
+    $component->set('code', '000000')
+        ->call('confirm')
+        ->assertHasErrors('code')
+        ->assertSee('Too many wrong codes for this number.');
+});
+
 test('a wrong code shows an error', function (): void {
     Notification::fake();
     $user = User::factory()->create(['phone' => '+60123456789']);

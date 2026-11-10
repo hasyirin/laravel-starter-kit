@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\User\Actions\SendPasswordResetCode;
 use App\Domain\User\Exceptions\SmsCodeThrottled;
+use App\Domain\User\Exceptions\SmsPasswordResetLocked;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PasswordResetCode;
 use App\Domain\User\Support\SmsCode;
@@ -32,6 +33,13 @@ test('no reset code goes to a number that is unknown, unverified, deleted, or ou
     'deleted' => [fn () => User::factory()->create(['phone' => '+60123456789'])->delete(), '+60123456789'],
     'outside the calling codes' => [fn () => User::factory()->create(['phone' => '+6591234567']), '+6591234567'],
 ]);
+
+test('no reset code goes to a locked number', function (): void {
+    User::factory()->create(['phone' => '+60123456789']);
+    lockSmsPasswordReset('+60123456789');
+
+    expect(fn () => SendPasswordResetCode::make()->execute('+60123456789', '127.0.0.1'))->toThrow(SmsPasswordResetLocked::class);
+});
 
 test('each number and each address can ask for one reset code per minute, also for an unknown number', function (): void {
     SendPasswordResetCode::make()->execute('+60123456789', '127.0.0.1');

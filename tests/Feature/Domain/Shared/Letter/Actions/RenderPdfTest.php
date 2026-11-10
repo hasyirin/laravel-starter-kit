@@ -49,7 +49,7 @@ it('prints html in letter data as text', function (): void {
 it('loads no local file', function (): void {
     $path = storage_path('framework/testing/'.str()->uuid7().'.pdf');
 
-    RenderPdf::make()->execute('tests::letters.file-image', [], Preferences::current())->save($path);
+    RenderPdf::make()->execute('tests::letters.file-image', ['imagePath' => base_path('tests/Fixtures/Files/pixel.png')], Preferences::current())->save($path);
 
     expect(shell_exec('pdftotext '.escapeshellarg($path).' -'))->toContain('No local image')
         ->and(shell_exec('pdfimages -list '.escapeshellarg($path)))->not->toMatch('/^\s*1\s/m');

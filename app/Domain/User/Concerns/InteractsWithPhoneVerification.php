@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Concerns;
 
+use App\Domain\User\Notifications\PhoneVerificationCode;
+use App\Domain\User\Support\SmsCode;
+
 trait InteractsWithPhoneVerification
 {
     public function hasVerifiedPhone(): bool
@@ -14,6 +17,17 @@ trait InteractsWithPhoneVerification
     public function markPhoneAsVerified(): bool
     {
         return $this->forceFill(['phone_verified_at' => $this->freshTimestamp()])->save();
+    }
+
+    public function sendPhoneVerificationNotification(): void
+    {
+        $phone = $this->getPhoneForVerification();
+
+        if ($phone === null) {
+            return;
+        }
+
+        $this->notify(new PhoneVerificationCode(SmsCode::forVerification($phone)->issue()));
     }
 
     public function getPhoneForVerification(): ?string

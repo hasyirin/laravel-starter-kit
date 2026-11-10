@@ -10,5 +10,7 @@ interface MustVerifyPhone
 
     public function markPhoneAsVerified(): bool;
 
+    public function sendPhoneVerificationNotification(): void;
+
     public function getPhoneForVerification(): ?string;
 }

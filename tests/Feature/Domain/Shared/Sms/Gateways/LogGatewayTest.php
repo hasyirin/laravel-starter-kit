@@ -17,5 +17,5 @@ test('the log gateway refuses to send in production', function (): void {
     app()->detectEnvironment(fn (): string => 'production');
 
     expect(fn () => new LogGateway()->send('+60123456789', 'Hi'))
-        ->toThrow(RuntimeException::class, 'The log SMS gateway cannot send SMS in production. Set system.sms.gateway to the gateway of the app.');
+        ->toThrow(RuntimeException::class, 'The log SMS gateway cannot send SMS in production. Set SMS_GATEWAY to the gateway of the app.');
 });

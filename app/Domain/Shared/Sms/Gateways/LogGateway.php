@@ -12,7 +12,7 @@ class LogGateway implements SmsGateway
 {
     public function send(#[SensitiveParameter] string $phone, #[SensitiveParameter] string $message): void
     {
-        throw_if(app()->isProduction(), RuntimeException::class, 'The log SMS gateway cannot send SMS in production. Set system.sms.gateway to the gateway of the app.');
+        throw_if(app()->isProduction(), RuntimeException::class, 'The log SMS gateway cannot send SMS in production. Set SMS_GATEWAY to the gateway of the app.');
 
         logger()->info('SMS sent.', ['to' => $phone, 'message' => $message]);
     }

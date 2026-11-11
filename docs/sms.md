@@ -1,14 +1,15 @@
 # SMS
 
-The app sends SMS through Laravel notifications. A notification that implements `SmsNotification` returns `SmsChannel` in `via()` and gives the text in `toSms()`. The channel reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `system.sms.gateway` names.
+The app sends SMS through Laravel notifications. A notification that implements `SmsNotification` returns `SmsChannel` in `via()` and gives the text in `toSms()`. The channel reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `SMS_GATEWAY` names.
 
 `LogGateway` is the only gateway in the kit. It writes each SMS to the log, so the codes show in the log during local work. In production it throws an exception, so an app cannot go live without a real gateway. See [ADR-0011](adr/0011-the-kit-sends-sms-through-its-own-channel.md).
 
 ## Add a Gateway
 
 1. Write a class that implements `SmsGateway`. Its `send()` gets the number in E.164 format, for example +60123456789, and the text. Mark the number and the text with `#[\SensitiveParameter]`, as `SmsGateway` does, so a stack trace does not show them.
-2. Set `system.sms.gateway` in `config/system.php` to that class.
-3. Keep the credentials of the provider in the environment, and read them in `config/services.php`.
+2. Add the class to `system.sms.gateways` in `config/system.php` under a short name.
+3. On each server that must send real SMS, set `SMS_GATEWAY` to that name. For local work, keep the default, the log gateway. `phpunit.xml` sets the log gateway for the tests, so a test never sends a real SMS.
+4. Keep the credentials of the provider in the environment, and read them in `config/services.php`.
 
 ```php
 class AcmeGateway implements SmsGateway
@@ -20,6 +21,14 @@ class AcmeGateway implements SmsGateway
             ->throw();
     }
 }
+```
+
+```php
+// config/system.php
+'gateways' => [
+    'log' => LogGateway::class,
+    'acme' => AcmeGateway::class,
+],
 ```
 
 Throw an exception when the provider refuses an SMS. The phone verification page then shows an error, and the user does not wait for a code. The SMS password reset sends its code after the response, so the response takes the same time for every number. There, a failed send goes to the log.
@@ -40,7 +49,7 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 
 ## Before You Go Live
 
-1. Add a gateway for the SMS provider of the organization. See Add a Gateway.
+1. Add a gateway for the SMS provider of the organization, and set `SMS_GATEWAY` on the server. See Add a Gateway.
 2. Set a spend cap at the SMS provider. Public pages, such as registration and the SMS password reset, can make the app send SMS. The limits slow an attack, but the provider bills each SMS.
 3. If the app runs behind a proxy or a load balancer, trust it with `$middleware->trustProxies()` in `bootstrap/app.php`. Otherwise every request has the IP address of the proxy, and all visitors share the per-IP limit of the SMS password reset.
 4. Serve the app with PHP-FPM, FrankenPHP, or LiteSpeed. These servers send the response before the SMS password reset sends its code. On a server that cannot do this, such as `php artisan serve`, the page waits for the SMS. The response time then shows which numbers have an account.

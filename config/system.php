@@ -15,7 +15,10 @@ return [
     'country' => 'MY',
 
     'sms' => [
-        'gateway' => LogGateway::class,
+        'gateway' => env('SMS_GATEWAY', 'log'),
+        'gateways' => [
+            'log' => LogGateway::class,
+        ],
         'calling_codes' => ['+60'],
     ],
 

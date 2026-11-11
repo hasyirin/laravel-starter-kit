@@ -75,14 +75,20 @@ test('the kit sends sms through the log gateway by default', function (): void {
     expect(resolve(SmsGateway::class))->toBeInstanceOf(LogGateway::class);
 });
 
-test('the sms gateway comes from config', function (): void {
-    config(['system.sms.gateway' => FakeGateway::class]);
+test('the sms gateway is the class that system.sms.gateways lists under the configured name', function (): void {
+    config(['system.sms.gateways.fake' => FakeGateway::class, 'system.sms.gateway' => 'fake']);
 
     expect(resolve(SmsGateway::class))->toBeInstanceOf(FakeGateway::class);
 });
 
-test('a configured sms gateway that does not implement SmsGateway is refused', function (): void {
-    config(['system.sms.gateway' => stdClass::class]);
+test('an sms gateway name that system.sms.gateways does not list is refused', function (): void {
+    config(['system.sms.gateway' => 'acme']);
 
-    expect(fn () => resolve(SmsGateway::class))->toThrow(LogicException::class, 'system.sms.gateway must name a class that implements SmsGateway.');
+    expect(fn () => resolve(SmsGateway::class))->toThrow(LogicException::class, 'The SMS gateway [acme] is not in system.sms.gateways.');
+});
+
+test('a configured sms gateway that does not implement SmsGateway is refused', function (): void {
+    config(['system.sms.gateways.log' => stdClass::class]);
+
+    expect(fn () => resolve(SmsGateway::class))->toThrow(LogicException::class, 'system.sms.gateways.log must name a class that implements SmsGateway.');
 });

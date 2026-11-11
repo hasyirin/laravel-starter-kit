@@ -25,9 +25,14 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(function (): SmsGateway {
-            $gateway = resolve(config()->string('system.sms.gateway'));
+            $name = config()->string('system.sms.gateway');
+            $class = config("system.sms.gateways.{$name}");
 
-            throw_unless($gateway instanceof SmsGateway, LogicException::class, 'system.sms.gateway must name a class that implements SmsGateway.');
+            throw_unless(is_string($class), LogicException::class, "The SMS gateway [{$name}] is not in system.sms.gateways.");
+
+            $gateway = resolve($class);
+
+            throw_unless($gateway instanceof SmsGateway, LogicException::class, "system.sms.gateways.{$name} must name a class that implements SmsGateway.");
 
             return $gateway;
         });

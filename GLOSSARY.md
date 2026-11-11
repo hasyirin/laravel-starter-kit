@@ -197,7 +197,7 @@ The postal address of a record: up to three lines, a postcode, a city, and the s
 
 **City**:
 The post office that delivers the mail to an address. It is the name after the postcode, as on a MyKad. The code calls it a post office.
-_Avoid_: Town, locality
+_Avoid_: Town
 
 **Location**:
 The point of an address on the map, as a latitude and a longitude.
@@ -207,8 +207,16 @@ _Avoid_: Coordinates, lat lng, pin, geolocation
 A part of a district, called a mukim in Malay. The bundled data has subdistricts only for Negeri Sembilan and Kemaman.
 _Avoid_: Mukim
 
+**Geography**:
+The countries, states, districts, subdistricts, cities, and postcodes that an address can use.
+_Avoid_: Geographic data, places, locations
+
+**Locality**:
+The country where the app works, with its state and district when the app sets them. A geography record is local when it is the locality, contains it, or is in it. A city is local when it is in the locality's state, because a city is not part of a district.
+_Avoid_: Home state, app's state
+
 **Local area**:
-The post offices whose addresses a form accepts when the form has the local limit. By default, they are the post offices of the app's state.
+The post offices whose addresses a form accepts when the form has the local limit. By default, they are the post offices of the locality's state.
 _Avoid_: Service area, jurisdiction
 
 ### Messages

@@ -315,6 +315,23 @@ class AuditLog
             ->map(fn (string $field): array => self::change($model, $field, $old[$field] ?? null, $new[$field] ?? null));
     }
 
+    public static function attributeLabel(Model $record): ?string
+    {
+        $attribute = collect(self::NAME_ATTRIBUTES)->first(fn (string $attribute): bool => $record->hasAttribute($attribute));
+
+        if ($attribute === null) {
+            return null;
+        }
+
+        $name = $record->getAttribute($attribute);
+
+        if (! is_scalar($name)) {
+            return null;
+        }
+
+        return (string) $name;
+    }
+
     /**
      * @return Collection<string, string>
      */
@@ -428,19 +445,17 @@ class AuditLog
 
     private static function recordName(?Model $record): ?string
     {
-        $attribute = collect(self::NAME_ATTRIBUTES)->first(fn (string $attribute): bool => (bool) $record?->hasAttribute($attribute));
-
-        if ($attribute === null) {
+        if (! $record instanceof Model) {
             return null;
         }
 
-        $name = $record?->getAttribute($attribute);
-
-        if (! is_scalar($name)) {
-            return null;
+        if (! method_exists($record, 'auditLabel')) {
+            return self::attributeLabel($record);
         }
 
-        return (string) $name;
+        $label = $record->auditLabel();
+
+        return is_string($label) ? $label : null;
     }
 
     /**

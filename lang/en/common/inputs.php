@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'code' => 'Code',
     'name' => 'Name',
+    'alpha_2' => 'Alpha-2 code',
     'name_placeholder' => 'Full name',
     'email' => 'Email',
     'email_address' => 'Email address',
@@ -25,6 +26,7 @@ return [
     'postcode_placeholder' => 'Choose a postcode',
     'postcode_search_placeholder' => 'Search postcodes',
     'city' => 'City',
+    'post_office_id' => 'City',
     'city_placeholder' => 'Choose a city',
     'city_needs_postcode' => 'Choose the postcode first',
     'city_not_found' => 'No city has this postcode',

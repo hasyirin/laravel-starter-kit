@@ -50,6 +50,12 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `internal.controls.organizations.update`         | ✓                    |
 | `internal.controls.organizations.delete`         | ✓                    |
 | `internal.controls.organizations.view-audit-log` | ✓                    |
+| `internal.controls.geography.view-any`           | ✓                    |
+| `internal.controls.geography.view`               | ✓                    |
+| `internal.controls.geography.create`             | ✓                    |
+| `internal.controls.geography.update`             | ✓                    |
+| `internal.controls.geography.delete`             | ✓                    |
+| `internal.controls.geography.view-audit-log`     | ✓                    |
 | `internal.controls.letterheads.view-any`         | ✓                    |
 | `internal.controls.letterheads.view`             | ✓                    |
 | `internal.controls.letterheads.create`           | ✓                    |

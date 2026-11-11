@@ -25,7 +25,7 @@
 
         @isset($user)
             <x-slot:footer>
-                <div class="grid gap-6 sm:grid-cols-2">
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <x-entry :label="__('user/users.created_at')">{{ Preferences::current()->datetime($user->created_at) }}</x-entry>
 
                     <x-entry :label="__('user/users.email_verified_at')">

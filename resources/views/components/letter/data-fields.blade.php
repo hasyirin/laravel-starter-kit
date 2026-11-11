@@ -52,10 +52,9 @@
         @elseif($type === 'list')
             @php
                 $rows = is_array($current) ? array_keys($current) : [];
-                $addList = '$wire.$set('.json_encode($key).', [...($wire.$get('.json_encode($key).') ?? []), null])';
             @endphp
             <x-field :$label :$required :name="$key">
-                <div class="space-y-2">
+                <div class="space-y-2" x-data="letterRows(@js($key))">
                     @foreach($rows as $index)
                         <div class="flex items-start gap-2" wire:key="{{ $key }}.{{ $index }}">
                             <div class="grow">
@@ -67,13 +66,13 @@
                                     variant="ghost"
                                     :aria-label="__('common/buttons.delete')"
                                     data-list-remove
-                                    x-on:click="{{ '$wire.$set('.json_encode($key).', $wire.$get('.json_encode($key).').filter((_, position) => position !== '.json_encode($index).'))' }}"
+                                    x-on:click="removeRow({{ Js::from($index) }})"
                                 />
                             @endunless
                         </div>
                     @endforeach
                     @unless($fieldDisabled)
-                        <flux:button icon="plus" size="sm" data-list-add x-on:click="{{ $addList }}">{{ __('letters/letters.row') }}</flux:button>
+                        <flux:button icon="plus" size="sm" data-list-add x-on:click="addRow(null)">{{ __('letters/letters.row') }}</flux:button>
                     @endunless
                 </div>
             </x-field>
@@ -81,10 +80,9 @@
             @php
                 $rows = is_array($current) ? array_keys($current) : [];
                 $blankRow = collect($field->children)->mapWithKeys(fn ($column): array => [$column->name => null])->all();
-                $addRow = '$wire.$set('.json_encode($key).', [...($wire.$get('.json_encode($key).') ?? []), '.json_encode((object) $blankRow).'])';
             @endphp
             <x-field :$label :$required :name="$key">
-                <div class="space-y-4">
+                <div class="space-y-4" x-data="letterRows(@js($key))">
                     @foreach($rows as $index)
                         <div class="flex items-start gap-2 rounded-lg border border-zinc-200 p-4 dark:border-white/10" wire:key="{{ $key }}.{{ $index }}">
                             <x-letter.data-fields
@@ -100,13 +98,15 @@
                                     variant="ghost"
                                     :aria-label="__('common/buttons.delete')"
                                     data-row-remove
-                                    x-on:click="{{ '$wire.$set('.json_encode($key).', $wire.$get('.json_encode($key).').filter((_, position) => position !== '.json_encode($index).'))' }}"
+                                    x-on:click="removeRow({{ Js::from($index) }})"
                                 />
                             @endunless
                         </div>
                     @endforeach
                     @unless($fieldDisabled)
-                        <flux:button icon="plus" size="sm" data-row-add x-on:click="{{ $addRow }}">{{ __('letters/letters.row') }}</flux:button>
+                        <flux:button icon="plus" size="sm" data-row-add x-on:click="addRow({{ Js::from((object) $blankRow) }})">
+                            {{ __('letters/letters.row') }}
+                        </flux:button>
                     @endunless
                 </div>
             </x-field>

@@ -146,11 +146,13 @@ test('a table renders the columns of each row bound to the row index', function 
 test('the add and remove buttons change the property in the browser', function (): void {
     $document = renderDataFields([Field::table('lines', [Field::text('item')])], ['lines' => [['item' => 'Pen']]]);
 
+    $rows = $document->querySelector('[data-row-add]')?->closest('[x-data]')?->getAttribute('x-data');
     $add = $document->querySelector('[data-row-add]')?->getAttribute('x-on:click');
     $remove = $document->querySelector('[data-row-remove]')?->getAttribute('x-on:click');
 
-    expect($add)->toContain('$wire.$set')->toContain('form.data.lines')->toContain('item')
-        ->and($remove)->toContain('$wire.$set')->toContain('form.data.lines')->toContain('filter');
+    expect($rows)->toContain('letterRows')->toContain('form.data.lines')
+        ->and($add)->toContain('addRow')->toContain('item')
+        ->and($remove)->toBe('removeRow(0)');
 });
 
 test('a locked list or table has no add or remove buttons', function (): void {

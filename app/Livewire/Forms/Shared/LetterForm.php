@@ -246,9 +246,7 @@ class LetterForm extends Form
     private function signer(): ?User
     {
         if (! $this->editable('signer')) {
-            $actor = $this->letter->exists ? $this->letter->signature?->actor : null;
-
-            return $actor instanceof User ? $actor : null;
+            return $this->savedSigner();
         }
 
         if ($this->signer_id === null) {
@@ -258,18 +256,29 @@ class LetterForm extends Form
         return User::query()->findOrFail($this->signer_id);
     }
 
+    private function savedSigner(): ?User
+    {
+        if (! $this->letter->exists) {
+            return null;
+        }
+
+        $actor = $this->letter->signature?->actor;
+
+        return $actor instanceof User ? $actor : null;
+    }
+
     private function details(LetterType $type): PrintDetails
     {
         $signer = $this->signer();
 
         return new PrintDetails(
-            $type->numbering() === NumberingMode::Manual && $this->reference_number !== '' ? $this->reference_number : null,
-            $type->numbering() === NumberingMode::AutomaticWithOverride ? $this->sequence_number : null,
-            $this->date,
-            $signer,
-            $this->copies(),
-            $this->with_letterhead,
-            $this->computer_signed,
+            referenceNumber: $type->numbering() === NumberingMode::Manual && $this->reference_number !== '' ? $this->reference_number : null,
+            sequenceNumber: $type->numbering() === NumberingMode::AutomaticWithOverride ? $this->sequence_number : null,
+            date: $this->date,
+            signer: $signer,
+            carbonCopies: $this->copies(),
+            withLetterhead: $this->with_letterhead,
+            computerSigned: $this->computer_signed,
         );
     }
 

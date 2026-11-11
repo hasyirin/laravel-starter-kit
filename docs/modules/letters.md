@@ -75,7 +75,7 @@ class PermitApprovalLetter extends LetterType
 }
 ```
 
-The field types are text, lines, date, number, yes or no, choice, list, table, image, and group. Make a field optional with `optional()`. Set its label with `label()`. A group holds child fields. A group that has no filled child counts as absent.
+The field types are text, lines, date, number, yes or no, choice, list, table, image, and group. Make a field optional with `optional()`. Set its label with `label()`. A group holds child fields. A group that has no filled child counts as absent. A yes or no child set to no does not count as filled.
 
 The mapping makes every decision. It compares dates with `$date`, never with today, so a reprint makes the same choices. Fixed text belongs to the view. A change to fixed text is a change to the letter type.
 
@@ -380,7 +380,7 @@ The administrator can change any value. For a start from a source, the administr
 
 Each print writes an audit entry with the event `printed-manual-letter`. The entry holds the letter type, the letter data, the extra data, the source, and the letter. It also holds the print details: the reference number, the date, the signer, and the carbon copies. The print details also hold the signer profile, the signer position, and the letterhead that the page showed. The entry is written even when activity logging is off. An upload becomes media on the audit entry. An image of the letter is copied onto the audit entry, so a later change to the letter does not remove it. An image of the source stays on the source, and the entry logs its uuid. A preview writes nothing.
 
-`PruneAuditLog` archives old entries, then deletes their media and rows. See `AUDIT_RETENTION_DAYS` in `config/system.php`.
+`PruneAuditLog` archives old entries, then deletes their media and rows. See `AUDIT_RETENTION_DAYS` in `config/system.php`. Do not use the `activitylog:clean` command of the package. It deletes rows by query and leaves the images of manual letters.
 
 The signer list on this page holds all staff with a position, in any organization.
 
@@ -536,6 +536,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a letter type that is not allowed for the user is refused
 - a source that does not fit the letter type is refused
 - the type of a saved letter cannot change
+- the source of a saved letter cannot change
 - bad extra values are refused and nothing is saved
 - extra values are kept
 - an extra image is stored in the letter images collection and its uuid is kept
@@ -681,6 +682,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it finds a letter type by key
 - it refuses an unknown key
 - it gives the config key of a letter type
+- it gives the config key of a letter type that the container swaps for a subclass
 - it returns only the letter types of the given source
 
 ### PdfFile
@@ -707,6 +709,10 @@ The names of the tests of the module. A failing test fails the build, so each ru
 ### Letter Components
 
 <!-- generated:test-rules path="tests/Feature/Views/Components/Letter" -->
+
+### CopyFields
+
+- the add and remove buttons change the rows in the browser
 
 ### DataFields
 

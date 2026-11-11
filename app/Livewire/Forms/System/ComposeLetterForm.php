@@ -182,13 +182,13 @@ class ComposeLetterForm extends Form
     private function details(LetterType $type): PrintDetails
     {
         return new PrintDetails(
-            $this->reference_number !== '' ? $this->reference_number : null,
-            null,
-            $this->date,
-            $this->signer($type),
-            $this->copiesFromRows($this->carbon_copies),
-            $type->offersLetterhead() && $this->with_letterhead,
-            $type->offersComputerSigned() && $this->computer_signed,
+            referenceNumber: $this->reference_number !== '' ? $this->reference_number : null,
+            sequenceNumber: null,
+            date: $this->date,
+            signer: $this->signer($type),
+            carbonCopies: $this->copiesFromRows($this->carbon_copies),
+            withLetterhead: $type->offersLetterhead() && $this->with_letterhead,
+            computerSigned: $type->offersComputerSigned() && $this->computer_signed,
         );
     }
 

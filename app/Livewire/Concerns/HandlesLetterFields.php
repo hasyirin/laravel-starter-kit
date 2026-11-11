@@ -128,7 +128,7 @@ trait HandlesLetterFields
         }
 
         $children = $this->payload($field->children, is_array($value) ? $value : [], $path.'.');
-        $filled = collect($children)->contains(fn (mixed $child): bool => $child !== null && $child !== []);
+        $filled = collect($children)->contains(fn (mixed $child): bool => ! in_array($child, [null, [], false], true));
 
         if (! $filled) {
             throw ValidationException::withMessages([$path => __('validation.required', ['attribute' => $field->label ?? $field->name])]);

@@ -39,6 +39,7 @@ class SaveLetter
         throw_unless($type->allowedFor($user), LogicException::class, "The letter type [{$key}] is not allowed for this user.");
         throw_unless($source instanceof ($type->source()), LogicException::class, "The source is not a source of the letter type [{$key}].");
         throw_if($letter->exists && $letter->getRawOriginal('type') !== $key, LogicException::class, 'The type of a saved letter cannot change.');
+        throw_if($letter->exists && $this->sourceChanged($letter, $source), LogicException::class, 'The source of a saved letter cannot change.');
 
         $this->checkSigner($letter, $type, $key, $details->signer);
 
@@ -99,6 +100,12 @@ class SaveLetter
 
             return $letter;
         });
+    }
+
+    private function sourceChanged(Letter $letter, Model $source): bool
+    {
+        return $letter->getRawOriginal('source_type') !== $source->getMorphClass()
+            || (string) $letter->getRawOriginal('source_id') !== (string) $source->getKey();
     }
 
     private function removeUnusedImages(Letter $letter): void

@@ -39,9 +39,15 @@ final class LetterTypes
     public static function keyOf(LetterType|string $type): string
     {
         $class = is_string($type) ? $type : $type::class;
-        $key = array_search($class, self::registered(), true);
+        $matches = collect(self::registered())
+            ->filter(fn (string $registered): bool => is_a($class, $registered, true));
 
-        throw_if($key === false, InvalidArgumentException::class, "Unregistered letter type [{$class}].");
+        $key = $matches
+            ->reject(fn (string $registered): bool => $matches->contains(fn (string $other): bool => is_subclass_of($other, $registered)))
+            ->keys()
+            ->first();
+
+        throw_if($key === null, InvalidArgumentException::class, "Unregistered letter type [{$class}].");
 
         return (string) $key;
     }

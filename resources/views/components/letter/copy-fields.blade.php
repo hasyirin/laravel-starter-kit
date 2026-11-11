@@ -21,12 +21,20 @@
                     @endif
                 </div>
                 @if(! $disabled)
-                    <flux:button icon="trash" variant="ghost" :aria-label="__('common/buttons.delete')" x-on:click="removeRow({{ Js::from($index) }})" />
+                    <flux:button
+                        icon="trash"
+                        variant="ghost"
+                        data-row-remove
+                        :aria-label="__('common/buttons.delete')"
+                        x-on:click="removeRow({{ Js::from($index) }})"
+                    />
                 @endif
             </div>
         @endforeach
         @if(! $disabled)
-            <flux:button icon="plus" size="sm" x-on:click="addRow({ kind: 'text', target: null, text: '' })">{{ __('letters/letters.copy') }}</flux:button>
+            <flux:button icon="plus" size="sm" data-row-add x-on:click="addRow({ kind: 'text', target: null, text: '' })">
+                {{ __('letters/letters.copy') }}
+            </flux:button>
         @endif
     </div>
 </x-field>

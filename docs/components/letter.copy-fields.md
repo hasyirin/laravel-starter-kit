@@ -11,7 +11,7 @@
 />
 ```
 
-The component binds each row to prefix.0.kind, prefix.0.target, and prefix.0.text. The add and remove buttons run in the browser and change the property with `$wire.$set()`. The form needs no method for them.
+The component binds each row to prefix.0.kind, prefix.0.target, and prefix.0.text. The add and remove buttons run in the browser and change the property with `$wire.$set()`. The form needs no method for them. The buttons use the `letterRows` Alpine component in `resources/js/components/letter/rows.js`.
 
 ## Disabled
 

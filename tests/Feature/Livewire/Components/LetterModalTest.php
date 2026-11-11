@@ -251,6 +251,18 @@ test('a yes or no field left off saves as no, also inside a group', function ():
     expect($this->permit->letters()->firstOrFail()->extra)->toBe(['urgent' => false, 'guarantor' => ['name' => 'Ali', 'local' => false]]);
 });
 
+test('a group switched on with only a yes or no field left off is an error on the group', function (): void {
+    config(['system.letters.types.yes_no' => PermitYesNoLetter::class]);
+
+    openModal()
+        ->set('form.type', 'yes_no')
+        ->set('form.extra._groups.guarantor', true)
+        ->call('save')
+        ->assertHasErrors(['form.extra.guarantor']);
+
+    expect($this->permit->letters()->count())->toBe(0);
+});
+
 test('an uploaded extra image is stored and an existing one is kept', function (): void {
     $item = Livewire::test(FileUpload::class, ['fileRules' => ['image']])
         ->set('uploads', UploadedFile::fake()->image('stamp.png', 40, 40))

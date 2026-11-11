@@ -6,6 +6,7 @@ use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Organization\Models\Organization;
 use Tests\Fixtures\Models\Memo;
 use Tests\Fixtures\Support\NoticeLetter;
+use Tests\Fixtures\Support\SignedNoticeLetter;
 
 beforeEach(function (): void {
     config()->set('system.letters.types', ['notice' => NoticeLetter::class]);
@@ -27,6 +28,13 @@ it('refuses an unknown key', function (): void {
 it('gives the config key of a letter type', function (): void {
     expect(LetterTypes::keyOf(new NoticeLetter))->toBe('notice')
         ->and(LetterTypes::keyOf(NoticeLetter::class))->toBe('notice');
+});
+
+it('gives the config key of a letter type that the container swaps for a subclass', function (): void {
+    config()->set('system.letters.types', ['notice' => NoticeLetter::class, 'signed' => SignedNoticeLetter::class]);
+    app()->bind(SignedNoticeLetter::class, fn (): SignedNoticeLetter => new class extends SignedNoticeLetter {});
+
+    expect(LetterTypes::keyOf(LetterTypes::find('signed')))->toBe('signed');
 });
 
 it('returns only the letter types of the given source', function (): void {

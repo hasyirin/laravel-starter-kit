@@ -193,6 +193,16 @@ test('the type of a saved letter cannot change', function (): void {
     expect($letter->fresh()?->type)->toBe('notice');
 });
 
+test('the source of a saved letter cannot change', function (): void {
+    $letter = saveLetter('notice', details());
+    $other = Organization::factory()->create();
+
+    expect(fn (): Letter => SaveLetter::make()->execute($letter, LetterTypes::find('notice'), $other, $this->printer, details(), []))
+        ->toThrow(LogicException::class, 'The source of a saved letter cannot change.');
+
+    expect($letter->fresh()?->source?->is($this->organization))->toBeTrue();
+});
+
 test('bad extra values are refused and nothing is saved', function (): void {
     expect(fn (): Letter => saveLetter('extra', details(), ['remark' => ['not text']]))->toThrow(ValidationException::class);
     expect(Letter::query()->count())->toBe(0);

@@ -91,5 +91,6 @@ class AppServiceProvider extends ServiceProvider
     protected function configureRateLimits(): void
     {
         RateLimiter::for('mail-tracking', fn (Request $request): Limit => Limit::perMinute(30)->by($request->ip().'|'.$request->route('token')));
+        RateLimiter::for('letter-preview', fn (Request $request): Limit => Limit::perMinute(30)->by((string) $request->user()?->getAuthIdentifier()));
     }
 }

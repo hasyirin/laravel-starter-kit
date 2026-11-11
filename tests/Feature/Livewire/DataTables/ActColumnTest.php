@@ -84,3 +84,27 @@ test('an act column loads its relations once for the whole page', function (): v
 
     expect($countQueries())->toBe($queriesForOneRow);
 });
+
+test('an act column loads a deleted position without extra queries per row', function (): void {
+    $countQueries = function (): int {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        Livewire::test(InvoiceDataTable::class);
+
+        return count(DB::getQueryLog());
+    };
+
+    $profile = profileWithPosition('Ada Lovelace', 'Clerk');
+    prepareInvoice($profile->user, 'INV-1');
+    $profile->position?->delete();
+    $queriesForOneRow = $countQueries();
+
+    foreach (range(2, 10) as $number) {
+        prepareInvoice(profileWithPosition("User {$number}", "Position {$number}")->user, "INV-{$number}");
+    }
+
+    Position::query()->delete();
+
+    Livewire::test(InvoiceDataTable::class)->assertSeeText('Clerk');
+    expect($countQueries())->toBe($queriesForOneRow);
+});

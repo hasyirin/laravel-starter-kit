@@ -1,0 +1,431 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Shared\Actor\Enums\Act;
+use App\Domain\Shared\Letter\Actions\AssignReferenceNumber;
+use App\Domain\Shared\Letter\Actions\SaveLetter;
+use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Letter\Support\CarbonCopy;
+use App\Domain\Shared\Letter\Support\LetterTypes;
+use App\Domain\Shared\Letter\Support\PrintDetails;
+use App\Domain\Shared\Media\Enums\MediaCollection;
+use App\Domain\Shared\Organization\Models\Organization;
+use App\Domain\Shared\Organization\Models\Position;
+use App\Domain\User\Models\Profile;
+use App\Domain\User\Models\User;
+use App\Livewire\Components\FileUpload;
+use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Filesystem\Factory;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\Livewire;
+use Spatie\MediaLibrary\MediaCollections\Filesystem;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Tests\Fixtures\Support\ExtraNoticeLetter;
+use Tests\Fixtures\Support\NoticeLetter;
+use Tests\Fixtures\Support\NumberedNoticeLetter;
+use Tests\Fixtures\Support\OverrideNoticeLetter;
+use Tests\Fixtures\Support\RestrictedNoticeLetter;
+use Tests\Fixtures\Support\SignedNoticeLetter;
+use Tests\Fixtures\Support\SilentNoticeLetter;
+
+beforeEach(function (): void {
+    Storage::fake('media');
+    config(['system.letters.types' => [
+        'notice' => NoticeLetter::class,
+        'signed' => SignedNoticeLetter::class,
+        'silent' => SilentNoticeLetter::class,
+        'restricted' => RestrictedNoticeLetter::class,
+        'extra' => ExtraNoticeLetter::class,
+        'numbered' => NumberedNoticeLetter::class,
+        'override' => OverrideNoticeLetter::class,
+    ]]);
+    $this->organization = Organization::factory()->create();
+    $this->printer = User::factory()->create();
+    Profile::factory()->for($this->organization)->for($this->printer)->create();
+});
+
+function signerWithPosition(?string $position = 'Clerk'): User
+{
+    $user = User::factory()->create();
+
+    if ($position === null) {
+        Profile::factory()->for($user)->create();
+
+        return $user;
+    }
+
+    $position = Position::factory()->create(['name' => $position]);
+    Profile::factory()->for($position->organization)->for($position)->for($user)->create();
+
+    return $user;
+}
+
+function details(?User $signer = null, bool $withLetterhead = false, bool $computerSigned = false): PrintDetails
+{
+    return new PrintDetails('REF/1', null, CarbonImmutable::parse('2026-03-04'), $signer, [new CarbonCopy('Finance')], $withLetterhead, $computerSigned);
+}
+
+function numberDetails(?string $referenceNumber = null, ?int $sequenceNumber = null, ?User $signer = null): PrintDetails
+{
+    return new PrintDetails($referenceNumber, $sequenceNumber, null, $signer, [], false, false);
+}
+
+function saveLetter(string $type, PrintDetails $details, array $extra = [], ?Letter $letter = null): Letter
+{
+    return SaveLetter::make()->execute($letter ?? new Letter, LetterTypes::find($type), test()->organization, test()->printer, $details, $extra);
+}
+
+function extraUpload(): TemporaryUploadedFile
+{
+    $item = Livewire::test(FileUpload::class, ['fileRules' => ['image']])->set('uploads', UploadedFile::fake()->image('stamp.png', 100, 100))->get('items')[0];
+
+    return TemporaryUploadedFile::unserializeFromLivewireRequest($item['upload']);
+}
+
+test('saving keeps the source, the type, the reference number, the date, and the carbon copies', function (): void {
+    $letter = saveLetter('notice', details())->fresh();
+
+    expect($letter->source->is($this->organization))->toBeTrue()
+        ->and($letter->type)->toBe('notice')
+        ->and($letter->reference_number)->toBe('REF/1')
+        ->and($letter->date?->toDateString())->toBe('2026-03-04')
+        ->and($letter->carbon_copies)->toEqual([new CarbonCopy('Finance')]);
+});
+
+test('a signer makes one sign action', function (): void {
+    $signer = signerWithPosition();
+
+    $letter = saveLetter('notice', details($signer));
+
+    expect($letter->actions()->ofName(Act::Sign)->count())->toBe(1)
+        ->and($letter->signature?->actor?->is($signer))->toBeTrue();
+});
+
+test('a new signer replaces the actor of the one sign action', function (): void {
+    $letter = saveLetter('notice', details(signerWithPosition()));
+    $other = signerWithPosition('Manager');
+
+    saveLetter('notice', details($other), letter: $letter);
+
+    expect($letter->actions()->ofName(Act::Sign)->count())->toBe(1)
+        ->and($letter->fresh()->signature?->actor?->is($other))->toBeTrue();
+});
+
+test('no signer deletes the sign action', function (): void {
+    $letter = saveLetter('notice', details(signerWithPosition()));
+
+    saveLetter('notice', details(), letter: $letter);
+
+    expect($letter->actions()->ofName(Act::Sign)->count())->toBe(0);
+});
+
+test('a signer without a position is refused', function (): void {
+    expect(fn (): Letter => saveLetter('notice', details(signerWithPosition(null))))
+        ->toThrow(ValidationException::class);
+    expect(Letter::query()->count())->toBe(0);
+});
+
+test('the unchanged signer who lost the position passes', function (): void {
+    $signer = signerWithPosition();
+    $letter = saveLetter('notice', details($signer));
+    Profile::factory()->for($signer)->create();
+
+    saveLetter('notice', details($signer->fresh()), letter: $letter);
+
+    expect($letter->fresh()->signature?->actor?->is($signer))->toBeTrue();
+});
+
+test('a signer with the id of an actor of another type is not the unchanged signer', function (): void {
+    $signer = signerWithPosition(null);
+    $letter = saveLetter('notice', details(signerWithPosition()));
+    $letter->signature?->forceFill(['actor_type' => 'organization', 'actor_id' => $signer->id])->save();
+
+    expect(fn (): Letter => saveLetter('notice', details($signer), letter: $letter->fresh()))
+        ->toThrow(ValidationException::class);
+});
+
+test('changing to a signer without a position is still refused', function (): void {
+    $letter = saveLetter('notice', details(signerWithPosition()));
+
+    expect(fn (): Letter => saveLetter('notice', details(signerWithPosition(null)), letter: $letter))
+        ->toThrow(ValidationException::class);
+});
+
+test('a letter type that requires a signer refuses no signer', function (): void {
+    expect(fn (): Letter => saveLetter('signed', details()))->toThrow(ValidationException::class);
+    expect(Letter::query()->count())->toBe(0);
+});
+
+test('a letter type that hides the signer refuses a signer', function (): void {
+    expect(fn (): Letter => saveLetter('silent', details(signerWithPosition())))->toThrow(LogicException::class);
+});
+
+test('computer signed forces the letterhead', function (): void {
+    $letter = saveLetter('notice', details(withLetterhead: false, computerSigned: true));
+
+    expect($letter->fresh()->with_letterhead)->toBeTrue()
+        ->and($letter->fresh()->computer_signed)->toBeTrue();
+});
+
+test('a letter type that is not allowed for the user is refused', function (): void {
+    expect(fn (): Letter => saveLetter('restricted', details()))->toThrow(LogicException::class);
+    expect(Letter::query()->count())->toBe(0);
+});
+
+test('a source that does not fit the letter type is refused', function (): void {
+    expect(fn (): Letter => SaveLetter::make()->execute(new Letter, LetterTypes::find('notice'), $this->printer, $this->printer, details(), []))
+        ->toThrow(LogicException::class, 'The source is not a source of the letter type [notice].');
+
+    expect(Letter::query()->count())->toBe(0);
+});
+
+test('the type of a saved letter cannot change', function (): void {
+    $letter = saveLetter('notice', details());
+
+    expect(fn (): Letter => saveLetter('numbered', numberDetails(), [], $letter))
+        ->toThrow(LogicException::class, 'The type of a saved letter cannot change.');
+
+    expect($letter->fresh()?->type)->toBe('notice');
+});
+
+test('the source of a saved letter cannot change', function (): void {
+    $letter = saveLetter('notice', details());
+    $other = Organization::factory()->create();
+
+    expect(fn (): Letter => SaveLetter::make()->execute($letter, LetterTypes::find('notice'), $other, $this->printer, details(), []))
+        ->toThrow(LogicException::class, 'The source of a saved letter cannot change.');
+
+    expect($letter->fresh()?->source?->is($this->organization))->toBeTrue();
+});
+
+test('bad extra values are refused and nothing is saved', function (): void {
+    expect(fn (): Letter => saveLetter('extra', details(), ['remark' => ['not text']]))->toThrow(ValidationException::class);
+    expect(Letter::query()->count())->toBe(0);
+});
+
+test('extra values are kept', function (): void {
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent']);
+
+    expect($letter->fresh()->extra)->toBe(['remark' => 'Urgent', 'stamp' => null]);
+});
+
+test('an extra image is stored in the letter images collection and its uuid is kept', function (): void {
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+
+    $media = $letter->getMedia(MediaCollection::LetterImages);
+
+    expect($media)->toHaveCount(1)
+        ->and($letter->extra['stamp'])->toBe($media->first()?->uuid);
+});
+
+test('an extra image that is kept by uuid is not stored twice', function (): void {
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+    $uuid = $letter->extra['stamp'];
+
+    saveLetter('extra', details(), ['remark' => 'Changed', 'stamp' => $uuid], $letter);
+
+    expect($letter->fresh()->getMedia(MediaCollection::LetterImages))->toHaveCount(1)
+        ->and($letter->fresh()->extra['stamp'])->toBe($uuid);
+});
+
+test('a refused save leaves no stored image and keeps the upload for a retry', function (): void {
+    saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
+    $upload = extraUpload();
+    $letter = new Letter;
+
+    expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => $upload], $letter))->toThrow(ValidationException::class);
+    expect(Storage::disk('media')->allFiles())->toBeEmpty();
+
+    $media = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => $upload], $letter)->fresh()->getMedia(MediaCollection::LetterImages);
+
+    expect($media)->toHaveCount(1)
+        ->and(Storage::disk('media')->allFiles())->toContain("{$media->first()->id}/stamp.png")
+        ->each->toStartWith("{$media->first()->id}/");
+});
+
+test('a replaced extra image is deleted with its file', function (): void {
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+    $old = $letter->getMedia(MediaCollection::LetterImages)->sole();
+
+    saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()], $letter);
+
+    $media = $letter->fresh()->getMedia(MediaCollection::LetterImages)->sole();
+    expect($media->uuid)->not->toBe($old->uuid)
+        ->and(Storage::disk('media')->allFiles())->each->toStartWith("{$media->id}/");
+});
+
+test('a removed extra image is deleted with its file', function (): void {
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+
+    saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => null], $letter);
+
+    expect($letter->fresh()->getMedia(MediaCollection::LetterImages))->toBeEmpty()
+        ->and(Storage::disk('media')->allFiles())->toBeEmpty();
+});
+
+test('a failed cleanup query after the commit is reported and keeps the save', function (): void {
+    Exceptions::fake();
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+    $old = $letter->getMedia(MediaCollection::LetterImages)->sole();
+    Media::retrieved(function (Media $media) use ($old): void {
+        throw_if($media->is($old), RuntimeException::class, 'The cleanup query failed.');
+    });
+
+    $saved = saveLetter('extra', details(), ['remark' => 'Changed', 'stamp' => extraUpload()], $letter);
+
+    expect($saved->exists)->toBeTrue()
+        ->and($letter->fresh()->extra['remark'])->toBe('Changed');
+    Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'The cleanup query failed.');
+});
+
+test('a refused save keeps the extra image it would replace', function (): void {
+    saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
+    $letter = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+    $old = $letter->getMedia(MediaCollection::LetterImages)->sole();
+
+    expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => extraUpload()], $letter))->toThrow(ValidationException::class);
+
+    expect($letter->fresh()->getMedia(MediaCollection::LetterImages)->sole()->uuid)->toBe($old->uuid)
+        ->and(Storage::disk('media')->allFiles())->toContain("{$old->id}/stamp.png")
+        ->each->toStartWith("{$old->id}/");
+});
+
+test('a failed image cleanup is reported and the refusal is thrown', function (): void {
+    Exceptions::fake();
+    app()->instance(Filesystem::class, new class(resolve(Factory::class)) extends Filesystem
+    {
+        public function removeAllFiles(Media $media): void
+        {
+            throw new RuntimeException('The cleanup failed.');
+        }
+    });
+    saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
+
+    expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => extraUpload()]))->toThrow(ValidationException::class);
+    Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'The cleanup failed.');
+});
+
+test('a typed reference number keeps the sequence key of the printer organization', function (): void {
+    expect(saveLetter('notice', numberDetails('REF/1'))->fresh()?->sequence_key)->toBe("notice:{$this->organization->id}");
+});
+
+test('a typed duplicate reference number is refused', function (): void {
+    saveLetter('notice', numberDetails('REF/1'));
+
+    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1')))->toThrow(ValidationException::class);
+    expect(Letter::query()->count())->toBe(1);
+});
+
+test('a typed reference number of a deleted letter is refused', function (): void {
+    saveLetter('notice', numberDetails('REF/1'))->delete();
+
+    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1')))->toThrow(ValidationException::class);
+});
+
+test('the same typed reference number in another sequence passes', function (): void {
+    saveLetter('notice', numberDetails('REF/1'));
+    $signer = signerWithPosition();
+
+    $letter = saveLetter('notice', numberDetails('REF/1', signer: $signer));
+
+    expect($letter->fresh()?->sequence_key)->toBe("notice:{$signer->profile?->organization_id}")
+        ->and($letter->fresh()?->reference_number)->toBe('REF/1');
+});
+
+test('a letter keeps its own typed reference number when saved again', function (): void {
+    $letter = saveLetter('notice', numberDetails('REF/1'));
+
+    expect(saveLetter('notice', numberDetails('REF/1'), letter: $letter)->reference_number)->toBe('REF/1');
+});
+
+test('the sequence key does not change after the letter has a reference number', function (): void {
+    $letter = saveLetter('notice', numberDetails('REF/1'));
+    $signer = signerWithPosition();
+
+    saveLetter('notice', numberDetails('REF/2', signer: $signer), letter: $letter);
+
+    expect($letter->fresh()?->sequence_key)->toBe("notice:{$this->organization->id}")
+        ->and($letter->fresh()?->reference_number)->toBe('REF/2');
+});
+
+test('a unique index error becomes a validation error', function (): void {
+    saveLetter('notice', numberDetails('REF/1'));
+    $letter = saveLetter('notice', numberDetails('REF/2'));
+    Letter::saving(function (Letter $saving): void {
+        if ($saving->reference_number === 'REF/3') {
+            Letter::query()->whereKeyNot($saving->id)->update(['reference_number' => 'REF/3']);
+        }
+    });
+
+    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/3'), letter: $letter))->toThrow(ValidationException::class);
+});
+
+test('automatic numbering ignores a typed reference number', function (): void {
+    expect(saveLetter('numbered', numberDetails('REF/1'))->fresh()?->reference_number)->toBeNull();
+});
+
+test('an override number is formatted by the letter type', function (): void {
+    $letter = saveLetter('override', numberDetails(sequenceNumber: 7))->fresh();
+
+    expect($letter?->reference_number)->toBe('N/7')
+        ->and($letter?->sequence_number)->toBe(7)
+        ->and($letter?->sequence_cycle)->toBeNull();
+});
+
+test('an override number above the counter is skipped by the counter', function (): void {
+    saveLetter('override', numberDetails(sequenceNumber: 2));
+
+    $first = AssignReferenceNumber::make()->execute(saveLetter('override', numberDetails()), $this->printer);
+    $second = AssignReferenceNumber::make()->execute(saveLetter('override', numberDetails()), $this->printer);
+
+    expect([$first->reference_number, $second->reference_number])->toBe(['N/1', 'N/3']);
+});
+
+test('an override number at or below the counter is accepted when no letter has it', function (): void {
+    AssignReferenceNumber::make()->execute(saveLetter('override', numberDetails()), $this->printer);
+    AssignReferenceNumber::make()->execute(saveLetter('override', numberDetails()), $this->printer)->forceDelete();
+
+    expect(saveLetter('override', numberDetails(sequenceNumber: 2))->fresh()?->reference_number)->toBe('N/2');
+});
+
+test('an override number that a letter has is refused', function (): void {
+    AssignReferenceNumber::make()->execute(saveLetter('override', numberDetails()), $this->printer);
+
+    expect(fn (): Letter => saveLetter('override', numberDetails(sequenceNumber: 1)))->toThrow(ValidationException::class);
+});
+
+test('a refused new letter stays unsaved', function (): void {
+    saveLetter('notice', numberDetails('REF/1'));
+    $letter = new Letter;
+
+    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
+    expect($letter->exists)->toBeFalse()
+        ->and($letter->id)->toBeNull();
+});
+
+test('a refused save restores the relations of the letter', function (): void {
+    saveLetter('notice', numberDetails('REF/1'));
+    $letter = new Letter;
+
+    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
+    expect($letter->getRelations())->toBeEmpty();
+});
+
+test('an override number below 1 is refused', function (): void {
+    expect(fn (): Letter => saveLetter('override', numberDetails(sequenceNumber: 0)))->toThrow(ValidationException::class);
+    expect(Letter::query()->count())->toBe(0);
+});
+
+test('clearing a typed reference number clears the sequence key', function (): void {
+    $letter = saveLetter('notice', numberDetails('REF/1'));
+
+    saveLetter('notice', numberDetails(), letter: $letter);
+
+    expect($letter->fresh()?->reference_number)->toBeNull()
+        ->and($letter->fresh()?->sequence_key)->toBeNull();
+});

@@ -38,6 +38,10 @@ return [
         'queue_connection' => env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync')),
     ],
 
+    'letters' => [
+        'types' => [],
+    ],
+
     'mail_log' => [
         'retention_days' => env('MAIL_RETENTION_DAYS'),
         'archive_disk' => env('MAIL_ARCHIVE_DISK', 'local'),
@@ -81,6 +85,13 @@ return [
                     'delete' => 'internal.controls.organizations.delete',
                     'view-audit-log' => 'internal.controls.organizations.view-audit-log',
                 ],
+                'letterheads' => [
+                    'view-any' => 'internal.controls.letterheads.view-any',
+                    'view' => 'internal.controls.letterheads.view',
+                    'create' => 'internal.controls.letterheads.create',
+                    'update' => 'internal.controls.letterheads.update',
+                    'delete' => 'internal.controls.letterheads.delete',
+                ],
             ],
         ],
         'system' => [
@@ -96,6 +107,9 @@ return [
                     'view' => 'system.logs.mail.view',
                     'resend' => 'system.logs.mail.resend',
                 ],
+            ],
+            'letters' => [
+                'compose' => 'system.letters.compose',
             ],
         ],
     ],

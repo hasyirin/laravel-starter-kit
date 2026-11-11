@@ -3,11 +3,14 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Common\Actions\PruneAuditLog;
+use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 beforeEach(function (): void {
     config(['system.audit.archive_disk' => 'archive']);
@@ -100,4 +103,19 @@ test('a value that is not valid UTF-8 is archived with a replacement character',
 
     $this->assertModelMissing($entry);
     expect(Storage::disk('archive')->get(Storage::disk('archive')->allFiles()[0]))->toContain('bad \\ufffd byte');
+});
+
+test('pruning an entry deletes its media files', function (): void {
+    Storage::fake('media');
+    $old = auditEntryAt('2025-01-01 10:00');
+    $kept = auditEntryAt('2026-01-01 10:00');
+    $oldMedia = AuditEntry::query()->findOrFail($old->id)->addMedia(UploadedFile::fake()->createWithContent('old.txt', 'old'))->toMediaCollection();
+    $keptMedia = AuditEntry::query()->findOrFail($kept->id)->addMedia(UploadedFile::fake()->createWithContent('kept.txt', 'kept'))->toMediaCollection();
+    $this->travelTo(CarbonImmutable::parse('2026-06-01 00:00:00'));
+
+    PruneAuditLog::make()->execute(CarbonImmutable::parse('2025-06-01'), 1000);
+
+    expect(Media::query()->pluck('id')->all())->toBe([$keptMedia->id]);
+    Storage::disk('media')->assertMissing($oldMedia->getPathRelativeToRoot());
+    Storage::disk('media')->assertExists($keptMedia->getPathRelativeToRoot());
 });

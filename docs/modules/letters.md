@@ -378,7 +378,7 @@ The administrator chooses a letter type and a start point:
 
 The administrator can change any value. For a start from a source, the administrator must have the `view` ability on the source. `PrintManualLetter` checks that the source belongs to the letter type, and that the letter belongs to the source and the type.
 
-Each print writes an audit entry with the event `printed-manual-letter`. The entry holds the letter type, the letter data, the extra data, the print details (reference number, date, signer, carbon copies), the source, and the letter. An upload becomes media on the audit entry. An image of the letter is copied onto the audit entry, so a later change to the letter does not remove it. An image of the source stays on the source, and the entry logs its uuid. A preview writes nothing.
+Each print writes an audit entry with the event `printed-manual-letter`. The entry holds the letter type, the letter data, the extra data, the print details (reference number, date, signer, carbon copies), the source, and the letter. The print details also hold the signer profile, the signer position, and the letterhead that the page showed. The entry is written even when activity logging is off. An upload becomes media on the audit entry. An image of the letter is copied onto the audit entry, so a later change to the letter does not remove it. An image of the source stays on the source, and the entry logs its uuid. A preview writes nothing.
 
 `PruneAuditLog` archives old entries, then deletes their media and rows. See `AUDIT_RETENTION_DAYS` in `config/system.php`.
 
@@ -484,6 +484,9 @@ The names of the tests of the module. A failing test fails the build, so each ru
 ### PrintManualLetter
 
 - a print writes one audit entry with the values
+- a print logs the letterhead it printed
+- a print writes its audit entry while activity logging is off
+- a print keeps the trace id and the impersonator on its audit entry
 - a print makes no letter row and does not move the sequence
 - a preview writes no audit entry and marks the page as a draft
 - a ticked group prints its section
@@ -530,6 +533,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a letter type that hides the signer refuses a signer
 - computer signed forces the letterhead
 - a letter type that is not allowed for the user is refused
+- a source that does not fit the letter type is refused
+- the type of a saved letter cannot change
 - bad extra values are refused and nothing is saved
 - extra values are kept
 - an extra image is stored in the letter images collection and its uuid is kept
@@ -612,7 +617,6 @@ The names of the tests of the module. A failing test fails the build, so each ru
 
 - each ability needs its own letterhead permission
 - another letterhead permission grants nothing
-- viewing the audit log needs its own permission
 
 ### Field
 

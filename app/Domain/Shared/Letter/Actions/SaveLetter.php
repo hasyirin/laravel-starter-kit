@@ -37,6 +37,8 @@ class SaveLetter
         $key = LetterTypes::keyOf($type);
 
         throw_unless($type->allowedFor($user), LogicException::class, "The letter type [{$key}] is not allowed for this user.");
+        throw_unless($source instanceof ($type->source()), LogicException::class, "The source is not a source of the letter type [{$key}].");
+        throw_if($letter->exists && $letter->getRawOriginal('type') !== $key, LogicException::class, 'The type of a saved letter cannot change.');
 
         $this->checkSigner($letter, $type, $key, $details->signer);
 

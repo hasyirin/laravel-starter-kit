@@ -177,6 +177,22 @@ test('a letter type that is not allowed for the user is refused', function (): v
     expect(Letter::query()->count())->toBe(0);
 });
 
+test('a source that does not fit the letter type is refused', function (): void {
+    expect(fn (): Letter => SaveLetter::make()->execute(new Letter, LetterTypes::find('notice'), $this->printer, $this->printer, details(), []))
+        ->toThrow(LogicException::class, 'The source is not a source of the letter type [notice].');
+
+    expect(Letter::query()->count())->toBe(0);
+});
+
+test('the type of a saved letter cannot change', function (): void {
+    $letter = saveLetter('notice', details());
+
+    expect(fn (): Letter => saveLetter('numbered', numberDetails(), [], $letter))
+        ->toThrow(LogicException::class, 'The type of a saved letter cannot change.');
+
+    expect($letter->fresh()?->type)->toBe('notice');
+});
+
 test('bad extra values are refused and nothing is saved', function (): void {
     expect(fn (): Letter => saveLetter('extra', details(), ['remark' => ['not text']]))->toThrow(ValidationException::class);
     expect(Letter::query()->count())->toBe(0);

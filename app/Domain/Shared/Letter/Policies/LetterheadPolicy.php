@@ -17,9 +17,9 @@ class LetterheadPolicy extends Policy
         return $this->hasPermission($user, 'view-any');
     }
 
-    public function view(User $user, Letterhead $letterhead, ?string $type = null): bool
+    public function view(User $user, Letterhead $letterhead): bool
     {
-        return $this->hasAnyPermission($user, 'view-any', 'view') && $this->hasTypedPermission($user, 'view', $type);
+        return $this->hasAnyPermission($user, 'view-any', 'view');
     }
 
     public function create(User $user): bool

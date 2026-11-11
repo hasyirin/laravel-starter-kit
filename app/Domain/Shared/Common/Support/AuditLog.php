@@ -32,6 +32,17 @@ class AuditLog
     private const array DATETIME_CASTS = ['datetime', 'immutable_datetime', 'custom_datetime', 'immutable_custom_datetime', 'timestamp'];
 
     /**
+     * @return Collection<string, mixed>
+     */
+    public static function context(): Collection
+    {
+        return collect([
+            'impersonator_id' => context()->get('impersonator_id'),
+            'trace_id' => context()->get('trace_id'),
+        ])->filter(fn (mixed $value): bool => $value !== null);
+    }
+
+    /**
      * @param  Builder<Activity>  $query
      */
     public static function search(Builder $query, string $search): void

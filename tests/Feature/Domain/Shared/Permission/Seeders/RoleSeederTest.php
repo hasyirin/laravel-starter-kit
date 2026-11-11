@@ -28,7 +28,6 @@ test('seeding leaves out permissions that match an except pattern', function ():
         'internal.controls.letterheads.update',
         'internal.controls.letterheads.view',
         'internal.controls.letterheads.view-any',
-        'internal.controls.letterheads.view-audit-log',
         'internal.controls.organizations.create',
         'internal.controls.organizations.update',
         'internal.controls.organizations.view',

@@ -36,13 +36,3 @@ test('another letterhead permission grants nothing', function (): void {
         ->and($this->user->can('delete', $this->letterhead))->toBeFalse()
         ->and($this->user->can('create', Letterhead::class))->toBeFalse();
 });
-
-test('viewing the audit log needs its own permission', function (): void {
-    grantPermissions($this->user, 'internal.controls.letterheads.view');
-
-    expect($this->user->can('view', [$this->letterhead, 'audit-log']))->toBeFalse();
-
-    grantPermissions($this->user, 'internal.controls.letterheads.view-audit-log');
-
-    expect($this->user->can('view', [$this->letterhead, 'audit-log']))->toBeTrue();
-});

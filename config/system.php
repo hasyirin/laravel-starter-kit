@@ -82,7 +82,6 @@ return [
                     'create' => 'internal.controls.letterheads.create',
                     'update' => 'internal.controls.letterheads.update',
                     'delete' => 'internal.controls.letterheads.delete',
-                    'view-audit-log' => 'internal.controls.letterheads.view-audit-log',
                 ],
             ],
         ],

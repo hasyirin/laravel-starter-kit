@@ -6,6 +6,7 @@ use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\Shared\Letter\Actions\PrintManualLetter;
 use App\Domain\Shared\Letter\Actions\SaveLetter;
 use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PdfFile;
@@ -101,11 +102,40 @@ test('a print writes one audit entry with the values', function (): void {
         ->and(data_get($entry->properties, 'extra.remark'))->toBe('Reminder')
         ->and(data_get($entry->properties, 'details.referenceNumber'))->toBe('REF-9')
         ->and(data_get($entry->properties, 'details.signer.name'))->toBe('Siti')
+        ->and(data_get($entry->properties, 'details.signerProfileId'))->toBe($signer->profile?->id)
+        ->and(data_get($entry->properties, 'details.signerPosition'))->toBe('Director')
+        ->and(data_get($entry->properties, 'details.letterhead'))->toBeNull()
         ->and(data_get($entry->properties, 'source_type'))->toBe($this->organization->getMorphClass())
         ->and(data_get($entry->properties, 'source_id'))->toBe($this->organization->id);
     Pdf::assertSee('Director');
     Pdf::assertSee('Finance');
     Pdf::assertDontSee('Draft');
+});
+
+test('a print logs the letterhead it printed', function (): void {
+    $letterhead = Letterhead::factory()->for($this->organization)->create(['name' => 'Head office']);
+
+    printManual('printed', noticeData(), ['remark' => 'Reminder'], new PrintDetails('REF-9', null, null, null, [], true, false));
+
+    expect(data_get(manualEntries()->sole()->properties, 'details.letterhead'))->toBe(['id' => $letterhead->id, 'name' => 'Head office']);
+});
+
+test('a print writes its audit entry while activity logging is off', function (): void {
+    activity()->withoutLogging(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'Reminder']));
+
+    expect(manualEntries()->count())->toBe(1);
+});
+
+test('a print keeps the trace id and the impersonator on its audit entry', function (): void {
+    $impersonator = User::factory()->create();
+    context()->add('trace_id', 'trace-abc');
+    context()->add('impersonator_id', $impersonator->id);
+
+    printManual('printed', noticeData(), ['remark' => 'Reminder']);
+
+    $entry = manualEntries()->sole();
+    expect($entry->getProperty('trace_id'))->toBe('trace-abc')
+        ->and($entry->getProperty('impersonator_id'))->toBe($impersonator->id);
 });
 
 test('a print makes no letter row and does not move the sequence', function (): void {

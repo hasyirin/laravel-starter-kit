@@ -6,13 +6,17 @@ namespace App\Domain\Shared\Letter\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\Shared\Common\Models\AuditEntry;
+use App\Domain\Shared\Common\Support\AuditLog;
 use App\Domain\Shared\Letter\Concerns\StoresLetterImages;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
 use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\Field;
 use App\Domain\Shared\Letter\Support\LetterData;
+use App\Domain\Shared\Letter\Support\LetterheadView;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
+use App\Domain\Shared\Letter\Support\LetterView;
 use App\Domain\Shared\Letter\Support\PdfFile;
 use App\Domain\Shared\Letter\Support\PrintDetails;
 use App\Domain\Shared\Media\Enums\MediaCollection;
@@ -81,7 +85,7 @@ class PrintManualLetter
             ->generatePdfContent();
 
         if (! $preview) {
-            $this->log($type, $key, $validatedData, $validatedExtra, $details, $admin, $source, $letter);
+            $this->log($type, $key, $validatedData, $validatedExtra, $this->loggedDetails($details, $signerProfile, $view), $admin, $source, $letter);
         }
 
         return new PdfFile(str($details->referenceNumber ?? 'letter')->slug()->append('.pdf')->toString(), $content);
@@ -123,10 +127,30 @@ class PrintManualLetter
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    private function loggedDetails(PrintDetails $details, ?Profile $signerProfile, LetterView $view): array
+    {
+        $letterhead = match (true) {
+            $view->letterhead instanceof Letterhead => ['id' => $view->letterhead->id, 'name' => $view->letterhead->name],
+            $view->letterhead instanceof LetterheadView => ['view' => $view->letterhead->view],
+            default => null,
+        };
+
+        return [
+            ...$details->toArray(),
+            'signerProfileId' => $signerProfile?->id,
+            'signerPosition' => $view->signerPosition,
+            'letterhead' => $letterhead,
+        ];
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      * @param  array<string, mixed>  $extra
+     * @param  array<string, mixed>  $details
      */
-    private function log(LetterType $type, string $key, array $data, array $extra, PrintDetails $details, User $admin, ?Model $source, ?Letter $letter): void
+    private function log(LetterType $type, string $key, array $data, array $extra, array $details, User $admin, ?Model $source, ?Letter $letter): void
     {
         $this->storedImages = [];
 
@@ -142,18 +166,23 @@ class PrintManualLetter
     /**
      * @param  array<string, mixed>  $data
      * @param  array<string, mixed>  $extra
+     * @param  array<string, mixed>  $details
      */
-    private function writeEntry(LetterType $type, string $key, array $data, array $extra, PrintDetails $details, User $admin, ?Model $source, ?Letter $letter): void
+    private function writeEntry(LetterType $type, string $key, array $data, array $extra, array $details, User $admin, ?Model $source, ?Letter $letter): void
     {
         DB::transaction(function () use ($type, $key, $data, $extra, $details, $admin, $source, $letter): void {
-            /** @var AuditEntry $entry */
-            $entry = activity()->causedBy($admin)->event(self::EVENT)->log(self::EVENT);
+            $entry = new AuditEntry;
+            $entry->log_name = config()->string('activitylog.default_log_name');
+            $entry->event = self::EVENT;
+            $entry->description = self::EVENT;
+            $entry->causer()->associate($admin);
+            $entry->save();
 
-            $entry->properties = collect([
+            $entry->properties = AuditLog::context()->merge([
                 'type' => $key,
                 'data' => $this->storeImages($entry, MediaCollection::LetterImages, $type->fields(), $data),
                 'extra' => $this->storeImages($entry, MediaCollection::LetterImages, $type->extraFields(), $extra, $letter),
-                'details' => $details->toArray(),
+                'details' => $details,
                 'source_type' => $source?->getMorphClass(),
                 'source_id' => $source?->getKey(),
                 'letter_id' => $letter?->getKey(),

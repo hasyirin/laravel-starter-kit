@@ -8,6 +8,7 @@ use App\Domain\Shared\Message\Enums\MessageStatus;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\User\Support\Preferences;
 use App\Filament\Actions\ViewAction;
+use App\Filament\Tables\Columns\TimestampColumn;
 use App\Livewire\Pages\Shared\MessageModal;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
@@ -26,6 +27,14 @@ use function Filament\Support\generate_icon_html;
 
 abstract class MessageLogDataTable extends DataTable
 {
+    /**
+     * @return Builder<Message>
+     */
+    protected function query(): Builder
+    {
+        return Message::query()->withCount('resends')->latest('id');
+    }
+
     /**
      * @return array<int, Column>
      */
@@ -52,30 +61,17 @@ abstract class MessageLogDataTable extends DataTable
                     'resend' => (string) __('message/messages.marks.resend'),
                     default => trans_choice('message/messages.marks.resent', (int) $message->resends_count, ['count' => $message->resends_count]),
                 }),
-            TextColumn::make('subject')
+            TextColumn::make('content')
                 ->label((string) __('message/messages.columns.content'))
-                ->state(fn (Message $message): ?string => $message->subject ?? $message->text_body)
                 ->limit(60)
                 ->wrap()
-                ->searchable(['subject', 'text_body'])
+                ->searchable(query: fn (Builder $query, string $search): Builder => $this->searchContent($query, $search))
                 ->toggleable(isToggledHiddenByDefault: true),
-            IconColumn::make('opened')
-                ->label($this->hinted((string) __('message/messages.columns.opened')))
-                ->headerTooltip((string) __('message/messages.hints.opened'))
-                ->boolean()
-                ->state(fn (Message $message): ?bool => $this->sign($message, $message->opened_at)),
-            IconColumn::make('clicked')
-                ->label($this->hinted((string) __('message/messages.columns.clicked')))
-                ->headerTooltip((string) __('message/messages.hints.clicked'))
-                ->boolean()
-                ->state(fn (Message $message): ?bool => $this->sign($message, $message->clicked_at)),
-            IconColumn::make('viewed')
-                ->label($this->hinted((string) __('message/messages.viewed')))
-                ->headerTooltip((string) __('message/messages.hints.viewed'))
-                ->boolean()
-                ->state(fn (Message $message): ?bool => $this->sign($message, $message->viewed_at)),
-            $this->time('created_at', (string) __('message/messages.started_at'), (string) __('message/messages.hints.started')),
-            $this->time('sent_at', (string) __('message/messages.sent_at'), (string) __('message/messages.hints.sent')),
+            $this->signColumn('opened'),
+            $this->signColumn('clicked'),
+            $this->signColumn('viewed'),
+            $this->timeColumn('created_at', (string) __('message/messages.started_at'), (string) __('message/messages.hints.started')),
+            $this->timeColumn('sent_at', (string) __('message/messages.sent_at'), (string) __('message/messages.hints.sent')),
         ];
     }
 
@@ -107,24 +103,46 @@ abstract class MessageLogDataTable extends DataTable
     }
 
     /**
-     * The date stands above the time, so the two time columns stay narrow.
+     * The row of an email also keeps the text of its body. The search does not read it, because the list shows only the subject.
+     *
+     * @param  Builder<Message>  $query
+     * @return Builder<Message>
      */
-    private function time(string $column, string $label, string $hint): TextColumn
+    private function searchContent(Builder $query, string $search): Builder
     {
-        return TextColumn::make($column)
-            ->label($this->hinted($label))
-            ->headerTooltip($hint)
-            ->formatStateUsing(fn (?DateTimeInterface $state): ?string => Preferences::current()->date($state))
-            ->description(fn (?DateTimeInterface $state): ?string => Preferences::current()->time($state))
-            ->alignEnd();
+        return $query
+            ->whereLike('subject', "%{$search}%")
+            ->orWhere(fn (Builder $query): Builder => $query->whereNot('channel', 'mail')->whereLike('text_body', "%{$search}%"));
     }
 
     /**
-     * @return Builder<Message>
+     * A message without tracking has no sign, because the app does not know.
      */
-    protected function messages(): Builder
+    private function signColumn(string $sign): IconColumn
     {
-        return Message::query()->withCount('resends')->latest('id');
+        return IconColumn::make($sign)
+            ->label($this->hinted((string) __("message/messages.columns.$sign")))
+            ->headerTooltip((string) __("message/messages.hints.$sign"))
+            ->boolean()
+            ->state(function (Message $message) use ($sign): ?bool {
+                if (! $message->tracked) {
+                    return null;
+                }
+
+                return $message->getAttribute("{$sign}_at") instanceof CarbonImmutable;
+            });
+    }
+
+    /**
+     * The date stands above the time, so the two time columns stay narrow.
+     */
+    private function timeColumn(string $column, string $label, string $hint): TimestampColumn
+    {
+        return TimestampColumn::make($column)
+            ->label($this->hinted($label))
+            ->headerTooltip($hint)
+            ->formatStateUsing(fn (?DateTimeInterface $state): ?string => Preferences::current()->date($state))
+            ->description(fn (?DateTimeInterface $state): ?string => Preferences::current()->time($state));
     }
 
     /**
@@ -143,14 +161,5 @@ abstract class MessageLogDataTable extends DataTable
         $icon = generate_icon_html(Heroicon::OutlinedInformationCircle, size: IconSize::Small);
 
         return new HtmlString('<span class="inline-flex items-center gap-1">'.e($label).$icon?->toHtml().'</span>');
-    }
-
-    private function sign(Message $message, ?CarbonImmutable $at): ?bool
-    {
-        if (! $message->tracked) {
-            return null;
-        }
-
-        return $at instanceof CarbonImmutable;
     }
 }

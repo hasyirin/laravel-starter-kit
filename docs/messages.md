@@ -1,21 +1,21 @@
 # Messages
 
-The message log has one row for each message that leaves the app: an email, an SMS, or a message on a channel that the app adds. A row holds the recipient, the status, and the record that the message is about. The notification under the bell is not in the log. See [kit ADR-0015](adr/kit/0015-one-message-log-records-every-channel.md).
+The message log has one row for each message that leaves the app. A message is an email, an SMS, or a message on a channel that the app adds. A row holds the recipient, the status, and the record that the message is about. The notification under the bell is not in the log. See [kit ADR-0015](adr/kit/0015-one-message-log-records-every-channel.md).
 
-System administrators read the log at `/system/logs/messages`. The page needs `system.logs.messages.view`, and a resend needs `system.logs.messages.resend`.
+System administrators read the log at `/system/logs/messages`. The page is in the system area, so it needs `system.access` and `system.logs.messages.view`. A resend needs `system.logs.messages.resend`.
 
 ## How a Row Is Made
 
 `RecordMessage` listens to the notification events of Laravel. It opens a row when a notification class reaches a channel, and it closes the row when the channel is done.
 
 - One notification class can use two channels. Each channel gets its own row.
-- An email without a notification class still gets a row. `RecordMail` makes it from the mail events.
+- An email without a notification class gets a row when the mail server accepts it. `RecordMail` makes the row from the mail events. Such an email leaves no row if the send fails, or if the intercept drops it.
 - An SMS gets a row only when it goes through a notification class. See [SMS](sms.md).
 - The `database` and `broadcast` channels get no row. They carry the notification under the bell.
 
 ## Give a Notification Class a Full Row
 
-Extend `App\Domain\Shared\Message\Notifications\Notification`. The class then has the `HasMessageLog` contract, and it goes on the queue. If the class must extend another class, implement `HasMessageLog` and use `InteractsWithMessageLog`.
+Extend `App\Domain\Shared\Message\Notifications\Notification`. The class then has the `HasMessageLog` contract, and it goes on the queue. If the class must extend another class, implement `HasMessageLog` and use `InteractsWithMessageLog`. Such a class goes on the queue only if it also implements `Illuminate\Contracts\Queue\ShouldQueue` and uses `Illuminate\Bus\Queueable`.
 
 ```php
 class PermitApproved extends Notification implements SmsNotification
@@ -56,7 +56,9 @@ A row with sensitive values keeps no copy of the notification class, so it has n
 
 Markdown changes a value that has characters such as `*` or `_`. The log then cannot find the value in the HTML body of an email. Put such a value in an `Illuminate\Support\HtmlString` or in a code span.
 
-Without the contract, a row keeps the recipient and the status. An email also keeps its subject. The row has no text, no record, and no resend. So a class from a package cannot put a secret in the log by accident.
+Without the contract, a row keeps the recipient and the status. The row has no text, no record, and no resend. So a class from a package cannot put a secret in the log by accident.
+
+The subject of an email is the one exception. The row keeps the subject for every class, and it hides a value there only for a class with the contract. So keep secrets out of a subject.
 
 ## What a Row Holds
 
@@ -87,7 +89,7 @@ The list shows two times. Started is the time when the app started the send. Sen
 - Each job has 4 tries. It waits 1 minute, then 5 minutes, then 15 minutes.
 - The job of an email uses `MAIL_QUEUE_CONNECTION`. The job of each other channel uses the default queue connection.
 - After the last try, the row of that channel is failed. The rows of the other channels do not change.
-- A `LogicException` fails the job at once, on every channel. Throw one when another try cannot succeed.
+- A `LogicException` fails the job at once, on every channel. If another try cannot succeed, throw one.
 - An SMS code does not go on the queue. See [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md).
 
 ## Resend
@@ -104,7 +106,7 @@ A model that gets messages uses `RoutesResentMessages`, as `User` does. A resend
 
 ## Intercept
 
-Outside production, an intercept sends each email and SMS to the signed-in user, not to the recipient. The row keeps the real recipient, and it shows the address or number that got the message as "Intercepted to". A message that the intercept drops gets a failed row. See the Intercept bullet in the [README](../README.md) and [SMS](sms.md#intercept).
+The intercept is off by default. `MAIL_INTERCEPT=true` turns it on outside production, for email and for SMS. It then sends each email and SMS to the signed-in user, not to the recipient. The row keeps the real recipient, and it shows the address or number that got the message as "Intercepted to". If the intercept drops a message from a notification class, the message gets a failed row. See the Intercept bullet in the [README](../README.md) and [SMS](sms.md#intercept).
 
 ## Retention
 
@@ -139,24 +141,30 @@ class PagerChannel
 
 Give the channel a short name in a service provider, as `AppServiceProvider` does for `sms`. The row then keeps that name. Without a name, the row keeps the class name of the channel.
 
+Add the name to `channels` in `lang/en/message/messages.php`. The list then shows that label, and the channel filter offers the channel. Without a label, the list makes one from the name, and the filter does not offer the channel.
+
 ## Show the Messages of a Record
 
-A record page can list the messages about its record. The list shows each row whose notification class returns that record from `about()`. The user needs `system.logs.messages.view`.
+A record page can list the messages about its record. The list shows each row whose notification class returns that record from `about()`.
+
+The list and the modal need `system.logs.messages.view`, and they answer 403 without it. So put them inside `@can`. A user without the permission can then still open the record page.
 
 ```blade
-<livewire:data-tables.internal.message-log-data-table :resource="$permit" />
+@can('viewAny', \App\Domain\Shared\Message\Models\Message::class)
+    <livewire:data-tables.internal.message-log-data-table :resource="$permit" />
 
-<livewire:pages.shared.message-modal />
+    <livewire:pages.shared.message-modal />
+@endcan
 ```
 
 ## Test Messages
 
-Send the real notification class, and read the row:
+Send the real notification class, and read the row of one channel:
 
 ```php
 $user->notify(new PermitApproved($permit));
 
-expect(Message::query()->sole()->status)->toBe(MessageStatus::Sent);
+expect(Message::query()->where('channel', 'sms')->sole()->status)->toBe(MessageStatus::Sent);
 ```
 
 A fake of the notifications stops the notification events, so a test with it makes no row. For an SMS, bind `Tests\Fixtures\Gateways\FakeGateway`. See [SMS](sms.md#test-sms).

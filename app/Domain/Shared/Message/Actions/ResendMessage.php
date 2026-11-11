@@ -22,7 +22,7 @@ class ResendMessage
     {
         $notification = $message->notification;
 
-        throw_unless($message->resendable && $notification instanceof HasMessageLog, LogicException::class, 'This message cannot be resent. Only an email or an SMS with a notification that can be rebuilt has a resend.');
+        throw_unless($message->resendable && $notification instanceof HasMessageLog, LogicException::class, 'This message cannot be resent. A resend needs an email or an SMS that is not on its way, with a notification that can be rebuilt.');
 
         $address = filled($address) ? $address : (string) $message->recipient_address;
 

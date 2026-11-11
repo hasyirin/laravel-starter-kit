@@ -10,11 +10,11 @@ return [
         'sms' => 'SMS',
     ],
     'recipient' => 'Recipient',
-    'subject' => 'Subject',
     'columns' => [
         'content' => 'Content',
         'opened' => 'Opened',
         'clicked' => 'Clicked',
+        'viewed' => 'Viewed',
         'resend' => 'Resend',
     ],
     'marks' => [

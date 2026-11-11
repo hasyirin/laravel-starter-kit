@@ -13,7 +13,7 @@ The kit keeps one log, the message log, for every message that leaves the app th
 
 - The row has columns that only an email fills: the copy recipients, the subject, the HTML body, and the opens, clicks, and views. They are empty for every other channel.
 - An SMS gets a row only when it goes through a notification class. A direct call to the gateway leaves no row.
-- The `HasMessageLog` contract is opt-in for every channel. A class without it gets a row with the recipient and the status, and no text. So a class from a package, or a new class with a code, cannot put a secret in the log by accident.
+- The `HasMessageLog` contract is opt-in for every channel. A class without it gets a row with the recipient and the status, and no text. So a class from a package, or a new class with a code, cannot put a secret in the log by accident. The subject of an email is the one exception: the row keeps it for every class.
 - A row names its channel. The kit registers its SMS channel under the name `sms`, as Laravel names the email channel `mail`. A channel that an app names by its class keeps the class name in the row.
 - Sent means that the mail server or the SMS gateway accepted the message. The kit has no status for a message that reached the person.
 - One permission pair and one retention period cover every channel.

@@ -60,14 +60,15 @@ test('the modal of an sms without a text says that the app does not keep the tex
         ->assertDontSee(__('message/messages.no_body'));
 });
 
-test('the modal of a message that staff resent lists its resends with their statuses', function (): void {
+test('the modal of a message that staff resent lists its resends with their statuses, the oldest first', function (): void {
     $first = Message::factory()->failed()->create();
-    $resend = Message::factory()->create(['resend_of_id' => $first->id]);
+    $failed = Message::factory()->failed()->create(['resend_of_id' => $first->id]);
+    $sent = Message::factory()->create(['resend_of_id' => $first->id]);
 
     Livewire::test(MessageModal::class)
         ->call('show', id: $first->id)
-        ->assertSeeInOrder([__('message/messages.started_at'), __('message/messages.resends'), $resend->status->label()])
-        ->assertSeeHtml('wire:click="show('.$resend->id.')"')
+        ->assertSeeInOrder([__('message/messages.started_at'), __('message/messages.resends'), $failed->status->label(), $sent->status->label()])
+        ->assertSeeHtmlInOrder(['wire:click="show('.$failed->id.')"', 'wire:click="show('.$sent->id.')"'])
         ->assertDontSee('Created');
 });
 
@@ -191,7 +192,7 @@ test('a user with bypass-authorization gets no resend for a message that cannot 
 
     $this->assertDatabaseCount(Message::class, 1);
 })->with([
-    'an sms with a hidden value' => [fn (): Message => Message::factory()->sms()->create()],
+    'an sms without a payload' => [fn (): Message => Message::factory()->sms()->create()],
     'an email from a class without the contract' => [fn (): Message => Message::factory()->create()],
     'an email that is still on its way' => [function (): Message {
         $message = resendableMail();
@@ -215,6 +216,15 @@ test('the modal escapes the subject and the recipient name', function (): void {
         ->assertSee('<b>Subject</b>')
         ->assertDontSeeHtml('<b>Subject</b>')
         ->assertDontSeeHtml('<i>Name</i>');
+});
+
+test('the modal escapes the text of an sms', function (): void {
+    $message = Message::factory()->sms()->create(['text_body' => '<b>Text</b>']);
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: $message->id)
+        ->assertSee('<b>Text</b>')
+        ->assertDontSeeHtml('<b>Text</b>');
 });
 
 test('the modal needs system.logs.messages.view', function (): void {

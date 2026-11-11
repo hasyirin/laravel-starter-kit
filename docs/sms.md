@@ -40,7 +40,7 @@ class AcmeGateway implements SmsGateway
 ],
 ```
 
-Throw an exception when the provider refuses an SMS. The phone verification page then reports the exception and asks the user to try again later. The code that did not go out stops working, so a later visit sends a new one. The failed send still counts toward the limits. The SMS password reset sends its code after the response, so the response takes the same time for every number. There, a failed send goes to the log.
+Throw an exception when the provider refuses an SMS. The phone verification page then reports the exception and asks the user to try again later. The code that did not go out stops working, so a later visit sends a new one. The failed send still counts toward the limits. The SMS password reset sends its code after the response, so the response takes the same time for every number. There, a failed send goes to the Laravel log and to the message log.
 
 ## Calling Codes
 

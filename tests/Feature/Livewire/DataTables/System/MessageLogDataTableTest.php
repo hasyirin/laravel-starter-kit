@@ -6,7 +6,10 @@ use App\Domain\Shared\Message\Enums\MessageStatus;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Preferences;
 use App\Livewire\DataTables\System\MessageLogDataTable;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -56,34 +59,58 @@ test('the list shows the channel of each message and filters them by channel', f
 
 test('the content column is hidden at first, and it shows the subject of an email and the text of an sms', function (): void {
     $email = Message::factory()->create(['subject' => 'Letter issued']);
+    $unnamed = Message::factory()->create(['subject' => null, 'text_body' => 'The body of an email.']);
     $sms = Message::factory()->sms()->create(['text_body' => 'Your letter is ready.']);
 
     Livewire::test(MessageLogDataTable::class)
-        ->assertCanNotRenderTableColumn('subject')
+        ->assertCanNotRenderTableColumn('content')
         ->toggleAllTableColumns()
-        ->assertCanRenderTableColumn('subject')
-        ->assertTableColumnStateSet('subject', 'Letter issued', $email)
-        ->assertTableColumnStateSet('subject', 'Your letter is ready.', $sms);
+        ->assertCanRenderTableColumn('content')
+        ->assertTableColumnStateSet('content', 'Letter issued', $email)
+        ->assertTableColumnExists('content', fn (TextColumn $column): bool => $column->getState() === null, $unnamed)
+        ->assertTableColumnStateSet('content', 'Your letter is ready.', $sms);
 });
 
-test('the search finds an sms by its text while the content column is hidden', function (): void {
-    $email = Message::factory()->create(['subject' => 'Letter issued']);
+test('the search finds an email by its subject and an sms by its text, and it does not read the body of an email', function (): void {
+    $email = Message::factory()->create(['subject' => 'Letter issued', 'text_body' => 'Your permit is ready.']);
     $sms = Message::factory()->sms()->create(['text_body' => 'Your letter is ready.']);
 
     Livewire::test(MessageLogDataTable::class)
-        ->searchTable('letter is ready')
+        ->searchTable('letter issued')
+        ->assertCanSeeTableRecords([$email])
+        ->assertCanNotSeeTableRecords([$sms])
+        ->searchTable('is ready')
         ->assertCanSeeTableRecords([$sms])
         ->assertCanNotSeeTableRecords([$email]);
 });
 
-test('the list shows when the app started the send and when the message was sent, and no sent time for a message that was not sent', function (): void {
+test('the list shows the signs of an open, a click, and a view only for a tracked message', function (): void {
+    $tracked = Message::factory()->tracked()->create(['opened_at' => now()]);
+    $untracked = Message::factory()->create();
+    $sms = Message::factory()->sms()->create();
+    $unknown = fn (IconColumn $column): bool => $column->getState() === null;
+
+    Livewire::test(MessageLogDataTable::class)
+        ->assertTableColumnExists('opened', fn (IconColumn $column): bool => $column->getState() === true, $tracked)
+        ->assertTableColumnExists('clicked', fn (IconColumn $column): bool => $column->getState() === false, $tracked)
+        ->assertTableColumnExists('viewed', fn (IconColumn $column): bool => $column->getState() === false, $tracked)
+        ->assertTableColumnExists('opened', $unknown, $untracked)
+        ->assertTableColumnExists('opened', $unknown, $sms)
+        ->assertTableColumnExists('clicked', $unknown, $sms)
+        ->assertTableColumnExists('viewed', $unknown, $sms);
+});
+
+test('the list shows when the app started the send and when the message was sent, with the date above the time', function (): void {
     $this->freezeSecond();
     $sent = Message::factory()->create(['created_at' => now()->subMinutes(6)]);
     $failed = Message::factory()->failed()->create();
+    $preferences = Preferences::current();
 
     Livewire::test(MessageLogDataTable::class)
-        ->assertTableColumnStateSet('created_at', now()->subMinutes(6)->toImmutable(), $sent)
-        ->assertTableColumnStateSet('sent_at', now()->toImmutable(), $sent)
+        ->assertTableColumnFormattedStateSet('created_at', $preferences->date(now()->subMinutes(6)), $sent)
+        ->assertTableColumnHasDescription('created_at', $preferences->time(now()->subMinutes(6)), $sent)
+        ->assertTableColumnFormattedStateSet('sent_at', $preferences->date(now()), $sent)
+        ->assertTableColumnHasDescription('sent_at', $preferences->time(now()), $sent)
         ->assertTableColumnStateSet('sent_at', null, $failed);
 });
 
@@ -100,17 +127,4 @@ test('the list marks a resend, and the message that staff resent', function (): 
         ->assertTableColumnStateSet('resend', ['resend'], $third)
         ->assertTableColumnStateSet('resend', null, $other)
         ->assertSee('Resent 2 times');
-});
-
-test('the list shows the signs of an open, a click, and a view only for a tracked message', function (): void {
-    $tracked = Message::factory()->tracked()->create(['opened_at' => now()]);
-    $sms = Message::factory()->sms()->create();
-
-    Livewire::test(MessageLogDataTable::class)
-        ->assertTableColumnStateSet('opened', true, $tracked)
-        ->assertTableColumnStateSet('clicked', false, $tracked)
-        ->assertTableColumnStateSet('viewed', false, $tracked)
-        ->assertTableColumnStateSet('opened', null, $sms)
-        ->assertTableColumnStateSet('clicked', null, $sms)
-        ->assertTableColumnStateSet('viewed', null, $sms);
 });

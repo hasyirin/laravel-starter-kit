@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Message\Actions\ResendMessage;
+use App\Domain\Shared\Message\Enums\MessageStatus;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
@@ -145,3 +146,11 @@ test('with the intercept on, a resend of an sms to another number goes to the si
 
     expect(collect($gateway->sent)->pluck('phone')->all())->toBe(['+60111111111', '+60111111111']);
 });
+
+test('a message that is still on its way cannot be resent', function (): void {
+    User::factory()->create()->notify(new LetterIssued);
+    $message = Message::query()->sole();
+    $message->update(['status' => MessageStatus::Sending]);
+
+    ResendMessage::make()->execute($message);
+})->throws(LogicException::class, 'is not on its way');

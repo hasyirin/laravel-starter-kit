@@ -60,6 +60,7 @@ use Throwable;
  * @property-read Notification|null $notification
  * @property-read int|null $resends_count
  * @property-read string $channel_label
+ * @property-read string|null $content
  * @property-read MessageFailureReason|null $failure_reason
  * @property-read bool $resendable
  * @property-read bool $stuck
@@ -174,7 +175,7 @@ class Message extends Model implements HasMedia
      */
     public function resends(): HasMany
     {
-        return $this->hasMany(self::class, 'resend_of_id');
+        return $this->hasMany(self::class, 'resend_of_id')->oldest('id');
     }
 
     protected function shouldLogEvent(string $eventName): bool
@@ -272,7 +273,28 @@ class Message extends Model implements HasMedia
                 return (string) __($key);
             }
 
-            return str($this->channel)->classBasename()->beforeLast('Channel')->headline()->value();
+            $class = str($this->channel)->classBasename();
+            $name = $class->chopEnd('Channel');
+
+            if ($name->isEmpty()) {
+                return $class->headline()->value();
+            }
+
+            return $name->headline()->value();
+        });
+    }
+
+    /**
+     * @return Attribute<string|null, never>
+     */
+    protected function content(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            if ($this->channel === 'mail') {
+                return $this->subject;
+            }
+
+            return $this->text_body;
         });
     }
 

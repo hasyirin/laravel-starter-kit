@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Organization\Models;
 
 use App\Domain\Shared\Common\Models\Model;
+use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Organization\Factories\OrganizationFactory;
 use App\Domain\Shared\Organization\Observers\OrganizationObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -66,6 +67,14 @@ class Organization extends Model
     public function positions(): HasMany
     {
         return $this->hasMany(Position::class);
+    }
+
+    /**
+     * @return HasMany<Letterhead, $this>
+     */
+    public function letterheads(): HasMany
+    {
+        return $this->hasMany(Letterhead::class);
     }
 
     public static function owner(): static

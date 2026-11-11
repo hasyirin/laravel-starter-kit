@@ -13,6 +13,7 @@ return [
         'departments' => 'Departments',
         'branches' => 'Branches',
         'positions' => 'Positions',
+        'letterheads' => 'Letterheads',
         'users' => 'Users',
         'audit' => 'Audit',
     ],

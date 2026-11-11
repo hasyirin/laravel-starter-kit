@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Common\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
+use App\Domain\Shared\Common\Models\AuditEntry;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -52,6 +53,13 @@ class PruneAuditLog
         fclose($archive);
 
         throw_unless($written, RuntimeException::class, 'The audit log archive could not be written.');
+
+        AuditEntry::query()
+            ->where('created_at', '<', $before)
+            ->where('id', '<=', $lastId)
+            ->whereHas('media')
+            ->with('media')
+            ->chunkById(self::CHUNK_SIZE, fn (Collection $entries) => $entries->each(fn (AuditEntry $entry) => $entry->media->each->delete()));
 
         Activity::query()
             ->where('created_at', '<', $before)

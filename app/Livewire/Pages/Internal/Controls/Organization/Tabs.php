@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\Internal\Controls\Organization;
 
+use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\User;
 use App\Livewire\Component;
@@ -40,6 +41,11 @@ class Tabs extends Component
                 ->label((string) __('organization/organizations.tabs.positions'))
                 ->content(Positions::class)
                 ->params(['organization' => $this->organization]),
+            Tab::make('letterheads')
+                ->label((string) __('organization/organizations.tabs.letterheads'))
+                ->content(Letterheads::class)
+                ->params(['organization' => $this->organization])
+                ->visible(fn (): bool => $this->can('viewAny', Letterhead::class)),
             Tab::make('users')
                 ->label((string) __('organization/organizations.tabs.users'))
                 ->content(UserDataTable::class)

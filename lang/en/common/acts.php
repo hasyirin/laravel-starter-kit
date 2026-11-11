@@ -7,4 +7,8 @@ return [
         'label' => 'Prepare',
         'by' => 'Prepared by',
     ],
+    'sign' => [
+        'label' => 'Sign',
+        'by' => 'Signed by',
+    ],
 ];

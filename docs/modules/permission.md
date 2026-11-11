@@ -50,11 +50,17 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `internal.controls.organizations.update`         | ✓                    |
 | `internal.controls.organizations.delete`         | ✓                    |
 | `internal.controls.organizations.view-audit-log` | ✓                    |
+| `internal.controls.letterheads.view-any`         | ✓                    |
+| `internal.controls.letterheads.view`             | ✓                    |
+| `internal.controls.letterheads.create`           | ✓                    |
+| `internal.controls.letterheads.update`           | ✓                    |
+| `internal.controls.letterheads.delete`           | ✓                    |
 | `system.access`                                  | ✓                    |
 | `system.horizon.view`                            | ✓                    |
 | `system.logs.audits.view`                        | ✓                    |
 | `system.logs.mail.view`                          | ✓                    |
 | `system.logs.mail.resend`                        | ✓                    |
+| `system.letters.compose`                         | ✓                    |
 
 A role with `bypass-authorization` passes every check.
 

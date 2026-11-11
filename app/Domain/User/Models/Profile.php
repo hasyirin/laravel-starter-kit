@@ -75,7 +75,7 @@ class Profile extends Model
      */
     public function position(): BelongsTo
     {
-        return $this->belongsTo(Position::class);
+        return $this->belongsTo(Position::class)->withTrashed();
     }
 
     /**

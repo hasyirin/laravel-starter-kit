@@ -13,6 +13,7 @@ use App\Domain\User\Support\SmsPasswordResetLock;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
+use SensitiveParameter;
 
 class ConfirmPasswordResetCode
 {
@@ -24,7 +25,7 @@ class ConfirmPasswordResetCode
      * @throws SmsPasswordResetLocked
      * @throws ValidationException
      */
-    public function execute(string $phone, string $code): array
+    public function execute(#[SensitiveParameter] string $phone, string $code): array
     {
         SmsPasswordResetLock::ensureOpen($phone);
 

@@ -6,12 +6,13 @@ namespace App\Domain\User\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\User\Models\User;
+use SensitiveParameter;
 
 class UpdateUserInformation
 {
     use Actionable;
 
-    public function execute(User $user, string $name, string $email, ?string $phone): void
+    public function execute(User $user, string $name, string $email, #[SensitiveParameter] ?string $phone): void
     {
         $user->getConnection()->transaction(function () use ($user, $name, $email, $phone): void {
             $user->newQueryWithoutRelationships()->whereKey($user->getKey())->lockForUpdate()->first();

@@ -6,14 +6,14 @@ The app sends SMS through Laravel notifications. A notification that implements 
 
 ## Add a Gateway
 
-1. Write a class that implements `SmsGateway`. Its `send()` gets the number in E.164 format, for example +60123456789, and the text.
+1. Write a class that implements `SmsGateway`. Its `send()` gets the number in E.164 format, for example +60123456789, and the text. Mark the number with `#[\SensitiveParameter]`, as `SmsGateway` does, so a stack trace does not show it.
 2. Set `system.sms.gateway` in `config/system.php` to that class.
 3. Keep the credentials of the provider in the environment, and read them in `config/services.php`.
 
 ```php
 class AcmeGateway implements SmsGateway
 {
-    public function send(string $phone, string $message): void
+    public function send(#[\SensitiveParameter] string $phone, string $message): void
     {
         Http::withToken(config()->string('services.acme.token'))
             ->post('https://sms.acme.example/messages', ['to' => $phone, 'text' => $message])

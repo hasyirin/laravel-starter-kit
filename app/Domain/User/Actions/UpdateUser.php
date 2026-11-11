@@ -8,6 +8,7 @@ use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
+use SensitiveParameter;
 
 class UpdateUser
 {
@@ -24,7 +25,7 @@ class UpdateUser
         User $user,
         string $name,
         string $email,
-        ?string $phone,
+        #[SensitiveParameter] ?string $phone,
         ?string $password,
         Placement $placement,
         ?array $roles = null,

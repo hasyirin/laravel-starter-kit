@@ -13,6 +13,7 @@ use App\Domain\User\Notifications\PasswordResetCodeSms;
 use App\Domain\User\Support\SmsCode;
 use App\Domain\User\Support\SmsCodeLimit;
 use App\Domain\User\Support\SmsPasswordResetLock;
+use SensitiveParameter;
 
 class SendPasswordResetCode
 {
@@ -22,7 +23,7 @@ class SendPasswordResetCode
      * @throws SmsPasswordResetLocked
      * @throws SmsCodeThrottled
      */
-    public function execute(string $phone, string $ip): void
+    public function execute(#[SensitiveParameter] string $phone, string $ip): void
     {
         SmsPasswordResetLock::ensureOpen($phone);
         SmsCodeLimit::attempt("password-reset:phone:{$phone}", "password-reset:ip:{$ip}");
@@ -37,7 +38,7 @@ class SendPasswordResetCode
         });
     }
 
-    private function send(string $phone): void
+    private function send(#[SensitiveParameter] string $phone): void
     {
         $user = User::query()->where('phone', $phone)->whereNotNull('phone_verified_at')->first();
 

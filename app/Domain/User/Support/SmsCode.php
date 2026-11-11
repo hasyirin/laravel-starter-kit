@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Support;
 
+use SensitiveParameter;
+
 final readonly class SmsCode
 {
     public const int MINUTES = 10;
 
     public const int TRIES = 5;
 
-    private function __construct(private string $key) {}
+    private function __construct(#[SensitiveParameter] private string $key) {}
 
-    public static function forVerification(string $phone): self
+    public static function forVerification(#[SensitiveParameter] string $phone): self
     {
         return new self("phone-verification:{$phone}");
     }
 
-    public static function forPasswordReset(string $phone): self
+    public static function forPasswordReset(#[SensitiveParameter] string $phone): self
     {
         return new self("password-reset:{$phone}");
     }

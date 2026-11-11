@@ -6,10 +6,11 @@ namespace App\Domain\Shared\Sms\Gateways;
 
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use RuntimeException;
+use SensitiveParameter;
 
 class LogGateway implements SmsGateway
 {
-    public function send(string $phone, string $message): void
+    public function send(#[SensitiveParameter] string $phone, string $message): void
     {
         throw_if(app()->isProduction(), RuntimeException::class, 'The log SMS gateway cannot send SMS in production. Set system.sms.gateway to the gateway of the app.');
 

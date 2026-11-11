@@ -6,6 +6,7 @@ namespace App\Domain\User\Support;
 
 use App\Domain\User\Exceptions\SmsPasswordResetLocked;
 use Illuminate\Support\Facades\RateLimiter;
+use SensitiveParameter;
 
 final class SmsPasswordResetLock
 {
@@ -16,7 +17,7 @@ final class SmsPasswordResetLock
     /**
      * @throws SmsPasswordResetLocked
      */
-    public static function ensureOpen(string $phone): void
+    public static function ensureOpen(#[SensitiveParameter] string $phone): void
     {
         $key = self::key($phone);
 
@@ -27,12 +28,12 @@ final class SmsPasswordResetLock
         throw new SmsPasswordResetLocked(max(1, RateLimiter::availableIn($key)));
     }
 
-    public static function countWrongCode(string $phone): void
+    public static function countWrongCode(#[SensitiveParameter] string $phone): void
     {
         RateLimiter::hit(self::key($phone), self::SECONDS);
     }
 
-    private static function key(string $phone): string
+    private static function key(#[SensitiveParameter] string $phone): string
     {
         return "sms-password-reset-lock:{$phone}";
     }

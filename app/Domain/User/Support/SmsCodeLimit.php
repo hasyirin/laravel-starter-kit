@@ -6,6 +6,7 @@ namespace App\Domain\User\Support;
 
 use App\Domain\User\Exceptions\SmsCodeThrottled;
 use Illuminate\Support\Facades\RateLimiter;
+use SensitiveParameter;
 
 final class SmsCodeLimit
 {
@@ -20,7 +21,7 @@ final class SmsCodeLimit
     /**
      * @throws SmsCodeThrottled
      */
-    public static function attempt(string ...$keys): void
+    public static function attempt(#[SensitiveParameter] string ...$keys): void
     {
         $windows = collect($keys)->flatMap(fn (string $key): array => collect(self::WINDOWS)
             ->map(fn (array $window, string $name): array => ['key' => "sms:{$key}:{$name}", ...$window])

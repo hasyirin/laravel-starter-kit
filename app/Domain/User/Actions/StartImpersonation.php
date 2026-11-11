@@ -20,6 +20,9 @@ class StartImpersonation
     {
         throw_unless(Impersonation::allows($impersonator, $user), AuthorizationException::class);
 
+        // The sign-in can send a message. An intercept must then already know the impersonator.
+        context()->add('impersonator_id', $impersonator->id);
+
         auth()->guard('web')->login($user);
 
         session()->regenerate();

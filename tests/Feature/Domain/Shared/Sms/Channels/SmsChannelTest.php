@@ -7,6 +7,7 @@ use App\Domain\Shared\Message\Enums\MessageStatus;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\Shared\Sms\Channels\SmsChannel;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
+use App\Domain\Shared\Sms\Exceptions\CallingCodeNotAllowed;
 use App\Domain\User\Models\User;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Tests\Fixtures\Gateways\FakeGateway;
@@ -89,4 +90,53 @@ test('an sms that the gateway refuses is logged as failed with its error, and ne
         ->and($message->error['message'])->toBe('Connection refused by the provider.')
         ->and($message->failure_reason)->toBe(MessageFailureReason::Unknown)
         ->and($message->failed_at)->toEqual(now());
+});
+
+test('an intercepted sms keeps its real number and the number that it went to in the message log', function (): void {
+    config(['system.sms.intercept.enabled' => true]);
+    $this->actingAs(User::factory()->create(['phone' => '+60111111111']));
+
+    User::factory()->create(['phone' => '+60123456789'])->notify(new TextMessage('The office is closed today.'));
+
+    $message = Message::query()->sole();
+    expect($message->recipient_address)->toBe('+60123456789')
+        ->and($message->intercepted_to)->toBe('+60111111111')
+        ->and($message->status)->toBe(MessageStatus::Sent);
+});
+
+test('an sms that the intercept drops is logged as failed', function (): void {
+    config(['system.sms.intercept.enabled' => true, 'system.sms.intercept.phone' => '']);
+
+    User::factory()->create(['phone' => '+60123456789'])->notify(new TextMessage('The office is closed today.'));
+
+    $message = Message::query()->sole();
+    expect($message->status)->toBe(MessageStatus::Failed)
+        ->and($message->failure_reason)->toBe(MessageFailureReason::Dropped)
+        ->and($this->gateway->sent)->toBe([]);
+});
+
+test('the channel refuses an intercept number outside the calling codes, and the error names the intercept', function (): void {
+    config(['system.sms.intercept.enabled' => true]);
+    $this->actingAs(User::factory()->create(['phone' => '+6591234567']));
+    $user = User::factory()->create(['phone' => '+60123456789']);
+
+    expect(fn () => $user->notify(new TextMessage('The office is closed today.')))
+        ->toThrow(CallingCodeNotAllowed::class, 'The SMS intercept sends SMS only to the calling codes in system.sms.calling_codes.');
+
+    $message = Message::query()->sole();
+    expect($message->status)->toBe(MessageStatus::Failed)
+        ->and($message->failure_reason)->toBe(MessageFailureReason::CallingCodeNotAllowed)
+        ->and($message->intercepted_to)->toBeNull()
+        ->and($this->gateway->sent)->toBe([]);
+});
+
+test('with the intercept on, the channel still refuses a real number outside the calling codes', function (): void {
+    config(['system.sms.intercept.enabled' => true]);
+    $this->actingAs(User::factory()->create(['phone' => '+60111111111']));
+    $user = User::factory()->create(['phone' => '+6591234567']);
+
+    expect(fn () => $user->notify(new TextMessage('The office is closed today.')))
+        ->toThrow(CallingCodeNotAllowed::class, 'The app sends SMS only to the calling codes in system.sms.calling_codes.');
+
+    expect($this->gateway->sent)->toBe([]);
 });

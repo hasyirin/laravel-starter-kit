@@ -2,7 +2,7 @@
 
 The app sends SMS through Laravel notification classes. A notification class that implements `SmsNotification` returns the channel name `sms` in `via()` and gives the text in `toSms()`. Do not return the class of the channel there: the row in the message log then keeps the class name as its channel, not `sms`. `SmsChannel` reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `SMS_GATEWAY` names.
 
-The message log gets a row for each SMS that goes through the channel. A direct call to the gateway leaves no row. So always send an SMS through a notification class.
+The message log gets a row for each SMS that goes through the channel. A direct call to the gateway leaves no row and skips the intercept. So always send an SMS through a notification class.
 
 `LogGateway` is the only gateway in the kit. It writes each SMS to the log, so the codes show in the log during local work. In production it throws an exception, so an app cannot go live without a real gateway. See [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md).
 
@@ -10,7 +10,7 @@ The message log gets a row for each SMS that goes through the channel. A direct 
 
 1. Write a class that implements `SmsGateway`. Its `send()` gets the number in E.164 format, for example +60123456789, and the text. It returns the ID that the provider gives to the SMS as a string, or `null` if the provider gives none. The message log keeps this ID. Mark the number and the text with `#[\SensitiveParameter]`, as `SmsGateway` does, so a stack trace does not show them.
 2. Add the class to `system.sms.gateways` in `config/system.php` under a short name.
-3. On each server that must send real SMS, set `SMS_GATEWAY` to that name. For local work, keep the default, the log gateway. `phpunit.xml` sets the log gateway for the tests, so a test never sends a real SMS.
+3. On each server that must send real SMS, set `SMS_GATEWAY` to that name. For local work, keep the default, the log gateway. `phpunit.xml` sets the log gateway and turns the intercept off for the tests. So a test never sends a real SMS, and it does not depend on your `.env`.
 4. Keep the credentials of the provider in the environment, and read them in `config/services.php`.
 
 ```php
@@ -45,6 +45,20 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 ## Calling Codes
 
 `system.sms.calling_codes` lists the calling codes that the app sends SMS to. The default is +60. The channel throws an exception for a number with another calling code. The phone verification page and the SMS password reset check the list first. The verification page asks the user to change the number or to ask staff, and the reset page sends nothing.
+
+## Intercept
+
+Outside production, the intercept sends each SMS to the signed-in user, not to its real number. Use it on a local or staging copy with real data and a real gateway, so no SMS reaches a real person.
+
+- `SMS_INTERCEPT` turns the intercept on or off. If you do not set it, it follows `MAIL_INTERCEPT`. So a server that intercepts email also intercepts SMS.
+- The SMS goes to the phone number of the signed-in user. For a queued SMS, that is the user who was signed in when the app queued it. During impersonation, it is the impersonator.
+- If no user is signed in, or that user has no phone number, the SMS goes to `SMS_INTERCEPT_PHONE`.
+- If that is empty too, the app drops the SMS and writes a line to the log. The line names the row in the message log, not the phone number.
+- The intercept is always off in production.
+
+The message log keeps the real number of the SMS, and shows the number that got it as "Intercepted to". A dropped SMS gets a failed row.
+
+The channel checks the calling code of the real number first, so a staging server fails as production does. Then it also checks the number that gets the SMS.
 
 ## Codes and Limits
 

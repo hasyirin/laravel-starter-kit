@@ -70,8 +70,8 @@ return [
             'suggestion' => 'A resend fails until a system administrator corrects the mail settings.',
         ],
         'dropped' => [
-            'label' => 'The app stopped the email before it was sent.',
-            'suggestion' => 'Outside production, the mail intercept drops an email when it has no address to send it to.',
+            'label' => 'The app stopped the message before it was sent.',
+            'suggestion' => 'Outside production, the intercept drops a message when it has no address or phone number to send it to.',
         ],
         'no_address' => [
             'label' => 'The recipient has no email address.',

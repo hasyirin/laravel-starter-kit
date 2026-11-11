@@ -20,6 +20,10 @@ return [
             'log' => LogGateway::class,
         ],
         'calling_codes' => ['+60'],
+        'intercept' => [
+            'enabled' => env('SMS_INTERCEPT', env('MAIL_INTERCEPT', false)),
+            'phone' => (string) env('SMS_INTERCEPT_PHONE'),
+        ],
     ],
 
     'navigation' => [

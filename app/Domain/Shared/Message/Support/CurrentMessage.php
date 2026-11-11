@@ -95,6 +95,11 @@ class CurrentMessage
         $this->message->save();
     }
 
+    public function intercept(#[SensitiveParameter] string $address): void
+    {
+        $this->message?->update(['intercepted_to' => $address]);
+    }
+
     public function sent(?string $providerId = null): void
     {
         $this->message?->markAsSent($providerId);

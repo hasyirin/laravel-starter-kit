@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Message\Support\Intercept;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Actions\StartImpersonation;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Event;
 
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
@@ -24,6 +27,18 @@ test('starting signs in as the impersonated user', function (): void {
     expect(auth()->id())->toBe($this->user->id)
         ->and(Impersonation::impersonatorId())->toBe($this->impersonator->id)
         ->and(Impersonation::startUrl())->toBe('https://example.test/start');
+});
+
+test('an intercept finds the impersonator from the sign-in of the impersonation on, in the same request', function (): void {
+    $duringSignIn = null;
+    Event::listen(Login::class, function () use (&$duringSignIn): void {
+        $duringSignIn = Intercept::user();
+    });
+
+    StartImpersonation::make()->execute($this->impersonator, $this->user, 'https://example.test/start');
+
+    expect($duringSignIn?->is($this->impersonator))->toBeTrue()
+        ->and(Intercept::user()?->is($this->impersonator))->toBeTrue();
 });
 
 test('starting regenerates the session id', function (): void {

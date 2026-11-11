@@ -32,6 +32,7 @@
         <server name="DB_URL" value=""/>
         <server name="MAIL_MAILER" value="array"/>
         <server name="SMS_GATEWAY" value="log"/>
+        <server name="SMS_INTERCEPT" value="false"/>
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="MEDIA_QUEUE_CONNECTION" value="sync"/>
         <server name="AUDIT_QUEUE_CONNECTION" value="sync"/>

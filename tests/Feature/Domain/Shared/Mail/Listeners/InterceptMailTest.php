@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
 use Illuminate\Mail\Message;
 use Illuminate\Mail\SentMessage;
 use Illuminate\Support\Collection;
@@ -82,6 +83,16 @@ test('queued emails go to the user who queued them even when that user is delete
     sendInterceptTestMail();
 
     expect(interceptAddresses(sentInterceptTestMails()->sole()->getTo()))->toBe([$user->email]);
+});
+
+test('emails go to the impersonator during impersonation', function (): void {
+    $impersonator = User::factory()->create();
+    Impersonation::begin($impersonator, 'https://example.test/start');
+
+    $this->actingAs(User::factory()->create());
+    sendInterceptTestMail();
+
+    expect(interceptAddresses(sentInterceptTestMails()->sole()->getTo()))->toBe([$impersonator->email]);
 });
 
 test('emails go to the fallback address when there is no current user', function (): void {

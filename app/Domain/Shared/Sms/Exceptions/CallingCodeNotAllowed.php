@@ -8,8 +8,8 @@ use LogicException;
 
 class CallingCodeNotAllowed extends LogicException
 {
-    public function __construct()
+    public function __construct(string $message = 'The app sends SMS only to the calling codes in system.sms.calling_codes.')
     {
-        parent::__construct('The app sends SMS only to the calling codes in system.sms.calling_codes.');
+        parent::__construct($message);
     }
 }

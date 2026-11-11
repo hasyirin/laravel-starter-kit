@@ -88,7 +88,7 @@ class PrintManualLetter
             $this->log($type, $key, $validatedData, $validatedExtra, $this->loggedDetails($details, $signerProfile, $view), $admin, $source, $letter);
         }
 
-        return new PdfFile(str($details->referenceNumber ?? 'letter')->slug()->append('.pdf')->toString(), $content);
+        return PdfFile::named($details->referenceNumber, 'letter', $content);
     }
 
     /**

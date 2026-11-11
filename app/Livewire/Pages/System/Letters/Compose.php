@@ -84,8 +84,10 @@ class Compose extends Page
         $query = $type->source()::query();
 
         if ($search !== '') {
+            $key = $this->sourceKey($query->getModel(), $search);
+
             $query->where(fn (Builder $match): Builder => $match
-                ->whereKey(ctype_digit($search) ? [(int) $search] : [])
+                ->whereKey(is_int($key) ? [$key] : [])
                 ->when($this->sourceHasName, fn (Builder $named): Builder => $named->orWhereLike('name', "%$search%")));
         }
 
@@ -145,10 +147,26 @@ class Compose extends Page
             return null;
         }
 
-        $source = $type->source()::query()->findOrFail($this->sourceId);
+        $query = $type->source()::query();
+        $key = $this->sourceKey($query->getModel(), $this->sourceId);
+
+        abort_if($key === null, 404);
+
+        $source = $query->findOrFail($key);
         $this->authorize('view', $source);
 
         return $source;
+    }
+
+    private function sourceKey(Model $model, string $value): int|string|null
+    {
+        if ($model->getKeyType() !== 'int') {
+            return $value;
+        }
+
+        $key = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        return $key === false ? null : $key;
     }
 
     public function updatedFormType(): void

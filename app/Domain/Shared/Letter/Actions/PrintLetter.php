@@ -56,7 +56,7 @@ class PrintLetter
             ->execute($type->view(), ['data' => $data, 'extra' => $extra, 'letter' => $view], new Preferences(config()->string('system.timezone'), $type->locale()), draft: $preview)
             ->generatePdfContent();
 
-        $file = new PdfFile(str($letter->reference_number ?? "letter-{$letter->id}")->slug()->append('.pdf')->toString(), $content);
+        $file = PdfFile::named($letter->reference_number, "letter-{$letter->id}", $content);
 
         if (! $preview && $type->keepsPrints()) {
             $this->keep($letter, $printer, $file);

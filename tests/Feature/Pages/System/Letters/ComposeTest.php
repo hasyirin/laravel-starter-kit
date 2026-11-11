@@ -16,8 +16,10 @@ use App\Livewire\Components\FileUpload;
 use App\Livewire\Pages\System\Letters\Compose;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -122,6 +124,18 @@ test('the source picker lists only sources the admin can view, found by id or na
 
     expect(array_values($component->set('sourceSearch', 'harb')->instance()->sources()))->toBe(["Harbour (#{$other->id})"])
         ->and(array_keys($component->set('sourceSearch', (string) $this->permit->id)->instance()->sources()))->toBe([$this->permit->id]);
+});
+
+test('a source id or a search that does not fit the key type is not sent as a key', function (): void {
+    $component = compose()->set('start', 'source');
+    $queries = collect();
+    DB::listen(fn (QueryExecuted $query) => $queries->push($query->toRawSql()));
+
+    $component->set('sourceSearch', '99999999999999999999')->instance()->sources();
+    $component->set('sourceId', 'abc')->assertNotFound();
+
+    expect($queries->join("\n"))->not->toContain((string) PHP_INT_MAX)
+        ->not->toContain("'abc'");
 });
 
 test('a letter start fills the print details and the extra values of the letter', function (): void {

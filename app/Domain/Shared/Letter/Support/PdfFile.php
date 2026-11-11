@@ -11,6 +11,16 @@ final readonly class PdfFile
 {
     public function __construct(public string $name, public string $content) {}
 
+    public static function named(?string $referenceNumber, string $fallback, string $content): self
+    {
+        $slug = str($referenceNumber ?? '')
+            ->replace(['/', '\\'], '-')
+            ->slug()
+            ->value();
+
+        return new self(($slug === '' ? $fallback : $slug).'.pdf', $content);
+    }
+
     public function download(): StreamedResponse
     {
         return response()->streamDownload(function (): void {

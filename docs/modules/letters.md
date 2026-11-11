@@ -391,13 +391,14 @@ Each server needs Node, Puppeteer, and Chrome 131 or later. Chrome 131 supports 
 - `composer setup` runs `bunx puppeteer browsers install chrome-headless-shell`. Run it on each server.
 - Set the package variables in `.env` when the defaults do not fit: `LARAVEL_PDF_NODE_BINARY`, `LARAVEL_PDF_NPM_BINARY`, `LARAVEL_PDF_CHROME_PATH`, `LARAVEL_PDF_NODE_MODULES_PATH`, `LARAVEL_PDF_BIN_PATH`, and `LARAVEL_PDF_TEMP_PATH`.
 - Set `LARAVEL_PDF_NO_SANDBOX` to true when Chrome runs as root or in a container.
+- Install a font package on each server, for example `apt install fonts-liberation`. Without fonts, Chrome prints empty boxes or a poor fallback font.
 - Run `bun run build` before the first render. The letter page reads the built `resources/css/letter.css`.
 - Keep `app.timezone` at `UTC`.
 - CI needs `poppler-utils` for the tests that read PDF text. `.github/workflows/tests.yml` installs it.
 
 `RenderPdf` blocks every `http://` and `https://` request and turns off JavaScript. The page has a content security policy that allows only inline styles and data images. A letter cannot load a file or a URL.
 
-A render takes one to two seconds and runs inside the request. A large batch must run in a queue that you write.
+A render takes one to two seconds and runs inside the request. The `letters.preview` route allows 30 previews a minute for each user. A large batch must run in a queue that you write.
 
 ## Limits
 
@@ -682,6 +683,10 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it gives the config key of a letter type
 - it returns only the letter types of the given source
 
+### PdfFile
+
+- the file name keeps the separators of the reference number and falls back when the slug is empty
+
 ### ReferenceSequence
 
 - the key joins its parts with a colon
@@ -748,6 +753,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a source start fills the mapping
 - a source start without the view ability of the source is refused
 - the source picker lists only sources the admin can view, found by id or name
+- a source id or a search that does not fit the key type is not sent as a key
 - a letter start fills the print details and the extra values of the letter
 - a print downloads the letter and writes one audit entry, no letter row, no mark
 - a preview downloads a draft and writes no audit entry

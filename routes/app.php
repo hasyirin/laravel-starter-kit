@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('media/{media:uuid}/{conversion?}', MediaController::class)->name('media.show');
 
-Route::get('letters/{letter}/preview', LetterPreviewController::class)->middleware('can:print,letter')->name('letters.preview');
+Route::get('letters/{letter}/preview', LetterPreviewController::class)->middleware(['throttle:letter-preview', 'can:print,letter'])->name('letters.preview');
 
 Route::post('impersonation/stop', StopImpersonationController::class)->name('impersonation.stop');
 

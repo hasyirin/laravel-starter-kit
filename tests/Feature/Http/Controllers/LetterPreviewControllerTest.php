@@ -58,3 +58,14 @@ test('a letter that cannot be printed shows the messages with a 422 and no redir
 test('a missing letter gets a 404', function (): void {
     $this->actingAs($this->user)->get(route('letters.preview', 0))->assertNotFound();
 });
+
+test('a user can preview 30 times a minute', function (): void {
+    grantPermissions($this->user, 'internal.controls.organizations.view');
+    $this->actingAs($this->user);
+
+    foreach (range(1, 30) as $attempt) {
+        $this->get(route('letters.preview', $this->letter))->assertOk();
+    }
+
+    $this->get(route('letters.preview', $this->letter))->assertTooManyRequests();
+});

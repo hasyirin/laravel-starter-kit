@@ -29,7 +29,7 @@ final class SmsCodeLimit
 
         $wait = $windows
             ->filter(fn (array $window): bool => RateLimiter::tooManyAttempts($window['key'], $window['attempts']))
-            ->map(fn (array $window): int => RateLimiter::availableIn($window['key']))
+            ->map(fn (array $window): int => max(1, RateLimiter::availableIn($window['key'])))
             ->max();
 
         throw_if($wait !== null, SmsCodeThrottled::class, $wait);

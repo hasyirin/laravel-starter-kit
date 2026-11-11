@@ -24,7 +24,7 @@ final class SmsPasswordResetLock
             return;
         }
 
-        throw new SmsPasswordResetLocked(RateLimiter::availableIn($key));
+        throw new SmsPasswordResetLocked(max(1, RateLimiter::availableIn($key)));
     }
 
     public static function countWrongCode(string $phone): void

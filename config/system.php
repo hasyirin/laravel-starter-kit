@@ -89,6 +89,14 @@ return [
                     'delete' => 'internal.controls.organizations.delete',
                     'view-audit-log' => 'internal.controls.organizations.view-audit-log',
                 ],
+                'geography' => [
+                    'view-any' => 'internal.controls.geography.view-any',
+                    'view' => 'internal.controls.geography.view',
+                    'create' => 'internal.controls.geography.create',
+                    'update' => 'internal.controls.geography.update',
+                    'delete' => 'internal.controls.geography.delete',
+                    'view-audit-log' => 'internal.controls.geography.view-audit-log',
+                ],
                 'letterheads' => [
                     'view-any' => 'internal.controls.letterheads.view-any',
                     'view' => 'internal.controls.letterheads.view',

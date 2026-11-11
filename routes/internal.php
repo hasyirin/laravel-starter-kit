@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Pages\Internal\Controls\Geography\Country\Create as CountryCreate;
+use App\Livewire\Pages\Internal\Controls\Geography\Country\Show as CountryShow;
+use App\Livewire\Pages\Internal\Controls\Geography\District\Create as DistrictCreate;
+use App\Livewire\Pages\Internal\Controls\Geography\District\Show as DistrictShow;
+use App\Livewire\Pages\Internal\Controls\Geography\Index as GeographyIndex;
+use App\Livewire\Pages\Internal\Controls\Geography\PostOffice\Create as PostOfficeCreate;
+use App\Livewire\Pages\Internal\Controls\Geography\PostOffice\Show as PostOfficeShow;
+use App\Livewire\Pages\Internal\Controls\Geography\State\Create as StateCreate;
+use App\Livewire\Pages\Internal\Controls\Geography\State\Show as StateShow;
 use App\Livewire\Pages\Internal\Controls\Organization\Branch\Create as BranchCreate;
 use App\Livewire\Pages\Internal\Controls\Organization\Branch\Show as BranchShow;
 use App\Livewire\Pages\Internal\Controls\Organization\Create as OrganizationCreate;
@@ -40,6 +49,16 @@ Route::prefix('controls')->name('controls.')->group(function (): void {
     Route::livewire('organizations/{organization}/branches/create', BranchCreate::class)->name('organizations.branches.create');
     Route::livewire('organizations/{organization}/branches/{branch}', BranchShow::class)->name('organizations.branches.show')->scopeBindings();
     Route::livewire('organizations/{organization}/branches/{branch}/users/{user}', Show::class)->name('organizations.branches.users.show');
+
+    Route::livewire('geography', GeographyIndex::class)->name('geography.index');
+    Route::livewire('geography/countries/create', CountryCreate::class)->name('geography.countries.create');
+    Route::livewire('geography/countries/{country}', CountryShow::class)->name('geography.countries.show');
+    Route::livewire('geography/countries/{country}/states/create', StateCreate::class)->name('geography.countries.states.create');
+    Route::livewire('geography/countries/{country}/states/{state}', StateShow::class)->name('geography.countries.states.show')->scopeBindings();
+    Route::livewire('geography/countries/{country}/states/{state}/districts/create', DistrictCreate::class)->name('geography.countries.states.districts.create')->scopeBindings();
+    Route::livewire('geography/countries/{country}/states/{state}/districts/{district}', DistrictShow::class)->name('geography.countries.states.districts.show')->scopeBindings();
+    Route::livewire('geography/countries/{country}/states/{state}/cities/create', PostOfficeCreate::class)->name('geography.countries.states.cities.create')->scopeBindings();
+    Route::livewire('geography/countries/{country}/states/{state}/cities/{postOffice}', PostOfficeShow::class)->name('geography.countries.states.cities.show')->scopeBindings();
 });
 
 Route::redirect('settings', '/internal/settings/user-information')->name('settings');

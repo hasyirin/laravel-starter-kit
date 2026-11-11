@@ -6,7 +6,9 @@ namespace App\Domain\Shared\Geography\Models;
 
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
+use App\Domain\Shared\Geography\Concerns\Models\SortsLocalFirst;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * @property CarbonImmutable|null $created_at
@@ -16,4 +18,13 @@ class Subdistrict extends \Hasyirin\Address\Models\Subdistrict
 {
     use InteractsWithAuditLog;
     use InteractsWithTimestamps;
+    use SortsLocalFirst;
+
+    /**
+     * @return Builder<static>
+     */
+    public static function localRows(): Builder
+    {
+        return static::query()->whereIn('district_id', District::localRows()->select('id'));
+    }
 }

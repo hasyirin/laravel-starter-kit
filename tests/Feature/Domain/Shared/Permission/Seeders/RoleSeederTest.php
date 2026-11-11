@@ -24,6 +24,11 @@ test('seeding leaves out permissions that match an except pattern', function ():
 
     expect(Role::findByName('auditor')->permissions->pluck('name')->sort()->values()->all())->toBe([
         'internal.access',
+        'internal.controls.geography.create',
+        'internal.controls.geography.update',
+        'internal.controls.geography.view',
+        'internal.controls.geography.view-any',
+        'internal.controls.geography.view-audit-log',
         'internal.controls.letterheads.create',
         'internal.controls.letterheads.update',
         'internal.controls.letterheads.view',

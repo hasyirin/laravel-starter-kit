@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Domain\Shared\Common\Support\AuditLog;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\User;
+use Spatie\Activitylog\Models\Activity;
+use Tests\Fixtures\Models\Badge;
 
 test('the record lookup finds records of a type by name, deleted ones too', function (): void {
     $ada = User::factory()->create(['name' => 'Ada Lovelace']);
@@ -37,4 +39,20 @@ test('the causer types are the types that made changes, and none', function (): 
     Organization::factory()->create();
 
     expect(AuditLog::causerTypes())->toBe(['user' => 'User', AuditLog::NO_CAUSER => 'None']);
+});
+
+test('a record is named by its first label, name, title, or email by default', function (): void {
+    $organization = Organization::factory()->create(['name' => 'Acme Holdings']);
+    $entry = Activity::query()->whereMorphedTo('subject', $organization)->firstOrFail();
+
+    expect(AuditLog::subjectLabel($entry))->toBe('Organization Acme Holdings');
+});
+
+test('a record that defines its own audit label is named by it', function (): void {
+    $badge = new Badge()->forceFill(['id' => 7, 'code' => 'ACME-01', 'name' => 'Acme Holdings']);
+
+    $entry = new Activity(['subject_type' => 'badge', 'subject_id' => 7]);
+    $entry->setRelation('subject', $badge);
+
+    expect(AuditLog::subjectLabel($entry))->toBe('Badge ACME-01');
 });

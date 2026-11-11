@@ -14,7 +14,7 @@ class FakeGateway implements SmsGateway
      */
     public array $sent = [];
 
-    public function send(#[SensitiveParameter] string $phone, string $message): void
+    public function send(#[SensitiveParameter] string $phone, #[SensitiveParameter] string $message): void
     {
         $this->sent[] = ['phone' => $phone, 'message' => $message];
     }

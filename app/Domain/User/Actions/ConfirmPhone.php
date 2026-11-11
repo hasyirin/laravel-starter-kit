@@ -8,6 +8,7 @@ use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\SmsCode;
 use Illuminate\Validation\ValidationException;
+use SensitiveParameter;
 
 class ConfirmPhone
 {
@@ -16,7 +17,7 @@ class ConfirmPhone
     /**
      * @throws ValidationException
      */
-    public function execute(User $user, string $code): void
+    public function execute(User $user, #[SensitiveParameter] string $code): void
     {
         $phone = $user->phone;
 

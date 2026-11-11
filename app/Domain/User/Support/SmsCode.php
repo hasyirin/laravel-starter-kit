@@ -41,7 +41,7 @@ final readonly class SmsCode
         return $code;
     }
 
-    public function check(string $code): bool
+    public function check(#[SensitiveParameter] string $code): bool
     {
         if (! $this->unused()) {
             return false;
@@ -83,7 +83,7 @@ final readonly class SmsCode
         return $this->cacheKey().':tries';
     }
 
-    private function hash(string $code): string
+    private function hash(#[SensitiveParameter] string $code): string
     {
         return hash_hmac('sha256', $code, config()->string('app.key'));
     }

@@ -25,7 +25,7 @@ class ConfirmPasswordResetCode
      * @throws SmsPasswordResetLocked
      * @throws ValidationException
      */
-    public function execute(#[SensitiveParameter] string $phone, string $code): array
+    public function execute(#[SensitiveParameter] string $phone, #[SensitiveParameter] string $code): array
     {
         SmsPasswordResetLock::ensureOpen($phone);
 

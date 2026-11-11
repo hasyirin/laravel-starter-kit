@@ -26,7 +26,7 @@ class UpdateUser
         string $name,
         string $email,
         #[SensitiveParameter] ?string $phone,
-        ?string $password,
+        #[SensitiveParameter] ?string $password,
         Placement $placement,
         ?array $roles = null,
         ?array $permissions = null,

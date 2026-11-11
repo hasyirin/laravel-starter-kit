@@ -8,5 +8,5 @@ use SensitiveParameter;
 
 interface SmsGateway
 {
-    public function send(#[SensitiveParameter] string $phone, string $message): void;
+    public function send(#[SensitiveParameter] string $phone, #[SensitiveParameter] string $message): void;
 }

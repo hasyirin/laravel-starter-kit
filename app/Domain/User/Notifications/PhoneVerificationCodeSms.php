@@ -8,10 +8,11 @@ use App\Domain\Shared\Sms\Channels\SmsChannel;
 use App\Domain\Shared\Sms\Contracts\SmsNotification;
 use App\Domain\User\Support\SmsCode;
 use Illuminate\Notifications\Notification;
+use SensitiveParameter;
 
 class PhoneVerificationCodeSms extends Notification implements SmsNotification
 {
-    public function __construct(public readonly string $code) {}
+    public function __construct(#[SensitiveParameter] public readonly string $code) {}
 
     /**
      * @return list<class-string>

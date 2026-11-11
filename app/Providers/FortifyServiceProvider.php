@@ -22,6 +22,7 @@ use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse as PasskeyLoginResponseContract;
+use SensitiveParameter;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -52,7 +53,7 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
-        Fortify::confirmPasswordsUsing(function (User $user, ?string $password): bool {
+        Fortify::confirmPasswordsUsing(function (User $user, #[SensitiveParameter] ?string $password): bool {
             if (Impersonation::active()) {
                 $user = Impersonation::impersonator();
             }

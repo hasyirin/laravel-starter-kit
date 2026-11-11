@@ -77,6 +77,16 @@ test('a phone number in local format is refused', function (): void {
         ->assertSet('showingCodeStep', false);
 });
 
+test('the code step checks the number too, because a browser can change it', function (): void {
+    Livewire::test(SmsPasswordReset::class)
+        ->set('phone', '+60123456789')
+        ->call('send')
+        ->set('phone', str_repeat('9', 300))
+        ->set('code', '123456')
+        ->call('confirm')
+        ->assertHasErrors(['phone' => PhoneNumber::class]);
+});
+
 test('asking again too soon says when to try again', function (): void {
     Livewire::test(SmsPasswordReset::class)
         ->set('phone', '+60123456789')

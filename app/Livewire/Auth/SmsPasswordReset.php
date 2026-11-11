@@ -45,7 +45,10 @@ class SmsPasswordReset extends Component
 
     public function confirm(): void
     {
-        $this->validate(['code' => ['required', 'string']]);
+        $this->validate([
+            'phone' => ['required', 'string', new PhoneNumber],
+            'code' => ['required', 'string'],
+        ]);
 
         try {
             $reset = ConfirmPasswordResetCode::make()->execute($this->phone, $this->code);

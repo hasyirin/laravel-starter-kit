@@ -21,12 +21,14 @@ abstract class Policy
      */
     protected static ?string $model = null;
 
+    protected static ?string $segment = null;
+
     public function path(string $action): string
     {
         return collect([
             static::$root,
             static::$prefix,
-            str(static::$model ?? str(static::class)->classBasename()->remove('Policy')->value())->classBasename()->kebab()->plural()->value(),
+            static::$segment ?? str(static::$model ?? str(static::class)->classBasename()->remove('Policy')->value())->classBasename()->kebab()->plural()->value(),
             $action,
         ])->filter()
             ->join('.');

@@ -99,6 +99,7 @@ return [
     'waits' => [
         'redis:default' => 60,
         'redis-media:media' => 300,
+        'redis-mail:mail' => 300,
     ],
 
     /*
@@ -239,6 +240,19 @@ return [
             'timeout' => 300,
             'nice' => 10,
         ],
+
+        'supervisor-mail' => [
+            'connection' => 'redis-mail',
+            'queue' => ['mail'],
+            'balance' => 'simple',
+            'processes' => 1,
+            'maxTime' => 3600,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 4,
+            'timeout' => 120,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -256,6 +270,10 @@ return [
             'supervisor-audit' => [
                 'processes' => 1,
             ],
+
+            'supervisor-mail' => [
+                'processes' => 1,
+            ],
         ],
 
         'local' => [
@@ -270,6 +288,10 @@ return [
             'supervisor-audit' => [
                 'processes' => 1,
             ],
+
+            'supervisor-mail' => [
+                'processes' => 1,
+            ],
         ],
 
         '*' => [
@@ -282,6 +304,10 @@ return [
             ],
 
             'supervisor-audit' => [
+                'processes' => 1,
+            ],
+
+            'supervisor-mail' => [
                 'processes' => 1,
             ],
         ],

@@ -38,6 +38,12 @@ return [
         'queue_connection' => env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync')),
     ],
 
+    'mail_log' => [
+        'retention_days' => env('MAIL_RETENTION_DAYS'),
+        'archive_disk' => env('MAIL_ARCHIVE_DISK', 'local'),
+        'queue_connection' => env('MAIL_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
+    ],
+
     'roles' => [
         'system-admin' => 'system-admin',
     ],
@@ -82,8 +88,14 @@ return [
             'horizon' => [
                 'view' => 'system.horizon.view',
             ],
-            'audit-log' => [
-                'view' => 'system.audit-log.view',
+            'logs' => [
+                'audits' => [
+                    'view' => 'system.logs.audits.view',
+                ],
+                'mail' => [
+                    'view' => 'system.logs.mail.view',
+                    'resend' => 'system.logs.mail.resend',
+                ],
             ],
         ],
     ],

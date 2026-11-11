@@ -10,9 +10,9 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\Shared\Permission\Seeders\RoleSeeder;
 use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Models\User;
+use App\Domain\User\Notifications\VerifyEmail;
 use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 

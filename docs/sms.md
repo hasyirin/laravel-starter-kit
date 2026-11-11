@@ -2,7 +2,7 @@
 
 The app sends SMS through Laravel notifications. A notification that implements `SmsNotification` returns `SmsChannel` in `via()` and gives the text in `toSms()`. The channel reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `SMS_GATEWAY` names.
 
-`LogGateway` is the only gateway in the kit. It writes each SMS to the log, so the codes show in the log during local work. In production it throws an exception, so an app cannot go live without a real gateway. See [ADR-0011](adr/0011-the-kit-sends-sms-through-its-own-channel.md).
+`LogGateway` is the only gateway in the kit. It writes each SMS to the log, so the codes show in the log during local work. In production it throws an exception, so an app cannot go live without a real gateway. See [ADR-0012](adr/0012-the-kit-sends-sms-through-its-own-channel.md).
 
 ## Add a Gateway
 
@@ -57,7 +57,7 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 
 ## Test SMS
 
-Fake the notifications with `Notification::fake()`, and read the code from the notification that the test sent:
+Fake the notifications, and read the code from the notification that the test sent:
 
 ```php
 Notification::fake();

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Domain\User\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Fortify\Features;
 

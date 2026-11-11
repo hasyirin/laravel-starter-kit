@@ -1,6 +1,6 @@
 # Every User Verifies a Phone Number
 
-Every user has a phone number and verifies it with an SMS code before they use the app, in the same way as the email address. The `phone.verified` middleware stands next to every `verified` middleware. A user who holds `bypass-authorization` passes both checks and needs no phone number. `User` implements `MustVerifyPhone` next to `Illuminate\Contracts\Auth\MustVerifyEmail`. See [ADR-0011](0011-the-kit-sends-sms-through-its-own-channel.md) for how the app sends SMS.
+Every user has a phone number and verifies it with an SMS code before they use the app, in the same way as the email address. The `phone.verified` middleware stands next to every `verified` middleware. A user who holds `bypass-authorization` passes both checks and needs no phone number. `User` implements `MustVerifyPhone` next to `Illuminate\Contracts\Auth\MustVerifyEmail`. See [ADR-0012](0012-the-kit-sends-sms-through-its-own-channel.md) for how the app sends SMS.
 
 ## Considered Options
 

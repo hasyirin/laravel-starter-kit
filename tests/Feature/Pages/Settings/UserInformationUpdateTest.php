@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
+use App\Domain\User\Notifications\VerifyEmail;
 use App\Domain\User\Rules\PhoneNumber;
 use App\Livewire\Settings\UserInformation;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 

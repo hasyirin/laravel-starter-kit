@@ -15,6 +15,7 @@ return [
     'users' => 'Users',
     'roles' => 'Roles',
     'organizations' => 'Organizations',
+    'geography' => 'Geography',
     'horizon' => 'Horizon',
     'logs' => 'Logs',
     'audit_log' => 'Audit log',

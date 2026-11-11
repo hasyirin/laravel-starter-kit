@@ -28,11 +28,17 @@ return [
     'subjects' => [
         'action' => 'Action',
         'branch' => 'Branch',
+        'country' => 'Country',
         'department' => 'Department',
+        'district' => 'District',
         'organization' => 'Organization',
         'position' => 'Position',
+        'post_office' => 'City',
+        'postcode' => 'Postcode',
         'profile' => 'Profile',
         'role' => 'Role',
+        'state' => 'State',
+        'subdistrict' => 'Subdistrict',
         'user' => 'User',
     ],
 ];

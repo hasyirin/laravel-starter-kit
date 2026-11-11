@@ -6,7 +6,9 @@ namespace App\Domain\Shared\Geography\Models;
 
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
+use App\Domain\Shared\Geography\Concerns\Models\SortsLocalFirst;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,6 +19,25 @@ class Postcode extends \Hasyirin\Address\Models\Postcode
 {
     use InteractsWithAuditLog;
     use InteractsWithTimestamps;
+    use SortsLocalFirst;
+
+    /**
+     * @return Builder<static>
+     */
+    public static function localRows(): Builder
+    {
+        return static::query()->whereIn('post_office_id', PostOffice::localRows()->select('id'));
+    }
+
+    public function auditNameColumn(): string
+    {
+        return 'code';
+    }
+
+    public function auditLabel(): string
+    {
+        return $this->code;
+    }
 
     /**
      * @return Collection<string, string>

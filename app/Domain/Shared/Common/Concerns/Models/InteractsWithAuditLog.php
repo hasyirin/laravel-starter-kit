@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Common\Concerns\Models;
 
+use App\Domain\Shared\Common\Support\AuditLog;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -27,5 +28,10 @@ trait InteractsWithAuditLog
         }
 
         return 'name';
+    }
+
+    public function auditLabel(): ?string
+    {
+        return AuditLog::attributeLabel($this);
     }
 }

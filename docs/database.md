@@ -331,3 +331,12 @@ These polymorphic column pairs can point to any table, so the diagram draws no l
 - `notifications.notifiable_type` and `notifications.notifiable_id`
 
 <!-- /generated:erd -->
+
+## Geography Data
+
+`GeographySeeder` fills the geography tables from the bundled data. It runs `address:seed`, and `db:seed` runs `GeographySeeder`.
+
+Do not run `GeographySeeder`, `db:seed`, or `address:seed` after a deploy. The seed undoes edits made in the Geography control:
+
+- An edited name goes back to the bundled name. So does the alpha-2 code of a country.
+- An edited code, or an edited city name, makes a second row with the bundled key. The seed also adds all the bundled records below that row again.

@@ -23,7 +23,7 @@ return [
     ],
 
     'navigation' => [
-        'app' => Style::Sidebar,
+        'app' => Style::Topbar,
     ],
 
     'owner' => [

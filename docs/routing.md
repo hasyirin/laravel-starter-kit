@@ -115,11 +115,11 @@ A navigation shows its items in one of two styles, the cases of `App\Livewire\Co
 - `Style::Sidebar` puts the items in a sidebar at the side of the page. The internal, system, and local areas always use it.
 - `Style::Topbar` puts the items in a bar at the top of the page. Use it for an app that the public uses, and keep the sidebar for staff.
 
-The app area uses the style in `system.navigation.app`. The default is `Style::Sidebar`. To use the top bar, change the value in `config/system.php`:
+The app area uses the style in `system.navigation.app`. The default is `Style::Topbar`. To use the sidebar, change the value in `config/system.php`:
 
 ```php
 'navigation' => [
-    'app' => Style::Topbar,
+    'app' => Style::Sidebar,
 ],
 ```
 

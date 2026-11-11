@@ -7,9 +7,12 @@ namespace App\Providers;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -24,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
         $this->preventDebugModeInProduction();
 
         $this->configureDefaults();
+
+        $this->configureRateLimits();
     }
 
     protected function preventDebugModeInProduction(): void
@@ -62,5 +67,10 @@ class AppServiceProvider extends ServiceProvider
                 ->symbols()
             : null,
         );
+    }
+
+    protected function configureRateLimits(): void
+    {
+        RateLimiter::for('mail-tracking', fn (Request $request): Limit => Limit::perMinute(30)->by($request->ip().'|'.$request->route('token')));
     }
 }

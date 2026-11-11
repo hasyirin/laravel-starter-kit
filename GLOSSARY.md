@@ -153,3 +153,43 @@ _Avoid_: Mukim
 **Local area**:
 The post offices whose addresses a form accepts when the form has the local limit. By default, they are the post offices of the app's state.
 _Avoid_: Service area, jurisdiction
+
+### Messages
+
+**Email**:
+A message that the app sends to an email address. The code calls it a mail.
+
+**Recipient**:
+The one person in the To field of an email.
+_Avoid_: Addressee
+
+**Copy recipient**:
+A person in the CC or BCC field of an email.
+_Avoid_: CC, BCC, which are the fields, not the people
+
+**Mail log**:
+The record of every email that the app sends, with its recipient, its status, and the record that it is about.
+_Avoid_: Email log, outbox, sent items
+
+**Sent**:
+The status of an email that the mail server accepted. It is not proof that the email reached the inbox.
+_Avoid_: Delivered, successful
+
+**Notification**:
+A message that the app shows to a user inside the app, under the bell.
+_Avoid_: Alert, in-app message
+
+**Open**:
+Each time that the email client of a recipient loads an email's images. It is not proof that a person read the email.
+_Avoid_: Read
+
+**Click**:
+The first time that anyone follows a link in an email to a public page or another site. Link scanners can cause it, so it is not proof that a person read the email.
+
+**View**:
+The first time that the recipient, signed in, follows a link in an email to a page that needs a sign-in. It is the only proof that the recipient read the email.
+_Avoid_: Open, download, read receipt
+
+**Resend**:
+A new email that sends an earlier email again, to its recipient or to another address. It links to the email that it repeats.
+_Avoid_: Retry, which is another try of the same email after a failure

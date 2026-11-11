@@ -34,7 +34,7 @@ test('an environment without its own entry still starts every supervisor', funct
 
     ProvisioningPlan::get('test')->deploy('staging');
 
-    expect($commands->supervisors)->toBe(['test:supervisor-default', 'test:supervisor-media', 'test:supervisor-audit']);
+    expect($commands->supervisors)->toBe(['test:supervisor-default', 'test:supervisor-media', 'test:supervisor-audit', 'test:supervisor-mail']);
 });
 
 test('the dashboard is in the system area', function (): void {

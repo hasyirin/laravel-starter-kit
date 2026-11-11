@@ -16,7 +16,10 @@ return [
     'roles' => 'Roles',
     'organizations' => 'Organizations',
     'horizon' => 'Horizon',
+    'logs' => 'Logs',
     'audit_log' => 'Audit log',
+    'mail_log' => 'Mail log',
+    'notifications' => 'Notifications',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',
         'home' => 'Home',

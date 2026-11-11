@@ -57,7 +57,9 @@ test('emails go to the current user', function (): void {
     expect(interceptAddresses($email->getTo()))->toBe([$user->email])
         ->and($email->getCc())->toBeEmpty()
         ->and($email->getBcc())->toBeEmpty()
-        ->and($email->getHeaders()->getHeaderBody('X-Intercepted-To'))->toBe('to@example.com, cc@example.com, bcc@example.com');
+        ->and(interceptAddresses($email->getHeaders()->getHeaderBody('X-Intercepted-To')))->toBe(['to@example.com'])
+        ->and(interceptAddresses($email->getHeaders()->getHeaderBody('X-Intercepted-Cc')))->toBe(['cc@example.com'])
+        ->and(interceptAddresses($email->getHeaders()->getHeaderBody('X-Intercepted-Bcc')))->toBe(['bcc@example.com']);
 });
 
 test('emails go to the user who was logged in when they were queued', function (): void {

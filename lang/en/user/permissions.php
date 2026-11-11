@@ -8,7 +8,9 @@ return [
         'users' => 'Users',
         'roles' => 'Roles',
         'horizon' => 'Horizon',
-        'audit-log' => 'Audit log',
+        'logs' => 'Logs',
+        'audits' => 'Audit log',
+        'mail' => 'Mail log',
         'internal' => 'Internal',
         'system' => 'System',
     ],
@@ -23,6 +25,7 @@ return [
         'delete' => 'Delete',
         'impersonate' => 'Impersonate',
         'view-audit-log' => 'View audit log',
+        'resend' => 'Resend',
         'bypass-authorization' => 'Bypass authorization',
     ],
 ];

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
+use App\Domain\User\Notifications\VerifyEmail;
 use App\Livewire\Settings\UserInformation;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 

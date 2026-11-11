@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Mail\Models\Mail;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -77,4 +79,22 @@ test('media whose owner is gone is not found', function (): void {
     $response = $this->actingAs(User::factory()->create())->get(route('media.show', $media));
 
     $response->assertNotFound();
+});
+
+test('a user with system.logs.mail.view gets an attachment of an email', function (): void {
+    $user = User::factory()->create();
+    grantPermissions($user, 'system.logs.mail.view');
+    $media = Mail::factory()->create()->addMediaFromString('letter content')->usingFileName('letter.pdf')->toMediaCollection(MediaCollection::Attachments->value);
+
+    $response = $this->actingAs($user)->get(route('media.show', $media));
+
+    $response->assertOk();
+});
+
+test('a user without system.logs.mail.view is refused an attachment of an email', function (): void {
+    $media = Mail::factory()->create()->addMediaFromString('letter content')->usingFileName('letter.pdf')->toMediaCollection(MediaCollection::Attachments->value);
+
+    $response = $this->actingAs(User::factory()->create())->get(route('media.show', $media));
+
+    $response->assertForbidden();
 });

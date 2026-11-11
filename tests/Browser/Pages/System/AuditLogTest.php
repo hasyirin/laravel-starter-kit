@@ -9,14 +9,14 @@ use Pest\Browser\Api\PendingAwaitablePage;
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
     $this->viewer = User::factory()->create(['name' => 'Vera Viewer']);
-    grantPermissions($this->viewer, 'system.access', 'system.audit-log.view');
+    grantPermissions($this->viewer, 'system.access', 'system.logs.audits.view');
     $this->actingAs($this->viewer);
     $this->viewer->update(['name' => 'Vera Renamed']);
 });
 
 function openAuditLogFilters(): PendingAwaitablePage
 {
-    $page = visit(route('system.audit-log', absolute: false));
+    $page = visit(route('system.logs.audits', absolute: false));
 
     $page->script(browserScript(<<<'SCRIPT'
         await until(() => document.querySelector('.fi-ta-row'));

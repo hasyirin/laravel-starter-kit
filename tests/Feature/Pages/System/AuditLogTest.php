@@ -14,16 +14,16 @@ beforeEach(function (): void {
     $this->actingAs($this->user);
 });
 
-test('users without system.audit-log.view cannot open the audit log', function (): void {
-    $response = $this->get(route('system.audit-log'));
+test('users without system.logs.audits.view cannot open the audit log', function (): void {
+    $response = $this->get(route('system.logs.audits'));
 
     $response->assertForbidden();
 });
 
-test('users with system.audit-log.view can open the audit log', function (): void {
-    grantPermissions($this->user, 'system.audit-log.view');
+test('users with system.logs.audits.view can open the audit log', function (): void {
+    grantPermissions($this->user, 'system.logs.audits.view');
 
-    $response = $this->get(route('system.audit-log'));
+    $response = $this->get(route('system.logs.audits'));
 
     $response->assertOk()
         ->assertSeeLivewire(AuditLog::class)

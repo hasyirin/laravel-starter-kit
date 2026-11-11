@@ -19,6 +19,7 @@ return [
     'horizon' => 'Horizon',
     'logs' => 'Logs',
     'audit_log' => 'Audit log',
+    'manual_letter' => 'Manual letter',
     'mail_log' => 'Mail log',
     'notifications' => 'Notifications',
     'breadcrumbs' => [

@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\AddTraceIdToContext;
+use App\Http\Middleware\EnsureEmailIsVerified;
+use App\Http\Middleware\EnsurePhoneIsVerified;
 use App\Http\Middleware\ResolveUserPreferences;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Foundation\Application;
@@ -38,6 +40,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
     }))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AddTraceIdToContext::class);
+        $middleware->alias([
+            'verified' => EnsureEmailIsVerified::class,
+            'phone.verified' => EnsurePhoneIsVerified::class,
+        ]);
         $middleware->web(append: [ResolveUserPreferences::class]);
         // app.js writes these from the browser, so the app does not encrypt them.
         $middleware->encryptCookies(except: ['timezone', 'locale']);

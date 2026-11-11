@@ -10,9 +10,11 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\Shared\Permission\Seeders\RoleSeeder;
 use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Models\User;
+use App\Domain\User\Notifications\VerifyEmail;
 use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 
 test('creating a user gives them a first profile with the placement', function (): void {
     $department = Department::factory()->create();
@@ -27,6 +29,7 @@ test('creating a user gives them a first profile with the placement', function (
         actor: User::factory()->create(),
         name: 'Ada Lovelace',
         email: 'ada@example.com',
+        phone: '+60123456781',
         password: 'secret-password',
         placement: $placement,
     );
@@ -47,6 +50,7 @@ test('the first profile gets the given roles and permissions', function (): void
         actor: User::factory()->create(),
         name: 'Ada Lovelace',
         email: 'ada@example.com',
+        phone: '+60123456782',
         password: 'secret-password',
         placement: new Placement,
         roles: ['editor'],
@@ -66,6 +70,7 @@ test('a refused bypass role leaves no user behind', function (): void {
         actor: User::factory()->create(),
         name: 'Ada Lovelace',
         email: 'ada@example.com',
+        phone: '+60123456783',
         password: 'secret-password',
         placement: new Placement,
         roles: ['system-admin'],
@@ -73,4 +78,50 @@ test('a refused bypass role leaves no user behind', function (): void {
         ->toThrow(AuthorizationException::class);
 
     $this->assertDatabaseMissing('users', ['email' => 'ada@example.com']);
+});
+
+test('a new user starts with an unverified phone number', function (): void {
+    $user = CreateUser::make()->execute(
+        actor: User::factory()->create(),
+        name: 'New Person',
+        email: 'new.person@example.com',
+        phone: '+60123456789',
+        password: 'password',
+        placement: new Placement,
+    );
+
+    expect($user->phone)->toBe('+60123456789')
+        ->and($user->phone_verified_at)->toBeNull();
+});
+
+test('a new user gets a verification email', function (): void {
+    Notification::fake();
+
+    $user = CreateUser::make()->execute(
+        actor: User::factory()->create(),
+        name: 'New Person',
+        email: 'new.person@example.com',
+        phone: '+60123456789',
+        password: 'password',
+        placement: new Placement,
+    );
+
+    Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+test('a refused new user gets no verification email', function (): void {
+    Notification::fake();
+    $this->seed([PermissionSeeder::class, RoleSeeder::class]);
+
+    expect(fn (): User => CreateUser::make()->execute(
+        actor: User::factory()->create(),
+        name: 'New Admin',
+        email: 'new.admin@example.com',
+        phone: '+60123456789',
+        password: 'password',
+        placement: new Placement,
+        roles: ['system-admin'],
+    ))->toThrow(AuthorizationException::class);
+
+    Notification::assertNothingSent();
 });

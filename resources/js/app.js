@@ -5,6 +5,7 @@ import blurOnLeave from './components/field';
 import inputField from './components/input';
 import datetimeField from './components/input/datetime';
 import numberField from './components/input/number';
+import letterRows from './components/letter/rows';
 import map from './components/map';
 import permissionTree from './components/permission-tree';
 import sliderField from './components/slider';
@@ -28,6 +29,7 @@ if (window.livewireStarted) {
     Alpine.data('inputField', inputField);
     Alpine.data('datetimeField', datetimeField);
     Alpine.data('numberField', numberField);
+    Alpine.data('letterRows', letterRows);
     Alpine.data('map', map);
     Alpine.data('permissionTree', permissionTree);
     Alpine.data('sliderField', sliderField);

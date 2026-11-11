@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Shared\Actor\Models\Action;
+use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\Shared\Geography\Models\Address;
 use App\Domain\Shared\Geography\Models\Country;
 use App\Domain\Shared\Geography\Models\District;
@@ -12,6 +13,8 @@ use App\Domain\Shared\Geography\Models\Postcode;
 use App\Domain\Shared\Geography\Models\PostOffice;
 use App\Domain\Shared\Geography\Models\State;
 use App\Domain\Shared\Geography\Models\Subdistrict;
+use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Mail\Models\Mail;
 use App\Domain\Shared\Mail\Models\MailLink;
 use App\Domain\Shared\Organization\Models\Branch;
@@ -34,10 +37,13 @@ class EloquentServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'action' => Action::class,
             'address' => Address::class,
+            'audit_entry' => AuditEntry::class,
             'branch' => Branch::class,
             'country' => Country::class,
             'department' => Department::class,
             'district' => District::class,
+            'letter' => Letter::class,
+            'letterhead' => Letterhead::class,
             'mail' => Mail::class,
             'mail_link' => MailLink::class,
             'organization' => Organization::class,

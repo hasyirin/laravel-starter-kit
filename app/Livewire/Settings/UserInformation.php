@@ -6,6 +6,7 @@ namespace App\Livewire\Settings;
 
 use App\Domain\User\Actions\UpdateUserInformation;
 use App\Domain\User\Concerns\UserInformationValidationRules;
+use App\Domain\User\Contracts\Models\MustVerifyPhone;
 use App\Domain\User\Models\User;
 use App\Http\Enums\Area;
 use App\Livewire\Pages\Shared\Page;
@@ -24,6 +25,8 @@ class UserInformation extends Page
 
     public string $email = '';
 
+    public string $phone = '';
+
     /**
      * Mount the component.
      */
@@ -34,6 +37,7 @@ class UserInformation extends Page
 
         $this->name = $user->name;
         $this->email = $user->email;
+        $this->phone = $user->phone ?? '';
     }
 
     /**
@@ -46,9 +50,9 @@ class UserInformation extends Page
 
         $this->email = str($this->email)->lower()->value();
 
-        $this->validate($this->userInformationRules($user->id));
+        $this->validate($this->userInformationRules($user->id, phoneRequired: $this->phoneRequired));
 
-        UpdateUserInformation::make()->execute($user, $this->name, $this->email);
+        UpdateUserInformation::make()->execute($user, $this->name, $this->email, $this->phone === '' ? null : $this->phone);
 
         Flux::toast(variant: 'success', text: __('user/settings.user_information.updated'));
     }
@@ -84,5 +88,22 @@ class UserInformation extends Page
         $user = auth()->user();
 
         return $user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail();
+    }
+
+    #[Computed]
+    public function phoneRequired(): bool
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        return ! $user->checkPermissionTo(config()->string('system.permissions.bypass-authorization'));
+    }
+
+    #[Computed]
+    public function phoneUnverified(): bool
+    {
+        $user = auth()->user();
+
+        return $user instanceof MustVerifyPhone && $user->getPhoneForVerification() !== null && ! $user->hasVerifiedPhone();
     }
 }

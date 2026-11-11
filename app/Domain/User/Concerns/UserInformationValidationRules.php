@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\User\Concerns;
 
 use App\Domain\User\Models\User;
+use App\Domain\User\Rules\PhoneNumber;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
@@ -16,11 +17,12 @@ trait UserInformationValidationRules
      *
      * @return array<string, array<int, Unique|ValidationRule|array<mixed>|string>>
      */
-    protected function userInformationRules(?int $userId = null): array
+    protected function userInformationRules(?int $userId = null, bool $phoneRequired = true): array
     {
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'phone' => $this->phoneRules($userId, $phoneRequired),
         ];
     }
 
@@ -46,6 +48,21 @@ trait UserInformationValidationRules
             'string',
             'email',
             'max:255',
+            $userId === null
+                ? Rule::unique(User::class)->withoutTrashed()
+                : Rule::unique(User::class)->withoutTrashed()->ignore($userId),
+        ];
+    }
+
+    /**
+     * @return array<int, Unique|ValidationRule|array<mixed>|string>
+     */
+    protected function phoneRules(?int $userId = null, bool $required = true): array
+    {
+        return [
+            $required ? 'required' : 'nullable',
+            'string',
+            new PhoneNumber,
             $userId === null
                 ? Rule::unique(User::class)->withoutTrashed()
                 : Rule::unique(User::class)->withoutTrashed()->ignore($userId),

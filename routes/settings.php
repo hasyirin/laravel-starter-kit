@@ -12,7 +12,7 @@ Route::livewire('settings/user-information', UserInformation::class)->name('user
 
 Route::livewire('settings/preferences', Preferences::class)->name('preferences.edit');
 
-Route::middleware(['verified'])->group(function (): void {
+Route::middleware(['verified', 'phone.verified'])->group(function (): void {
     Route::livewire('settings/appearance', Appearance::class)->name('appearance.edit');
 
     Route::livewire('settings/security', Security::class)

@@ -25,10 +25,13 @@
                 :label="__('common/inputs.email_address')"
                 :value="old('email')"
                 type="email"
+                case="lower"
                 required
                 autocomplete="email"
                 placeholder="email@example.com"
             />
+
+            <x-input.phone name="phone" :label="__('common/inputs.phone')" :value="old('phone')" required autocomplete="tel" />
 
             <!-- Password -->
             <x-input.password

@@ -48,6 +48,9 @@ jobs:
       - name: Install Playwright Dependencies
         run: bunx playwright install-deps chromium
 
+      - name: Install Poppler
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
       - name: Cache Rector
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -64,3 +67,5 @@ jobs:
 
       - name: Run CI Checks
         run: composer ci:check
+        env:
+          LARAVEL_PDF_NO_SANDBOX: true

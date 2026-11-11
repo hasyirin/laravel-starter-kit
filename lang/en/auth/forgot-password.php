@@ -8,4 +8,5 @@ return [
     'submit' => 'Email password reset link',
     'return_to' => 'Or, return to',
     'log_in' => 'log in',
+    'sms' => 'Reset with your phone number instead',
 ];

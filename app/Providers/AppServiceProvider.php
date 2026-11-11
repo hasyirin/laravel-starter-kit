@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
+use App\Http\Middleware\EnsureEmailIsVerified;
+use App\Http\Middleware\EnsurePhoneIsVerified;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -18,10 +20,27 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Blaze\Blaze;
 use Livewire\Livewire;
+use LogicException;
 use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(function (): SmsGateway {
+            $name = config()->string('system.sms.gateway');
+            $class = config("system.sms.gateways.{$name}");
+
+            throw_unless(is_string($class), LogicException::class, "The SMS gateway [{$name}] is not in system.sms.gateways.");
+
+            $gateway = resolve($class);
+
+            throw_unless($gateway instanceof SmsGateway, LogicException::class, "system.sms.gateways.{$name} must name a class that implements SmsGateway.");
+
+            return $gateway;
+        });
+    }
+
     public function boot(): void
     {
         $this->preventDebugModeInProduction();
@@ -54,7 +73,7 @@ class AppServiceProvider extends ServiceProvider
 
         Blaze::optimize()->in(resource_path('views/components'));
 
-        Livewire::addPersistentMiddleware([EnsureEmailIsVerified::class]);
+        Livewire::addPersistentMiddleware([EnsureEmailIsVerified::class, EnsurePhoneIsVerified::class]);
 
         Gate::before(fn (?User $user): ?true => $user?->checkPermissionTo(config('system.permissions.bypass-authorization')) ? true : null);
 
@@ -72,5 +91,6 @@ class AppServiceProvider extends ServiceProvider
     protected function configureRateLimits(): void
     {
         RateLimiter::for('mail-tracking', fn (Request $request): Limit => Limit::perMinute(30)->by($request->ip().'|'.$request->route('token')));
+        RateLimiter::for('letter-preview', fn (Request $request): Limit => Limit::perMinute(30)->by((string) $request->user()?->getAuthIdentifier()));
     }
 }

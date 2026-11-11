@@ -51,6 +51,26 @@ test('each foreign key draws a line from the parent to its children', function (
     'a unique key' => [fn (Blueprint $table) => $table->foreignId('shelf_id')->unique()->constrained(), '    shelves ||--o| books : "shelf_id"'],
 ]);
 
+test('a partial or expression unique index does not make a key unique', function (string $index): void {
+    Schema::create('shelves', function (Blueprint $table): void {
+        $table->id();
+    });
+    Schema::create('books', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('shelf_id')->constrained();
+        $table->integer('slot')->nullable();
+        $table->boolean('borrowed');
+    });
+    DB::statement($index);
+
+    $erd = new Erd()->render([]);
+
+    expect($erd)->toContain('    shelves ||--o{ books : "shelf_id"');
+})->with([
+    'a partial index' => ['create unique index books_shelf_unique on books (shelf_id) where borrowed = 0'],
+    'an expression index' => ['create unique index books_shelf_unique on books (shelf_id, coalesce(slot, 0))'],
+]);
+
 test('each column shows a simple type instead of the SQLite type', function (string $declared, string $type): void {
     DB::statement("create table samples (value {$declared})");
 

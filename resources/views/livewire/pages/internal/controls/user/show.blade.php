@@ -53,5 +53,25 @@
                 </div>
             </flux:modal>
         @endunless
+
+        @if($user->phone !== null && ! $user->hasVerifiedPhone())
+            <flux:modal name="verify-phone" class="max-w-md">
+                <div class="space-y-6">
+                    <div>
+                        <flux:heading size="lg">{{ __('user/users.verify_phone.heading') }}</flux:heading>
+
+                        <flux:subheading>{{ __('user/users.verify_phone.description', ['phone' => $user->phone]) }}</flux:subheading>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <flux:modal.close>
+                            <flux:button variant="filled">{{ __('common/buttons.cancel') }}</flux:button>
+                        </flux:modal.close>
+
+                        <flux:button variant="primary" wire:click="verifyPhone">{{ __('common/buttons.confirm') }}</flux:button>
+                    </div>
+                </div>
+            </flux:modal>
+        @endif
     @endcan
 </flux:main>

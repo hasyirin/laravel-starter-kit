@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Sms\Gateways\LogGateway;
 use App\Livewire\Components\Navigation\Style;
 
 return [
@@ -13,8 +14,16 @@ return [
 
     'country' => 'MY',
 
+    'sms' => [
+        'gateway' => env('SMS_GATEWAY', 'log'),
+        'gateways' => [
+            'log' => LogGateway::class,
+        ],
+        'calling_codes' => ['+60'],
+    ],
+
     'navigation' => [
-        'app' => Style::Sidebar,
+        'app' => Style::Topbar,
     ],
 
     'owner' => [
@@ -27,6 +36,10 @@ return [
         'retention_days' => env('AUDIT_RETENTION_DAYS'),
         'archive_disk' => env('AUDIT_ARCHIVE_DISK', 'local'),
         'queue_connection' => env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync')),
+    ],
+
+    'letters' => [
+        'types' => [],
     ],
 
     'mail_log' => [
@@ -80,6 +93,13 @@ return [
                     'delete' => 'internal.controls.geography.delete',
                     'view-audit-log' => 'internal.controls.geography.view-audit-log',
                 ],
+                'letterheads' => [
+                    'view-any' => 'internal.controls.letterheads.view-any',
+                    'view' => 'internal.controls.letterheads.view',
+                    'create' => 'internal.controls.letterheads.create',
+                    'update' => 'internal.controls.letterheads.update',
+                    'delete' => 'internal.controls.letterheads.delete',
+                ],
             ],
         ],
         'system' => [
@@ -95,6 +115,9 @@ return [
                     'view' => 'system.logs.mail.view',
                     'resend' => 'system.logs.mail.resend',
                 ],
+            ],
+            'letters' => [
+                'compose' => 'system.letters.compose',
             ],
         ],
     ],

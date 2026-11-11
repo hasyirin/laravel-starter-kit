@@ -115,3 +115,13 @@ test('the impersonate action is hidden on your own row, also with bypass', funct
     Livewire::test(UserDataTable::class)
         ->assertActionHidden(TestAction::make('impersonate')->table($this->actor));
 });
+
+test('the list finds a user by phone number', function (): void {
+    $user = User::factory()->create(['phone' => '+60123456789']);
+    $other = User::factory()->create(['phone' => '+60198765432']);
+
+    Livewire::test(UserDataTable::class)
+        ->searchTable('+60123456789')
+        ->assertCanSeeTableRecords([$user])
+        ->assertCanNotSeeTableRecords([$other]);
+});

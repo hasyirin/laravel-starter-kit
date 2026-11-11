@@ -12,6 +12,8 @@ use App\Livewire\DataTables\Internal\User\AuditLogDataTable as UserAuditLogDataT
 use App\Livewire\DataTables\System\AuditLogDataTable;
 use App\Livewire\Pages\System\AuditEntryModal;
 use Filament\Actions\Testing\TestAction;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\ExpectationFailedException;
 use Spatie\Activitylog\Models\Activity;
@@ -185,4 +187,25 @@ test('a row click opens the modal, which shows an entry on any record', function
         ->call('show', $entry->id)
         ->assertSet('showing', true)
         ->assertSeeInOrder(['User', 'Sam Subject']);
+});
+
+test('the modal shows the letter data, extra values, print details and images of a printed manual letter', function (): void {
+    Storage::fake('media');
+    $entry = activity()->event('printed-manual-letter')->withProperties([
+        'type' => 'notice',
+        'data' => ['title' => 'Annual <b>Notice</b>', 'amount' => 42],
+        'extra' => ['remark' => 'Handle with care'],
+        'details' => ['copies' => 3],
+        'source_type' => 'user',
+        'source_id' => $this->sam->id,
+    ])->log('printed');
+    $entry->addMedia(UploadedFile::fake()->image('stamp.png'))->toMediaCollection();
+    $this->actingAs($this->viewer);
+
+    Livewire::test(AuditEntryModal::class)
+        ->call('show', $entry->id)
+        ->assertSeeInOrder(['notice', 'Title', 'Annual', 'Amount', '42', 'Remark', 'Handle with care', 'Copies', '3'])
+        ->assertSeeHtml('Annual &lt;b&gt;Notice&lt;/b&gt;')
+        ->assertSee('stamp.png')
+        ->assertSeeHtml(route('media.show', $entry->getFirstMedia()));
 });

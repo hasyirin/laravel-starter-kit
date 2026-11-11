@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Shared\Common\Support\AuditLog;
 use App\Domain\Shared\Common\Support\ContextCauserResolver;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Activitylog\Actions\LogActivityAction;
@@ -25,12 +26,7 @@ class AuditLogServiceProvider extends ServiceProvider
                 return;
             }
 
-            $context = collect([
-                'impersonator_id' => context()->get('impersonator_id'),
-                'trace_id' => context()->get('trace_id'),
-            ])->filter(fn (mixed $value): bool => $value !== null);
-
-            $activity->properties = $context->merge($activity->properties ?? []);
+            $activity->properties = AuditLog::context()->merge($activity->properties ?? []);
         });
     }
 }

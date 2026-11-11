@@ -11,12 +11,16 @@ class UpdateUserInformation
 {
     use Actionable;
 
-    public function execute(User $user, string $name, string $email): void
+    public function execute(User $user, string $name, string $email, #[\SensitiveParameter] ?string $phone): void
     {
-        $user->fill(['name' => $name, 'email' => $email]);
+        $user->fill(['name' => $name, 'email' => $email, 'phone' => $phone]);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
+        }
+
+        if ($user->isDirty('phone')) {
+            $user->phone_verified_at = null;
         }
 
         $user->save();
@@ -41,9 +45,9 @@ public function save(): void
     /** @var User $user */
     $user = auth()->user();
 
-    $this->validate($this->userInformationRules($user->id));
+    $this->validate($this->userInformationRules($user->id, phoneRequired: $this->phoneRequired));
 
-    UpdateUserInformation::make()->execute($user, $this->name, $this->email);
+    UpdateUserInformation::make()->execute($user, $this->name, $this->email, $this->phone === '' ? null : $this->phone);
 
     Flux::toast(variant: 'success', text: __('user/settings.user_information.updated'));
 }

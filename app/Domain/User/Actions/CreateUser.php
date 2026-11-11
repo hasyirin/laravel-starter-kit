@@ -8,6 +8,7 @@ use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
+use SensitiveParameter;
 
 class CreateUser
 {
@@ -23,15 +24,17 @@ class CreateUser
         User $actor,
         string $name,
         string $email,
-        string $password,
+        #[SensitiveParameter] ?string $phone,
+        #[SensitiveParameter] string $password,
         Placement $placement,
         ?array $roles = null,
         ?array $permissions = null,
     ): User {
-        return (new User)->getConnection()->transaction(function () use ($actor, $name, $email, $password, $placement, $roles, $permissions): User {
+        $user = (new User)->getConnection()->transaction(function () use ($actor, $name, $email, $phone, $password, $placement, $roles, $permissions): User {
             $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
+                'phone' => $phone,
                 'password' => $password,
             ]);
 
@@ -45,5 +48,9 @@ class CreateUser
 
             return $user;
         });
+
+        $user->sendEmailVerificationNotification();
+
+        return $user;
     }
 }

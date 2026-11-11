@@ -9,6 +9,7 @@ return [
     'name_placeholder' => 'Full name',
     'email' => 'Email',
     'email_address' => 'Email address',
+    'phone' => 'Phone number',
     'password' => 'Password',
     'current_password' => 'Current password',
     'new_password' => 'New password',

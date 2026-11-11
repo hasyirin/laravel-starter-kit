@@ -21,6 +21,7 @@ class Navigation extends BaseNavigation
                 Item::make(label: (string) __('navigation.audit_log'), icon: 'clipboard-document-list', route: 'system.logs.audits', accessible: config('system.permissions.system.logs.audits.view')),
                 Item::make(label: (string) __('navigation.mail_log'), icon: 'envelope', route: 'system.logs.mail', accessible: config('system.permissions.system.logs.mail.view')),
             ]),
+            Item::make(label: (string) __('navigation.manual_letter'), icon: 'pencil-square', route: 'system.letters.compose', accessible: config('system.permissions.system.letters.compose')),
             Spacer::make(),
             Item::make(label: (string) __('navigation.internal'), icon: 'briefcase', route: 'internal.dashboard', accessible: config('system.permissions.internal.access')),
             Item::make(label: (string) __('navigation.app'), icon: 'arrow-uturn-left', route: 'dashboard'),

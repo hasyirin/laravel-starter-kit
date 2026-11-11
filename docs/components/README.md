@@ -30,9 +30,12 @@ Use a kit component first. Use a Flux component directly only when no kit compon
 | [`<x-address>`](address.md)               | A Malaysian address: the lines, the postcode, the city, and the state, with optional districts and location       |
 | [`<x-map>`](map.md)                       | A location on a map, set by a click on the map or typed as a latitude and a longitude                           |
 | [`<x-file-upload>`](file-upload.md)       | Files that the page stores with a model through Media Library                                                     |
+| [`<x-letter.copy-fields>`](letter.copy-fields.md) | The carbon copies of a letter as rows of organization, department, or free text                                |
+| [`<x-letter.data-fields>`](letter.data-fields.md) | One input for each field of a letter type, with groups, lists, and tables                                      |
 | [`<x-tabs>`](tabs.md)                     | A set of tabs in a Livewire component. A switch swaps only the content, and the URL keeps the tab.                |
 | [`<x-breadcrumbs>`](breadcrumbs.md)       | The path to the current page, which folds into a dropdown when it is long                                         |
 | [DataTable](data-table.md)                | A Filament table in its own Livewire component, with search, sort, filters, and row actions                       |
+| [Letter Data Table](letter-data-table.md) | The letters of one letter source, with create, edit, preview, print, signed scan, kept prints, and delete          |
 | [Modal](modal.md)                         | A dialog in its own Livewire component, with or without a record to create or edit                                |
 
 ## Live Docs

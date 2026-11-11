@@ -57,6 +57,7 @@ class UserDataTable extends DataTable
         return [
             TextColumn::make('name')->label((string) __('common/inputs.name'))->searchable()->sortable(),
             TextColumn::make('email')->label((string) __('common/inputs.email'))->searchable()->sortable(),
+            TextColumn::make('phone')->label((string) __('common/inputs.phone'))->searchable(),
             TextColumn::make('roles')
                 ->label((string) __('user/users.roles'))
                 ->badge()

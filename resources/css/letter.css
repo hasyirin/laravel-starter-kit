@@ -1,0 +1,34 @@
+@import 'tailwindcss' source(none);
+
+@source '../views/letters';
+@source '../views/components/letter';
+@source '../views/components/letter.blade.php';
+@source '../views/components/letterhead.blade.php';
+
+@page {
+    size: A4;
+    margin: 25mm 0;
+
+    @bottom-center {
+        content: counter(page) ' / ' counter(pages);
+        padding: 5mm 20mm 0;
+        font-family: var(--font-sans);
+        font-size: 9pt;
+        text-align: right;
+        vertical-align: top;
+    }
+}
+
+@theme {
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+.letter-item {
+    counter-increment: letter-item;
+
+    &::before {
+        content: counter(letter-item) '.';
+        width: 1.5rem;
+        flex-shrink: 0;
+    }
+}

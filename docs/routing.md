@@ -2,19 +2,25 @@
 
 The app has four areas, and each area has its own route file. A fifth file, `routes/local.php`, holds tools for developers, and it is not an area. `routes/web.php` loads the five files and gives each one its middleware, URL prefix, and route name prefix. All five also get the `web` middleware group.
 
-| Area     | File                  | Who can open it                    | URL prefix  | Name prefix | Middleware                                |
-|----------|-----------------------|------------------------------------|-------------|-------------|-------------------------------------------|
-| Guest    | `routes/guest.php`    | Everyone                           | None        | None        | None                                      |
-| App      | `routes/app.php`      | Signed-in users                    | None        | None        | `auth`                                    |
-| Internal | `routes/internal.php` | Users with `internal.access`       | `/internal` | `internal.` | `auth`, `verified`, `can:internal.access` |
-| System   | `routes/system.php`   | Users with `system.access`         | `/system`   | `system.`   | `auth`, `verified`, `can:system.access`   |
+| Area     | File                  | Who can open it              | URL prefix  | Name prefix | Middleware                                                  |
+|----------|-----------------------|------------------------------|-------------|-------------|-------------------------------------------------------------|
+| Guest    | `routes/guest.php`    | Everyone                     | None        | None        | None                                                        |
+| App      | `routes/app.php`      | Signed-in users              | None        | None        | `auth`                                                      |
+| Internal | `routes/internal.php` | Users with `internal.access` | `/internal` | `internal.` | `auth`, `verified`, `phone.verified`, `can:internal.access` |
+| System   | `routes/system.php`   | Users with `system.access`   | `/system`   | `system.`   | `auth`, `verified`, `phone.verified`, `can:system.access`   |
 
 Fortify registers the routes for login, registration, password reset, email verification, two-factor authentication, and passkeys. Do not add them to `guest.php`.
 
+### Registration
+
+Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Laravel\Fortify\Features::registration()` to `fortify.features` in `config/fortify.php`. The login page then shows a sign-up link.
+
+The `guest-forms` limiter lets each IP address send the registration form and the reset link form five times a minute. `config/fortify.php` adds it to every Fortify route, and it skips the other routes. If an app lets the public sign up, also add a captcha, such as Cloudflare Turnstile, to the registration form. The limit slows bots down, but it does not stop them.
+
 ## Choose the Area
 
-- **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to this file. That middleware sends signed-in users away, so these routes would stop working for them.
-- **App**: pages for every signed-in user, such as the dashboard, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` middleware to a route that needs a verified email address.
+- **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to the group of this file. That middleware sends signed-in users away, so the other routes would stop working for them. A page only for signed-out users, such as `password.sms`, adds it to its own route, as Fortify's routes do.
+- **App**: pages for every signed-in user, such as the dashboard, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` and `phone.verified` middleware to a route that needs a verified email address and phone number.
 - **Internal**: the daily work of the staff, such as users, roles, orders, and reports.
 - **System**: the tools that run the app, such as Horizon.
 
@@ -115,11 +121,11 @@ A navigation shows its items in one of two styles, the cases of `App\Livewire\Co
 - `Style::Sidebar` puts the items in a sidebar at the side of the page. The internal, system, and local areas always use it.
 - `Style::Topbar` puts the items in a bar at the top of the page. Use it for an app that the public uses, and keep the sidebar for staff.
 
-The app area uses the style in `system.navigation.app`. The default is `Style::Sidebar`. To use the top bar, change the value in `config/system.php`:
+The app area uses the style in `system.navigation.app`. The default is `Style::Topbar`. To use the sidebar, change the value in `config/system.php`:
 
 ```php
 'navigation' => [
-    'app' => Style::Topbar,
+    'app' => Style::Sidebar,
 ],
 ```
 

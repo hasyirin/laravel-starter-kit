@@ -14,6 +14,8 @@ return [
     'position' => 'Position',
     'created_at' => 'Created',
     'email_verified_at' => 'Email verified',
+    'phone_verified_at' => 'Phone verified',
+    'no_phone' => 'No phone number',
     'unverified' => 'Unverified',
     'mark_as_verified' => 'Mark as verified',
     'tabs' => [
@@ -56,5 +58,9 @@ return [
     'verify' => [
         'heading' => 'Mark the email as verified?',
         'description' => 'The user will not need to confirm :email.',
+    ],
+    'verify_phone' => [
+        'heading' => 'Mark the phone number as verified?',
+        'description' => 'The user will not need to confirm :phone.',
     ],
 ];

@@ -28,6 +28,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/letter.css',
                 'resources/js/app.js',
                 'resources/js/passkeys.js',
             ],

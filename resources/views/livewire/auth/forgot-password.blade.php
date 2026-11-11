@@ -9,12 +9,16 @@
             @csrf
 
             <!-- Email Address -->
-            <x-input name="email" :label="__('common/inputs.email_address')" type="email" required autofocus placeholder="email@example.com" />
+            <x-input name="email" :label="__('common/inputs.email_address')" type="email" case="lower" required autofocus placeholder="email@example.com" />
 
             <flux:button variant="primary" type="submit" class="w-full" data-test="email-password-reset-link-button">
                 {{ __('auth/forgot-password.submit') }}
             </flux:button>
         </form>
+
+        <div class="text-center text-sm">
+            <flux:link :href="route('password.sms')" wire:navigate>{{ __('auth/forgot-password.sms') }}</flux:link>
+        </div>
 
         <div class="space-x-1 text-center text-sm text-zinc-400 rtl:space-x-reverse">
             <span>{{ __('auth/forgot-password.return_to') }}</span>

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Mail\Support;
 
+use SensitiveParameter;
+
 class SensitiveValues
 {
     /**
      * @param  list<string>  $values
      */
-    public function __construct(private readonly array $values) {}
+    public function __construct(#[SensitiveParameter] private readonly array $values) {}
 
     public function mask(mixed $text): ?string
     {

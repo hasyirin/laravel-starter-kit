@@ -9,6 +9,7 @@ use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Actions\VerifyUserEmail;
+use App\Domain\User\Actions\VerifyUserPhone;
 use App\Domain\User\Models\User;
 use App\Livewire\Concerns\CanBeDisabled;
 use App\Livewire\Pages\Internal\Controls\User\Concerns\InteractsWithUserForm;
@@ -136,6 +137,18 @@ class Show extends Page
         VerifyUserEmail::make()->execute($actor, $this->user);
 
         $this->dispatch('modal-close', name: 'verify-email');
+    }
+
+    public function verifyPhone(): void
+    {
+        $this->authorize('update', $this->user);
+
+        /** @var User $actor */
+        $actor = auth()->user();
+
+        VerifyUserPhone::make()->execute($actor, $this->user);
+
+        $this->dispatch('modal-close', name: 'verify-phone');
     }
 
     /**

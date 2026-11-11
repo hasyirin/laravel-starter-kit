@@ -26,6 +26,7 @@ test('code names that exist pass the check', function (string $reference): void 
     'a permission pattern' => 'internal.controls.roles.*',
     'a permission in the can middleware' => 'can:system.access',
     'a route name' => 'internal.settings',
+    'a middleware alias' => 'phone.verified',
     'a config key' => 'system.permissions',
     'a table column' => 'roles.is_system',
     'an environment variable' => 'HORIZON_PATH',
@@ -42,7 +43,7 @@ test('code names that do not exist fail the check', function (string $reference,
     'a class constant' => ['MissingSeeder::class', 'is not a class'],
     'a method' => ['LoginResponse::missing()', 'names a member that LoginResponse does not have'],
     'a method of a missing class' => ['Missing::method()', 'names a class that does not exist'],
-    'a dotted name' => ['system.missing', 'is not a permission, route name, config key, or table column'],
+    'a dotted name' => ['system.missing', 'is not a permission, route name, middleware alias, config key, or table column'],
     'an environment variable' => ['MISSING_VARIABLE', 'is not read by a config file or listed in .env.example'],
 ]);
 

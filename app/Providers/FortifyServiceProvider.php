@@ -22,6 +22,7 @@ use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse as PasskeyLoginResponseContract;
+use SensitiveParameter;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -52,7 +53,7 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
-        Fortify::confirmPasswordsUsing(function (User $user, ?string $password): bool {
+        Fortify::confirmPasswordsUsing(function (User $user, #[SensitiveParameter] ?string $password): bool {
             if (Impersonation::active()) {
                 $user = Impersonation::impersonator();
             }
@@ -98,6 +99,14 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by(
                 ($credentialId ?: $request->session()->getId()).'|'.$request->ip(),
             );
+        });
+
+        RateLimiter::for('guest-forms', function (Request $request): Limit {
+            if (! $request->routeIs('register.store', 'password.email')) {
+                return Limit::none();
+            }
+
+            return Limit::perMinute(5)->by($request->route()?->getName().'|'.$request->ip());
         });
     }
 }

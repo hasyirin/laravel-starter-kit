@@ -495,3 +495,57 @@ test('the impersonate button shows only when the policy allows it', function ():
         ->assertSee('data-test="impersonate-button"', false)
         ->assertSeeLivewire(ImpersonateModal::class);
 });
+
+test('changing the phone number on the form unverifies it', function (): void {
+    Livewire::test(Show::class, ['user' => $this->subject])
+        ->set('form.phone', '+60198765432')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->subject->fresh()->phone_verified_at)->toBeNull();
+});
+
+test('removing bypass from a user without a phone number asks for one', function (): void {
+    $this->seed(RoleSeeder::class);
+    grantPermissions($this->actor, 'bypass-authorization');
+    $subject = User::factory()->withoutPhone()->create();
+    grantRoles($subject, 'system-admin');
+
+    Livewire::test(Show::class, ['user' => $subject])
+        ->set('form.roles', [])
+        ->call('save')
+        ->assertHasErrors(['form.phone' => 'required']);
+});
+
+test('an unverified phone number can be marked as verified', function (): void {
+    $subject = User::factory()->unverifiedPhone()->create();
+
+    Livewire::test(Show::class, ['user' => $subject])
+        ->call('verifyPhone')
+        ->assertDispatched('modal-close', name: 'verify-phone');
+
+    expect($subject->fresh()->hasVerifiedPhone())->toBeTrue();
+});
+
+test('marking a phone number as verified needs update', function (): void {
+    revokePermissions($this->actor, 'internal.controls.users.update');
+    $subject = User::factory()->unverifiedPhone()->create();
+
+    Livewire::test(Show::class, ['user' => $subject])->call('verifyPhone')->assertForbidden();
+
+    expect($subject->fresh()->hasVerifiedPhone())->toBeFalse();
+});
+
+test('the details show when the user verified the phone number', function (): void {
+    context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
+    $subject = User::factory()->create(['phone_verified_at' => CarbonImmutable::parse('2026-01-03 09:45', 'UTC')]);
+
+    Livewire::test(Show::class, ['user' => $subject])
+        ->assertSeeInOrder([__('user/users.phone_verified_at'), '3 Jan 2026, 17:45'])
+        ->assertDontSee(__('user/users.mark_as_verified'));
+});
+
+test('the details say so when the user has no phone number', function (): void {
+    Livewire::test(Show::class, ['user' => User::factory()->withoutPhone()->create()])
+        ->assertSee(__('user/users.no_phone'));
+});

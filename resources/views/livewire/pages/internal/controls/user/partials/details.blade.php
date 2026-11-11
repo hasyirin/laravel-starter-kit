@@ -8,9 +8,11 @@
             {{ __('user/users.user_information') }}
         </x-slot:heading>
 
-        <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required />
+        <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required class="sm:col-span-2" />
 
-        <x-input wire:model="form.email" type="email" :label="__('common/inputs.email')" autocomplete="off" required />
+        <x-input wire:model="form.email" type="email" case="lower" :label="__('common/inputs.email')" autocomplete="off" required />
+
+        <x-input.phone wire:model="form.phone" :label="__('common/inputs.phone')" autocomplete="off" />
 
         <x-input.password wire:model="form.password" :label="__('common/inputs.password')" autocomplete="new-password" :required="! isset($user)" />
 
@@ -23,7 +25,7 @@
 
         @isset($user)
             <x-slot:footer>
-                <div class="grid gap-6 sm:grid-cols-2">
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <x-entry :label="__('user/users.created_at')">{{ Preferences::current()->datetime($user->created_at) }}</x-entry>
 
                     <x-entry :label="__('user/users.email_verified_at')">
@@ -37,6 +39,25 @@
 
                             @can('update', $user)
                                 <flux:modal.trigger name="verify-email">
+                                    <flux:link as="button" variant="subtle">{{ __('user/users.mark_as_verified') }}</flux:link>
+                                </flux:modal.trigger>
+                            @endcan
+                        @endif
+                    </x-entry>
+
+                    <x-entry :label="__('user/users.phone_verified_at')">
+                        @if($user->phone === null)
+                            {{ __('user/users.no_phone') }}
+                        @elseif($user->hasVerifiedPhone())
+                            {{ Preferences::current()->datetime($user->phone_verified_at) }}
+                        @else
+                            <span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                                <span class="size-1.5 rounded-full bg-current"></span>
+                                {{ __('user/users.unverified') }}
+                            </span>
+
+                            @can('update', $user)
+                                <flux:modal.trigger name="verify-phone">
                                     <flux:link as="button" variant="subtle">{{ __('user/users.mark_as_verified') }}</flux:link>
                                 </flux:modal.trigger>
                             @endcan

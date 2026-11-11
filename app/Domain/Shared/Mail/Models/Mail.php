@@ -1,0 +1,263 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Shared\Mail\Models;
+
+use App\Domain\Shared\Actor\Concerns\InteractsWithPreparer;
+use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
+use App\Domain\Shared\Common\Contracts\Models\HasMedia;
+use App\Domain\Shared\Common\Models\Model;
+use App\Domain\Shared\Mail\Enums\MailFailureReason;
+use App\Domain\Shared\Mail\Enums\MailStatus;
+use App\Domain\Shared\Mail\Factories\MailFactory;
+use App\Domain\Shared\Mail\Observers\MailObserver;
+use App\Domain\User\Models\User;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Notifications\Notification;
+use Throwable;
+
+/**
+ * @property int $id
+ * @property string|null $notification_id
+ * @property string|null $notification_type
+ * @property string|null $payload
+ * @property string|null $notifiable_type
+ * @property int|null $notifiable_id
+ * @property string|null $resource_type
+ * @property int|null $resource_id
+ * @property string|null $recipient_email
+ * @property string|null $recipient_name
+ * @property list<array{address: string, name: string}>|null $cc
+ * @property list<array{address: string, name: string}>|null $bcc
+ * @property string|null $intercepted_to
+ * @property string|null $subject
+ * @property string|null $html_body
+ * @property string|null $text_body
+ * @property string|null $message_id
+ * @property MailStatus $status
+ * @property array{type: string, code: int|string, message: string}|null $error
+ * @property bool $tracked
+ * @property string $tracking_token
+ * @property int $open_count
+ * @property CarbonImmutable|null $opened_at
+ * @property CarbonImmutable|null $clicked_at
+ * @property CarbonImmutable|null $viewed_at
+ * @property CarbonImmutable|null $sent_at
+ * @property CarbonImmutable|null $failed_at
+ * @property int|null $resend_of_id
+ * @property-read Notification|null $notification
+ * @property-read MailFailureReason|null $failure_reason
+ * @property-read bool $resendable
+ * @property-read bool $stuck
+ */
+#[ObservedBy(MailObserver::class)]
+class Mail extends Model implements HasMedia
+{
+    /** @use HasFactory<MailFactory> */
+    use HasFactory;
+
+    use InteractsWithMedia;
+    use InteractsWithPreparer;
+
+    /**
+     * Longer than every try and backoff of a queued email, so a row this old lost its job.
+     */
+    public const int STUCK_AFTER_MINUTES = 60;
+
+    protected $fillable = [
+        'notification_id',
+        'notification_type',
+        'payload',
+        'notifiable_type',
+        'notifiable_id',
+        'resource_type',
+        'resource_id',
+        'recipient_email',
+        'recipient_name',
+        'cc',
+        'bcc',
+        'intercepted_to',
+        'subject',
+        'html_body',
+        'text_body',
+        'message_id',
+        'status',
+        'error',
+        'sent_at',
+        'failed_at',
+        'resend_of_id',
+    ];
+
+    protected $hidden = [
+        'payload',
+        'tracking_token',
+    ];
+
+    protected $attributes = [
+        'status' => MailStatus::Sending,
+        'tracked' => false,
+        'open_count' => 0,
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'payload' => 'encrypted',
+            'cc' => 'array',
+            'bcc' => 'array',
+            'status' => MailStatus::class,
+            'error' => 'array',
+            'tracked' => 'boolean',
+            'open_count' => 'integer',
+            'opened_at' => 'datetime',
+            'clicked_at' => 'datetime',
+            'viewed_at' => 'datetime',
+            'sent_at' => 'datetime',
+            'failed_at' => 'datetime',
+        ];
+    }
+
+    protected static function newFactory(): MailFactory
+    {
+        return MailFactory::new();
+    }
+
+    /**
+     * @return MorphTo<\Illuminate\Database\Eloquent\Model, $this>
+     */
+    public function notifiable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * @return MorphTo<\Illuminate\Database\Eloquent\Model, $this>
+     */
+    public function resource(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * @return HasMany<MailLink, $this>
+     */
+    public function links(): HasMany
+    {
+        return $this->hasMany(MailLink::class);
+    }
+
+    /**
+     * @return BelongsTo<self, $this>
+     */
+    public function resendOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class);
+    }
+
+    protected function shouldLogEvent(string $eventName): bool
+    {
+        // The mail log is a log of its own, so its rows stay out of the audit log.
+        return false;
+    }
+
+    public function markAsSent(?string $messageId, ?string $interceptedTo): void
+    {
+        $this->update([
+            'status' => MailStatus::Sent,
+            'message_id' => $messageId,
+            'intercepted_to' => $interceptedTo,
+            'sent_at' => now(),
+        ]);
+    }
+
+    public function markAsFailed(Throwable $exception): void
+    {
+        $this->fail($this->describe($exception));
+    }
+
+    public function recordError(Throwable $exception): void
+    {
+        $this->update(['error' => $this->describe($exception)]);
+    }
+
+    /**
+     * @return array{type: string, code: int|string, message: string}
+     */
+    private function describe(Throwable $exception): array
+    {
+        return ['type' => $exception::class, 'code' => $exception->getCode(), 'message' => $exception->getMessage()];
+    }
+
+    /**
+     * @param  array{type: string, code: int|string, message: string}  $error
+     */
+    public function fail(array $error): void
+    {
+        $this->update(['status' => MailStatus::Failed, 'error' => $error, 'failed_at' => now()]);
+    }
+
+    public function recordOpen(): void
+    {
+        $this->increment('open_count', 1, ['opened_at' => $this->opened_at ?? now()]);
+    }
+
+    public function isRecipient(User $user): bool
+    {
+        if ($this->notifiable_type === $user->getMorphClass() && $this->notifiable_id === $user->getKey()) {
+            return true;
+        }
+
+        return $this->recipient_email !== null && strcasecmp($this->recipient_email, $user->email) === 0;
+    }
+
+    /**
+     * @return Attribute<MailFailureReason|null, never>
+     */
+    protected function failureReason(): Attribute
+    {
+        return Attribute::get(fn (): ?MailFailureReason => MailFailureReason::fromError($this->error));
+    }
+
+    /**
+     * @return Attribute<Notification|null, never>
+     */
+    protected function notification(): Attribute
+    {
+        return Attribute::get(function (): ?Notification {
+            try {
+                $notification = $this->payload === null ? null : unserialize($this->payload);
+            } catch (Throwable) {
+                return null;
+            }
+
+            if (! $notification instanceof Notification) {
+                return null;
+            }
+
+            return $notification;
+        })->shouldCache();
+    }
+
+    /**
+     * @return Attribute<bool, never>
+     */
+    protected function stuck(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->status === MailStatus::Sending && $this->updated_at?->lt(now()->subMinutes(self::STUCK_AFTER_MINUTES)) === true);
+    }
+
+    /**
+     * @return Attribute<bool, never>
+     */
+    protected function resendable(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->notification instanceof Notification);
+    }
+}

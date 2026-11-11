@@ -20,4 +20,13 @@ interface HasMedia extends \Spatie\MediaLibrary\HasMedia
      * @return MediaCollection<int, Media>
      */
     public function getMedia(BackedEnum|string $collectionName = 'default', array|callable $filters = []): MediaCollection;
+
+    /**
+     * @param  array<string, mixed>|callable(Media): bool  $filters
+     */
+    public function getFirstMedia(BackedEnum|string $collectionName = 'default', array|callable $filters = []): ?Media;
+
+    public function getFirstMediaUrl(BackedEnum|string $collectionName = 'default', string $conversionName = ''): string;
+
+    public function clearMediaCollection(BackedEnum|string $collectionName = 'default'): static;
 }

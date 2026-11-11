@@ -9,9 +9,12 @@ use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
+use App\Domain\Shared\Mail\Concerns\RoutesResentMail;
 use App\Domain\Shared\Permission\Concerns\HasRoles;
 use App\Domain\User\Concerns\HasProfile;
 use App\Domain\User\Factories\UserFactory;
+use App\Domain\User\Notifications\ResetPassword;
+use App\Domain\User\Notifications\VerifyEmail;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -52,6 +55,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     use InteractsWithAuditLog;
     use InteractsWithMedia;
     use InteractsWithTimestamps;
+    use RoutesResentMail;
     use SoftDeletes;
 
     protected $fillable = [
@@ -108,5 +112,18 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     public function getActorName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPassword($token));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmail);
     }
 }

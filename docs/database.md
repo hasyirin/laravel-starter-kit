@@ -91,6 +91,51 @@ erDiagram
         datetime updated_at
         datetime deleted_at
     }
+    mail_links {
+        integer id PK
+        integer mail_id FK
+        string token
+        text url
+        boolean requires_auth
+        datetime clicked_at
+        datetime viewed_at
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+    mails {
+        integer id PK
+        string notification_id
+        string notification_type
+        text payload
+        string notifiable_type
+        integer notifiable_id
+        string resource_type
+        integer resource_id
+        string recipient_email
+        string recipient_name
+        json cc
+        json bcc
+        string intercepted_to
+        text subject
+        text html_body
+        text text_body
+        string message_id
+        string status
+        json error
+        boolean tracked
+        string tracking_token
+        integer open_count
+        datetime opened_at
+        datetime clicked_at
+        datetime viewed_at
+        datetime sent_at
+        datetime failed_at
+        integer resend_of_id FK
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     media {
         integer id PK
         string model_type
@@ -120,6 +165,16 @@ erDiagram
         integer role_id PK, FK
         string model_type PK
         integer model_id PK
+    }
+    notifications {
+        string id PK
+        string type
+        string notifiable_type
+        integer notifiable_id
+        json data
+        datetime read_at
+        datetime created_at
+        datetime updated_at
     }
     organizations {
         integer id PK
@@ -238,6 +293,8 @@ erDiagram
     departments |o--o{ profiles : "department_id"
     districts |o--o{ addresses : "district_id"
     districts ||--o{ subdistricts : "district_id"
+    mails ||--o{ mail_links : "mail_id"
+    mails |o--o{ mails : "resend_of_id"
     organizations ||--o{ branches : "organization_id"
     organizations ||--o{ departments : "organization_id"
     organizations ||--o{ positions : "organization_id"
@@ -265,8 +322,12 @@ These polymorphic column pairs can point to any table, so the diagram draws no l
 - `activity_log.subject_type` and `activity_log.subject_id`
 - `activity_log.causer_type` and `activity_log.causer_id`
 - `addresses.addressable_type` and `addresses.addressable_id`
+- `mails.notification_type` and `mails.notification_id`
+- `mails.notifiable_type` and `mails.notifiable_id`
+- `mails.resource_type` and `mails.resource_id`
 - `media.model_type` and `media.model_id`
 - `model_has_permissions.model_type` and `model_has_permissions.model_id`
 - `model_has_roles.model_type` and `model_has_roles.model_id`
+- `notifications.notifiable_type` and `notifications.notifiable_id`
 
 <!-- /generated:erd -->

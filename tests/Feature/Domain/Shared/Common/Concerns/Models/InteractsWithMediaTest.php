@@ -63,8 +63,21 @@ test('a file that is not an image and an SVG image get no preview', function (st
 test('an enum case can name the collection when the media is read', function (): void {
     Storage::fake('media');
     $user = User::factory()->create();
-    $user->addMedia(UploadedFile::fake()->createWithContent('notes.txt', 'notes'))->toMediaCollection(Folder::Documents->value);
+    $media = $user->addMedia(UploadedFile::fake()->createWithContent('notes.txt', 'notes'))->toMediaCollection(Folder::Documents->value);
 
     expect([$user->hasMedia(Folder::Documents), $user->hasMedia(Folder::Photos)])->toBe([true, false])
-        ->and($user->getMedia(Folder::Documents)->pluck('file_name')->all())->toBe(['notes.txt']);
+        ->and($user->getMedia(Folder::Documents)->pluck('file_name')->all())->toBe(['notes.txt'])
+        ->and($user->getFirstMedia(Folder::Documents)?->file_name)->toBe('notes.txt')
+        ->and($user->getFirstMediaUrl(Folder::Documents))->toBe(route('media.show', $media));
+});
+
+test('an enum case can name the collection that is cleared', function (): void {
+    Storage::fake('media');
+    $user = User::factory()->create();
+    $user->addMedia(UploadedFile::fake()->createWithContent('notes.txt', 'notes'))->toMediaCollection(Folder::Documents->value);
+    $user->addMedia(UploadedFile::fake()->createWithContent('photo.txt', 'photo'))->toMediaCollection(Folder::Photos->value);
+
+    $user->clearMediaCollection(Folder::Documents);
+
+    expect([$user->hasMedia(Folder::Documents), $user->hasMedia(Folder::Photos)])->toBe([false, true]);
 });

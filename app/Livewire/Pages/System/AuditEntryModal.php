@@ -12,7 +12,7 @@ class AuditEntryModal extends Modal
 {
     protected function authorizeLog(): void
     {
-        $this->authorize(config()->string('system.permissions.system.audit-log.view'));
+        $this->authorize(config()->string('system.permissions.system.logs.audits.view'));
     }
 
     protected function find(int $id): Activity

@@ -9,6 +9,8 @@
         @endif
 
         <flux:navbar class="ms-auto -mt-1 -mb-1 shrink-0">
+            <livewire:database-notifications />
+
             <x-user-menu />
         </flux:navbar>
     </div>

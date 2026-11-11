@@ -17,7 +17,7 @@ class AuditLogDataTable extends DataTable
 {
     public function mount(): void
     {
-        $this->authorize(config()->string('system.permissions.system.audit-log.view'));
+        $this->authorize(config()->string('system.permissions.system.logs.audits.view'));
     }
 
     /**

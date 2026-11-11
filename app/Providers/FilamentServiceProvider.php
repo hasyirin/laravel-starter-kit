@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use Filament\Notifications\Livewire\DatabaseNotifications;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use Filament\Support\Facades\FilamentView;
@@ -14,6 +15,8 @@ class FilamentServiceProvider extends ServiceProvider
     public function boot(): void
     {
         FilamentView::spa();
+
+        DatabaseNotifications::trigger('layouts.partials.notification-bell');
 
         $this->configureColors();
     }

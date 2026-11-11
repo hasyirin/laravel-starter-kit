@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Common\Policies\Policy;
+use App\Domain\Shared\Mail\Policies\MailPolicy;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Policies\RolePolicy;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
@@ -37,6 +38,10 @@ test('the path uses the root, the prefix, the plural model name, and the action'
 
 test('the path uses the model property when it is set', function (): void {
     expect(new ArchivedItemPolicy()->path('view'))->toBe('system.permissions.archive.items.view');
+});
+
+test('the path uses the segment property in place of the plural model name when it is set', function (): void {
+    expect(new MailPolicy()->path('resend'))->toBe('system.permissions.system.logs.mail.resend');
 });
 
 function rolePermissionsPolicy(): object

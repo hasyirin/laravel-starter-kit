@@ -6,14 +6,14 @@ namespace App\Domain\Shared\Mail\Listeners;
 
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Mail\Actions\TrackMail;
-use App\Domain\Shared\Mail\Contracts\HasMailLog;
-use App\Domain\Shared\Mail\Enums\MailStatus;
-use App\Domain\Shared\Mail\Jobs\ResendMail;
-use App\Domain\Shared\Mail\Models\Mail;
-use App\Domain\Shared\Mail\Support\CurrentMail;
 use App\Domain\Shared\Mail\Support\Recipients;
-use App\Domain\Shared\Mail\Support\SensitiveValues;
 use App\Domain\Shared\Media\Enums\MediaCollection;
+use App\Domain\Shared\Message\Contracts\HasMessageLog;
+use App\Domain\Shared\Message\Enums\MessageStatus;
+use App\Domain\Shared\Message\Jobs\ResendMessage;
+use App\Domain\Shared\Message\Models\Message;
+use App\Domain\Shared\Message\Support\CurrentMessage;
+use App\Domain\Shared\Message\Support\SensitiveValues;
 use App\Domain\User\Models\User;
 use Hasyirin\Actor\Facades\Actor;
 use Illuminate\Contracts\Queue\Job;
@@ -46,97 +46,97 @@ class RecordMail
         }
 
         $notification = $event->notification;
-        $logged = $notification instanceof HasMailLog;
+        $logged = $notification instanceof HasMessageLog;
         $sensitive = $logged ? $notification->sensitive($notifiable) : [];
 
-        $mail = Mail::query()->firstOrNew(['notification_id' => $notification->id]);
-        $mail->fill([
+        $message = Message::query()->firstOrNew(['notification_id' => $notification->id]);
+        $message->fill([
             'notification_type' => $notification::class,
             'payload' => $logged && $sensitive === [] ? serialize($notification) : null,
-            'status' => MailStatus::Sending,
+            'status' => MessageStatus::Sending,
             'error' => null,
             'failed_at' => null,
             'resend_of_id' => $logged ? $notification->resendOfId : null,
         ]);
-        $mail->forceFill(['tracked' => $logged && $notification->tracked($notifiable)]);
+        $message->forceFill(['tracked' => $logged && $notification->tracked($notifiable)]);
 
         if ($notifiable instanceof Model && ! $this->redirected($notification)) {
-            $mail->notifiable()->associate($notifiable);
+            $message->notifiable()->associate($notifiable);
         }
 
         $resource = $logged ? $notification->about() : null;
 
         if ($resource !== null) {
-            $mail->resource()->associate($resource);
+            $message->resource()->associate($resource);
         }
 
-        $mail->save();
+        $message->save();
 
-        if ($mail->wasRecentlyCreated) {
-            $this->recordPreparer($mail);
+        if ($message->wasRecentlyCreated) {
+            $this->recordPreparer($message);
         }
 
-        resolve(CurrentMail::class)->start($mail, new SensitiveValues($sensitive), $logged);
+        resolve(CurrentMessage::class)->start($message, new SensitiveValues($sensitive), $logged);
     }
 
     public function handleMessageSending(MessageSending $event): void
     {
-        $current = resolve(CurrentMail::class);
-        $mail = $current->mail;
+        $current = resolve(CurrentMessage::class);
+        $message = $current->message;
 
-        if ($mail === null) {
+        if ($message === null) {
             return;
         }
 
-        $message = $event->message;
-        $to = collect(Recipients::to($message));
+        $email = $event->message;
+        $to = collect(Recipients::to($email));
 
-        $mail->fill([
-            'recipient_email' => $to->first()?->getAddress(),
+        $message->fill([
+            'recipient_address' => $to->first()?->getAddress(),
             'recipient_name' => $to->first()?->getName() ?: null,
-            'cc' => Recipients::toArray(Recipients::cc($message)),
-            'bcc' => Recipients::toArray(Recipients::bcc($message)),
-            'subject' => $current->sensitive->mask($message->getSubject()),
+            'cc' => Recipients::toArray(Recipients::cc($email)),
+            'bcc' => Recipients::toArray(Recipients::bcc($email)),
+            'subject' => $current->sensitive->mask($email->getSubject()),
         ]);
 
         if ($current->logged && $to->count() !== 1) {
-            $mail->save();
+            $message->save();
 
             throw new LogicException('A notification email must have exactly one To recipient. Put the other people in CC or BCC.');
         }
 
         if ($current->logged) {
-            $mail->html_body = $current->sensitive->mask($message->getHtmlBody());
-            $mail->text_body = $current->sensitive->mask($message->getTextBody());
-            $this->copyAttachments($mail, $message);
+            $message->html_body = $current->sensitive->mask($email->getHtmlBody());
+            $message->text_body = $current->sensitive->mask($email->getTextBody());
+            $this->copyAttachments($message, $email);
         }
 
-        $mail->save();
+        $message->save();
 
-        if ($mail->tracked) {
-            TrackMail::make()->execute($mail, $message, $current->sensitive);
+        if ($message->tracked) {
+            TrackMail::make()->execute($message, $email, $current->sensitive);
         }
     }
 
     public function handleMessageSent(MessageSent $event): void
     {
-        $message = $event->sent->getOriginalMessage();
+        $email = $event->sent->getOriginalMessage();
 
-        if (! $message instanceof Email) {
+        if (! $email instanceof Email) {
             return;
         }
 
-        $interceptedTo = Recipients::intercepted($message) ? $message->getTo()[0]->getAddress() : null;
-        $mail = resolve(CurrentMail::class)->mail;
+        $interceptedTo = Recipients::intercepted($email) ? $email->getTo()[0]->getAddress() : null;
+        $message = resolve(CurrentMessage::class)->message;
 
-        $recipients = collect(Recipients::to($message) ?: [null]);
+        $recipients = collect(Recipients::to($email) ?: [null]);
 
-        if ($mail !== null) {
-            $mail->markAsSent($event->sent->getMessageId(), $interceptedTo);
+        if ($message !== null) {
+            $message->markAsSent($event->sent->getMessageId(), $interceptedTo);
             $recipients = $recipients->skip(1);
         }
 
-        $recipients->each(fn (?Address $recipient) => $this->recordPlainEmail($message, $recipient, $event->sent->getMessageId(), $interceptedTo));
+        $recipients->each(fn (?Address $recipient) => $this->recordPlainEmail($email, $recipient, $event->sent->getMessageId(), $interceptedTo));
     }
 
     public function handleNotificationSent(NotificationSent $event): void
@@ -145,10 +145,10 @@ class RecordMail
             return;
         }
 
-        $current = resolve(CurrentMail::class);
+        $current = resolve(CurrentMessage::class);
 
-        if ($event->response === null && $current->mail?->status === MailStatus::Sending) {
-            $current->mail->fail($this->unaddressed($event)
+        if ($event->response === null && $current->message?->status === MessageStatus::Sending) {
+            $current->message->fail($this->unaddressed($event)
                 ? ['type' => 'no_address', 'code' => 0, 'message' => 'The recipient has no email address.']
                 : ['type' => 'dropped', 'code' => 0, 'message' => 'A mail listener stopped the email before it was sent.']);
         }
@@ -162,7 +162,7 @@ class RecordMail
             return;
         }
 
-        $current = resolve(CurrentMail::class);
+        $current = resolve(CurrentMessage::class);
         $exception = $event->data['exception'] ?? null;
 
         if (! $exception instanceof Throwable) {
@@ -173,10 +173,10 @@ class RecordMail
 
         // A queue job tries again, and its failed() hook marks the row as Failed after the last try.
         // A LogicException is a mistake in the code, so another try cannot succeed.
-        if ($current->job !== null && $event->notification instanceof HasMailLog && ! $exception instanceof LogicException) {
-            $current->mail?->recordError($exception);
+        if ($current->job !== null && $event->notification instanceof HasMessageLog && ! $exception instanceof LogicException) {
+            $current->message?->recordError($exception);
         } else {
-            $current->mail?->markAsFailed($exception);
+            $current->message?->markAsFailed($exception);
         }
 
         if ($exception instanceof LogicException) {
@@ -188,21 +188,21 @@ class RecordMail
 
     public function handleNotificationSkipped(NotificationSkipped $event): void
     {
-        $current = resolve(CurrentMail::class);
-        $mail = $current->mail;
+        $current = resolve(CurrentMessage::class);
+        $message = $current->message;
 
-        if ($event->channel !== 'mail' || $mail === null || $mail->notification_id !== $event->notification->id) {
+        if ($event->channel !== 'mail' || $message === null || $message->notification_id !== $event->notification->id) {
             return;
         }
 
-        $mail->fail(['type' => 'dropped', 'code' => 0, 'message' => 'A notification listener stopped the email before it was sent.']);
+        $message->fail(['type' => 'dropped', 'code' => 0, 'message' => 'A notification listener stopped the email before it was sent.']);
         $current->end();
     }
 
     public function handleJobProcessing(JobProcessing $event): void
     {
         if ($this->sendsMail($event->job)) {
-            resolve(CurrentMail::class)->job = $event->job;
+            resolve(CurrentMessage::class)->job = $event->job;
         }
     }
 
@@ -218,12 +218,12 @@ class RecordMail
 
     private function sendsMail(Job $job): bool
     {
-        return in_array(data_get($job->payload(), 'data.commandName'), [SendQueuedNotifications::class, ResendMail::class], true);
+        return in_array(data_get($job->payload(), 'data.commandName'), [SendQueuedNotifications::class, ResendMessage::class], true);
     }
 
     private function forgetJob(Job $job): void
     {
-        $current = resolve(CurrentMail::class);
+        $current = resolve(CurrentMessage::class);
 
         if ($current->job === $job) {
             $current->job = null;
@@ -232,11 +232,11 @@ class RecordMail
 
     private function redirected(Notification $notification): bool
     {
-        if (! $notification instanceof HasMailLog || $notification->resendOfId === null || $notification->resendTo === null) {
+        if (! $notification instanceof HasMessageLog || $notification->resendOfId === null || $notification->resendTo === null) {
             return false;
         }
 
-        $original = Mail::query()->whereKey($notification->resendOfId)->value('recipient_email');
+        $original = Message::query()->whereKey($notification->resendOfId)->value('recipient_address');
 
         return ! is_string($original) || strcasecmp($original, $notification->resendTo) !== 0;
     }
@@ -248,7 +248,7 @@ class RecordMail
         return is_object($notifiable) && method_exists($notifiable, 'routeNotificationFor') && blank($notifiable->routeNotificationFor('mail', $event->notification));
     }
 
-    private function recordPreparer(Mail $mail): void
+    private function recordPreparer(Message $message): void
     {
         if (auth(config('actor.guard'))->check()) {
             return;
@@ -257,34 +257,34 @@ class RecordMail
         $user = User::withTrashed()->whereKey(context()->get('user_id'))->first();
 
         if ($user !== null) {
-            Actor::act($mail, Act::Prepare, $user);
+            Actor::act($message, Act::Prepare, $user);
         }
     }
 
-    private function recordPlainEmail(Email $message, ?Address $recipient, ?string $messageId, ?string $interceptedTo): void
+    private function recordPlainEmail(Email $email, ?Address $recipient, ?string $providerId, ?string $interceptedTo): void
     {
-        $mail = Mail::query()->create([
-            'recipient_email' => $recipient?->getAddress(),
+        $message = Message::query()->create([
+            'recipient_address' => $recipient?->getAddress(),
             'recipient_name' => $recipient?->getName() ?: null,
-            'cc' => Recipients::toArray(Recipients::cc($message)),
-            'bcc' => Recipients::toArray(Recipients::bcc($message)),
-            'subject' => $message->getSubject(),
-            'message_id' => $messageId,
+            'cc' => Recipients::toArray(Recipients::cc($email)),
+            'bcc' => Recipients::toArray(Recipients::bcc($email)),
+            'subject' => $email->getSubject(),
+            'provider_id' => $providerId,
             'intercepted_to' => $interceptedTo,
-            'status' => MailStatus::Sent,
+            'status' => MessageStatus::Sent,
             'sent_at' => now(),
         ]);
 
-        $this->recordPreparer($mail);
+        $this->recordPreparer($message);
     }
 
-    private function copyAttachments(Mail $mail, Email $message): void
+    private function copyAttachments(Message $message, Email $email): void
     {
-        $mail->clearMediaCollection(MediaCollection::Attachments);
+        $message->clearMediaCollection(MediaCollection::Attachments);
 
-        collect($message->getAttachments())
+        collect($email->getAttachments())
             ->reject(fn (DataPart $attachment): bool => $attachment->getDisposition() === 'inline')
-            ->each(fn (DataPart $attachment): mixed => $mail
+            ->each(fn (DataPart $attachment): mixed => $message
                 ->addMediaFromString($attachment->getBody())
                 ->usingFileName($attachment->getFilename() ?? 'attachment')
                 ->toMediaCollection(MediaCollection::Attachments->value));

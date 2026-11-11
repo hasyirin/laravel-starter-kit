@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Notifications;
 
-use App\Domain\Shared\Mail\Concerns\InteractsWithMailLog;
-use App\Domain\Shared\Mail\Contracts\HasMailLog;
+use App\Domain\Shared\Message\Concerns\InteractsWithMessageLog;
+use App\Domain\Shared\Message\Contracts\HasMessageLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 
-class VerifyEmail extends \Illuminate\Auth\Notifications\VerifyEmail implements HasMailLog, ShouldQueue, ShouldQueueAfterCommit
+class VerifyEmail extends \Illuminate\Auth\Notifications\VerifyEmail implements HasMessageLog, ShouldQueue, ShouldQueueAfterCommit
 {
-    use InteractsWithMailLog;
+    use InteractsWithMessageLog;
     use Queueable;
 
     private ?string $url = null;

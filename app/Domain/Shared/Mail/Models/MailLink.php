@@ -6,19 +6,20 @@ namespace App\Domain\Shared\Mail\Models;
 
 use App\Domain\Shared\Common\Models\Model;
 use App\Domain\Shared\Mail\Factories\MailLinkFactory;
+use App\Domain\Shared\Message\Models\Message;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
- * @property int $mail_id
+ * @property int $message_id
  * @property string $token
  * @property string $url
  * @property bool $requires_auth
  * @property CarbonImmutable|null $clicked_at
  * @property CarbonImmutable|null $viewed_at
- * @property-read Mail $mail
+ * @property-read Message $message
  */
 class MailLink extends Model
 {
@@ -26,7 +27,7 @@ class MailLink extends Model
     use HasFactory;
 
     protected $fillable = [
-        'mail_id',
+        'message_id',
         'token',
         'url',
         'requires_auth',
@@ -55,11 +56,11 @@ class MailLink extends Model
     }
 
     /**
-     * @return BelongsTo<Mail, $this>
+     * @return BelongsTo<Message, $this>
      */
-    public function mail(): BelongsTo
+    public function message(): BelongsTo
     {
-        return $this->belongsTo(Mail::class);
+        return $this->belongsTo(Message::class);
     }
 
     protected function shouldLogEvent(string $eventName): bool
@@ -70,12 +71,12 @@ class MailLink extends Model
     public function recordClick(): void
     {
         $this->forceFill(['clicked_at' => $this->clicked_at ?? now()])->save();
-        $this->mail->forceFill(['clicked_at' => $this->mail->clicked_at ?? now()])->save();
+        $this->message->forceFill(['clicked_at' => $this->message->clicked_at ?? now()])->save();
     }
 
     public function recordView(): void
     {
         $this->forceFill(['viewed_at' => $this->viewed_at ?? now()])->save();
-        $this->mail->forceFill(['viewed_at' => $this->mail->viewed_at ?? now()])->save();
+        $this->message->forceFill(['viewed_at' => $this->message->viewed_at ?? now()])->save();
     }
 }

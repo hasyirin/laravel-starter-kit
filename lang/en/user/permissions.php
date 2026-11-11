@@ -10,7 +10,7 @@ return [
         'horizon' => 'Horizon',
         'logs' => 'Logs',
         'audits' => 'Audit log',
-        'mail' => 'Mail log',
+        'messages' => 'Message log',
         'internal' => 'Internal',
         'system' => 'System',
     ],

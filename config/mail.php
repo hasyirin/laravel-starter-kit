@@ -139,7 +139,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | When enabled, an email gets a pixel and its links go through the app,
-    | so the mail log can show opens, clicks, and views. A notification
+    | so the message log can show opens, clicks, and views. A notification
     | can turn tracking on or off for its own emails.
     |
     */

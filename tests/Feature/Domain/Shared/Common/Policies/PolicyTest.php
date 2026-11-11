@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Policies\AuditEntryPolicy;
 use App\Domain\Shared\Common\Policies\Policy;
-use App\Domain\Shared\Mail\Policies\MailPolicy;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Policies\RolePolicy;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
@@ -41,7 +41,7 @@ test('the path uses the model property when it is set', function (): void {
 });
 
 test('the path uses the segment property in place of the plural model name when it is set', function (): void {
-    expect(new MailPolicy()->path('resend'))->toBe('system.permissions.system.logs.mail.resend');
+    expect(new AuditEntryPolicy()->path('view'))->toBe('system.permissions.system.logs.audits.view');
 });
 
 function rolePermissionsPolicy(): object

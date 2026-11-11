@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Mail\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
-use App\Domain\Shared\Mail\Models\Mail;
 use App\Domain\Shared\Mail\Models\MailLink;
-use App\Domain\Shared\Mail\Support\SensitiveValues;
+use App\Domain\Shared\Message\Models\Message;
+use App\Domain\Shared\Message\Support\SensitiveValues;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
@@ -29,27 +29,27 @@ class TrackMail
         $this->links = new Collection;
     }
 
-    public function execute(Mail $mail, Email $message, SensitiveValues $sensitive): void
+    public function execute(Message $message, Email $email, SensitiveValues $sensitive): void
     {
         $this->links = new Collection;
         $this->sensitive = $sensitive;
 
-        $html = $message->getHtmlBody();
-        $text = $message->getTextBody();
+        $html = $email->getHtmlBody();
+        $text = $email->getTextBody();
 
         if (is_string($html)) {
-            $message->html($this->addPixel($mail, $this->wrapHtmlLinks($mail, $html)));
+            $email->html($this->addPixel($message, $this->wrapHtmlLinks($message, $html)));
         }
 
         if (is_string($text)) {
-            $message->text($this->wrapTextLinks($mail, $text));
+            $email->text($this->wrapTextLinks($message, $text));
         }
     }
 
-    private function wrapHtmlLinks(Mail $mail, string $html): string
+    private function wrapHtmlLinks(Message $message, string $html): string
     {
-        return (string) preg_replace_callback('/(<a\b[^>]*?(?<![\w-])href\s*=\s*)(["\'])(.*?)\2/is', function (array $match) use ($mail): string {
-            $wrapped = $this->wrap($mail, html_entity_decode($match[3], ENT_QUOTES | ENT_HTML5));
+        return (string) preg_replace_callback('/(<a\b[^>]*?(?<![\w-])href\s*=\s*)(["\'])(.*?)\2/is', function (array $match) use ($message): string {
+            $wrapped = $this->wrap($message, html_entity_decode($match[3], ENT_QUOTES | ENT_HTML5));
 
             if ($wrapped === null) {
                 return $match[0];
@@ -59,18 +59,18 @@ class TrackMail
         }, $html);
     }
 
-    private function wrapTextLinks(Mail $mail, string $text): string
+    private function wrapTextLinks(Message $message, string $text): string
     {
-        return (string) preg_replace_callback('~https?://[^\s<>"\'\])]+~i', function (array $match) use ($mail): string {
+        return (string) preg_replace_callback('~https?://[^\s<>"\'\])]+~i', function (array $match) use ($message): string {
             $url = rtrim($match[0], '.,;:!?');
 
-            return ($this->wrap($mail, $url) ?? $url).substr($match[0], strlen($url));
+            return ($this->wrap($message, $url) ?? $url).substr($match[0], strlen($url));
         }, $text);
     }
 
-    private function addPixel(Mail $mail, string $html): string
+    private function addPixel(Message $message, string $html): string
     {
-        $pixel = '<img src="'.e(route('mail.open', $mail->tracking_token)).'" width="1" height="1" alt="" style="border:0;width:1px;height:1px;">';
+        $pixel = '<img src="'.e(route('mail.open', $message->tracking_token)).'" width="1" height="1" alt="" style="border:0;width:1px;height:1px;">';
 
         if (str($html)->lower()->contains('</body>')) {
             return (string) preg_replace('~</body>~i', $pixel.'</body>', $html, 1);
@@ -79,13 +79,13 @@ class TrackMail
         return $html.$pixel;
     }
 
-    private function wrap(Mail $mail, string $url): ?string
+    private function wrap(Message $message, string $url): ?string
     {
         if (! $this->trackable($url)) {
             return null;
         }
 
-        $link = $this->links->get($url) ?? $mail->links()->where('url', $url)->first() ?? $mail->links()->create([
+        $link = $this->links->get($url) ?? $message->links()->where('url', $url)->first() ?? $message->links()->create([
             'url' => $url,
             'token' => Str::random(48),
             'requires_auth' => $this->requiresAuth($url),

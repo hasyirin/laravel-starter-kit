@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\Shared\Letter\Actions\PrintManualLetter;
+use App\Domain\Shared\Letter\Actions\SaveLetter;
+use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
 use App\Domain\Shared\Letter\Support\LetterTypes;
@@ -222,4 +224,34 @@ test('a letter of another source or type is refused', function (): void {
     expect(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'x'], source: $this->organization, letter: $foreign))->toThrow(LogicException::class)
         ->and(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'x'], source: $this->organization, letter: $wrongType))->toThrow(LogicException::class)
         ->and(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'x'], letter: $foreign))->toThrow(LogicException::class);
+});
+
+function letterWithStamp(Organization $source): Letter
+{
+    $letter = Letter::factory()->ofType('printed')->create(['source_type' => $source->getMorphClass(), 'source_id' => $source->id]);
+    $media = $letter->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection(LetterMedia::Data->value);
+    $letter->update(['extra' => ['remark' => 'x', 'stamp' => $media->uuid]]);
+
+    return $letter;
+}
+
+test('an image of the letter is copied onto the audit entry and stays when the letter image is replaced', function (): void {
+    $letter = letterWithStamp($this->organization);
+
+    printManual('printed', noticeData(), $letter->extra, source: $this->organization, letter: $letter);
+    SaveLetter::make()->execute($letter, LetterTypes::find('printed'), $this->organization, $this->admin, manualDetails(), ['remark' => 'x', 'stamp' => stampUpload()]);
+
+    $entry = manualEntries()->sole();
+    $copy = $entry->getMedia()->sole();
+    expect(data_get($entry->properties, 'extra.stamp'))->toBe($copy->uuid)
+        ->and(Storage::disk('media')->exists($copy->getPathRelativeToRoot()))->toBeTrue();
+});
+
+test('a failed audit entry leaves no copy of a letter image', function (): void {
+    $letter = letterWithStamp($this->organization);
+    $files = Storage::disk('media')->allFiles();
+    AuditEntry::updating(fn (): never => throw new RuntimeException('The audit entry failed.'));
+
+    expect(fn (): PdfFile => printManual('printed', noticeData(), $letter->extra, source: $this->organization, letter: $letter))->toThrow(RuntimeException::class, 'The audit entry failed.');
+    expect(Storage::disk('media')->allFiles())->toBe($files);
 });

@@ -462,6 +462,20 @@ test('a saved signer shows the letterhead of the profile on the signature', func
     openModal($letter)->assertSee('Signed Office')->assertDontSee('Moved Office');
 })->with(['still in the organization' => false, 'outside the organization' => true]);
 
+test('a signature of an actor of another type with the id of the chosen signer does not set the letterhead', function (): void {
+    $department = Department::factory()->for($this->organization)->create();
+    Letterhead::factory()->for($this->organization)->create(['name' => 'Printer Office']);
+    Letterhead::factory()->for($this->organization)->create(['name' => 'Chosen Office', 'department_id' => $department->id]);
+    $chosen = User::factory()->create();
+    $position = Position::factory()->for($this->organization)->create(['department_id' => $department->id]);
+    Profile::factory()->for($this->organization)->for($chosen)->create(['department_id' => $department->id, 'position_id' => $position->id]);
+    $letter = savedLetter('permit');
+    $letter->act(Act::Sign, modalSigner());
+    $letter->signature?->forceFill(['actor_type' => 'organization', 'actor_id' => $chosen->id])->save();
+
+    openModal($letter)->set('form.signer_id', $chosen->id)->assertSee('Chosen Office')->assertDontSee('Printer Office');
+});
+
 test('a letterhead set by the type shows a label, not a view path', function (): void {
     PermitViewHeadLetter::$letterheadView = new LetterheadView('tests::letters.letterhead-office', 20);
 
@@ -603,4 +617,8 @@ test('the modal tells only the table of its own source that it saved', function 
         ->call('save')
         ->assertDispatched(LetterModal::scopedEvent(test()->permit))
         ->assertNotDispatched(LetterModal::scopedEvent($other));
+});
+
+test('the browser does not block a submit that the server rules decide', function (): void {
+    openModal()->assertSeeHtml('novalidate');
 });

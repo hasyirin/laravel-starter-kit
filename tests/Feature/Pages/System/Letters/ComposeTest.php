@@ -297,3 +297,7 @@ test('the source picker skips sources that cannot be viewed until it finds enoug
 
     expect(array_keys(compose()->set('start', 'source')->instance()->sources()))->toBe([$visible->id]);
 });
+
+test('the browser does not block a submit that the server rules decide', function (): void {
+    compose()->assertSeeHtml('novalidate');
+});

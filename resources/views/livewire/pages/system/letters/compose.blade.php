@@ -4,7 +4,7 @@
 
         <flux:heading size="xl">{{ __('navigation.manual_letter') }}</flux:heading>
 
-        <form wire:submit="print" class="max-w-2xl space-y-6">
+        <form wire:submit="print" class="max-w-2xl space-y-6" novalidate>
             <x-select
                 wire:model.live="form.type"
                 :label="__('letters/letters.type')"

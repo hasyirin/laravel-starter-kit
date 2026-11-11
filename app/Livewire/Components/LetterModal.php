@@ -170,7 +170,7 @@ class LetterModal extends RecordModal
 
         $signature = $this->record->exists ? $this->record->signature : null;
 
-        if ($signature instanceof Action && $signature->actor_id === $signerId) {
+        if ($signature instanceof Action && $signature->actor instanceof User && $signature->actor->getKey() === $signerId) {
             return Placement::of($signature->profile()->withTrashed()->first());
         }
 

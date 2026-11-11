@@ -242,6 +242,21 @@ test('a removed extra image is deleted with its file', function (): void {
         ->and(Storage::disk('media')->allFiles())->toBeEmpty();
 });
 
+test('a failed cleanup query after the commit is reported and keeps the save', function (): void {
+    Exceptions::fake();
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+    $old = $letter->getMedia(LetterMedia::Data)->sole();
+    Media::retrieved(function (Media $media) use ($old): void {
+        throw_if($media->is($old), RuntimeException::class, 'The cleanup query failed.');
+    });
+
+    $saved = saveLetter('extra', details(), ['remark' => 'Changed', 'stamp' => extraUpload()], $letter);
+
+    expect($saved->exists)->toBeTrue()
+        ->and($letter->fresh()->extra['remark'])->toBe('Changed');
+    Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'The cleanup query failed.');
+});
+
 test('a refused save keeps the extra image it would replace', function (): void {
     saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
     $letter = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();

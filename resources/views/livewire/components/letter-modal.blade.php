@@ -1,7 +1,7 @@
 <div>
     <flux:modal wire:model="showing" class="md:min-w-2xl">
         @if($showing)
-            <form wire:submit="save" class="space-y-6">
+            <form wire:submit="save" class="space-y-6" novalidate>
                 <flux:heading size="lg">
                     {{ __($this->record->exists ? 'common/records.edit' : 'common/records.add', ['record' => $this::label()]) }}
                 </flux:heading>

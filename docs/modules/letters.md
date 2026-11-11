@@ -362,7 +362,7 @@ The administrator chooses a letter type and a start point:
 
 The administrator can change any value. For a start from a source, the administrator must have the `view` ability on the source. `PrintManualLetter` checks that the source belongs to the letter type, and that the letter belongs to the source and the type.
 
-Each print writes an audit entry with the event `printed-manual-letter`. The entry holds the letter type, the letter data, the extra data, the print details (reference number, date, signer, carbon copies), the source, and the letter. Image values become media on the audit entry. A preview writes nothing.
+Each print writes an audit entry with the event `printed-manual-letter`. The entry holds the letter type, the letter data, the extra data, the print details (reference number, date, signer, carbon copies), the source, and the letter. An upload becomes media on the audit entry. An image of the letter is copied onto the audit entry, so a later change to the letter does not remove it. An image of the source stays on the source, and the entry logs its uuid. A preview writes nothing.
 
 `PruneAuditLog` archives old entries, then deletes their media and rows. See `AUDIT_RETENTION_DAYS` in `config/system.php`.
 
@@ -481,6 +481,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a signer without a position is refused
 - a letter start logs the letter id
 - a letter of another source or type is refused
+- an image of the letter is copied onto the audit entry and stays when the letter image is replaced
+- a failed audit entry leaves no copy of a letter image
 
 ### RenderPdf
 
@@ -519,6 +521,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a refused save leaves no stored image and keeps the upload for a retry
 - a replaced extra image is deleted with its file
 - a removed extra image is deleted with its file
+- a failed cleanup query after the commit is reported and keeps the save
 - a refused save keeps the extra image it would replace
 - a failed image cleanup is reported and the refusal is thrown
 - a typed reference number keeps the sequence key of the printer organization
@@ -743,6 +746,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an empty letter id is ignored
 - the source cannot be set from the browser
 - the source picker skips sources that cannot be viewed until it finds enough
+- the browser does not block a submit that the server rules decide
 
 <!-- /generated:test-rules -->
 

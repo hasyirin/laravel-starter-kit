@@ -81,7 +81,7 @@ class SaveLetter
 
             $letter->extra = $this->storeImages($letter, LetterMedia::Data->value, $type->extraFields(), $validated);
             $letter->save();
-            $letter->getConnection()->afterCommit(fn () => $this->removeUnusedImages($letter));
+            $letter->getConnection()->afterCommit(fn () => rescue(fn () => $this->removeUnusedImages($letter)));
 
             $this->syncSigner($letter, $details->signer);
 

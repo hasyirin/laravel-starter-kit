@@ -151,7 +151,7 @@ class PrintManualLetter
             $entry->properties = collect([
                 'type' => $key,
                 'data' => $this->storeImages($entry, 'default', $type->fields(), $data),
-                'extra' => $this->storeImages($entry, 'default', $type->extraFields(), $extra),
+                'extra' => $this->storeImages($entry, 'default', $type->extraFields(), $extra, $letter),
                 'details' => $details->toArray(),
                 'source_type' => $source?->getMorphClass(),
                 'source_id' => $source?->getKey(),

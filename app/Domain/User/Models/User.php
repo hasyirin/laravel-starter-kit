@@ -121,4 +121,21 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     {
         return $this->phone;
     }
+
+    public function markEmailAsVerified(): bool
+    {
+        $email = $this->email;
+
+        // Fortify's email link calls this method directly, so the check for a changed email lives here, not in an action.
+        return $this->getConnection()->transaction(function () use ($email): bool {
+            $this->newQueryWithoutRelationships()->whereKey($this->getKey())->lockForUpdate()->first();
+            $this->refresh();
+
+            if ($this->email !== $email || $this->hasVerifiedEmail()) {
+                return false;
+            }
+
+            return $this->forceFill(['email_verified_at' => $this->freshTimestamp()])->save();
+        });
+    }
 }

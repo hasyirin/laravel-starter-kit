@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\User\Actions\UpdateUserInformation;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;
@@ -55,6 +56,22 @@ test('email is not verified with invalid hash', function (): void {
         now()->addMinutes(60),
         ['id' => $user->id, 'hash' => sha1('wrong-email')],
     );
+
+    $this->actingAs($user)->get($verificationUrl);
+
+    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
+});
+
+test('a verification link does not verify an email that changed while the link was opening', function (): void {
+    $user = User::factory()->unverified()->create(['email' => 'old@example.com']);
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    UpdateUserInformation::make()->execute(User::query()->findOrFail($user->id), $user->name, 'new@example.com', $user->phone);
 
     $this->actingAs($user)->get($verificationUrl);
 

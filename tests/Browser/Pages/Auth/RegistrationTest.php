@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
+use Laravel\Fortify\Features;
+
+beforeEach(function (): void {
+    $this->enableFortifyFeature(Features::registration());
+});
 
 test('the registration form posts the phone number in international format', function (): void {
     $page = visit(route('register', absolute: false));

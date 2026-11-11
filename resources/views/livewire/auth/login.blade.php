@@ -45,9 +45,11 @@
             </div>
         </form>
 
-        <div class="space-x-1 text-center text-sm text-zinc-600 rtl:space-x-reverse dark:text-zinc-400">
-            <span>{{ __('auth/login.no_account') }}</span>
-            <flux:link :href="route('register')" wire:navigate>{{ __('auth/login.sign_up') }}</flux:link>
-        </div>
+        @if(Route::has('register'))
+            <div class="space-x-1 text-center text-sm text-zinc-600 rtl:space-x-reverse dark:text-zinc-400">
+                <span>{{ __('auth/login.no_account') }}</span>
+                <flux:link :href="route('register')" wire:navigate>{{ __('auth/login.sign_up') }}</flux:link>
+            </div>
+        @endif
     </div>
 </x-layouts::auth>

@@ -47,6 +47,7 @@ class SaveLetter
         validator(['sequence_number' => $details->sequenceNumber], ['sequence_number' => ['nullable', 'integer', 'min:1']])->validate();
 
         $original = $letter->getRawOriginal();
+        $relations = $letter->getRelations();
         $exists = $letter->exists;
         $recentlyCreated = $letter->wasRecentlyCreated;
         $this->storedImages = [];
@@ -56,6 +57,7 @@ class SaveLetter
         } catch (Throwable $throwable) {
             $this->removeStoredImages();
             $letter->setRawAttributes($original, sync: true);
+            $letter->setRelations($relations);
             $letter->exists = $exists;
             $letter->wasRecentlyCreated = $recentlyCreated;
 
@@ -187,7 +189,7 @@ class SaveLetter
             return;
         }
 
-        if ($letter->exists && $letter->signature?->actor_id === $signer->id) {
+        if ($letter->exists && $letter->signature?->actor?->is($signer)) {
             return;
         }
 

@@ -140,6 +140,15 @@ test('the unchanged signer who lost the position passes', function (): void {
     expect($letter->fresh()->signature?->actor?->is($signer))->toBeTrue();
 });
 
+test('a signer with the id of an actor of another type is not the unchanged signer', function (): void {
+    $signer = signerWithPosition(null);
+    $letter = saveLetter('notice', details(signerWithPosition()));
+    $letter->signature?->forceFill(['actor_type' => 'organization', 'actor_id' => $signer->id])->save();
+
+    expect(fn (): Letter => saveLetter('notice', details($signer), letter: $letter->fresh()))
+        ->toThrow(ValidationException::class);
+});
+
 test('changing to a signer without a position is still refused', function (): void {
     $letter = saveLetter('notice', details(signerWithPosition()));
 
@@ -356,6 +365,14 @@ test('a refused new letter stays unsaved', function (): void {
     expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
     expect($letter->exists)->toBeFalse()
         ->and($letter->id)->toBeNull();
+});
+
+test('a refused save restores the relations of the letter', function (): void {
+    saveLetter('notice', numberDetails('REF/1'));
+    $letter = new Letter;
+
+    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
+    expect($letter->getRelations())->toBe([]);
 });
 
 test('an override number below 1 is refused', function (): void {

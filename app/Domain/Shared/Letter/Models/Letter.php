@@ -125,14 +125,18 @@ class Letter extends Model implements HasMedia
             return $copy->toArray();
         }
 
-        if (is_array($copy) && is_string($copy['name'] ?? null)) {
-            $type = $copy['type'] ?? null;
-            $id = $copy['id'] ?? null;
-
-            return new CarbonCopy($copy['name'], is_string($type) ? $type : null, is_int($id) ? $id : null)->toArray();
+        if (! is_array($copy) || ! is_string($copy['name'] ?? null)) {
+            throw new InvalidArgumentException('A carbon copy must be a CarbonCopy or an array with a string name.');
         }
 
-        throw new InvalidArgumentException('A carbon copy must be a CarbonCopy or an array with a string name.');
+        $type = $copy['type'] ?? null;
+        $id = $copy['id'] ?? null;
+
+        if (($type !== null && ! is_string($type)) || ($id !== null && ! is_int($id))) {
+            throw new InvalidArgumentException('A carbon copy type must be a string, and its id must be an int.');
+        }
+
+        return new CarbonCopy($copy['name'], $type, $id)->toArray();
     }
 
     /**

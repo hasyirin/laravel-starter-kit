@@ -117,6 +117,8 @@ test('a carbon copy that is not a carbon copy is refused', function (mixed $copy
     'a string' => ['Finance'],
     'an array without a name' => [['type' => 'department']],
     'an array with a non-string name' => [['name' => 5]],
+    'an array with a non-string type' => [['name' => 'Finance', 'type' => 5]],
+    'an array with a non-int id' => [['name' => 'Finance', 'type' => 'department', 'id' => '5']],
 ]);
 
 test('a carbon copy array is stored as a carbon copy', function (): void {

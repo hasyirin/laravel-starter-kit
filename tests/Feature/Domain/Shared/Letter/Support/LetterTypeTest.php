@@ -9,6 +9,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\PermitLabelledLetter;
+use Tests\Fixtures\Support\RemarkNoticeLetter;
 
 beforeEach(function (): void {
     config()->set('system.letters.types', ['notice' => NoticeLetter::class]);
@@ -33,6 +34,12 @@ it('refuses undeclared letter data', function (): void {
 it('refuses missing letter data', function (): void {
     new NoticeLetter(drop: 'organizationName')->letterData(Organization::factory()->create(), $this->date);
 })->throws(LogicException::class, 'notice: missing letter data [organizationName]');
+
+it('reads an optional field that the mapping leaves out as null', function (): void {
+    config()->set('system.letters.types', ['remark' => RemarkNoticeLetter::class]);
+
+    expect((new RemarkNoticeLetter)->letterData(Organization::factory()->create(), $this->date)->remark)->toBeNull();
+});
 
 it('refuses a value that fails its field rule', function (): void {
     $organization = Organization::factory()->create(['name' => str_repeat('a', 256)]);

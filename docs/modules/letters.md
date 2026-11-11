@@ -81,7 +81,7 @@ The mapping makes every decision. It compares dates with `$date`, never with tod
 
 #### Strict Mapping
 
-`data()` must return every declared key. Return null for an empty optional field. If `data()` returns an undeclared key or misses a declared key, `LetterType::letterData()` throws a `LogicException` that names the letter type and the key. The values also pass the validation rules of the fields.
+`data()` must return every required key. An optional key that `data()` leaves out is null. If `data()` returns an undeclared key or misses a required key, `LetterType::letterData()` throws a `LogicException` that names the letter type and the key. The values also pass the validation rules of the fields.
 
 An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. An uploaded image can be at most 10 MB. A table field cannot have an image column.
 
@@ -503,6 +503,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - no signer deletes the sign action
 - a signer without a position is refused
 - the unchanged signer who lost the position passes
+- a signer with the id of an actor of another type is not the unchanged signer
 - changing to a signer without a position is still refused
 - a letter type that requires a signer refuses no signer
 - a letter type that hides the signer refuses a signer
@@ -530,6 +531,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an override number at or below the counter is accepted when no letter has it
 - an override number that a letter has is refused
 - a refused new letter stays unsaved
+- a refused save restores the relations of the letter
 - an override number below 1 is refused
 - clearing a typed reference number clears the sequence key
 
@@ -638,6 +640,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it turns the mapping into validated letter data
 - it refuses undeclared letter data
 - it refuses missing letter data
+- it reads an optional field that the mapping leaves out as null
 - it refuses a value that fails its field rule
 - it maps letter abilities to source abilities
 - it has safe defaults

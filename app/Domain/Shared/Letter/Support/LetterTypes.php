@@ -6,6 +6,7 @@ namespace App\Domain\Shared\Letter\Support;
 
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use LogicException;
 
 final class LetterTypes
 {
@@ -17,7 +18,11 @@ final class LetterTypes
         $types = [];
 
         foreach (self::registered() as $key => $class) {
-            $types[$key] = new $class;
+            $type = resolve($class);
+
+            throw_unless($type instanceof LetterType, LogicException::class, "The container did not build a LetterType for [{$key}].");
+
+            $types[$key] = $type;
         }
 
         return $types;

@@ -42,14 +42,14 @@ class PrintLetter
         $signerProfile = $this->signerProfile($letter);
 
         $view = BuildLetterView::make()->execute(
-            $type,
-            $letter->reference_number,
-            $date,
-            $signerProfile,
-            $letter->carbon_copies,
-            $letter->with_letterhead,
-            $letter->computer_signed,
-            $printer,
+            type: $type,
+            referenceNumber: $letter->reference_number,
+            date: $date,
+            signerProfile: $signerProfile,
+            carbonCopies: $letter->carbon_copies,
+            withLetterhead: $letter->with_letterhead,
+            computerSigned: $letter->computer_signed,
+            printer: $printer,
         );
 
         $content = RenderPdf::make()

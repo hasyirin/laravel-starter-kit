@@ -174,7 +174,16 @@ final readonly class Field
         $leaves = collect($this->children)->mapWithKeys(fn (Field $child): array => [$child->name => $child->leafKeys($key.'.'.$child->name)]);
 
         return collect($this->children)
-            ->flatMap(fn (Field $child): array => $child->ruleSet($key.'.'.$child->name, $mediaOwners, $leaves->except($child->name)->flatten()->map(fn (mixed $leaf): string => (string) $leaf)->values()->all()))
+            ->flatMap(function (Field $child) use ($key, $mediaOwners, $leaves): array {
+                $siblingLeaves = $leaves
+                    ->except($child->name)
+                    ->flatten()
+                    ->map(fn (mixed $leaf): string => (string) $leaf)
+                    ->values()
+                    ->all();
+
+                return $child->ruleSet($key.'.'.$child->name, $mediaOwners, $siblingLeaves);
+            })
             ->prepend(['nullable', 'array'], $key)
             ->all();
     }
@@ -188,7 +197,11 @@ final readonly class Field
             return [$key];
         }
 
-        return collect($this->children)->flatMap(fn (Field $child): array => $child->leafKeys($key.'.'.$child->name))->map(fn (mixed $leaf): string => (string) $leaf)->values()->all();
+        return collect($this->children)
+            ->flatMap(fn (Field $child): array => $child->leafKeys($key.'.'.$child->name))
+            ->map(fn (mixed $leaf): string => (string) $leaf)
+            ->values()
+            ->all();
     }
 
     /**

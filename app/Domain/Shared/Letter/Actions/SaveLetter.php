@@ -55,7 +55,15 @@ class SaveLetter
         $this->storedImages = [];
 
         try {
-            return $this->save($letter, $type, $key, $source, $user, $details, $validated);
+            return $this->save(
+                letter: $letter,
+                type: $type,
+                key: $key,
+                source: $source,
+                user: $user,
+                details: $details,
+                validated: $validated,
+            );
         } catch (Throwable $throwable) {
             $this->removeStoredImages();
             $letter->setRawAttributes($original, sync: true);

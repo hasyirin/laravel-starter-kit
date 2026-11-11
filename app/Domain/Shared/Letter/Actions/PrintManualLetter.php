@@ -70,14 +70,14 @@ class PrintManualLetter
         }
 
         $view = BuildLetterView::make()->execute(
-            $type,
-            $details->referenceNumber,
-            $date,
-            $signerProfile instanceof Profile ? $signerProfile : null,
-            $details->carbonCopies,
-            $details->withLetterhead || $details->computerSigned,
-            $details->computerSigned,
-            $admin,
+            type: $type,
+            referenceNumber: $details->referenceNumber,
+            date: $date,
+            signerProfile: $signerProfile instanceof Profile ? $signerProfile : null,
+            carbonCopies: $details->carbonCopies,
+            withLetterhead: $details->withLetterhead || $details->computerSigned,
+            computerSigned: $details->computerSigned,
+            printer: $admin,
         );
 
         $content = RenderPdf::make()
@@ -85,7 +85,16 @@ class PrintManualLetter
             ->generatePdfContent();
 
         if (! $preview) {
-            $this->log($type, $key, $validatedData, $validatedExtra, $this->loggedDetails($details, $signerProfile, $view), $admin, $source, $letter);
+            $this->log(
+                type: $type,
+                key: $key,
+                data: $validatedData,
+                extra: $validatedExtra,
+                details: $this->loggedDetails($details, $signerProfile, $view),
+                admin: $admin,
+                source: $source,
+                letter: $letter,
+            );
         }
 
         return PdfFile::named($details->referenceNumber, 'letter', $content);
@@ -102,15 +111,17 @@ class PrintManualLetter
         try {
             $validated = validator($values, Field::rules($fields, $owners))->validate();
         } catch (ValidationException $validationException) {
-            throw self::prefixErrors($validationException, $part);
+            throw $this->prefixErrors($validationException, $part);
         }
 
         return collect($validated)->mapWithKeys(fn (mixed $value, int|string $key): array => [(string) $key => $value])->all();
     }
 
-    public static function prefixErrors(ValidationException $exception, string $part): ValidationException
+    private function prefixErrors(ValidationException $exception, string $part): ValidationException
     {
-        return ValidationException::withMessages(collect($exception->errors())->mapWithKeys(fn (mixed $messages, int|string $key): array => ["$part.$key" => $messages])->all());
+        $messages = collect($exception->errors())->mapWithKeys(fn (mixed $messages, int|string $key): array => ["$part.$key" => $messages]);
+
+        return ValidationException::withMessages($messages->all());
     }
 
     private function checkSigner(LetterType $type, string $key, ?User $signer): void
@@ -155,7 +166,16 @@ class PrintManualLetter
         $this->storedImages = [];
 
         try {
-            $this->writeEntry($type, $key, $data, $extra, $details, $admin, $source, $letter);
+            $this->writeEntry(
+                type: $type,
+                key: $key,
+                data: $data,
+                extra: $extra,
+                details: $details,
+                admin: $admin,
+                source: $source,
+                letter: $letter,
+            );
         } catch (Throwable $throwable) {
             $this->removeStoredImages();
 

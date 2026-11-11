@@ -372,7 +372,7 @@ test('a refused save restores the relations of the letter', function (): void {
     $letter = new Letter;
 
     expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
-    expect($letter->getRelations())->toBe([]);
+    expect($letter->getRelations())->toBeEmpty();
 });
 
 test('an override number below 1 is refused', function (): void {

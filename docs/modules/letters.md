@@ -83,7 +83,7 @@ The mapping makes every decision. It compares dates with `$date`, never with tod
 
 `data()` must return every required key. An optional key that `data()` leaves out is null. If `data()` returns an undeclared key or misses a required key, `LetterType::letterData()` throws a `LogicException` that names the letter type and the key. The values also pass the validation rules of the fields.
 
-An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. An uploaded image can be at most 10 MB. A table field cannot have an image column.
+An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. An uploaded image can be at most 10 MB. A table field cannot have an image column, and its group columns cannot hold an image field.
 
 An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images.
 
@@ -194,6 +194,8 @@ The table renders its own letter modal. If two tables share a page, each table t
 
 To share one count between letter types, return the same parts from both. For example, a per-file `Bil.` returns the file id as a part.
 
+Letter types that share a key must have the same `numbering()`, the same `sequenceReset()`, and the same `reference()` format. The app checks a duplicate by the reference string within the key, not by the number. With two formats, an override number that another letter type already has passes, so one number prints twice. With two resets, each new number sets the reset of the count to the reset of its letter type. The app cannot check this rule, because `sequenceKey()` runs per letter.
+
 A part must be a string or an integer. `ReferenceSequence::key()` refuses any other part with a `LogicException`. If the default key finds no organization, the letter gets no number. This happens when the letter has no signer and the printer has no organization. The print then fails with the `letters/letters.organization_required` message.
 
 The letter stores its key at the first number. The key does not change later, even if the signer changes.
@@ -294,6 +296,7 @@ Follow these limits:
 - An HTML header is a fixed element at the top of every page. The page adds spacer rows so that text does not run under it.
 - A letter has one HTML header. An HTML `firstHeader` with an HTML `header` throws a `LogicException`.
 - A page-1-only footer must be an image. An HTML `firstFooter` throws a `LogicException`.
+- An image `src` must be a `data:` URI. Any other `src` throws a `LogicException`. The page loads no file and no URL.
 
 ## Render a Report or a Bill
 
@@ -598,6 +601,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it chains optional and label without changing the original field
 - it gives group, list and table rules with dot keys
 - it refuses an image column in a table
+- it refuses an image field in a group column of a table
 - it gives table columns a rule under each row
 - it requires the fields of a group only when the group is filled
 - it lets an optional field stay empty
@@ -698,6 +702,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 
 - it refuses an html first header with an html header
 - it refuses an html first footer
+- it refuses an image that is not a data uri
 - it prints a first page image header and footer on page 1 only
 - it prints an every page image header and footer on each page at full width
 - it prints an html header and footer on each page

@@ -33,7 +33,6 @@ trait StoresLetterImages
         return match (true) {
             $field->type === FieldType::Image && $value instanceof TemporaryUploadedFile => $this->storeUpload($owner, $collection, $value),
             $field->type === FieldType::Group && is_array($value) => $this->storeImages($owner, $collection, $field->children, $value),
-            $field->type === FieldType::Table && is_array($value) => collect($value)->map(fn (mixed $row): mixed => is_array($row) ? $this->storeImages($owner, $collection, $field->children, $row) : $row)->values()->all(),
             default => $value,
         };
     }

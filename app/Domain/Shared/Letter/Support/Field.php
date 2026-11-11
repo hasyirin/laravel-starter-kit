@@ -76,7 +76,7 @@ final readonly class Field
     public static function table(string $name, array $columns): self
     {
         foreach ($columns as $column) {
-            if ($column->type === FieldType::Image) {
+            if ($column->holdsImage()) {
                 throw new LogicException("Table [{$name}] cannot have the image column [{$column->name}].");
             }
         }
@@ -95,6 +95,11 @@ final readonly class Field
     public static function group(string $name, string $label, array $fields): self
     {
         return new self($name, FieldType::Group, $label, children: $fields);
+    }
+
+    private function holdsImage(): bool
+    {
+        return $this->type === FieldType::Image || collect($this->children)->contains(fn (Field $child): bool => $child->holdsImage());
     }
 
     public function optional(): static

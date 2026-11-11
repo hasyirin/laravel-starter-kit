@@ -15,6 +15,12 @@
     $footerHtml = isset($footer) && $footerImage === null ? $footer : null;
     $firstFooterImage = isset($firstFooter) ? $firstFooter->attributes->get('src') : null;
 
+    foreach ([$headerImage, $firstHeaderImage, $footerImage, $firstFooterImage] as $image) {
+        if ($image !== null && ! str($image)->startsWith('data:')) {
+            throw new \LogicException('A letter page image must be a data: URI.');
+        }
+    }
+
     if ($firstHeaderHtml !== null && $headerHtml !== null) {
         throw new \LogicException('A letter page cannot have an HTML first header and an HTML header. Give the letterhead one mode: first page only or every page.');
     }

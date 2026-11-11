@@ -76,6 +76,11 @@ it('refuses an image column in a table', function (): void {
         ->toThrow(LogicException::class, 'Table [items] cannot have the image column [photo].');
 });
 
+it('refuses an image field in a group column of a table', function (): void {
+    expect(fn (): Field => Field::table('items', [Field::group('proof', 'Proof', [Field::image('photo')])]))
+        ->toThrow(LogicException::class, 'Table [items] cannot have the image column [proof].');
+});
+
 it('gives table columns a rule under each row', function (): void {
     $rules = Field::rules([Field::table('items', [Field::text('description')])]);
 

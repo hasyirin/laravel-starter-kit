@@ -91,6 +91,11 @@ it('refuses an html first footer', function (): void {
         ->toThrow(ViewException::class, 'A letter page cannot have an HTML first footer.');
 });
 
+it('refuses an image that is not a data uri', function (string $slot): void {
+    expect(fn () => $this->blade("<x-letter.page><x-slot:{$slot} src=\"https://example.com/logo.png\"></x-slot:{$slot}>Body</x-letter.page>"))
+        ->toThrow(ViewException::class, 'A letter page image must be a data: URI.');
+})->with(['header', 'firstHeader', 'footer', 'firstFooter']);
+
 it('prints a first page image header and footer on page 1 only', function (): void {
     $path = renderLetterPage('tests::letters.image-letterhead', ['image' => letterPageImage(), 'everyPage' => false]);
 

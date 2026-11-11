@@ -98,6 +98,27 @@ test('asking again too soon says when to try again', function (): void {
         ->assertSee('Too many codes. Try again in 1 minute.');
 });
 
+test('the resend button says that it sent a new code', function (): void {
+    $component = Livewire::test(SmsPasswordReset::class)
+        ->set('phone', '+60123456789')
+        ->call('send')
+        ->assertDontSee('We sent a new code.');
+    $this->travel(60)->seconds();
+
+    $component->call('send')->assertSee('We sent a new code.');
+});
+
+test('a resend that comes too soon removes the notice of the last resend', function (): void {
+    $this->freezeTime();
+    $component = Livewire::test(SmsPasswordReset::class)->set('phone', '+60123456789')->call('send');
+    $this->travel(60)->seconds();
+    $component->call('send');
+
+    $component->call('send')
+        ->assertSee('Too many codes. Try again in 1 minute.')
+        ->assertDontSee('We sent a new code.');
+});
+
 test('a locked number says when to try again', function (): void {
     lockSmsPasswordReset('+60123456789');
 

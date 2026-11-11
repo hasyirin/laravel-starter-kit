@@ -24,8 +24,12 @@ class SmsPasswordReset extends Component
     #[Locked]
     public bool $showingCodeStep = false;
 
+    #[Locked]
+    public string $notice = '';
+
     public function send(): void
     {
+        $this->reset('notice');
         $this->validate(['phone' => ['required', 'string', new PhoneNumber]]);
 
         try {
@@ -38,6 +42,10 @@ class SmsPasswordReset extends Component
             $this->addError('phone', $this->lockedMessage($smsPasswordResetLocked));
 
             return;
+        }
+
+        if ($this->showingCodeStep) {
+            $this->notice = (string) __('auth/sms-password-reset.resent');
         }
 
         $this->showingCodeStep = true;

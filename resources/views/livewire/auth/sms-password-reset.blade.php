@@ -4,6 +4,10 @@
     @if($showingCodeStep)
         <flux:text class="text-center">{{ __('auth/sms-password-reset.sent') }}</flux:text>
 
+        @if($notice !== '')
+            <flux:text class="text-center font-medium">{{ $notice }}</flux:text>
+        @endif
+
         <form wire:submit="confirm" class="flex flex-col gap-6">
             <x-field name="code">
                 <flux:otp name="code" wire:model="code" length="6" :aria-label="__('common/inputs.otp_code')" class="mx-auto" data-input-control />

@@ -31,7 +31,7 @@ class ApplyMessageLogRetention implements ShouldQueue
         $days = filter_var($days, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
         if ($days === false) {
-            logger()->warning('MESSAGE_RETENTION_DAYS must be a whole number of 1 or more. The message log keeps every email until it is.');
+            logger()->warning('MESSAGE_RETENTION_DAYS must be a whole number of 1 or more. The message log keeps every message until it is.');
 
             return;
         }

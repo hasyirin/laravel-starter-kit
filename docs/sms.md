@@ -1,12 +1,14 @@
 # SMS
 
-The app sends SMS through Laravel notification classes. A notification class that implements `SmsNotification` returns `SmsChannel` in `via()` and gives the text in `toSms()`. The channel reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `SMS_GATEWAY` names.
+The app sends SMS through Laravel notification classes. A notification class that implements `SmsNotification` returns the channel name `sms` in `via()` and gives the text in `toSms()`. Do not return the class of the channel there: the row in the message log then keeps the class name as its channel, not `sms`. `SmsChannel` reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `SMS_GATEWAY` names.
+
+The message log gets a row for each SMS that goes through the channel. A direct call to the gateway leaves no row. So always send an SMS through a notification class.
 
 `LogGateway` is the only gateway in the kit. It writes each SMS to the log, so the codes show in the log during local work. In production it throws an exception, so an app cannot go live without a real gateway. See [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md).
 
 ## Add a Gateway
 
-1. Write a class that implements `SmsGateway`. Its `send()` gets the number in E.164 format, for example +60123456789, and the text. Mark the number and the text with `#[\SensitiveParameter]`, as `SmsGateway` does, so a stack trace does not show them.
+1. Write a class that implements `SmsGateway`. Its `send()` gets the number in E.164 format, for example +60123456789, and the text. It returns the ID that the provider gives to the SMS as a string, or `null` if the provider gives none. The message log keeps this ID. Mark the number and the text with `#[\SensitiveParameter]`, as `SmsGateway` does, so a stack trace does not show them.
 2. Add the class to `system.sms.gateways` in `config/system.php` under a short name.
 3. On each server that must send real SMS, set `SMS_GATEWAY` to that name. For local work, keep the default, the log gateway. `phpunit.xml` sets the log gateway for the tests, so a test never sends a real SMS.
 4. Keep the credentials of the provider in the environment, and read them in `config/services.php`.
@@ -14,11 +16,18 @@ The app sends SMS through Laravel notification classes. A notification class tha
 ```php
 class AcmeGateway implements SmsGateway
 {
-    public function send(#[\SensitiveParameter] string $phone, #[\SensitiveParameter] string $message): void
+    public function send(#[\SensitiveParameter] string $phone, #[\SensitiveParameter] string $message): ?string
     {
-        Http::withToken(config()->string('services.acme.token'))
+        $id = Http::withToken(config()->string('services.acme.token'))
             ->post('https://sms.acme.example/messages', ['to' => $phone, 'text' => $message])
-            ->throw();
+            ->throw()
+            ->json('id');
+
+        if (! is_scalar($id)) {
+            return null;
+        }
+
+        return (string) $id;
     }
 }
 ```

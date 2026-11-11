@@ -19,6 +19,7 @@ class MessageFactory extends Factory
     public function definition(): array
     {
         return [
+            'channel' => 'mail',
             'recipient_address' => fake()->safeEmail(),
             'recipient_name' => fake()->name(),
             'subject' => fake()->sentence(),

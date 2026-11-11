@@ -15,12 +15,13 @@ return new class extends Migration
     {
         Schema::create(new Message()->getTable(), function (Blueprint $table): void {
             $table->id();
-            $table->uuid('notification_id')->nullable()->index();
+            $table->string('channel');
+            $table->uuid('notification_id')->nullable();
             $table->string('notification_type')->nullable();
             $table->longText('payload')->nullable();
             $table->nullableMorphs('notifiable');
             $table->nullableMorphs('resource');
-            $table->string('recipient_address')->nullable();
+            $table->text('recipient_address')->nullable();
             $table->string('recipient_name')->nullable();
             $table->json('cc')->nullable();
             $table->json('bcc')->nullable();
@@ -42,6 +43,8 @@ return new class extends Migration
             $table->foreignId('resend_of_id')->nullable()->index()->constrained(new Message()->getTable())->nullOnDelete();
             $table->timestampsTz();
             $table->softDeletesTz();
+
+            $table->index(['notification_id', 'channel']);
         });
 
         DB::statement('create unique index messages_tracking_token_unique on messages (tracking_token) where deleted_at is null');

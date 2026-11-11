@@ -10,10 +10,12 @@ use SensitiveParameter;
 
 class LogGateway implements SmsGateway
 {
-    public function send(#[SensitiveParameter] string $phone, #[SensitiveParameter] string $message): void
+    public function send(#[SensitiveParameter] string $phone, #[SensitiveParameter] string $message): ?string
     {
         throw_if(app()->isProduction(), RuntimeException::class, 'The log SMS gateway cannot send SMS in production. Set SMS_GATEWAY to the gateway of the app.');
 
         logger()->info('SMS sent.', ['to' => $phone, 'message' => $message]);
+
+        return null;
     }
 }

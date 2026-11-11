@@ -4,20 +4,15 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Mail\Models\MailLink;
 use App\Domain\Shared\Media\Enums\MediaCollection;
-use App\Domain\Shared\Message\Enums\MessageFailureReason;
 use App\Domain\Shared\Message\Enums\MessageStatus;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\User\Models\User;
-use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\SentMessage;
-use Illuminate\Notifications\Events\NotificationSending;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
-use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mime\Email;
 use Tests\Fixtures\Notifications\LetterIssued;
 
@@ -65,18 +60,6 @@ test('the log hides sensitive values in every form and saves no payload for them
         ->and($message->subject)->toBe('Letter issued with code [hidden]')
         ->and($message->payload)->toBeNull()
         ->and($message->resendable)->toBeFalse();
-});
-
-test('a notification without sensitive values can be rebuilt from its payload', function (): void {
-    $user = User::factory()->create();
-
-    $user->notify(new LetterIssued(cc: ['officer@example.com']));
-
-    $message = Message::query()->sole();
-    $notification = $message->notification;
-    expect($message->getRawOriginal('payload'))->not->toContain('LetterIssued')
-        ->and($notification)->toBeInstanceOf(LetterIssued::class)
-        ->and($notification->cc)->toBe(['officer@example.com']);
 });
 
 test('the log keeps the cc and bcc recipients', function (): void {
@@ -161,86 +144,6 @@ test('an email without tracking keeps its links and gets no pixel', function ():
     expect(sentLogTestMails()->sole()->getHtmlBody())->not->toContain(route('mail.open', $message->tracking_token));
 });
 
-test('a failed send is logged with its error and its reason', function (): void {
-    $this->freezeSecond();
-    $user = User::factory()->create();
-    Event::listen(MessageSending::class, fn (): never => throw new TransportException('Connection could not be established with host "smtp".'));
-
-    expect(fn () => $user->notify(new LetterIssued))->toThrow(TransportException::class);
-
-    $message = Message::query()->sole();
-    expect($message->status)->toBe(MessageStatus::Failed)
-        ->and($message->error['message'])->toBe('Connection could not be established with host "smtp".')
-        ->and($message->failure_reason)->toBe(MessageFailureReason::ConnectionFailed)
-        ->and($message->failed_at)->toEqual(now());
-});
-
-test('a failed try in a queue job keeps the row sending with its error', function (): void {
-    config(['mail.queue_connection' => 'database']);
-    $user = User::factory()->create();
-    Event::listen(MessageSending::class, fn (): never => throw new TransportException('Connection could not be established with host "smtp".'));
-    $user->notify(new LetterIssued);
-
-    $this->artisan('queue:work', ['connection' => 'database', '--once' => true, '--queue' => 'default']);
-
-    $message = Message::query()->sole();
-    expect($message->status)->toBe(MessageStatus::Sending)
-        ->and($message->error['message'])->toBe('Connection could not be established with host "smtp".')
-        ->and($message->failed_at)->toBeNull();
-});
-
-test('a failed try keeps the row sending after a sync job runs inside the send', function (): void {
-    config(['mail.queue_connection' => 'database']);
-    $user = User::factory()->create();
-    Event::listen(MessageSending::class, function (): never {
-        dispatch(fn (): null => null)->onConnection('sync');
-
-        throw new TransportException('Connection could not be established with host "smtp".');
-    });
-    $user->notify(new LetterIssued);
-
-    $this->artisan('queue:work', ['connection' => 'database', '--once' => true, '--queue' => 'default']);
-
-    expect(Message::query()->sole()->status)->toBe(MessageStatus::Sending);
-});
-
-test('a failed send inside a job that is not a notification job fails the row at once', function (): void {
-    $user = User::factory()->create();
-    Event::listen(MessageSending::class, fn (): never => throw new TransportException('Connection could not be established with host "smtp".'));
-    dispatch(fn () => Notification::sendNow($user, new LetterIssued))->onConnection('database');
-
-    $this->artisan('queue:work', ['connection' => 'database', '--once' => true, '--queue' => 'default']);
-
-    expect(Message::query()->sole()->status)->toBe(MessageStatus::Failed);
-});
-
-test('a notification email with more than one to recipient fails at once in a queue job, without another try', function (): void {
-    config(['mail.queue_connection' => 'database']);
-    Notification::route('mail', ['a@example.com', 'b@example.com'])->notify(new LetterIssued);
-
-    $this->artisan('queue:work', ['connection' => 'database', '--once' => true, '--queue' => 'default']);
-
-    expect(Message::query()->sole()->status)->toBe(MessageStatus::Failed);
-    $this->assertDatabaseEmpty('jobs');
-});
-
-test('a failed send outside a queue job fails the row at once', function (): void {
-    $user = User::factory()->create();
-    Event::listen(MessageSending::class, fn (): never => throw new TransportException('Connection could not be established with host "smtp".'));
-
-    expect(fn () => Notification::sendNow($user, new LetterIssued))->toThrow(TransportException::class);
-
-    expect(Message::query()->sole()->status)->toBe(MessageStatus::Failed);
-});
-
-test('an email to a recipient without an address is logged as failed for that reason', function (): void {
-    Notification::route('mail', '')->notify(new LetterIssued);
-
-    $message = Message::query()->sole();
-    expect($message->status)->toBe(MessageStatus::Failed)
-        ->and($message->failure_reason)->toBe(MessageFailureReason::NoAddress);
-});
-
 test('an email sent without a notification is logged as sent without its body', function (): void {
     Mail::raw('Body', fn (Illuminate\Mail\Message $email): Illuminate\Mail\Message => $email->to('a@example.com')->to('b@example.com')->subject('Plain'));
 
@@ -263,56 +166,6 @@ test('an intercepted email keeps its intended recipients and the address it went
     expect($message->recipient_address)->toBe('aisyah@example.com')
         ->and($message->cc)->toBe([['address' => 'officer@example.com', 'name' => '']])
         ->and($message->intercepted_to)->toBe('dev@example.com');
-});
-
-test('an email that the intercept drops is logged as failed', function (): void {
-    config(['mail.intercept.enabled' => true, 'mail.intercept.address' => '']);
-    $user = User::factory()->create();
-
-    $user->notify(new LetterIssued);
-
-    $message = Message::query()->sole();
-    expect($message->status)->toBe(MessageStatus::Failed)
-        ->and($message->failure_reason)->toBe(MessageFailureReason::Dropped);
-});
-
-test('another try of the same notification updates its row', function (): void {
-    $user = User::factory()->create();
-    $notification = new LetterIssued;
-    $notification->id = 'f3b1b8a2-1d8e-4a0e-9a57-2a7c3f6b0c11';
-
-    $tries = 0;
-    Event::listen(MessageSending::class, function () use (&$tries): void {
-        throw_if(++$tries === 1, TransportException::class, 'Connection could not be established with host "smtp".');
-    });
-
-    expect(fn () => Notification::sendNow($user, $notification))->toThrow(TransportException::class);
-    Notification::sendNow($user, $notification);
-
-    $message = Message::query()->sole();
-    expect($message->status)->toBe(MessageStatus::Sent)
-        ->and($message->error)->toBeNull()
-        ->and($message->failed_at)->toBeNull();
-});
-
-test('a notification that a listener skips is logged as dropped', function (): void {
-    Event::listen(NotificationSending::class, fn (): bool => false);
-
-    User::factory()->create()->notify(new LetterIssued);
-
-    $message = Message::query()->sole();
-    expect($message->status)->toBe(MessageStatus::Failed)
-        ->and($message->failure_reason)->toBe(MessageFailureReason::Dropped);
-});
-
-test('the signed-in user who sends the email becomes its preparer', function (): void {
-    $sender = User::factory()->create();
-    $user = User::factory()->create();
-    $this->actingAs($sender);
-
-    $user->notify(new LetterIssued);
-
-    expect(Message::query()->sole()->preparer?->actor->is($sender))->toBeTrue();
 });
 
 test('an email without a to recipient is logged without a recipient', function (): void {

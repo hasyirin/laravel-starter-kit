@@ -155,6 +155,7 @@ erDiagram
     }
     messages {
         integer id PK
+        string channel
         string notification_id
         string notification_type
         text payload
@@ -162,7 +163,7 @@ erDiagram
         integer notifiable_id
         string resource_type
         integer resource_id
-        string recipient_address
+        text recipient_address
         string recipient_name
         json cc
         json bcc

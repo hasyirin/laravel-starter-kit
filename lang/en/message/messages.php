@@ -77,6 +77,14 @@ return [
             'label' => 'The recipient has no email address.',
             'suggestion' => 'Add an email address to the recipient, then send the email again.',
         ],
+        'no_phone_number' => [
+            'label' => 'The recipient has no phone number.',
+            'suggestion' => 'Add a phone number to the recipient, then send the SMS again.',
+        ],
+        'calling_code_not_allowed' => [
+            'label' => 'The app does not send SMS to the calling code of this phone number.',
+            'suggestion' => 'Use a phone number with a calling code that the app sends SMS to.',
+        ],
         'unknown' => [
             'label' => 'An unknown error occurred.',
             'suggestion' => 'Resend the email. If it fails again, give the technical message below to a system administrator.',

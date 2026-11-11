@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Message\Models;
 
 use App\Domain\Shared\Actor\Concerns\InteractsWithPreparer;
+use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Common\Models\Model;
@@ -13,8 +14,10 @@ use App\Domain\Shared\Message\Enums\MessageFailureReason;
 use App\Domain\Shared\Message\Enums\MessageStatus;
 use App\Domain\Shared\Message\Factories\MessageFactory;
 use App\Domain\Shared\Message\Observers\MessageObserver;
+use App\Domain\Shared\Message\Support\SensitiveValues;
 use App\Domain\User\Models\User;
 use Carbon\CarbonImmutable;
+use Hasyirin\Actor\Facades\Actor;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +29,7 @@ use Throwable;
 
 /**
  * @property int $id
+ * @property string $channel
  * @property string|null $notification_id
  * @property string|null $notification_type
  * @property string|null $payload
@@ -73,6 +77,7 @@ class Message extends Model implements HasMedia
     public const int STUCK_AFTER_MINUTES = 60;
 
     protected $fillable = [
+        'channel',
         'notification_id',
         'notification_type',
         'payload',
@@ -168,32 +173,46 @@ class Message extends Model implements HasMedia
         return false;
     }
 
-    public function markAsSent(?string $providerId, ?string $interceptedTo): void
+    public function markAsSent(?string $providerId): void
     {
         $this->update([
             'status' => MessageStatus::Sent,
             'provider_id' => $providerId,
-            'intercepted_to' => $interceptedTo,
             'sent_at' => now(),
         ]);
     }
 
-    public function markAsFailed(Throwable $exception): void
+    public function markAsFailed(Throwable $exception, ?SensitiveValues $sensitive = null): void
     {
-        $this->fail($this->describe($exception));
+        $this->fail($this->describe($exception, $sensitive));
     }
 
-    public function recordError(Throwable $exception): void
+    public function recordError(Throwable $exception, ?SensitiveValues $sensitive = null): void
     {
-        $this->update(['error' => $this->describe($exception)]);
+        $this->update(['error' => $this->describe($exception, $sensitive)]);
+    }
+
+    /**
+     * The last try already recorded its error with the sensitive values hidden. The exception of the job cannot hide them.
+     */
+    public function failAfterLastTry(Throwable $exception): void
+    {
+        $this->fail($this->error ?? $this->describe($exception, null));
+    }
+
+    public function failBecause(MessageFailureReason $reason, string $text): void
+    {
+        $this->fail(['type' => $reason->value, 'code' => 0, 'message' => $text]);
     }
 
     /**
      * @return array{type: string, code: int|string, message: string}
      */
-    private function describe(Throwable $exception): array
+    private function describe(Throwable $exception, ?SensitiveValues $sensitive): array
     {
-        return ['type' => $exception::class, 'code' => $exception->getCode(), 'message' => $exception->getMessage()];
+        $text = $exception->getMessage();
+
+        return ['type' => $exception::class, 'code' => $exception->getCode(), 'message' => $sensitive?->mask($text) ?? $text];
     }
 
     /**
@@ -202,6 +221,19 @@ class Message extends Model implements HasMedia
     public function fail(array $error): void
     {
         $this->update(['status' => MessageStatus::Failed, 'error' => $error, 'failed_at' => now()]);
+    }
+
+    public function recordPreparerFromContext(): void
+    {
+        if (auth(config('actor.guard'))->check()) {
+            return;
+        }
+
+        $user = User::withTrashed()->whereKey(context()->get('user_id'))->first();
+
+        if ($user !== null) {
+            Actor::act($this, Act::Prepare, $user);
+        }
     }
 
     public function recordOpen(): void
@@ -223,7 +255,7 @@ class Message extends Model implements HasMedia
      */
     protected function failureReason(): Attribute
     {
-        return Attribute::get(fn (): ?MessageFailureReason => MessageFailureReason::fromError($this->error));
+        return Attribute::get(fn (): ?MessageFailureReason => MessageFailureReason::fromError($this->error, $this->channel));
     }
 
     /**
@@ -259,6 +291,6 @@ class Message extends Model implements HasMedia
      */
     protected function resendable(): Attribute
     {
-        return Attribute::get(fn (): bool => $this->notification instanceof Notification);
+        return Attribute::get(fn (): bool => $this->channel === 'mail' && $this->notification instanceof Notification);
     }
 }

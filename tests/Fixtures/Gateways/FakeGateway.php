@@ -6,6 +6,7 @@ namespace Tests\Fixtures\Gateways;
 
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use SensitiveParameter;
+use Throwable;
 
 class FakeGateway implements SmsGateway
 {
@@ -14,8 +15,16 @@ class FakeGateway implements SmsGateway
      */
     public array $sent = [];
 
-    public function send(#[SensitiveParameter] string $phone, #[SensitiveParameter] string $message): void
+    public function __construct(public ?string $id = null, public ?Throwable $failure = null) {}
+
+    public function send(#[SensitiveParameter] string $phone, #[SensitiveParameter] string $message): ?string
     {
+        if ($this->failure instanceof Throwable) {
+            throw $this->failure;
+        }
+
         $this->sent[] = ['phone' => $phone, 'message' => $message];
+
+        return $this->id;
     }
 }

@@ -7,6 +7,7 @@ namespace App\Domain\Shared\Message\Enums;
 use App\Domain\Shared\Common\Concerns\Enums\EnumExtension;
 use App\Domain\Shared\Common\Concerns\Enums\InteractsWithLabel;
 use App\Domain\Shared\Common\Contracts\Enums\HasLabel;
+use App\Domain\Shared\Sms\Exceptions\CallingCodeNotAllowed;
 
 enum MessageFailureReason: string implements HasLabel
 {
@@ -23,6 +24,8 @@ enum MessageFailureReason: string implements HasLabel
     case AuthenticationFailed = 'authentication_failed';
     case Dropped = 'dropped';
     case NoAddress = 'no_address';
+    case NoPhoneNumber = 'no_phone_number';
+    case CallingCodeNotAllowed = 'calling_code_not_allowed';
     case Unknown = 'unknown';
 
     public function label(): string
@@ -38,7 +41,7 @@ enum MessageFailureReason: string implements HasLabel
     /**
      * @param  array{type?: string, code?: int|string, message?: string}|null  $error
      */
-    public static function fromError(?array $error): ?self
+    public static function fromError(?array $error, string $channel): ?self
     {
         if (blank($error)) {
             return null;
@@ -47,12 +50,23 @@ enum MessageFailureReason: string implements HasLabel
         $type = $error['type'] ?? '';
         $message = str($error['message'] ?? '')->lower();
 
-        if ($type === 'dropped' || $type === 'no_address') {
-            return self::from($type);
+        $reason = self::tryFrom($type);
+
+        if ($reason instanceof self) {
+            return $reason;
+        }
+
+        if ($type === CallingCodeNotAllowed::class) {
+            return self::CallingCodeNotAllowed;
         }
 
         if (str_contains($type, 'TimeoutExceededException') || $message->contains('has timed out')) {
             return self::Timeout;
+        }
+
+        // The other reasons come from the text of a mail server.
+        if ($channel !== 'mail') {
+            return self::Unknown;
         }
 
         return match (true) {

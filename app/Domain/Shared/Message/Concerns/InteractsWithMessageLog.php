@@ -6,6 +6,8 @@ namespace App\Domain\Shared\Message\Concerns;
 
 use App\Domain\Shared\Message\Enums\MessageStatus;
 use App\Domain\Shared\Message\Models\Message;
+use App\Domain\Shared\Message\Support\CurrentMessage;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Throwable;
 
@@ -48,6 +50,13 @@ trait InteractsWithMessageLog
 
     public function failed(Throwable $exception): void
     {
-        Message::query()->where('notification_id', $this->id)->where('status', MessageStatus::Sending)->first()?->markAsFailed($exception);
+        $channel = resolve(CurrentMessage::class)->jobChannel;
+
+        Message::query()
+            ->where('notification_id', $this->id)
+            ->where('status', MessageStatus::Sending)
+            ->when($channel !== null, fn (Builder $query): Builder => $query->where('channel', $channel))
+            ->get()
+            ->each(fn (Message $message) => $message->failAfterLastTry($exception));
     }
 }

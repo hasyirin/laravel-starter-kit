@@ -117,7 +117,7 @@
 
                 @can('resend', $mail)
                     <form wire:submit="resend" class="space-y-6">
-                        <x-input wire:model="email" name="email" type="email" :label="__('mail/mails.resend_to')" required />
+                        <x-input wire:model="email" name="email" type="email" case="lower" :label="__('mail/mails.resend_to')" required />
 
                         <div class="flex justify-end gap-2">
                             <flux:button type="submit" variant="primary">{{ __('mail/mails.resend') }}</flux:button>

@@ -11,7 +11,7 @@
             <input type="hidden" name="token" value="{{ request()->route('token') }}" />
 
             <!-- Email Address -->
-            <x-input name="email" value="{{ request('email') }}" :label="__('common/inputs.email')" type="email" required autocomplete="email" />
+            <x-input name="email" value="{{ request('email') }}" :label="__('common/inputs.email')" type="email" case="lower" required autocomplete="email" />
 
             <!-- Password -->
             <x-input.password

@@ -16,6 +16,7 @@
                 :label="__('common/inputs.email_address')"
                 :value="old('email')"
                 type="email"
+                case="lower"
                 required
                 autofocus
                 autocomplete="email"

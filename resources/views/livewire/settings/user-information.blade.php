@@ -8,7 +8,7 @@
             <x-input wire:model="name" :label="__('common/inputs.name')" type="text" required autofocus autocomplete="name" />
 
             <div>
-                <x-input wire:model="email" :label="__('common/inputs.email')" type="email" required autocomplete="email" />
+                <x-input wire:model="email" :label="__('common/inputs.email')" type="email" case="lower" required autocomplete="email" />
 
                 @if($this->unverified)
                     <div>

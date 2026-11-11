@@ -103,7 +103,7 @@ return [
     |
     */
 
-    'middleware' => ['web'],
+    'middleware' => ['web', 'throttle:guest-forms'],
 
     /*
     |--------------------------------------------------------------------------
@@ -163,7 +163,6 @@ return [
     */
 
     'features' => [
-        Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

@@ -65,3 +65,11 @@ test('password can be reset with valid token', function (): void {
         return true;
     });
 });
+
+test('a guest can request a reset link five times a minute', function (): void {
+    foreach (range(1, 5) as $attempt) {
+        $this->post(route('password.email'), ['email' => 'nobody@example.com'])->assertRedirect();
+    }
+
+    $this->post(route('password.email'), ['email' => 'nobody@example.com'])->assertTooManyRequests();
+});

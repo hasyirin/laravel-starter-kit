@@ -100,5 +100,13 @@ class FortifyServiceProvider extends ServiceProvider
                 ($credentialId ?: $request->session()->getId()).'|'.$request->ip(),
             );
         });
+
+        RateLimiter::for('guest-forms', function (Request $request): Limit {
+            if (! $request->routeIs('register.store', 'password.email')) {
+                return Limit::none();
+            }
+
+            return Limit::perMinute(5)->by($request->route()?->getName().'|'.$request->ip());
+        });
     }
 }

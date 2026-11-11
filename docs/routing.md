@@ -11,6 +11,12 @@ The app has four areas, and each area has its own route file. A fifth file, `rou
 
 Fortify registers the routes for login, registration, password reset, email verification, two-factor authentication, and passkeys. Do not add them to `guest.php`.
 
+### Registration
+
+Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Laravel\Fortify\Features::registration()` to `fortify.features` in `config/fortify.php`. The login page then shows a sign-up link.
+
+The `guest-forms` limiter lets each IP address send the registration form and the reset link form five times a minute. `config/fortify.php` adds it to every Fortify route, and it skips the other routes. If an app lets the public sign up, also add a captcha, such as Cloudflare Turnstile, to the registration form. The limit slows bots down, but it does not stop them.
+
 ## Choose the Area
 
 - **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to the group of this file. That middleware sends signed-in users away, so the other routes would stop working for them. A page only for signed-out users, such as `password.sms`, adds it to its own route, as Fortify's routes do.

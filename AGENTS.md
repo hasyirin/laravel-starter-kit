@@ -192,4 +192,4 @@ The default labels: each triage role uses its own name as the label. See `docs/a
 
 ### Domain docs
 
-Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` at the repo root, the starter kit's ADRs in `docs/adr/kit/`, and the app's own ADRs in `docs/adr/`. See `docs/agents/domain.md`.

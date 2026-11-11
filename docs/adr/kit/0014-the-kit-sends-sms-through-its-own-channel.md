@@ -1,6 +1,6 @@
 # The Kit Sends SMS Through Its Own Channel
 
-The kit sends SMS through its own notification channel, `SmsChannel`, and the `SmsGateway` interface. It ships only `LogGateway`, which writes each SMS to the log and throws an exception in production. Each app adds a gateway class for the SMS provider that its organization pays for. It lists the class in `system.sms.gateways`, and sets `SMS_GATEWAY` to its name on the servers that send real SMS. So the kit adds no SMS package, and no app must open an account with a provider that the kit chose. See [SMS](../sms.md).
+The kit sends SMS through its own notification channel, `SmsChannel`, and the `SmsGateway` interface. It ships only `LogGateway`, which writes each SMS to the log and throws an exception in production. Each app adds a gateway class for the SMS provider that its organization pays for. It lists the class in `system.sms.gateways`, and sets `SMS_GATEWAY` to its name on the servers that send real SMS. So the kit adds no SMS package, and no app must open an account with a provider that the kit chose. See [SMS](../../sms.md).
 
 ## Considered Options
 

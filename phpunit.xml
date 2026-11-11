@@ -36,6 +36,8 @@
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="MEDIA_QUEUE_CONNECTION" value="sync"/>
         <server name="AUDIT_QUEUE_CONNECTION" value="sync"/>
+        <server name="MAIL_QUEUE_CONNECTION" value="sync"/>
+        <server name="MESSAGE_LOG_QUEUE_CONNECTION" value="sync"/>
         <server name="SESSION_DRIVER" value="array"/>
         <server name="VIEW_COMPILED_PATH" value="storage/framework/testing/views"/>
         <server name="PULSE_ENABLED" value="false"/>

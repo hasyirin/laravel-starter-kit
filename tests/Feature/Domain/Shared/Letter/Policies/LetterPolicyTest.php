@@ -107,7 +107,7 @@ test('create without a type fails when the source has no letter type', function 
     expect($this->user->can('create', Permit::query()->create(['name' => 'Open'])->letters()->make()))->toBeFalse();
 });
 
-test('a letter type that is not allowed for the user passes only view', function (string $ability, bool $allowed): void {
+test('a letter type that is not allowed for the user passes only view and delete', function (string $ability, bool $allowed): void {
     config(['system.letters.types' => ['restricted' => PermitRestrictedLetter::class]]);
     $letter = Permit::query()->create(['name' => 'Open'])->letters()->create(['type' => 'restricted']);
 
@@ -117,7 +117,7 @@ test('a letter type that is not allowed for the user passes only view', function
     'print' => ['print', false],
     'create' => ['create', false],
     'update' => ['update', false],
-    'delete' => ['delete', false],
+    'delete' => ['delete', true],
 ]);
 
 test('create without a type skips letter types that are not allowed for the user', function (): void {

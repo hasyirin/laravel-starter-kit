@@ -45,6 +45,16 @@ test('a user who can view the source gets a 403 for a letter type that is not al
     $this->actingAs($this->user)->get(route('letters.preview', $letter))->assertForbidden();
 });
 
+test('a letter that cannot be printed shows the messages with a 422 and no redirect', function (): void {
+    grantPermissions($this->user, 'internal.controls.organizations.view');
+    $this->letter->update(['extra' => ['remark' => 'Reminder', 'stamp' => (string) str()->uuid()]]);
+
+    $this->actingAs($this->user)
+        ->get(route('letters.preview', $this->letter))
+        ->assertUnprocessable()
+        ->assertSee(__('letters/letters.data_unreadable'));
+});
+
 test('a missing letter gets a 404', function (): void {
     $this->actingAs($this->user)->get(route('letters.preview', 0))->assertNotFound();
 });

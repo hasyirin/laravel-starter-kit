@@ -166,14 +166,16 @@ test('the row actions follow the letter policy', function (bool $update, bool $p
     'both' => [true, true, ['edit', 'print', 'preview', 'upload_scan'], []],
 ]);
 
-test('the table hides print for a letter type that is not allowed for the user', function (): void {
+test('the table hides print but keeps delete for a letter type that is not allowed for the user', function (): void {
     config(['system.letters.types' => ['restricted' => PermitRestrictedLetter::class]]);
     $letter = tableLetter('restricted');
 
     $table = letterTable();
-    foreach (['edit', 'print', 'preview', 'upload_scan', 'delete'] as $name) {
+    foreach (['edit', 'print', 'preview', 'upload_scan'] as $name) {
         $table->assertActionHidden(TestAction::make($name)->table($letter));
     }
+
+    $table->assertActionVisible(TestAction::make('delete')->table($letter));
 });
 
 test('the row click runs the edit action', function (): void {

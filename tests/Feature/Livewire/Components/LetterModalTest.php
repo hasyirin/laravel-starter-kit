@@ -518,6 +518,18 @@ test('an override letter takes the typed sequence number', function (): void {
     openModal($letter)->assertSet('form.sequence_number', 7);
 });
 
+test('a taken override number is an error on the sequence number', function (): void {
+    savedLetter('override', ['sequence_key' => "override:{$this->organization->id}", 'reference_number' => '7']);
+
+    openModal()->set('form.type', 'override')->set('form.sequence_number', 7)->call('save')->assertHasErrors(['form.sequence_number']);
+});
+
+test('an override number without an organization is an error on the sequence number', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    openModal()->set('form.type', 'override')->set('form.sequence_number', 7)->call('save')->assertHasErrors(['form.sequence_number']);
+});
+
 test('editing a letter fills the form from it', function (): void {
     $department = Department::factory()->for($this->organization)->create(['name' => 'Finance']);
     $letter = savedLetter('permit', [

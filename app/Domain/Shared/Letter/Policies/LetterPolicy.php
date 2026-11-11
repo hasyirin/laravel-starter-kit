@@ -64,7 +64,7 @@ class LetterPolicy
 
         $type = $letter->letter_type;
 
-        if ($ability !== 'view' && ! $type->allowedFor($user)) {
+        if (! in_array($ability, ['view', 'delete'], true) && ! $type->allowedFor($user)) {
             return false;
         }
 

@@ -319,7 +319,9 @@ return $pdf->download('sales.pdf');
 
 A letter type can override `sourceAbility()`. For example, it can return `archive` for `create`.
 
-`LetterPolicy` also asks `LetterType::allowedFor()` for `print`, `create`, `update`, and `delete`. A user that the letter type does not allow can still view the letter. That user cannot print it, preview it, upload its signed scan, change it, or delete it. The letters table hides these actions.
+`LetterPolicy` also asks `LetterType::allowedFor()` for `print`, `create`, and `update`. A user that the letter type does not allow can still view the letter. That user cannot print it, preview it, upload its signed scan, or change it. The letters table hides these actions.
+
+`allowedFor()` limits who may use a letter type. It does not stop the cleanup of old letters. So `delete` needs only the source ability. If a letter type later refuses everyone, its letters can still be deleted.
 
 `LetterPolicy` and `AuditEntryPolicy` are two stated exceptions to the rule that a policy extends `Policy` and checks permissions with `hasPermission()`.
 
@@ -331,7 +333,7 @@ In the letter form:
 - The print choices (signer, carbon copies, letterhead, computer signed) need the `print` ability.
 - The reference number, the sequence number, the date, and the extra fields need the `update` ability.
 - The signed scan upload needs `print`, not `update`. Scans come back after the source is locked.
-- The preview route `letters.preview` needs `print`.
+- The preview route `letters.preview` needs `print`. If the letter cannot be printed, the preview shows the messages with the status 422. It does not redirect.
 
 Letterheads use `LetterheadPolicy` and the `internal.controls.letterheads.*` permissions.
 
@@ -561,7 +563,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a letter whose source is gone passes no ability
 - create without a type passes when the user may create one letter type of the source
 - create without a type fails when the source has no letter type
-- a letter type that is not allowed for the user passes only view
+- a letter type that is not allowed for the user passes only view and delete
 - create without a type skips letter types that are not allowed for the user
 
 ### LetterheadPolicy

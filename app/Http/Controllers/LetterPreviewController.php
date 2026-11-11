@@ -9,6 +9,7 @@ use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\User\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 
 class LetterPreviewController extends Controller
 {
@@ -17,6 +18,10 @@ class LetterPreviewController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        return PrintLetter::make()->execute($letter, $user, preview: true)->inline();
+        try {
+            return PrintLetter::make()->execute($letter, $user, preview: true)->inline();
+        } catch (ValidationException $validationException) {
+            return response()->view('letter-preview-failed', ['messages' => collect($validationException->errors())->flatten()->all()], 422);
+        }
     }
 }

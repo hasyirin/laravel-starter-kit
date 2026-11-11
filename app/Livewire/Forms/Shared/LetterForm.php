@@ -179,7 +179,7 @@ class LetterForm extends Form
                 $this->payload($type->extraFields(), $this->extra),
             );
         } catch (ValidationException $validationException) {
-            throw $this->withFormKeys($validationException);
+            throw $this->withFormKeys($validationException, $type);
         }
     }
 
@@ -312,12 +312,15 @@ class LetterForm extends Form
         return $this->copiesFromRows($this->carbon_copies);
     }
 
-    private function withFormKeys(ValidationException $exception): ValidationException
+    private function withFormKeys(ValidationException $exception, LetterType $type): ValidationException
     {
+        $referenceKey = $type->numbering() === NumberingMode::AutomaticWithOverride ? 'form.sequence_number' : 'form.reference_number';
+
         $messages = collect($exception->errors())->mapWithKeys(fn (mixed $errors, int|string $key): array => [
             match ($key) {
                 'signer' => 'form.signer_id',
-                'reference_number', 'sequence_number' => "form.$key",
+                'reference_number' => $referenceKey,
+                'sequence_number' => 'form.sequence_number',
                 default => "form.extra.$key",
             } => $errors,
         ]);

@@ -1,6 +1,6 @@
 # SMS
 
-The app sends SMS through Laravel notifications. A notification that implements `SmsNotification` returns `SmsChannel` in `via()` and gives the text in `toSms()`. The channel reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `SMS_GATEWAY` names.
+The app sends SMS through Laravel notification classes. A notification class that implements `SmsNotification` returns `SmsChannel` in `via()` and gives the text in `toSms()`. The channel reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `SMS_GATEWAY` names.
 
 `LogGateway` is the only gateway in the kit. It writes each SMS to the log, so the codes show in the log during local work. In production it throws an exception, so an app cannot go live without a real gateway. See [ADR-0014](adr/0014-the-kit-sends-sms-through-its-own-channel.md).
 
@@ -41,7 +41,7 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 
 `SmsCode` keeps each one-time code in the cache. A code has 6 digits and expires after 10 minutes. It stops working after 5 wrong tries, and a new code replaces the old one. A code belongs to a number and a purpose, so a verification code cannot reset a password.
 
-`SmsCodeLimit` allows 1 SMS code per minute and 5 per hour for each key. Phone verification counts per user. The SMS password reset counts per number and per IP address, also for a number that belongs to no user. The limit counts only codes. `SmsChannel` has no limit, so other SMS notifications do not count toward it.
+`SmsCodeLimit` allows 1 SMS code per minute and 5 per hour for each key. Phone verification counts per user. The SMS password reset counts per number and per IP address, also for a number that belongs to no user. The limit counts only codes. `SmsChannel` has no limit, so other SMS notification classes do not count toward it.
 
 `SmsPasswordResetLock` counts the failed codes on the SMS password reset for each number. A code fails when it is wrong, expired, used, or out of tries. The cache no longer holds an expired or used code, so the server cannot tell it from a wrong one. A code that expires unused does not count. After 10 failed codes, it locks the SMS password reset for the number until 24 hours after the first failed code. It counts for every number, also for a number that belongs to no user, so the lock does not show which numbers have an account. During the lock, the reset page sends no code to the number and refuses every code, also the right one. The user can still reset the password by email.
 
@@ -53,11 +53,11 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 2. Set a spend cap at the SMS provider. Public pages, such as registration and the SMS password reset, can make the app send SMS. The limits slow an attack, but the provider bills each SMS.
 3. If the app runs behind a proxy or a load balancer, trust it with `$middleware->trustProxies()` in `bootstrap/app.php`. Otherwise every request has the IP address of the proxy, and all visitors share the per-IP limit of the SMS password reset.
 4. Serve the app with PHP-FPM, FrankenPHP, or LiteSpeed. These servers send the response before the SMS password reset sends its code. On a server that cannot do this, such as `php artisan serve`, the page waits for the SMS. The response time then shows which numbers have an account.
-5. Run Horizon. See [Deployment](../README.md#deployment). The SMS password reset sends its alert emails, `SmsPasswordResetStarted` and `PasswordWasReset`, on the queue. If `QUEUE_CONNECTION` is `sync`, they go out during the request, and a mail failure breaks the reset.
+5. Run Horizon. See [Deployment](../README.md#deployment). The SMS password reset sends 2 emails, `SmsPasswordResetStarted` and `PasswordWasReset`, on the queue. If `QUEUE_CONNECTION` is `sync`, they go out during the request, and a failed email breaks the reset.
 
 ## Test SMS
 
-Fake the notifications, and read the code from the notification that the test sent:
+Fake Laravel notifications, and read the code from the `PhoneVerificationCodeSms` that the test sent:
 
 ```php
 Notification::fake();

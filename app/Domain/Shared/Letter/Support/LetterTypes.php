@@ -25,11 +25,12 @@ final class LetterTypes
 
     public static function find(string $key): LetterType
     {
-        $types = self::all();
+        return self::tryFind($key) ?? throw new InvalidArgumentException("Unknown letter type [{$key}].");
+    }
 
-        throw_unless(isset($types[$key]), InvalidArgumentException::class, "Unknown letter type [{$key}].");
-
-        return $types[$key];
+    public static function tryFind(string $key): ?LetterType
+    {
+        return self::all()[$key] ?? null;
     }
 
     public static function keyOf(LetterType|string $type): string

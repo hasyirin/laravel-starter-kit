@@ -13,7 +13,9 @@ use Tests\Fixtures\Models\Permit;
 use Tests\Fixtures\Policies\PermitPolicy;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\PermitLetter;
+use Tests\Fixtures\Support\PermitLockedLetter;
 use Tests\Fixtures\Support\PermitRestrictedLetter;
+use Tests\Fixtures\Support\PermitSignedLetter;
 
 beforeEach(function (): void {
     Schema::create('permits', function (Blueprint $table): void {
@@ -125,3 +127,27 @@ test('create without a type skips letter types that are not allowed for the user
 
     expect($this->user->can('create', Permit::query()->create(['name' => 'Open'])->letters()->make()))->toBeFalse();
 });
+
+test('create fails for a letter type the user cannot save, with or without the type', function (string $class, array $permit): void {
+    config(['system.letters.types' => ['blocked' => $class]]);
+    $source = Permit::query()->create(['name' => 'Open', ...$permit]);
+
+    expect($this->user->can('create', $source->letters()->make()))->toBeFalse()
+        ->and($this->user->can('create', $source->letters()->make(['type' => 'blocked'])))->toBeFalse();
+})->with([
+    'a required signer without print' => [PermitSignedLetter::class, ['hidden' => true]],
+    'a locked required extra field' => [PermitLockedLetter::class, []],
+]);
+
+test('a letter of an unknown type passes only view, and delete with the update ability of the source', function (string $ability, array $permit, bool $allowed): void {
+    $letter = Permit::query()->create(['name' => 'Open', ...$permit])->letters()->create(['type' => 'removed']);
+
+    expect($this->user->can($ability, $letter))->toBe($allowed);
+})->with([
+    'view' => ['view', [], true],
+    'print' => ['print', [], false],
+    'create' => ['create', [], false],
+    'update' => ['update', [], false],
+    'delete' => ['delete', [], true],
+    'delete on a locked source' => ['delete', ['locked' => true], false],
+]);

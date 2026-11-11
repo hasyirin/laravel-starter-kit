@@ -9,6 +9,7 @@ use App\Domain\Shared\Letter\Actions\PrintLetter;
 use App\Domain\Shared\Letter\Actions\UploadSignedScan;
 use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Media\Rules\Uploads;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
@@ -125,7 +126,7 @@ class LetterDataTable extends DataTable
         return [
             TextColumn::make('type')
                 ->label((string) __('letters/letters.type'))
-                ->formatStateUsing(fn (Letter $record): string => $record->letter_type->label()),
+                ->formatStateUsing(fn (Letter $record): string => LetterTypes::tryFind($record->type)?->label() ?? $record->type),
             TextColumn::make('reference_number')->label((string) __('letters/letters.reference_number'))->searchable(),
             TextColumn::make('date')
                 ->label((string) __('letters/letters.date'))

@@ -79,3 +79,13 @@ test('a delete of a typed reference number records nothing', function (): void {
 
     expect(RunningNumberUndo::query()->count())->toBe(0);
 });
+
+test('a delete of a letter of an unknown type records nothing', function (): void {
+    $letter = numberedLetter();
+    config(['system.letters.types' => []]);
+
+    DeleteLetter::make()->execute($letter);
+
+    expect(Letter::withTrashed()->find($letter->id)?->trashed())->toBeTrue()
+        ->and(RunningNumberUndo::query()->count())->toBe(0);
+});

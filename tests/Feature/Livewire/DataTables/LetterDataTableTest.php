@@ -178,6 +178,19 @@ test('the table hides print but keeps delete for a letter type that is not allow
     $table->assertActionVisible(TestAction::make('delete')->table($letter));
 });
 
+test('a letter of an unknown type shows its key as the type and can only be deleted', function (): void {
+    $letter = tableLetter('removed');
+
+    $table = letterTable()->assertTableColumnFormattedStateSet('type', 'removed', $letter);
+    foreach (['edit', 'print', 'preview', 'upload_scan'] as $name) {
+        $table->assertActionHidden(TestAction::make($name)->table($letter));
+    }
+
+    $table->callAction(TestAction::make('delete')->table($letter))->assertHasNoErrors();
+
+    expect(Letter::query()->find($letter->id))->toBeNull();
+});
+
 test('the row click runs the edit action', function (): void {
     $letter = tableLetter();
 

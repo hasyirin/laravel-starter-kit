@@ -328,6 +328,10 @@ A letter type can override `sourceAbility()`. For example, it can return `archiv
 
 `allowedFor()` limits who may use a letter type. It does not stop the cleanup of old letters. So `delete` needs only the source ability. If a letter type later refuses everyone, its letters can still be deleted.
 
+`create` also refuses a letter type that the user cannot save. This is a type with a required signer when the user cannot `print`, or a type that locks a required extra field. `create` without a type passes when one letter type of the source passes. So the letters table shows its create button only when the type list of the form has a type.
+
+A letter of an unknown type has a key that is not in `system.letters.types` any more, for example after a letter type was removed. Such a letter passes only `view`, and `delete` with the `update` ability of the source. The letters table shows its raw key as the type. `DeleteLetter` does not release its number.
+
 `LetterPolicy` and `AuditEntryPolicy` are two stated exceptions to the rule that a policy extends `Policy` and checks permissions with `hasPermission()`.
 
 - `LetterPolicy` has no permissions. The source decides, so each app controls its letters through the policy of its source.
@@ -336,7 +340,7 @@ A letter type can override `sourceAbility()`. For example, it can return `archiv
 In the letter form:
 
 - The print choices (signer, carbon copies, letterhead, computer signed) need the `print` ability.
-- A user without `print` cannot choose a signer. So for a new letter, the type list hides each letter type with a required signer.
+- A user without `print` cannot choose a signer. So for a new letter, the type list hides each letter type that `create` refuses.
 - The reference number, the sequence number, the date, and the extra fields need the `update` ability.
 - The signed scan upload needs `print`, not `update`. Scans come back after the source is locked.
 - The preview route `letters.preview` needs `print`. If the letter cannot be printed, the preview shows the messages with the status 422. It does not redirect.
@@ -420,6 +424,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a deleted number is not given again
 - a delete after the cycle ended records nothing and keeps the number
 - a delete of a typed reference number records nothing
+- a delete of a letter of an unknown type records nothing
 
 ### FindLetterhead
 
@@ -576,6 +581,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - create without a type fails when the source has no letter type
 - a letter type that is not allowed for the user passes only view and delete
 - create without a type skips letter types that are not allowed for the user
+- create fails for a letter type the user cannot save, with or without the type
+- a letter of an unknown type passes only view, and delete with the update ability of the source
 
 ### LetterheadPolicy
 

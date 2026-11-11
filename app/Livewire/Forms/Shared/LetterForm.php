@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Livewire\Forms\Shared;
 
 use App\Domain\Shared\Letter\Actions\SaveLetter;
-use App\Domain\Shared\Letter\Enums\FieldType;
 use App\Domain\Shared\Letter\Enums\NumberingMode;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
-use App\Domain\Shared\Letter\Support\Field;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PrintDetails;
@@ -99,7 +97,7 @@ class LetterForm extends Form
 
     public function letterType(): ?LetterType
     {
-        return LetterTypes::all()[$this->type] ?? null;
+        return LetterTypes::tryFind($this->type);
     }
 
     /**
@@ -111,7 +109,7 @@ class LetterForm extends Form
         $new = ! $this->letter->exists;
 
         return collect(LetterTypes::forSource($this->source))
-            ->filter(fn (LetterType $type): bool => $type->allowedFor($printer) && (! $new || $this->creatable($type)))
+            ->filter(fn (LetterType $type, string $key): bool => $type->allowedFor($printer) && (! $new || $this->can('create', $this->newLetter($key))))
             ->all();
     }
 
@@ -166,7 +164,7 @@ class LetterForm extends Form
         assert($type instanceof LetterType);
 
         if (! $this->letter->exists) {
-            $this->authorize('create', $this->source->morphMany(Letter::class, 'source')->make(['type' => $this->type]));
+            $this->authorize('create', $this->newLetter($this->type));
         }
 
         try {
@@ -265,19 +263,9 @@ class LetterForm extends Form
         return $this->copyRows($this->letter->exists ? $this->letter->carbon_copies : []);
     }
 
-    private function creatable(LetterType $type): bool
+    private function newLetter(string $type): Letter
     {
-        $lockedRequired = collect($type->extraFields())->contains(
-            fn (Field $field): bool => in_array($field->name, $type->lockedFields(), true) && ! $field->isOptional && $field->type !== FieldType::Group,
-        );
-
-        $signerRequired = $type->signer() === SignerRequirement::Required;
-
-        if ($lockedRequired || ($signerRequired && $this->cannot($type->sourceAbility('print'), $this->source))) {
-            return false;
-        }
-
-        return $this->can($type->sourceAbility('create'), $this->source);
+        return $this->source->morphMany(Letter::class, 'source')->make(['type' => $type])->setRelation('source', $this->source);
     }
 
     private function signer(): ?User

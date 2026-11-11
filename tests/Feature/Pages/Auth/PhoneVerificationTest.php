@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PhoneVerificationCodeSms;
 use App\Domain\User\Support\Impersonation;
 use App\Livewire\Auth\VerifyPhone;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
@@ -80,6 +82,29 @@ test('resending too soon says when to try again', function (): void {
     $this->actingAs($user = User::factory()->unverifiedPhone()->create());
 
     Livewire::test(VerifyPhone::class)->call('send')->assertSee('Too many codes. Try again in 1 minute.');
+
+    Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 1);
+});
+
+test('a failed sms goes to the log, and the page asks the user to try again later', function (): void {
+    Exceptions::fake();
+    $this->mock(SmsGateway::class)->expects('send')->andThrow(new RuntimeException('The provider refused the SMS.'));
+    $this->actingAs(User::factory()->unverifiedPhone()->create());
+
+    Livewire::test(VerifyPhone::class)->assertSee('We could not send the code. Try again later.');
+
+    Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'The provider refused the SMS.');
+});
+
+test('opening the page again after a failed sms sends a code', function (): void {
+    Exceptions::fake();
+    $this->mock(SmsGateway::class)->expects('send')->andThrow(new RuntimeException('The provider refused the SMS.'));
+    $this->actingAs($user = User::factory()->unverifiedPhone()->create());
+    Livewire::test(VerifyPhone::class);
+    $this->travel(60)->seconds();
+    Notification::fake();
+
+    Livewire::test(VerifyPhone::class);
 
     Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 1);
 });

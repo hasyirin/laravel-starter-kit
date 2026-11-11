@@ -67,7 +67,7 @@ final readonly class SmsCode
         return $passed;
     }
 
-    private function forget(): void
+    public function forget(): void
     {
         cache()->forget($this->cacheKey());
         cache()->forget($this->triesKey());

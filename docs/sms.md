@@ -31,7 +31,7 @@ class AcmeGateway implements SmsGateway
 ],
 ```
 
-Throw an exception when the provider refuses an SMS. The phone verification page then shows an error, and the user does not wait for a code. The SMS password reset sends its code after the response, so the response takes the same time for every number. There, a failed send goes to the log.
+Throw an exception when the provider refuses an SMS. The phone verification page then reports the exception and asks the user to try again later. The code that did not go out stops working, so the next visit sends a new one. The SMS password reset sends its code after the response, so the response takes the same time for every number. There, a failed send goes to the log.
 
 ## Calling Codes
 

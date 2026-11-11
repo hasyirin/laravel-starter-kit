@@ -6,6 +6,7 @@ namespace App\Domain\User\Concerns;
 
 use App\Domain\User\Notifications\PhoneVerificationCodeSms;
 use App\Domain\User\Support\SmsCode;
+use Throwable;
 
 trait InteractsWithPhoneVerification
 {
@@ -27,7 +28,15 @@ trait InteractsWithPhoneVerification
             return;
         }
 
-        $this->notify(new PhoneVerificationCodeSms(SmsCode::forVerification($phone)->issue()));
+        $smsCode = SmsCode::forVerification($phone);
+
+        try {
+            $this->notify(new PhoneVerificationCodeSms($smsCode->issue()));
+        } catch (Throwable $throwable) {
+            $smsCode->forget();
+
+            throw $throwable;
+        }
     }
 
     public function getPhoneForVerification(): ?string

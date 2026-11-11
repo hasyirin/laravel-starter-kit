@@ -18,6 +18,7 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Throwable;
 
 class VerifyPhone extends Component
 {
@@ -85,6 +86,12 @@ class VerifyPhone extends Component
             SendPhoneVerificationCode::make()->execute($this->user());
         } catch (SmsCodeThrottled $smsCodeThrottled) {
             $this->notice = (string) __('auth/verify-phone.throttled', ['time' => $this->waitTime($smsCodeThrottled->seconds)]);
+
+            return false;
+        } catch (Throwable $throwable) {
+            report($throwable);
+
+            $this->notice = (string) __('auth/verify-phone.failed');
 
             return false;
         }

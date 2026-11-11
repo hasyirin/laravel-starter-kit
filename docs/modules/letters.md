@@ -85,6 +85,8 @@ The mapping makes every decision. It compares dates with `$date`, never with tod
 
 An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. An uploaded image can be at most 10 MB. A table field cannot have an image column.
 
+An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images.
+
 #### Other Settings
 
 Override these methods only when the letter type needs them.
@@ -464,6 +466,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an unticked group prints no section
 - an upload ends on the audit entry and its uuid is logged
 - a preview keeps the upload out of the audit log
+- a failed audit entry leaves no stored image
 - an image of the source stays on the source and its uuid is logged
 - an image uuid of another owner is refused
 - a missing required value is refused with a key for the part
@@ -505,6 +508,10 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an extra image is stored in the data collection and its uuid is kept
 - an extra image that is kept by uuid is not stored twice
 - a refused save leaves no stored image and keeps the upload for a retry
+- a replaced extra image is deleted with its file
+- a removed extra image is deleted with its file
+- a refused save keeps the extra image it would replace
+- a failed image cleanup is reported and the refusal is thrown
 - a typed reference number keeps the sequence key of the printer organization
 - a typed duplicate reference number is refused
 - a typed reference number of a deleted letter is refused

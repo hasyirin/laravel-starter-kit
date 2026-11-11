@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use LogicException;
+use Throwable;
 
 class PrintManualLetter
 {
@@ -125,6 +126,23 @@ class PrintManualLetter
      * @param  array<string, mixed>  $extra
      */
     private function log(LetterType $type, string $key, array $data, array $extra, PrintDetails $details, User $admin, ?Model $source, ?Letter $letter): void
+    {
+        $this->storedImages = [];
+
+        try {
+            $this->writeEntry($type, $key, $data, $extra, $details, $admin, $source, $letter);
+        } catch (Throwable $throwable) {
+            $this->removeStoredImages();
+
+            throw $throwable;
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<string, mixed>  $extra
+     */
+    private function writeEntry(LetterType $type, string $key, array $data, array $extra, PrintDetails $details, User $admin, ?Model $source, ?Letter $letter): void
     {
         DB::transaction(function () use ($type, $key, $data, $extra, $details, $admin, $source, $letter): void {
             /** @var AuditEntry $entry */

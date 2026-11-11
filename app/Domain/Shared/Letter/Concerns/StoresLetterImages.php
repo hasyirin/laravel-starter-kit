@@ -52,7 +52,7 @@ trait StoresLetterImages
     protected function removeStoredImages(): void
     {
         foreach ($this->storedImages as $media) {
-            resolve(Filesystem::class)->removeAllFiles($media);
+            rescue(fn () => resolve(Filesystem::class)->removeAllFiles($media));
         }
 
         $this->storedImages = [];

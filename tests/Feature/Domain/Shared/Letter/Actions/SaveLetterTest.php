@@ -16,11 +16,15 @@ use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Livewire\Components\FileUpload;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Filesystem\Factory;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Livewire;
+use Spatie\MediaLibrary\MediaCollections\Filesystem;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\Fixtures\Support\ExtraNoticeLetter;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\NumberedNoticeLetter;
@@ -207,6 +211,53 @@ test('a refused save leaves no stored image and keeps the upload for a retry', f
     expect($media)->toHaveCount(1)
         ->and(Storage::disk('media')->allFiles())->toContain("{$media->first()->id}/stamp.png")
         ->each->toStartWith("{$media->first()->id}/");
+});
+
+test('a replaced extra image is deleted with its file', function (): void {
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+    $old = $letter->getMedia(LetterMedia::Data)->sole();
+
+    saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()], $letter);
+
+    $media = $letter->fresh()->getMedia(LetterMedia::Data)->sole();
+    expect($media->uuid)->not->toBe($old->uuid)
+        ->and(Storage::disk('media')->allFiles())->each->toStartWith("{$media->id}/");
+});
+
+test('a removed extra image is deleted with its file', function (): void {
+    $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+
+    saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => null], $letter);
+
+    expect($letter->fresh()->getMedia(LetterMedia::Data))->toBeEmpty()
+        ->and(Storage::disk('media')->allFiles())->toBeEmpty();
+});
+
+test('a refused save keeps the extra image it would replace', function (): void {
+    saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
+    $letter = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
+    $old = $letter->getMedia(LetterMedia::Data)->sole();
+
+    expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => extraUpload()], $letter))->toThrow(ValidationException::class);
+
+    expect($letter->fresh()->getMedia(LetterMedia::Data)->sole()->uuid)->toBe($old->uuid)
+        ->and(Storage::disk('media')->allFiles())->toContain("{$old->id}/stamp.png")
+        ->each->toStartWith("{$old->id}/");
+});
+
+test('a failed image cleanup is reported and the refusal is thrown', function (): void {
+    Exceptions::fake();
+    app()->instance(Filesystem::class, new class(resolve(Factory::class)) extends Filesystem
+    {
+        public function removeAllFiles(Media $media): void
+        {
+            throw new RuntimeException('The cleanup failed.');
+        }
+    });
+    saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
+
+    expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => extraUpload()]))->toThrow(ValidationException::class);
+    Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'The cleanup failed.');
 });
 
 test('a typed reference number keeps the sequence key of the printer organization', function (): void {

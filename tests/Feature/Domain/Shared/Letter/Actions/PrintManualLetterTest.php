@@ -145,6 +145,14 @@ test('a preview keeps the upload out of the audit log', function (): void {
     expect(manualEntries()->count())->toBe(0)->and(DB::table('media')->count())->toBe(0);
 });
 
+test('a failed audit entry leaves no stored image', function (): void {
+    AuditEntry::updating(fn (): never => throw new RuntimeException('The audit entry failed.'));
+
+    expect(fn (): PdfFile => printManual('printed', noticeData(), ['remark' => 'Reminder', 'stamp' => stampUpload()]))->toThrow(RuntimeException::class, 'The audit entry failed.');
+    expect(manualEntries()->count())->toBe(0)
+        ->and(Storage::disk('media')->allFiles())->toBeEmpty();
+});
+
 function manualCrestImage(): Media
 {
     Schema::create('crests', function (Blueprint $table): void {

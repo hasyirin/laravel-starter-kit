@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Validation\ValidationException;
 use LogicException;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
 
 class SaveLetter
@@ -78,6 +79,7 @@ class SaveLetter
 
             $letter->extra = $this->storeImages($letter, LetterMedia::Data->value, $type->extraFields(), $validated);
             $letter->save();
+            $letter->getConnection()->afterCommit(fn () => $this->removeUnusedImages($letter));
 
             $this->syncSigner($letter, $details->signer);
 
@@ -85,6 +87,15 @@ class SaveLetter
 
             return $letter;
         });
+    }
+
+    private function removeUnusedImages(Letter $letter): void
+    {
+        $letter->media()
+            ->where('collection_name', LetterMedia::Data->value)
+            ->whereNotIn('uuid', collect($letter->extra)->flatten()->filter(fn (mixed $value): bool => is_string($value)))
+            ->get()
+            ->each(fn (Media $media) => rescue(fn () => $media->delete()));
     }
 
     private function number(Letter $letter, LetterType $type, User $printer, PrintDetails $details): void

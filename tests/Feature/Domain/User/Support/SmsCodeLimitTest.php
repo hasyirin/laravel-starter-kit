@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Support\SmsCodeLimit;
+use Illuminate\Cache\Events\RetrievingKey;
+use Illuminate\Support\Facades\Event;
 
 test('each key allows one sms code per minute', function (): void {
     SmsCodeLimit::attempt('a');
@@ -44,4 +46,16 @@ test('a throttled attempt counts against no key', function (): void {
 
     expect(fn () => SmsCodeLimit::attempt('phone-b', 'ip'))->toThrow(SmsCodeThrottled::class)
         ->and(fn () => SmsCodeLimit::attempt('phone-b'))->not->toThrow(SmsCodeThrottled::class);
+});
+
+test('the cache keys of the limit do not show the phone number', function (): void {
+    $cacheKeys = collect();
+    Event::listen(RetrievingKey::class, function (RetrievingKey $event) use ($cacheKeys): void {
+        $cacheKeys->push($event->key);
+    });
+
+    SmsCodeLimit::attempt('password-reset:phone:+60123456789');
+
+    expect($cacheKeys)->not->toBeEmpty()
+        ->each->not->toContain('60123456789');
 });

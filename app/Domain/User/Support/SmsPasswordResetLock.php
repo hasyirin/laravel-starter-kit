@@ -35,6 +35,6 @@ final class SmsPasswordResetLock
 
     private static function key(#[SensitiveParameter] string $phone): string
     {
-        return "sms-password-reset-lock:{$phone}";
+        return 'sms-password-reset-lock:'.hash('sha256', $phone);
     }
 }

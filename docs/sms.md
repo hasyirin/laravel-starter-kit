@@ -36,6 +36,8 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 
 `SmsPasswordResetLock` counts the failed codes on the SMS password reset for each number. A code fails when it is wrong, expired, used, or out of tries. The cache no longer holds an expired or used code, so the server cannot tell it from a wrong one. A code that expires unused does not count. After 10 failed codes, it locks the SMS password reset for the number until 24 hours after the first failed code. It counts for every number, also for a number that belongs to no user, so the lock does not show which numbers have an account. During the lock, the reset page sends no code to the number and refuses every code, also the right one. The user can still reset the password by email.
 
+`SmsCode`, `SmsCodeLimit`, and `SmsPasswordResetLock` hash the number before it goes into a cache key. So a list of the cache keys shows no phone numbers.
+
 ## Before You Go Live
 
 1. Add a gateway for the SMS provider of the organization. See Add a Gateway.

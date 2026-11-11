@@ -23,10 +23,12 @@ final class SmsCodeLimit
      */
     public static function attempt(#[SensitiveParameter] string ...$keys): void
     {
-        $windows = collect($keys)->flatMap(fn (string $key): array => collect(self::WINDOWS)
-            ->map(fn (array $window, string $name): array => ['key' => "sms:{$key}:{$name}", ...$window])
-            ->values()
-            ->all());
+        $windows = collect($keys)
+            ->map(fn (#[SensitiveParameter] string $key): string => hash('sha256', $key))
+            ->flatMap(fn (string $hash): array => collect(self::WINDOWS)
+                ->map(fn (array $window, string $name): array => ['key' => "sms:{$hash}:{$name}", ...$window])
+                ->values()
+                ->all());
 
         $wait = $windows
             ->filter(fn (array $window): bool => RateLimiter::tooManyAttempts($window['key'], $window['attempts']))

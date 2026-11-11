@@ -7,6 +7,7 @@ use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\Shared\Permission\Seeders\RoleSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\Components\Option;
 use App\Livewire\Pages\Internal\Controls\User\Create;
@@ -36,6 +37,7 @@ test('a new user opens on their page', function (): void {
     Livewire::test(Create::class)
         ->set('form.name', 'New Person')
         ->set('form.email', 'new.person@example.com')
+        ->set('form.phone', '+60123456781')
         ->set('form.password', 'Str0ng-Passw0rd!')
         ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
         ->set('form.organization_id', $organization->id)
@@ -59,6 +61,7 @@ test('a new user gets the ticked roles and permissions', function (): void {
     Livewire::test(Create::class)
         ->set('form.name', 'New Person')
         ->set('form.email', 'new.person@example.com')
+        ->set('form.phone', '+60123456782')
         ->set('form.password', 'Str0ng-Passw0rd!')
         ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
         ->set('form.roles', ['editor'])
@@ -83,6 +86,7 @@ test('roles and permissions are left out without update-roles and update-permiss
     $component
         ->set('form.name', 'New Person')
         ->set('form.email', 'new.person@example.com')
+        ->set('form.phone', '+60123456783')
         ->set('form.password', 'Str0ng-Passw0rd!')
         ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
         ->set('form.roles', ['editor'])
@@ -106,6 +110,7 @@ test('a position without a department can be picked without a department', funct
     $component
         ->set('form.name', 'New Person')
         ->set('form.email', 'new.person@example.com')
+        ->set('form.phone', '+60123456784')
         ->set('form.password', 'Str0ng-Passw0rd!')
         ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
         ->set('form.position_id', $position->id)
@@ -125,6 +130,7 @@ test('a department of another organization is refused', function (): void {
     Livewire::test(Create::class)
         ->set('form.name', 'New Person')
         ->set('form.email', 'new.person@example.com')
+        ->set('form.phone', '+60123456785')
         ->set('form.password', 'Str0ng-Passw0rd!')
         ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
         ->set('form.organization_id', $organization->id)
@@ -168,6 +174,38 @@ test('the password is required on create', function (): void {
     Livewire::test(Create::class)
         ->set('form.name', 'New Person')
         ->set('form.email', 'new.person@example.com')
+        ->set('form.phone', '+60123456786')
         ->call('save')
         ->assertHasErrors('form.password');
 });
+
+test('a new user needs a phone number', function (): void {
+    grantPermissions($this->actor, 'internal.controls.users.create');
+
+    Livewire::test(Create::class)
+        ->set('form.name', 'New Person')
+        ->set('form.email', 'new.person@example.com')
+        ->set('form.password', 'Str0ng-Passw0rd!')
+        ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
+        ->call('save')
+        ->assertHasErrors(['form.phone' => 'required']);
+});
+
+test('a new user who gets bypass may have no phone number', function (string $property, array $value): void {
+    $this->seed(RoleSeeder::class);
+    grantPermissions($this->actor, 'bypass-authorization');
+
+    Livewire::test(Create::class)
+        ->set('form.name', 'New Admin')
+        ->set('form.email', 'new.admin@example.com')
+        ->set('form.password', 'Str0ng-Passw0rd!')
+        ->set('form.password_confirmation', 'Str0ng-Passw0rd!')
+        ->set($property, $value)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(User::query()->where('email', 'new.admin@example.com')->value('phone'))->toBeNull();
+})->with([
+    'through the system-admin role' => ['form.roles', ['system-admin']],
+    'through the bypass permission' => ['form.permissions', ['bypass-authorization']],
+]);

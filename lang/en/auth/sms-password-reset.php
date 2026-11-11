@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'title' => 'Reset password by SMS',
+    'heading' => 'Reset password by SMS',
+    'description' => 'Enter your phone number, and we will send a code to it.',
+    'send' => 'Send code',
+    'sent' => 'If this number belongs to a user with a verified phone number, we sent a code to it.',
+    'resend' => 'Resend code',
+    'resent' => 'We sent a new code.',
+    'change_number' => 'Use another number',
+    'throttled' => 'Too many codes. Try again in :time.',
+    'locked' => 'Too many wrong codes for this number. Try again in :time, or reset your password by email.',
+    'mail' => [
+        'subject' => 'Password reset by SMS',
+        'line' => 'Someone used an SMS code to start a password reset for your account.',
+        'warning' => 'If this was not you, reset your password by email now.',
+    ],
+];

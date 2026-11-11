@@ -12,6 +12,8 @@ use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Mail\Concerns\RoutesResentMail;
 use App\Domain\Shared\Permission\Concerns\HasRoles;
 use App\Domain\User\Concerns\HasProfile;
+use App\Domain\User\Concerns\InteractsWithPhoneVerification;
+use App\Domain\User\Contracts\Models\MustVerifyPhone;
 use App\Domain\User\Factories\UserFactory;
 use App\Domain\User\Notifications\ResetPassword;
 use App\Domain\User\Notifications\VerifyEmail;
@@ -25,6 +27,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use SensitiveParameter;
 use Spatie\Activitylog\Models\Concerns\CausesActivity;
 
 /**
@@ -32,6 +35,8 @@ use Spatie\Activitylog\Models\Concerns\CausesActivity;
  * @property string $name
  * @property string $email
  * @property CarbonImmutable|null $email_verified_at
+ * @property string|null $phone
+ * @property CarbonImmutable|null $phone_verified_at
  * @property string $password
  * @property string|null $timezone
  * @property string|null $locale
@@ -43,7 +48,7 @@ use Spatie\Activitylog\Models\Concerns\CausesActivity;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  */
-class User extends Authenticatable implements HasActorName, HasMedia, MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements HasActorName, HasMedia, MustVerifyEmail, MustVerifyPhone, PasskeyUser
 {
     use CausesActivity;
 
@@ -54,6 +59,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     use HasRoles;
     use InteractsWithAuditLog;
     use InteractsWithMedia;
+    use InteractsWithPhoneVerification;
     use InteractsWithTimestamps;
     use RoutesResentMail;
     use SoftDeletes;
@@ -61,6 +67,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'timezone',
         'locale',
@@ -83,6 +90,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
         return [
             'password' => 'hashed',
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
@@ -114,10 +122,32 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
         return $this->name;
     }
 
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        $email = $this->email;
+
+        // Fortify's email link calls this method directly, so the check for a changed email lives here, not in an action.
+        return $this->getConnection()->transaction(function () use ($email): bool {
+            $this->newQueryWithoutRelationships()->whereKey($this->getKey())->lockForUpdate()->first();
+            $this->refresh();
+
+            if ($this->email !== $email || $this->hasVerifiedEmail()) {
+                return false;
+            }
+
+            return $this->forceFill(['email_verified_at' => $this->freshTimestamp()])->save();
+        });
+    }
+
     /**
      * @param  string  $token
      */
-    public function sendPasswordResetNotification($token): void
+    public function sendPasswordResetNotification(#[SensitiveParameter] $token): void
     {
         $this->notify(new ResetPassword($token));
     }

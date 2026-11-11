@@ -34,6 +34,7 @@ A personal starting point for new Laravel projects. It starts from the official 
 - **Upload limit** is 1GB for the media library and for Livewire temporary uploads. PHP `upload_max_filesize` and `post_max_size` must also allow this size.
 - **PostgreSQL** is the production database. Local work and tests use SQLite. The migrations need PostgreSQL or SQLite, because the users table uses a partial unique index, which MySQL and MariaDB do not support.
 - **Users are soft deleted.** Deleting an account keeps the row. A deleted user cannot log in. Their email is free to register again, because the unique index on `users.email` covers only users that are not deleted.
+- **Phone numbers** are on users, in E.164 format, and unique among users that are not deleted. A user verifies the number with a 6-digit SMS code on the phone verification page, and the `phone.verified` middleware stands next to `verified`. A user who holds `bypass-authorization` passes both checks and needs no number. Users can also reset their password with an SMS code. The kit sends SMS through its own channel, and each app adds a gateway for its SMS provider. See [SMS](docs/sms.md), [ADR-0013](docs/adr/0013-every-user-verifies-a-phone-number.md), and [ADR-0014](docs/adr/0014-the-kit-sends-sms-through-its-own-channel.md).
 - **Roles and permissions** use Spatie Permission. `config/system.php` defines the permissions. `PermissionSeeder` creates them and deletes the ones that are no longer in the config. `RoleSeeder` only adds permissions to roles, so the changes that people make in production stay. A user with the `bypass-authorization` permission passes every Gate check. The seeders create the system roles (`is_system`). Nobody can rename or delete a system role.
 - **Profiles** (`App\Domain\User\Models\Profile`) record a user's organization, department, position, branch, roles, and permissions. A user can have many profiles, and the newest one is active. A user has the roles and permissions of their active profile, plus any given to the user directly. The role and permission checks and lists on a user, such as `hasRole()` and `getPermissionNames()`, count both. The `role()` and `permission()` query scopes count both too. The kit itself gives access only through profiles. So its user pages do not show a direct grant, and its audit log does not record one. See [ADR-0007](docs/adr/0007-access-comes-from-the-active-profile-and-direct-grants.md). Profiles are snapshots: you cannot update or delete a profile. To change any of these values, create a new profile. `withEndedAt()` adds `ended_at`, the creation time of the user's next profile. The department, branch, and position must belong to the profile's organization, and the position must also belong to its department. Give a profile its roles and permissions before its first save, because they cannot change after that. You cannot delete a role that a profile has.
 - **Emails** are stored in lowercase, because Fortify compares them at login and password reset. So an address that differs only in case counts as taken.
@@ -44,6 +45,7 @@ A personal starting point for new Laravel projects. It starts from the official 
 - **Mail intercept** sends every email to the current user when `MAIL_INTERCEPT=true`. Use it on local or staging copies with real data, so no email reaches a real recipient. If there is no current user, the email goes to `MAIL_INTERCEPT_ADDRESS`. If that is empty too, the app drops the email. A queued email goes to the user who was logged in when the app queued it. The intercept is always off in production.
 - **Context** carries `trace_id` and `user_id` into every log line and queued job, and the time zone and locale of the request as hidden values. Each request gets a trace ID, or reuses a valid incoming `X-Request-Id`, and the response returns it in `X-Request-Id`. Activity logged in queued jobs uses the `user_id` from Context as its causer.
 - **Daily log files** replace the single log file (`LOG_STACK=daily`).
+- **Secrets stay out of stack traces.** Parameters that hold a phone number, a password, a one-time code, a password reset token, or an SMS text have `#[\SensitiveParameter]`, so a stack trace does not show them. `SensitiveParameterTest` fails when such a parameter lacks it.
 - **`APP_DOMAIN`** is a new setting. It is available as `config('app.domain')`, and `APP_URL` is built from it.
 - **Livewire config** is published to `config/livewire.php`.
 - **HTTPS** is forced for all generated URLs, in every environment. Serve the app over HTTPS locally too.
@@ -157,6 +159,8 @@ gh secret set FLUX_LICENSE_KEY --app dependabot
 Pull requests from forks do not get these secrets, so their CI fails when Composer installs Flux Pro.
 
 ## Deployment
+
+Set an SMS gateway before the app goes live. See [SMS](docs/sms.md).
 
 Keep these processes running on the server:
 

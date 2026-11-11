@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\SmsPasswordResetLock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Testing\TestResponse;
@@ -116,4 +117,16 @@ function browserScript(string $body): string
         SCRIPT;
 
     return "async () => {\n{$helpers}\n{$body}\n}";
+}
+
+function wrongSmsCode(string $code): string
+{
+    return $code === '000000' ? '111111' : '000000';
+}
+
+function lockSmsPasswordReset(string $phone): void
+{
+    foreach (range(1, 10) as $try) {
+        SmsPasswordResetLock::countWrongCode($phone);
+    }
 }

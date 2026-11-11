@@ -23,6 +23,20 @@
                 @endif
             </div>
 
+            <div>
+                <x-input.phone wire:model="phone" :label="__('common/inputs.phone')" :required="$this->phoneRequired" autocomplete="tel" />
+
+                @if($this->phoneUnverified)
+                    <flux:text class="mt-4">
+                        {{ __('user/settings.user_information.phone_unverified') }}
+
+                        <flux:link class="text-sm" :href="route('phone-verification.notice')" wire:navigate>
+                            {{ __('user/settings.user_information.verify_phone') }}
+                        </flux:link>
+                    </flux:text>
+                @endif
+            </div>
+
             <div class="flex justify-end gap-2">
                 <flux:button variant="primary" type="submit">{{ __('common/buttons.save') }}</flux:button>
             </div>

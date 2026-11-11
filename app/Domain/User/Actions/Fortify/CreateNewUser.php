@@ -10,6 +10,7 @@ use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use SensitiveParameter;
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -21,7 +22,7 @@ class CreateNewUser implements CreatesNewUsers
      *
      * @param  array<string, string>  $input
      */
-    public function create(array $input): User
+    public function create(#[SensitiveParameter] array $input): User
     {
         Validator::make($input, [
             ...$this->userInformationRules(),
@@ -31,6 +32,7 @@ class CreateNewUser implements CreatesNewUsers
         return User::query()->create([
             'name' => $input['name'],
             'email' => $input['email'],
+            'phone' => $input['phone'],
             'password' => $input['password'],
         ]);
     }

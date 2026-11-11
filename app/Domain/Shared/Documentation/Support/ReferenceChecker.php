@@ -27,6 +27,11 @@ class ReferenceChecker
     private readonly Collection $routes;
 
     /**
+     * @var Collection<int, string>
+     */
+    private readonly Collection $middleware;
+
+    /**
      * @var array<string, list<string>>
      */
     private array $classesByName = [];
@@ -60,6 +65,7 @@ class ReferenceChecker
     {
         $this->permissions = new PermissionSeeder()->data();
         $this->routes = collect(resolve(Router::class)->getRoutes()->getRoutesByName())->keys();
+        $this->middleware = collect(resolve(Router::class)->getMiddleware())->keys();
         $this->indexClasses();
 
         $files = collect(iterator_to_array(Finder::create()->files()->in(base_path())->exclude(['vendor', 'node_modules', 'storage', 'public', 'bootstrap/cache'])));
@@ -112,7 +118,7 @@ class ReferenceChecker
         }
 
         if (preg_match('/^[a-z0-9_*-]+(?:\.[a-z0-9_*-]+)+$/', $reference) === 1) {
-            return $this->isName($reference) ? null : 'is not a permission, route name, config key, or table column';
+            return $this->isName($reference) ? null : 'is not a permission, route name, middleware alias, config key, or table column';
         }
 
         return null;
@@ -190,6 +196,7 @@ class ReferenceChecker
     {
         return $this->permissions->contains(fn (string $permission): bool => str($permission)->is($name))
             || $this->routes->contains(fn (string $route): bool => str($route)->is($name))
+            || $this->middleware->contains($name)
             || config()->has($name)
             || in_array($name, $this->columns, true);
     }

@@ -356,6 +356,8 @@ erDiagram
         datetime two_factor_confirmed_at
         string timezone
         string locale
+        string phone
+        datetime phone_verified_at
     }
     branches |o--o{ letterheads : "branch_id"
     branches |o--o{ profiles : "branch_id"

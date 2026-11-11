@@ -8,6 +8,7 @@ use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
+use SensitiveParameter;
 
 class UpdateUser
 {
@@ -24,16 +25,24 @@ class UpdateUser
         User $user,
         string $name,
         string $email,
-        ?string $password,
+        #[SensitiveParameter] ?string $phone,
+        #[SensitiveParameter] ?string $password,
         Placement $placement,
         ?array $roles = null,
         ?array $permissions = null,
     ): void {
-        $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $password, $placement, $roles, $permissions): void {
-            $user->fill(['name' => $name, 'email' => $email]);
+        $user->getConnection()->transaction(function () use ($actor, $user, $name, $email, $phone, $password, $placement, $roles, $permissions): void {
+            $user->newQueryWithoutRelationships()->whereKey($user->getKey())->lockForUpdate()->first();
+            $user->refresh();
+
+            $user->fill(['name' => $name, 'email' => $email, 'phone' => $phone]);
 
             if ($user->isDirty('email')) {
                 $user->email_verified_at = null;
+            }
+
+            if ($user->isDirty('phone')) {
+                $user->phone_verified_at = null;
             }
 
             if ($password !== null) {

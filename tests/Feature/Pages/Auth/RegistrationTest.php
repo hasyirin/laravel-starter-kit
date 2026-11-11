@@ -19,6 +19,7 @@ test('new users can register', function (): void {
     $response = $this->post(route('register.store'), [
         'name' => 'John Doe',
         'email' => 'test@example.com',
+        'phone' => '+60123456789',
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);
@@ -35,6 +36,7 @@ test('users cannot register with an email that another user has', function (): v
     $this->post(route('register.store'), [
         'name' => 'John Doe',
         'email' => 'test@example.com',
+        'phone' => '+60123456789',
         'password' => 'password',
         'password_confirmation' => 'password',
     ])->assertSessionHasErrors('email');
@@ -48,6 +50,7 @@ test('users can register again with the email of a deleted account', function ()
     $this->post(route('register.store'), [
         'name' => 'John Doe',
         'email' => 'test@example.com',
+        'phone' => '+60123456789',
         'password' => 'password',
         'password_confirmation' => 'password',
     ])->assertSessionHasNoErrors();
@@ -56,3 +59,30 @@ test('users can register again with the email of a deleted account', function ()
 
     expect(User::withTrashed()->where('email', 'test@example.com')->count())->toBe(2);
 });
+
+test('new users register with an unverified phone number', function (): void {
+    $this->post(route('register.store'), [
+        'name' => 'John Doe',
+        'email' => 'test@example.com',
+        'phone' => '+60123456789',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasNoErrors();
+
+    $user = User::query()->where('email', 'test@example.com')->sole();
+
+    expect($user->phone)->toBe('+60123456789')
+        ->and($user->phone_verified_at)->toBeNull();
+});
+
+test('new users must give a phone number in international format', function (?string $phone): void {
+    $this->post(route('register.store'), [
+        'name' => 'John Doe',
+        'email' => 'test@example.com',
+        'phone' => $phone,
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasErrors('phone');
+
+    $this->assertGuest();
+})->with(['no number' => [null], 'a local number' => ['012-345 6789']]);

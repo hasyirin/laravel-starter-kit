@@ -19,6 +19,8 @@ return [
         'resend_verification' => 'Click here to re-send the verification email.',
         'verification_sent' => 'A new verification link has been sent to your email address.',
         'verification_throttled' => 'Too many verification emails. Try again in :seconds seconds.',
+        'phone_unverified' => 'Your phone number is unverified.',
+        'verify_phone' => 'Verify it now.',
         'updated' => 'User information updated.',
     ],
 

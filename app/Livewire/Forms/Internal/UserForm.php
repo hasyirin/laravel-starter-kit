@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Forms\Internal;
 
+use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Support\PermissionTree;
 use App\Domain\User\Actions\CreateUser;
 use App\Domain\User\Actions\UpdateUser;
@@ -27,6 +28,8 @@ class UserForm extends Form
     public string $name = '';
 
     public string $email = '';
+
+    public string $phone = '';
 
     public string $password = '';
 
@@ -55,6 +58,7 @@ class UserForm extends Form
         $this->user = $user;
         $this->name = $user->name;
         $this->email = $user->email;
+        $this->phone = $user->phone ?? '';
         $this->reset('password', 'password_confirmation');
 
         $profile = $user->profile;
@@ -81,7 +85,7 @@ class UserForm extends Form
     public function rules(): array
     {
         return [
-            ...$this->userInformationRules($this->user?->id),
+            ...$this->userInformationRules($this->user?->id, phoneRequired: ! $this->grantsBypass()),
             'password' => ['nullable', Rule::requiredIf(! $this->user instanceof User), 'string', Password::default(), 'confirmed'],
             'organization_id' => [
                 'nullable',
@@ -137,6 +141,24 @@ class UserForm extends Form
         return $this->can('update', [$this->user, $part]);
     }
 
+    private function grantsBypass(): bool
+    {
+        $bypassPermission = config()->string('system.permissions.bypass-authorization');
+        $profile = $this->user?->profile;
+        $permissions = $this->editable('permissions') ? collect($this->permissions) : $this->names($profile?->getPermissionNames());
+
+        if ($permissions->contains($bypassPermission)) {
+            return true;
+        }
+
+        $roles = $this->editable('roles') ? collect($this->roles) : $this->names($profile?->getRoleNames());
+
+        return Role::query()
+            ->whereIn('name', $roles)
+            ->whereRelation('permissions', 'name', $bypassPermission)
+            ->exists();
+    }
+
     private function actor(): User
     {
         /** @var User $actor */
@@ -169,12 +191,14 @@ class UserForm extends Form
 
         $roles = $this->editable('roles') ? $this->roles : null;
         $permissions = $this->editable('permissions') ? $this->permissions : null;
+        $phone = $this->phone === '' ? null : $this->phone;
 
         if (! $this->user instanceof User) {
             return CreateUser::make()->execute(
                 actor: $this->actor(),
                 name: $this->name,
                 email: $this->email,
+                phone: $phone,
                 password: $this->password,
                 placement: $this->placement(),
                 roles: $roles,
@@ -189,6 +213,7 @@ class UserForm extends Form
             user: $this->user,
             name: $this->name,
             email: $this->email,
+            phone: $phone,
             password: $password,
             placement: $this->placement(),
             roles: $roles,

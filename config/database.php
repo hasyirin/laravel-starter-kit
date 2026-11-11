@@ -43,7 +43,6 @@ return [
             'journal_mode' => null,
             'synchronous' => null,
             'transaction_mode' => 'DEFERRED',
-            'mask_bindings_in_exception_messages' => true,
         ],
 
         'mysql' => [
@@ -64,7 +63,6 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
-            'mask_bindings_in_exception_messages' => true,
         ],
 
         'mariadb' => [
@@ -85,7 +83,6 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
-            'mask_bindings_in_exception_messages' => true,
         ],
 
         'pgsql' => [
@@ -103,7 +100,6 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
             // timestamptz columns read the values that Eloquent writes, without an offset, in this time zone.
             'timezone' => config('app.timezone'),
-            'mask_bindings_in_exception_messages' => true,
         ],
 
         'sqlsrv' => [
@@ -117,7 +113,6 @@ return [
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
-            'mask_bindings_in_exception_messages' => true,
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],

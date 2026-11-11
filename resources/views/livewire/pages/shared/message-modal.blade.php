@@ -142,7 +142,7 @@
                             @if($message->channel === 'sms')
                                 <x-input.phone wire:model="address" :label="__('message/messages.resend_to')" required />
                             @else
-                                <x-input wire:model="address" name="address" type="email" :label="__('message/messages.resend_to')" required />
+                                <x-input wire:model="address" name="address" type="email" case="lower" :label="__('message/messages.resend_to')" required />
                             @endif
 
                             <div class="flex justify-end gap-2">

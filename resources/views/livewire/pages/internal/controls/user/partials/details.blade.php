@@ -10,7 +10,7 @@
 
         <x-input wire:model="form.name" :label="__('common/inputs.name')" autocomplete="off" required class="sm:col-span-2" />
 
-        <x-input wire:model="form.email" type="email" :label="__('common/inputs.email')" autocomplete="off" required />
+        <x-input wire:model="form.email" type="email" case="lower" :label="__('common/inputs.email')" autocomplete="off" required />
 
         <x-input.phone wire:model="form.phone" :label="__('common/inputs.phone')" autocomplete="off" />
 

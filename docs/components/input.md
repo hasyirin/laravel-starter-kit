@@ -74,6 +74,7 @@ The Flux input props work on `<x-input>`: `icon` and `icon:trailing` show an ico
 
 - The case changes while the user types, before `wire:model` or `x-model` reads the value. So the property always holds what the input shows.
 - The caret stays in place. Text from an input method (IME) changes when the composition ends.
+- On a `type="email"` input, the browser hides the caret position. So a case change in the middle of the text moves the caret to the end.
 - `title` and `sentence` make every other letter lowercase, so "McDonald" becomes "Mcdonald".
 - The browser does the change. A request can still send any case, so validate the case on the server when it matters.
 

@@ -25,6 +25,7 @@
                 :label="__('common/inputs.email_address')"
                 :value="old('email')"
                 type="email"
+                case="lower"
                 required
                 autocomplete="email"
                 placeholder="email@example.com"

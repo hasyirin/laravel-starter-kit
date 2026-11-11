@@ -23,7 +23,7 @@ beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
 
     $this->viewer = User::factory()->create(['name' => 'Vera Viewer']);
-    grantPermissions($this->viewer, 'system.access', 'system.audit-log.view');
+    grantPermissions($this->viewer, 'system.access', 'system.logs.audits.view');
 
     $this->ada = User::factory()->create(['name' => 'Ada Lovelace']);
     $this->sam = User::factory()->create(['name' => 'Sam Subject']);
@@ -53,8 +53,8 @@ test('the list shows changes to every kind of record by every user', function ()
         ->assertSee(['Ada Lovelace', 'Sam Renamed']);
 });
 
-test('the audit log needs system.audit-log.view', function (string $component): void {
-    revokePermissions($this->viewer, 'system.audit-log.view');
+test('the audit log needs system.logs.audits.view', function (string $component): void {
+    revokePermissions($this->viewer, 'system.logs.audits.view');
     $this->actingAs($this->viewer);
 
     Livewire::test($component)->assertForbidden();

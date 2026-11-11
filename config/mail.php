@@ -133,4 +133,19 @@ return [
         'address' => (string) env('MAIL_INTERCEPT_ADDRESS'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mail Tracking
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, an email gets a pixel and its links go through the app,
+    | so the mail log can show opens, clicks, and views. A notification
+    | can turn tracking on or off for its own emails.
+    |
+    */
+
+    'tracking' => env('MAIL_TRACKING', true),
+
+    'queue_connection' => env('MAIL_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync')),
+
 ];

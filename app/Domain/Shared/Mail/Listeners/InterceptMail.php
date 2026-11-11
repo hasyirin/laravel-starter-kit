@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Mail\Listeners;
 
+use App\Domain\Shared\Mail\Support\Recipients;
 use App\Domain\User\Models\User;
 use Illuminate\Mail\Events\MessageSending;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 
 class InterceptMail
 {
@@ -29,12 +31,24 @@ class InterceptMail
             return false;
         }
 
+        $this->keepRecipients($message);
         $message->getHeaders()->remove('Cc');
         $message->getHeaders()->remove('Bcc');
         $message->to($address);
-        $message->getHeaders()->addTextHeader('X-Intercepted-To', $recipients);
 
         return null;
+    }
+
+    private function keepRecipients(Email $message): void
+    {
+        collect(Recipients::FIELDS)
+            ->mapWithKeys(fn (string $field): array => [$field => match ($field) {
+                'To' => $message->getTo(),
+                'Cc' => $message->getCc(),
+                default => $message->getBcc(),
+            }])
+            ->filter()
+            ->each(fn (array $addresses, string $field): mixed => $message->getHeaders()->addMailboxListHeader(Recipients::header($field), $addresses));
     }
 
     private function enabled(): bool

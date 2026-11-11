@@ -15,6 +15,8 @@ use App\Domain\Shared\Geography\Models\State;
 use App\Domain\Shared\Geography\Models\Subdistrict;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
+use App\Domain\Shared\Mail\Models\Mail;
+use App\Domain\Shared\Mail\Models\MailLink;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
@@ -42,6 +44,8 @@ class EloquentServiceProvider extends ServiceProvider
             'district' => District::class,
             'letter' => Letter::class,
             'letterhead' => Letterhead::class,
+            'mail' => Mail::class,
+            'mail_link' => MailLink::class,
             'organization' => Organization::class,
             'position' => Position::class,
             'post_office' => PostOffice::class,

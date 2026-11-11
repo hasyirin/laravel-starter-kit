@@ -93,6 +93,15 @@ return [
             'after_commit' => false,
         ],
 
+        'redis-mail' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => env('REDIS_MAIL_QUEUE', 'mail'),
+            'retry_after' => (int) env('REDIS_MAIL_QUEUE_RETRY_AFTER', 180),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
         'deferred' => [
             'driver' => 'deferred',
         ],

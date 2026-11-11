@@ -6,6 +6,7 @@ namespace App\Domain\Shared\Documentation\Sections;
 
 use App\Domain\Shared\Documentation\Contracts\Section;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class Erd implements Section
@@ -90,8 +91,11 @@ class Erd implements Section
             ->filter(fn (array $column): bool => $column['nullable'])
             ->map(fn (array $column): string => $column['name']);
 
+        $partialOrExpression = collect(DB::select('select name from pragma_index_list(?) as list where list.partial = 1 or exists (select 1 from pragma_index_xinfo(list.name) where cid = -2)', [$table]))
+            ->pluck('name');
+
         $unique = collect(Schema::getIndexes($table))
-            ->filter(fn (array $index): bool => $index['unique'])
+            ->filter(fn (array $index): bool => $index['unique'] && $partialOrExpression->doesntContain($index['name']))
             ->map(fn (array $index): array => $index['columns']);
 
         return collect(Schema::getForeignKeys($table))

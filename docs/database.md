@@ -2,6 +2,8 @@
 
 This diagram shows the tables of the kit, their columns, and their foreign keys. `php artisan docs:generate` draws it from the migrations, and `composer test` fails when the page does not match them. The diagram leaves out the tables of the framework, such as the cache, job, and session tables.
 
+A foreign key with its own unique index draws a one-to-one line. A partial or expression unique index does not, because it allows many rows with the same key. An example is the placement index of `letterheads`.
+
 <!-- generated:erd -->
 
 ```mermaid
@@ -311,7 +313,7 @@ erDiagram
     districts ||--o{ subdistricts : "district_id"
     organizations ||--o{ branches : "organization_id"
     organizations ||--o{ departments : "organization_id"
-    organizations ||--o| letterheads : "organization_id"
+    organizations ||--o{ letterheads : "organization_id"
     organizations ||--o{ positions : "organization_id"
     organizations |o--o{ profiles : "organization_id"
     permissions ||--o{ model_has_permissions : "permission_id"

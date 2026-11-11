@@ -59,7 +59,11 @@ trait HandlesLetterFields
                 continue;
             }
 
-            $form[$field->name] = $field->type === FieldType::Image ? $this->imageItems($value) : $value;
+            $form[$field->name] = match ($field->type) {
+                FieldType::Image => $this->imageItems($value),
+                FieldType::YesNo => $value ?? false,
+                default => $value,
+            };
         }
 
         return $groups === [] ? $form : [...$form, '_groups' => $groups];
@@ -106,6 +110,7 @@ trait HandlesLetterFields
         return match ($field->type) {
             FieldType::Group => $this->groupPayload($field, $value, $groupOn, $path),
             FieldType::Image => $this->imagePayload($value, $path),
+            FieldType::YesNo => $value ?? false,
             FieldType::Table => is_array($value)
                 ? collect($value)->map(fn (mixed $row, int|string $index): mixed => is_array($row) ? $this->payload($field->children, $row, "$path.$index.") : $row)->values()->all()
                 : null,

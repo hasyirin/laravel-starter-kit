@@ -327,6 +327,23 @@ return $pdf->download('sales.pdf');
 
 A letter type can override `sourceAbility()`. For example, it can return `archive` for `create`.
 
+> [!WARNING]
+> If users who are not staff can `view` the source, override `sourceAbility()`. Map `view` and `print` to an ability that only staff have. An applicant who can view the own application can otherwise do these things:
+>
+> - Read a draft letter on `letters.preview`, before staff issue it.
+> - Open the kept prints, the signed scan, and the extra images through `media.show`.
+> - Print the letter. A print gives the letter its reference number.
+
+```php
+public function sourceAbility(string $letterAbility): string
+{
+    return match ($letterAbility) {
+        'create', 'update', 'delete' => 'update',
+        default => 'process',
+    };
+}
+```
+
 `LetterPolicy` also asks `LetterType::allowedFor()` for `print`, `create`, and `update`. A user that the letter type does not allow can still view the letter. That user cannot print it, preview it, upload its signed scan, or change it. The letters table hides these actions.
 
 `allowedFor()` limits who may use a letter type. It does not stop the cleanup of old letters. So `delete` needs only the source ability. If a letter type later refuses everyone, its letters can still be deleted.

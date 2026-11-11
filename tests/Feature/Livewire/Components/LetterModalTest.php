@@ -40,6 +40,7 @@ use Tests\Fixtures\Support\PermitSignedLetter;
 use Tests\Fixtures\Support\PermitStrictLetter;
 use Tests\Fixtures\Support\PermitTableLetter;
 use Tests\Fixtures\Support\PermitViewHeadLetter;
+use Tests\Fixtures\Support\PermitYesNoLetter;
 
 beforeEach(function (): void {
     Storage::fake('media');
@@ -235,6 +236,19 @@ test('a group switched off is not saved', function (): void {
         ->assertHasNoErrors();
 
     expect($this->permit->letters()->firstOrFail()->extra)->toBe(['remark' => 'Urgent', 'guarantor' => null, 'stamp' => null]);
+});
+
+test('a yes or no field left off saves as no, also inside a group', function (): void {
+    config(['system.letters.types.yes_no' => PermitYesNoLetter::class]);
+
+    openModal()
+        ->set('form.type', 'yes_no')
+        ->set('form.extra._groups.guarantor', true)
+        ->set('form.extra.guarantor.name', 'Ali')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->permit->letters()->firstOrFail()->extra)->toBe(['urgent' => false, 'guarantor' => ['name' => 'Ali', 'local' => false]]);
 });
 
 test('an uploaded extra image is stored and an existing one is kept', function (): void {

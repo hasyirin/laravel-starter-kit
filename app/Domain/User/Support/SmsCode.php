@@ -46,16 +46,29 @@ final readonly class SmsCode
         }
 
         // The try counts before the read, so a code that runs out during this check does not pass.
-        $tries = (int) cache()->increment($this->triesKey());
+        $tries = cache()->increment($this->triesKey());
+
+        // Some stores, such as the database store, cannot count a missing key. A code without a count stops working.
+        if (! is_int($tries)) {
+            $this->forget();
+
+            return false;
+        }
+
         $hash = cache()->get($this->cacheKey());
         $passed = is_string($hash) && $tries <= self::TRIES && hash_equals($hash, $this->hash($code));
 
         if ($passed || $tries >= self::TRIES) {
-            cache()->forget($this->cacheKey());
-            cache()->forget($this->triesKey());
+            $this->forget();
         }
 
         return $passed;
+    }
+
+    private function forget(): void
+    {
+        cache()->forget($this->cacheKey());
+        cache()->forget($this->triesKey());
     }
 
     private function cacheKey(): string

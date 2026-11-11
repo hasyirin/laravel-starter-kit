@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\User\Support\SmsCode;
 use Illuminate\Cache\Events\CacheHit;
+use Illuminate\Cache\Events\KeyForgotten;
 use Illuminate\Support\Facades\Event;
 
 test('an issued code has six digits', function (): void {
@@ -123,4 +124,28 @@ test('a code that runs out during a check does not pass that check', function ()
     });
 
     expect($sms->check($code))->toBeFalse();
+});
+
+test('a resend during the fifth wrong try cannot give the new code unlimited tries', function (): void {
+    config(['cache.default' => 'database']);
+    $sms = SmsCode::forVerification('+60123456789');
+    $wrong = wrongSmsCode($sms->issue());
+    $resent = null;
+    Event::listen(KeyForgotten::class, function (KeyForgotten $event) use (&$resent, $sms): void {
+        if ($resent !== null || ! str_starts_with($event->key, 'sms-code:')) {
+            return;
+        }
+
+        $resent = $sms->issue();
+    });
+
+    foreach (range(1, 5) as $try) {
+        $sms->check($wrong);
+    }
+
+    foreach (range(1, 5) as $try) {
+        $sms->check(wrongSmsCode($resent));
+    }
+
+    expect($sms->check($resent))->toBeFalse();
 });

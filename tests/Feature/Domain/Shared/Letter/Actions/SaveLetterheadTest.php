@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Letter\Actions\SaveLetterhead;
-use App\Domain\Shared\Letter\Enums\LetterheadImage;
 use App\Domain\Shared\Letter\Models\Letterhead;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Media\Rules\Uploads;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
@@ -45,9 +45,9 @@ test('saving keeps the placement, the name, and one header and one footer image'
         ->and($letterhead->branch->is($branch))->toBeTrue()
         ->and($letterhead->department->is($department))->toBeTrue()
         ->and($letterhead->name)->toBe('Main')
-        ->and($letterhead->getMedia(LetterheadImage::Header))->toHaveCount(1)
-        ->and($letterhead->getMedia(LetterheadImage::Footer))->toHaveCount(1)
-        ->and($letterhead->getMedia(LetterheadImage::Header)->first()?->file_name)->toBe('header.png');
+        ->and($letterhead->getMedia(MediaCollection::Header))->toHaveCount(1)
+        ->and($letterhead->getMedia(MediaCollection::Footer))->toHaveCount(1)
+        ->and($letterhead->getMedia(MediaCollection::Header)->first()?->file_name)->toBe('header.png');
 });
 
 test('a new header replaces the old one', function (): void {
@@ -57,9 +57,9 @@ test('a new header replaces the old one', function (): void {
 
     $letterhead = $letterhead->fresh();
 
-    expect($letterhead->getMedia(LetterheadImage::Header))->toHaveCount(1)
-        ->and($letterhead->getMedia(LetterheadImage::Header)->first()?->file_name)->toBe('new.png')
-        ->and($letterhead->getMedia(LetterheadImage::Footer))->toBeEmpty();
+    expect($letterhead->getMedia(MediaCollection::Header))->toHaveCount(1)
+        ->and($letterhead->getMedia(MediaCollection::Header)->first()?->file_name)->toBe('new.png')
+        ->and($letterhead->getMedia(MediaCollection::Footer))->toBeEmpty();
 });
 
 test('a header that is 2479 px wide is refused', function (int $width, bool $passes): void {

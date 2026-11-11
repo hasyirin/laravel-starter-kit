@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Letter\Factories;
 
-use App\Domain\Shared\Letter\Enums\LetterheadImage;
 use App\Domain\Shared\Letter\Models\Letterhead;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Organization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Http\UploadedFile;
@@ -28,7 +28,7 @@ class LetterheadFactory extends Factory
     public function withImages(int $width = 2480, int $headerHeight = 400, int $footerHeight = 200): static
     {
         return $this->afterCreating(function (Letterhead $letterhead) use ($width, $headerHeight, $footerHeight): void {
-            foreach ([LetterheadImage::Header->value => $headerHeight, LetterheadImage::Footer->value => $footerHeight] as $collection => $height) {
+            foreach ([MediaCollection::Header->value => $headerHeight, MediaCollection::Footer->value => $footerHeight] as $collection => $height) {
                 $letterhead->addMediaFromString(UploadedFile::fake()->image("{$collection}.png", $width, $height)->getContent())
                     ->usingFileName("{$collection}.png")
                     ->toMediaCollection($collection);

@@ -7,9 +7,9 @@ namespace App\Domain\Shared\Letter\Models;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Common\Models\Model;
-use App\Domain\Shared\Letter\Enums\LetterheadImage;
 use App\Domain\Shared\Letter\Factories\LetterheadFactory;
 use App\Domain\Shared\Letter\Observers\LetterheadObserver;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
@@ -72,15 +72,14 @@ class Letterhead extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        foreach (LetterheadImage::cases() as $image) {
-            $this->addMediaCollection($image->value)->singleFile();
-        }
+        $this->addMediaCollection(MediaCollection::Header->value)->singleFile();
+        $this->addMediaCollection(MediaCollection::Footer->value)->singleFile();
     }
 
     /**
      * @return array{src: string, heightMm: float}|null
      */
-    public function printableImage(LetterheadImage $image): ?array
+    public function printableImage(MediaCollection $image): ?array
     {
         $media = $this->getMedia($image)->first();
 

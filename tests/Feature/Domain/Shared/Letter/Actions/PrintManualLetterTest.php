@@ -5,12 +5,12 @@ declare(strict_types=1);
 use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\Shared\Letter\Actions\PrintManualLetter;
 use App\Domain\Shared\Letter\Actions\SaveLetter;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PdfFile;
 use App\Domain\Shared\Letter\Support\PrintDetails;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\User\Models\Profile;
@@ -136,7 +136,7 @@ test('an upload ends on the audit entry and its uuid is logged', function (): vo
     printManual('printed', noticeData(), ['remark' => 'Reminder', 'stamp' => stampUpload()]);
 
     $entry = manualEntries()->sole();
-    $media = $entry->getMedia()->sole();
+    $media = $entry->getMedia(MediaCollection::LetterImages)->sole();
     expect(data_get($entry->properties, 'extra.stamp'))->toBe($media->uuid)
         ->and($media->file_name)->toBe('stamp.png');
 });
@@ -176,7 +176,7 @@ test('an image of the source stays on the source and its uuid is logged', functi
     PrintManualLetter::make()->execute(LetterTypes::find('crest'), ['logo' => $media->uuid], [], manualDetails(), $this->admin, $crest);
 
     $entry = manualEntries()->sole();
-    expect($entry->getMedia())->toBeEmpty()
+    expect($entry->getMedia(MediaCollection::LetterImages))->toBeEmpty()
         ->and(data_get($entry->properties, 'data.logo'))->toBe($media->uuid)
         ->and($crest->fresh()?->getMedia())->toHaveCount(1);
 });
@@ -229,7 +229,7 @@ test('a letter of another source or type is refused', function (): void {
 function letterWithStamp(Organization $source): Letter
 {
     $letter = Letter::factory()->ofType('printed')->create(['source_type' => $source->getMorphClass(), 'source_id' => $source->id]);
-    $media = $letter->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection(LetterMedia::Data->value);
+    $media = $letter->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection(MediaCollection::LetterImages->value);
     $letter->update(['extra' => ['remark' => 'x', 'stamp' => $media->uuid]]);
 
     return $letter;
@@ -242,7 +242,7 @@ test('an image of the letter is copied onto the audit entry and stays when the l
     SaveLetter::make()->execute($letter, LetterTypes::find('printed'), $this->organization, $this->admin, manualDetails(), ['remark' => 'x', 'stamp' => stampUpload()]);
 
     $entry = manualEntries()->sole();
-    $copy = $entry->getMedia()->sole();
+    $copy = $entry->getMedia(MediaCollection::LetterImages)->sole();
     expect(data_get($entry->properties, 'extra.stamp'))->toBe($copy->uuid)
         ->and(Storage::disk('media')->exists($copy->getPathRelativeToRoot()))->toBeTrue();
 });

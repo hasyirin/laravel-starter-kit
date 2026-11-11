@@ -5,11 +5,11 @@ declare(strict_types=1);
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Letter\Actions\AssignReferenceNumber;
 use App\Domain\Shared\Letter\Actions\PrintLetter;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
 use App\Domain\Shared\Letter\Support\PdfFile;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\User\Models\Profile;
@@ -67,7 +67,7 @@ test('a preview assigns no number and keeps nothing', function (): void {
     expect($file)->toBeInstanceOf(PdfFile::class)
         ->and($letter->fresh()?->reference_number)->toBeNull()
         ->and($letter->fresh()?->date)->toBeNull()
-        ->and($letter->getMedia(LetterMedia::Prints))->toBeEmpty();
+        ->and($letter->getMedia(MediaCollection::Prints))->toBeEmpty();
     Pdf::assertSee('Draft');
 });
 
@@ -265,7 +265,7 @@ test('a kept print stores the bytes with the printer and time', function (): voi
     $letter = printable('printed', ['reference_number' => 'REF/1']);
 
     $file = printLetter($letter);
-    $media = $letter->fresh()->getMedia(LetterMedia::Prints);
+    $media = $letter->fresh()->getMedia(MediaCollection::Prints);
 
     expect($media)->toHaveCount(1)
         ->and($media[0]->getCustomProperty('user_id'))->toBe($this->printer->id)
@@ -279,7 +279,7 @@ test('a type without kept prints stores nothing', function (): void {
 
     printLetter($letter);
 
-    expect($letter->fresh()->getMedia(LetterMedia::Prints))->toBeEmpty();
+    expect($letter->fresh()->getMedia(MediaCollection::Prints))->toBeEmpty();
 });
 
 test('a preview of a type with kept prints stores nothing', function (): void {
@@ -288,7 +288,7 @@ test('a preview of a type with kept prints stores nothing', function (): void {
 
     printLetter($letter, preview: true);
 
-    expect($letter->fresh()->getMedia(LetterMedia::Prints))->toBeEmpty();
+    expect($letter->fresh()->getMedia(MediaCollection::Prints))->toBeEmpty();
 });
 
 test('the file downloads and shows inline as a pdf', function (): void {
@@ -309,7 +309,7 @@ test('a real print keeps the downloaded bytes', function (): void {
     $letter = printable('printed', ['reference_number' => 'REF/1']);
 
     $file = printLetter($letter);
-    $media = $letter->fresh()->getMedia(LetterMedia::Prints);
+    $media = $letter->fresh()->getMedia(MediaCollection::Prints);
 
     expect($file->content)->toStartWith('%PDF')
         ->and($media)->toHaveCount(1)

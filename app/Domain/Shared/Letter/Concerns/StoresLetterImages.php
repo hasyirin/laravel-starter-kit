@@ -7,6 +7,7 @@ namespace App\Domain\Shared\Letter\Concerns;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Letter\Enums\FieldType;
 use App\Domain\Shared\Letter\Support\Field;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Spatie\MediaLibrary\MediaCollections\Filesystem;
@@ -22,14 +23,14 @@ trait StoresLetterImages
      * @param  array<array-key, mixed>  $values
      * @return array<string, mixed>
      */
-    protected function storeImages(HasMedia $owner, string $collection, array $fields, array $values, ?Model $copiedOwner = null): array
+    protected function storeImages(HasMedia $owner, MediaCollection $collection, array $fields, array $values, ?Model $copiedOwner = null): array
     {
         return collect($fields)
             ->mapWithKeys(fn (Field $field): array => [$field->name => $this->storeValue($owner, $collection, $field, $values[$field->name] ?? null, $copiedOwner)])
             ->all();
     }
 
-    private function storeValue(HasMedia $owner, string $collection, Field $field, mixed $value, ?Model $copiedOwner): mixed
+    private function storeValue(HasMedia $owner, MediaCollection $collection, Field $field, mixed $value, ?Model $copiedOwner): mixed
     {
         return match (true) {
             $field->type === FieldType::Image && $value instanceof TemporaryUploadedFile => $this->storeUpload($owner, $collection, $value),
@@ -39,7 +40,7 @@ trait StoresLetterImages
         };
     }
 
-    private function storeCopy(HasMedia $owner, string $collection, string $uuid, Model $copiedOwner): string
+    private function storeCopy(HasMedia $owner, MediaCollection $collection, string $uuid, Model $copiedOwner): string
     {
         $media = Field::ownedImage($uuid, [$copiedOwner]);
 
@@ -47,17 +48,17 @@ trait StoresLetterImages
             return $uuid;
         }
 
-        $copy = $media->copy($owner, $collection);
+        $copy = $media->copy($owner, $collection->value);
         $this->storedImages[] = $copy;
 
         return $copy->uuid;
     }
 
-    private function storeUpload(HasMedia $owner, string $collection, TemporaryUploadedFile $file): string
+    private function storeUpload(HasMedia $owner, MediaCollection $collection, TemporaryUploadedFile $file): string
     {
         $media = $owner->addMediaFromStream($file->readStream())
             ->usingFileName($file->getClientOriginalName())
-            ->toMediaCollection($collection);
+            ->toMediaCollection($collection->value);
 
         $this->storedImages[] = $media;
 

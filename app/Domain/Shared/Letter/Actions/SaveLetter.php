@@ -7,7 +7,6 @@ namespace App\Domain\Shared\Letter\Actions;
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
 use App\Domain\Shared\Letter\Concerns\StoresLetterImages;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Enums\NumberingMode;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
 use App\Domain\Shared\Letter\Models\Letter;
@@ -16,6 +15,7 @@ use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PrintDetails;
 use App\Domain\Shared\Letter\Support\ReferenceSequence;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -79,7 +79,7 @@ class SaveLetter
             $letter->with_letterhead = $details->withLetterhead || $details->computerSigned;
             $letter->save();
 
-            $letter->extra = $this->storeImages($letter, LetterMedia::Data->value, $type->extraFields(), $validated);
+            $letter->extra = $this->storeImages($letter, MediaCollection::LetterImages, $type->extraFields(), $validated);
             $letter->save();
             $letter->getConnection()->afterCommit(fn () => rescue(fn () => $this->removeUnusedImages($letter)));
 
@@ -94,7 +94,7 @@ class SaveLetter
     private function removeUnusedImages(Letter $letter): void
     {
         $letter->media()
-            ->where('collection_name', LetterMedia::Data->value)
+            ->where('collection_name', MediaCollection::LetterImages->value)
             ->whereNotIn('uuid', collect($letter->extra)->flatten()->filter(fn (mixed $value): bool => is_string($value)))
             ->get()
             ->each(fn (Media $media) => rescue(fn () => $media->delete()));

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Letter\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Media\Actions\SyncMedia;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 
 class UploadSignedScan
 {
@@ -18,7 +18,7 @@ class UploadSignedScan
      */
     public function execute(Letter $letter, array $items): Letter
     {
-        SyncMedia::make()->execute($letter, $items, LetterMedia::SignedScan);
+        SyncMedia::make()->execute($letter, $items, MediaCollection::SignedScan);
 
         return $letter;
     }

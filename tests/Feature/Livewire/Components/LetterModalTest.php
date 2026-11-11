@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Actor\Enums\Act;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
 use App\Domain\Shared\Letter\Support\LetterheadView;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
@@ -265,8 +265,8 @@ test('an uploaded extra image is stored and an existing one is kept', function (
     $letter = $this->permit->letters()->firstOrFail();
     $uuid = $letter->extra['stamp'];
 
-    expect($letter->getMedia(LetterMedia::Data->value))->toHaveCount(1)
-        ->and($letter->getFirstMedia(LetterMedia::Data->value)?->uuid)->toBe($uuid);
+    expect($letter->getMedia(MediaCollection::LetterImages->value))->toHaveCount(1)
+        ->and($letter->getFirstMedia(MediaCollection::LetterImages->value)?->uuid)->toBe($uuid);
 
     openModal($letter)
         ->assertSet('form.extra.stamp.0.uuid', $uuid)
@@ -276,7 +276,7 @@ test('an uploaded extra image is stored and an existing one is kept', function (
 
     expect($letter->refresh()->extra['stamp'])->toBe($uuid)
         ->and($letter->extra['remark'])->toBe('Changed')
-        ->and($letter->getMedia(LetterMedia::Data->value))->toHaveCount(1);
+        ->and($letter->getMedia(MediaCollection::LetterImages->value))->toHaveCount(1);
 });
 
 test('removing the extra image clears it', function (): void {

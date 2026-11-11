@@ -15,6 +15,7 @@ use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PdfFile;
 use App\Domain\Shared\Letter\Support\PrintDetails;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
@@ -150,8 +151,8 @@ class PrintManualLetter
 
             $entry->properties = collect([
                 'type' => $key,
-                'data' => $this->storeImages($entry, 'default', $type->fields(), $data),
-                'extra' => $this->storeImages($entry, 'default', $type->extraFields(), $extra, $letter),
+                'data' => $this->storeImages($entry, MediaCollection::LetterImages, $type->fields(), $data),
+                'extra' => $this->storeImages($entry, MediaCollection::LetterImages, $type->extraFields(), $extra, $letter),
                 'details' => $details->toArray(),
                 'source_type' => $source?->getMorphClass(),
                 'source_id' => $source?->getKey(),

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Actor\Enums\Act;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\User\Models\Profile;
@@ -76,7 +76,7 @@ test('the table shows the type, reference number, signer, and signed scan of eac
     Profile::factory()->for($this->organization)->for($signer)->for(Position::factory()->for($this->organization)->create(['name' => 'Director']))->create();
     $signed = tableLetter('signed', attributes: ['reference_number' => 'REF-1']);
     $signed->act(Act::Sign, $signer);
-    $signed->addMedia(UploadedFile::fake()->create('scan.pdf', 10, 'application/pdf'))->toMediaCollection(LetterMedia::SignedScan->value);
+    $signed->addMedia(UploadedFile::fake()->create('scan.pdf', 10, 'application/pdf'))->toMediaCollection(MediaCollection::SignedScan->value);
     $plain = tableLetter();
 
     letterTable()
@@ -253,8 +253,8 @@ test('the kept prints action lists each print with the printer and links to it',
     $letter->addMediaFromString('%PDF')
         ->usingFileName('first.pdf')
         ->withCustomProperties(['user_id' => $this->actor->id, 'printed_at' => '2026-03-05T10:00:00+00:00'])
-        ->toMediaCollection(LetterMedia::Prints->value);
-    $media = $letter->fresh()->getFirstMedia(LetterMedia::Prints->value);
+        ->toMediaCollection(MediaCollection::Prints->value);
+    $media = $letter->fresh()->getFirstMedia(MediaCollection::Prints->value);
 
     $component = letterTable()->mountAction(TestAction::make('prints')->table($letter));
     $modal = $component->instance()->getMountedAction()?->getModalContent()?->toHtml();
@@ -276,7 +276,7 @@ test('the upload action stores the signed scan', function (): void {
 
     letterTable()->call('openScan', $letter->id)->assertSet('showingScan', true)->set('scan', [$item])->call('saveScan')->assertHasNoErrors()->assertSet('showingScan', false);
 
-    expect($letter->fresh()->getMedia(LetterMedia::SignedScan->value))->toHaveCount(1);
+    expect($letter->fresh()->getMedia(MediaCollection::SignedScan->value))->toHaveCount(1);
 });
 
 test('the upload action refuses a file type that is not a pdf or an image', function (): void {
@@ -287,7 +287,7 @@ test('the upload action refuses a file type that is not a pdf or an image', func
 
     letterTable()->call('openScan', $letter->id)->set('scan', [$item])->call('saveScan')->assertHasErrors('scan');
 
-    expect($letter->fresh()->getMedia(LetterMedia::SignedScan->value))->toBeEmpty();
+    expect($letter->fresh()->getMedia(MediaCollection::SignedScan->value))->toBeEmpty();
 });
 
 test('the upload action refuses a user who cannot print the letter', function (): void {
@@ -312,7 +312,7 @@ test('the upload works for a locked source where print is allowed and update is 
         ->call('saveScan')
         ->assertHasNoErrors();
 
-    expect($letter->fresh()->getMedia(LetterMedia::SignedScan->value))->toHaveCount(1);
+    expect($letter->fresh()->getMedia(MediaCollection::SignedScan->value))->toHaveCount(1);
 });
 
 test('a crafted call to a hidden action does nothing', function (): void {

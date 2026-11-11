@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Domain\Shared\Letter\Enums\LetterheadImage;
 use App\Domain\Shared\Letter\Models\Letterhead;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
@@ -62,8 +62,8 @@ test('saving adds a letterhead with a header to the organization', function (): 
     expect($letterhead->organization_id)->toBe($this->organization->id)
         ->and($letterhead->branch_id)->toBe($branch->id)
         ->and($letterhead->department_id)->toBe($department->id)
-        ->and($letterhead->getMedia(LetterheadImage::Header))->toHaveCount(1)
-        ->and($letterhead->getMedia(LetterheadImage::Footer))->toBeEmpty();
+        ->and($letterhead->getMedia(MediaCollection::Header))->toHaveCount(1)
+        ->and($letterhead->getMedia(MediaCollection::Footer))->toBeEmpty();
 });
 
 test('the header is required and the footer is not', function (): void {
@@ -154,8 +154,8 @@ test('editing a letterhead keeps its images when none are changed', function ():
 
     expect($letterhead->fresh())
         ->name->toBe('New')
-        ->and($letterhead->getMedia(LetterheadImage::Header))->toHaveCount(1)
-        ->and($letterhead->getMedia(LetterheadImage::Footer))->toHaveCount(1);
+        ->and($letterhead->getMedia(MediaCollection::Header))->toHaveCount(1)
+        ->and($letterhead->getMedia(MediaCollection::Footer))->toHaveCount(1);
 });
 
 test('a letterhead of another organization is not found', function (): void {

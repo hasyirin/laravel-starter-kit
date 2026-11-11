@@ -6,7 +6,7 @@
 
 @php
     use App\Domain\Shared\Letter\Actions\FindLetterhead;
-    use App\Domain\Shared\Letter\Enums\LetterheadImage;
+    use App\Domain\Shared\Media\Enums\MediaCollection;
     use App\Domain\Shared\Letter\Models\Letterhead;
     use App\Domain\Shared\Letter\Support\LetterheadView;
 
@@ -18,8 +18,8 @@
         $letterhead = FindLetterhead::make()->execute($placement);
     }
 
-    $header = $letterhead instanceof Letterhead ? $letterhead->printableImage(LetterheadImage::Header) : null;
-    $footer = $letterhead instanceof Letterhead ? $letterhead->printableImage(LetterheadImage::Footer) : null;
+    $header = $letterhead instanceof Letterhead ? $letterhead->printableImage(MediaCollection::Header) : null;
+    $footer = $letterhead instanceof Letterhead ? $letterhead->printableImage(MediaCollection::Footer) : null;
     $view = $letterhead instanceof LetterheadView ? $letterhead : null;
 
     $headerHeight = 25;

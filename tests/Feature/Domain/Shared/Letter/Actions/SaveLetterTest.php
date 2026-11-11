@@ -5,11 +5,11 @@ declare(strict_types=1);
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Letter\Actions\AssignReferenceNumber;
 use App\Domain\Shared\Letter\Actions\SaveLetter;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PrintDetails;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\User\Models\Profile;
@@ -188,10 +188,10 @@ test('extra values are kept', function (): void {
     expect($letter->fresh()->extra)->toBe(['remark' => 'Urgent', 'stamp' => null]);
 });
 
-test('an extra image is stored in the data collection and its uuid is kept', function (): void {
+test('an extra image is stored in the letter images collection and its uuid is kept', function (): void {
     $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
 
-    $media = $letter->getMedia(LetterMedia::Data);
+    $media = $letter->getMedia(MediaCollection::LetterImages);
 
     expect($media)->toHaveCount(1)
         ->and($letter->extra['stamp'])->toBe($media->first()?->uuid);
@@ -203,7 +203,7 @@ test('an extra image that is kept by uuid is not stored twice', function (): voi
 
     saveLetter('extra', details(), ['remark' => 'Changed', 'stamp' => $uuid], $letter);
 
-    expect($letter->fresh()->getMedia(LetterMedia::Data))->toHaveCount(1)
+    expect($letter->fresh()->getMedia(MediaCollection::LetterImages))->toHaveCount(1)
         ->and($letter->fresh()->extra['stamp'])->toBe($uuid);
 });
 
@@ -215,7 +215,7 @@ test('a refused save leaves no stored image and keeps the upload for a retry', f
     expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => $upload], $letter))->toThrow(ValidationException::class);
     expect(Storage::disk('media')->allFiles())->toBeEmpty();
 
-    $media = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => $upload], $letter)->fresh()->getMedia(LetterMedia::Data);
+    $media = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => $upload], $letter)->fresh()->getMedia(MediaCollection::LetterImages);
 
     expect($media)->toHaveCount(1)
         ->and(Storage::disk('media')->allFiles())->toContain("{$media->first()->id}/stamp.png")
@@ -224,11 +224,11 @@ test('a refused save leaves no stored image and keeps the upload for a retry', f
 
 test('a replaced extra image is deleted with its file', function (): void {
     $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
-    $old = $letter->getMedia(LetterMedia::Data)->sole();
+    $old = $letter->getMedia(MediaCollection::LetterImages)->sole();
 
     saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()], $letter);
 
-    $media = $letter->fresh()->getMedia(LetterMedia::Data)->sole();
+    $media = $letter->fresh()->getMedia(MediaCollection::LetterImages)->sole();
     expect($media->uuid)->not->toBe($old->uuid)
         ->and(Storage::disk('media')->allFiles())->each->toStartWith("{$media->id}/");
 });
@@ -238,14 +238,14 @@ test('a removed extra image is deleted with its file', function (): void {
 
     saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => null], $letter);
 
-    expect($letter->fresh()->getMedia(LetterMedia::Data))->toBeEmpty()
+    expect($letter->fresh()->getMedia(MediaCollection::LetterImages))->toBeEmpty()
         ->and(Storage::disk('media')->allFiles())->toBeEmpty();
 });
 
 test('a failed cleanup query after the commit is reported and keeps the save', function (): void {
     Exceptions::fake();
     $letter = saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
-    $old = $letter->getMedia(LetterMedia::Data)->sole();
+    $old = $letter->getMedia(MediaCollection::LetterImages)->sole();
     Media::retrieved(function (Media $media) use ($old): void {
         throw_if($media->is($old), RuntimeException::class, 'The cleanup query failed.');
     });
@@ -260,11 +260,11 @@ test('a failed cleanup query after the commit is reported and keeps the save', f
 test('a refused save keeps the extra image it would replace', function (): void {
     saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
     $letter = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => extraUpload()])->fresh();
-    $old = $letter->getMedia(LetterMedia::Data)->sole();
+    $old = $letter->getMedia(MediaCollection::LetterImages)->sole();
 
     expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => extraUpload()], $letter))->toThrow(ValidationException::class);
 
-    expect($letter->fresh()->getMedia(LetterMedia::Data)->sole()->uuid)->toBe($old->uuid)
+    expect($letter->fresh()->getMedia(MediaCollection::LetterImages)->sole()->uuid)->toBe($old->uuid)
         ->and(Storage::disk('media')->allFiles())->toContain("{$old->id}/stamp.png")
         ->each->toStartWith("{$old->id}/");
 });

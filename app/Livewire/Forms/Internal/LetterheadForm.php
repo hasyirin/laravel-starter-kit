@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Livewire\Forms\Internal;
 
 use App\Domain\Shared\Letter\Actions\SaveLetterhead;
-use App\Domain\Shared\Letter\Enums\LetterheadImage;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\Field;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Media\Rules\Uploads;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
@@ -46,8 +46,8 @@ class LetterheadForm extends Form
         $this->branch_id = $letterhead->branch_id;
         $this->department_id = $letterhead->department_id;
         $this->name = $letterhead->name ?? '';
-        $this->header = $letterhead->exists ? FileUpload::items($letterhead, LetterheadImage::Header) : [];
-        $this->footer = $letterhead->exists ? FileUpload::items($letterhead, LetterheadImage::Footer) : [];
+        $this->header = $letterhead->exists ? FileUpload::items($letterhead, MediaCollection::Header) : [];
+        $this->footer = $letterhead->exists ? FileUpload::items($letterhead, MediaCollection::Footer) : [];
 
         return $this;
     }

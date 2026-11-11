@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Letter\Actions;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
-use App\Domain\Shared\Letter\Enums\LetterheadImage;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Media\Actions\SyncMedia;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
@@ -34,8 +34,8 @@ class SaveLetterhead
             DB::transaction(function () use ($letterhead, $headerItems, $footerItems): void {
                 $letterhead->save();
 
-                SyncMedia::make()->execute($letterhead, $headerItems, LetterheadImage::Header);
-                SyncMedia::make()->execute($letterhead, $footerItems, LetterheadImage::Footer);
+                SyncMedia::make()->execute($letterhead, $headerItems, MediaCollection::Header);
+                SyncMedia::make()->execute($letterhead, $footerItems, MediaCollection::Footer);
             });
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['placement' => __('letters/letterheads.placement_taken')]);

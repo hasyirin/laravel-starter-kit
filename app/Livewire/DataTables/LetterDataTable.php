@@ -7,9 +7,9 @@ namespace App\Livewire\DataTables;
 use App\Domain\Shared\Letter\Actions\DeleteLetter;
 use App\Domain\Shared\Letter\Actions\PrintLetter;
 use App\Domain\Shared\Letter\Actions\UploadSignedScan;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Support\LetterTypes;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Media\Rules\Uploads;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
@@ -69,7 +69,7 @@ class LetterDataTable extends DataTable
         $this->authorize('print', $letter);
 
         $this->scanLetterId = $letter->id;
-        $this->scan = FileUpload::items($letter, LetterMedia::SignedScan);
+        $this->scan = FileUpload::items($letter, MediaCollection::SignedScan);
 
         $this->showingScan = true;
     }
@@ -135,7 +135,7 @@ class LetterDataTable extends DataTable
             IconColumn::make('signed_scan')
                 ->label((string) __('letters/letters.signed_scan'))
                 ->boolean()
-                ->state(fn (Letter $letter): bool => $letter->hasMedia(LetterMedia::SignedScan->value)),
+                ->state(fn (Letter $letter): bool => $letter->hasMedia(MediaCollection::SignedScan->value)),
         ];
     }
 
@@ -175,7 +175,7 @@ class LetterDataTable extends DataTable
                 ->label((string) __('letters/letters.kept_prints'))
                 ->icon('heroicon-m-archive-box')
                 ->color('gray')
-                ->visible(fn (Letter $letter): bool => $this->can('view', $letter) && $letter->getMedia(LetterMedia::Prints->value)->isNotEmpty())
+                ->visible(fn (Letter $letter): bool => $this->can('view', $letter) && $letter->getMedia(MediaCollection::Prints->value)->isNotEmpty())
                 ->modalContent(fn (Letter $letter): View => view('livewire.data-tables.letter-prints', ['prints' => $this->prints($letter)]))
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel((string) __('common/buttons.close')),
@@ -212,7 +212,7 @@ class LetterDataTable extends DataTable
      */
     private function prints(Letter $letter): array
     {
-        $media = $letter->getMedia(LetterMedia::Prints->value);
+        $media = $letter->getMedia(MediaCollection::Prints->value);
         $printers = User::query()->whereKey($media->map(fn (Media $print): mixed => $print->getCustomProperty('user_id'))->filter()->all())->pluck('name', 'id');
 
         return array_values($media->map(function (Media $print) use ($printers): array {

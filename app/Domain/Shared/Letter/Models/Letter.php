@@ -9,11 +9,11 @@ use App\Domain\Shared\Actor\Models\Action;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Common\Models\Model;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Factories\LetterFactory;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use Carbon\CarbonImmutable;
 use Hasyirin\Actor\Concerns\InteractsWithActions;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -100,9 +100,9 @@ class Letter extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection(LetterMedia::Prints->value);
-        $this->addMediaCollection(LetterMedia::SignedScan->value)->singleFile();
-        $this->addMediaCollection(LetterMedia::Data->value);
+        $this->addMediaCollection(MediaCollection::Prints->value);
+        $this->addMediaCollection(MediaCollection::SignedScan->value)->singleFile();
+        $this->addMediaCollection(MediaCollection::LetterImages->value);
     }
 
     /**

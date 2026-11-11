@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\Shared\Letter\Models\Letter;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
@@ -189,7 +190,7 @@ test('an upload ends on the audit entry', function (): void {
     compose()->set('form.data.title', 'T')->set('form.extra.remark', 'R')->set('form.extra.stamp', [$item])->call('print')->assertHasNoErrors();
 
     $entry = manualEntry();
-    expect($entry->getMedia()->sole()->uuid)->toBe(data_get($entry->properties, 'extra.stamp'));
+    expect($entry->getMedia(MediaCollection::LetterImages)->sole()->uuid)->toBe(data_get($entry->properties, 'extra.stamp'));
 });
 
 test('the same upload prints again after a fix', function (): void {
@@ -203,7 +204,7 @@ test('the same upload prints again after a fix', function (): void {
     $entries = AuditEntry::query()->where('event', 'printed-manual-letter')->get();
 
     expect($entries)->toHaveCount(2)
-        ->and($entries->map(fn (AuditEntry $entry): int => (int) $entry->getMedia()->sole()->size)->min())->toBeGreaterThan(0);
+        ->and($entries->map(fn (AuditEntry $entry): int => (int) $entry->getMedia(MediaCollection::LetterImages)->sole()->size)->min())->toBeGreaterThan(0);
 });
 
 test('a signer must have a position and be in the list', function (): void {

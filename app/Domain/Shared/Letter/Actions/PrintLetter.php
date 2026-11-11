@@ -6,11 +6,11 @@ namespace App\Domain\Shared\Letter\Actions;
 
 use App\Domain\Shared\Actor\Models\Action;
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
-use App\Domain\Shared\Letter\Enums\LetterMedia;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Support\LetterData;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\PdfFile;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
@@ -90,6 +90,6 @@ class PrintLetter
         $letter->addMediaFromString($file->content)
             ->usingFileName($file->name)
             ->withCustomProperties(['user_id' => $printer->id, 'printed_at' => now()->toIso8601String()])
-            ->toMediaCollection(LetterMedia::Prints->value);
+            ->toMediaCollection(MediaCollection::Prints->value);
     }
 }

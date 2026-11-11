@@ -532,7 +532,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a letter type that is not allowed for the user is refused
 - bad extra values are refused and nothing is saved
 - extra values are kept
-- an extra image is stored in the data collection and its uuid is kept
+- an extra image is stored in the letter images collection and its uuid is kept
 - an extra image that is kept by uuid is not stored twice
 - a refused save leaves no stored image and keeps the upload for a retry
 - a replaced extra image is deleted with its file

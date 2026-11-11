@@ -221,27 +221,41 @@ _Avoid_: Service area, jurisdiction
 
 ### Messages
 
+**Message**:
+Something that the app sends to a person: an email, an SMS, or a notification.
+_Avoid_: Notification, which is only the message under the bell
+
 **Email**:
 A message that the app sends to an email address. The code calls it a mail.
 
+**SMS**:
+A message that the app sends to a phone number.
+
+**Channel**:
+The way that a message reaches a person, for example email or SMS.
+
 **Recipient**:
-The one person in the To field of an email.
+The one person that a message is for. For an email, it is the person in the To field.
 _Avoid_: Addressee
 
 **Copy recipient**:
 A person in the CC or BCC field of an email.
 _Avoid_: CC, BCC, which are the fields, not the people
 
-**Mail log**:
-The record of every email that the app sends, with its recipient, its status, and the record that it is about.
-_Avoid_: Email log, outbox, sent items
+**Message log**:
+The record of every message that leaves the app, such as an email or an SMS. It holds the recipient, the status, and the record that the message is about. It does not hold notifications.
+_Avoid_: Mail log, email log, SMS log, outbox, sent items
 
 **Sent**:
-The status of an email that the mail server accepted. It is not proof that the email reached the inbox.
+The status of a message that the mail server or the SMS gateway accepted. It is not proof that the message reached the person.
 _Avoid_: Delivered, successful
 
+**Started**:
+The time when the app started to send a message. For a message on the queue, it is the time of the first try.
+_Avoid_: Created, queued
+
 **Notification**:
-A message that the app shows to a user inside the app, under the bell.
+A message that the app shows to a user inside the app, under the bell. A notification class is the code's name for a class that sends a message of any kind.
 _Avoid_: Alert, in-app message
 
 **Open**:
@@ -256,5 +270,9 @@ The first time that the recipient, signed in, follows a link in an email to a pa
 _Avoid_: Open, download, read receipt
 
 **Resend**:
-A new email that sends an earlier email again, to its recipient or to another address. It links to the email that it repeats.
-_Avoid_: Retry, which is another try of the same email after a failure
+A new message that sends an earlier email or SMS again, to its recipient or to another email address or phone number. It links to the message that it repeats. The message log marks the earlier message as resent.
+_Avoid_: Retry, which is another try of the same message after a failure
+
+**Intercept**:
+A setting for servers outside production that keeps messages away from real people. The app sends each email and SMS to the signed-in user in place of the recipient. During impersonation, it sends them to the impersonator.
+_Avoid_: Redirect, sandbox

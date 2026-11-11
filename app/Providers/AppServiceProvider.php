@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Shared\Sms\Channels\SmsChannel;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
 use App\Http\Middleware\EnsureEmailIsVerified;
@@ -11,9 +12,11 @@ use App\Http\Middleware\EnsurePhoneIsVerified;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -38,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
             throw_unless($gateway instanceof SmsGateway, LogicException::class, "system.sms.gateways.{$name} must name a class that implements SmsGateway.");
 
             return $gateway;
+        });
+
+        Notification::resolved(function (ChannelManager $channels): void {
+            $channels->extend('sms', fn (): SmsChannel => resolve(SmsChannel::class));
         });
     }
 

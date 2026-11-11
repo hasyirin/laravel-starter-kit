@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Notifications;
 
-use App\Domain\Shared\Mail\Notifications\Notification;
+use App\Domain\Shared\Message\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\HtmlString;

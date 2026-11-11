@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Notifications;
 
-use App\Domain\Shared\Mail\Concerns\InteractsWithMailLog;
-use App\Domain\Shared\Mail\Contracts\HasMailLog;
+use App\Domain\Shared\Message\Concerns\InteractsWithMessageLog;
+use App\Domain\Shared\Message\Contracts\HasMessageLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 
-class ResetPassword extends \Illuminate\Auth\Notifications\ResetPassword implements HasMailLog, ShouldBeEncrypted, ShouldQueue, ShouldQueueAfterCommit
+class ResetPassword extends \Illuminate\Auth\Notifications\ResetPassword implements HasMessageLog, ShouldBeEncrypted, ShouldQueue, ShouldQueueAfterCommit
 {
-    use InteractsWithMailLog;
+    use InteractsWithMessageLog;
     use Queueable;
 
     public function tracked(object $notifiable): bool

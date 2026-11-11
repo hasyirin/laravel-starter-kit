@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Mail\Listeners;
 
 use App\Domain\Shared\Mail\Support\Recipients;
-use App\Domain\User\Models\User;
+use App\Domain\Shared\Message\Support\Intercept;
 use Illuminate\Mail\Events\MessageSending;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -53,14 +53,11 @@ class InterceptMail
 
     private function enabled(): bool
     {
-        return config()->boolean('mail.intercept.enabled') && ! app()->isProduction();
+        return Intercept::enabled('mail.intercept.enabled');
     }
 
     private function address(): ?string
     {
-        /** @var User|null $user */
-        $user = auth()->user() ?? User::withTrashed()->find(context()->get('user_id'));
-
-        return $user->email ?? (config()->string('mail.intercept.address') ?: null);
+        return Intercept::user()->email ?? (config()->string('mail.intercept.address') ?: null);
     }
 }

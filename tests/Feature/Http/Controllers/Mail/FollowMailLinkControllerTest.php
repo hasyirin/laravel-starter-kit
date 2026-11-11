@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Domain\Shared\Mail\Models\Mail;
 use App\Domain\Shared\Mail\Models\MailLink;
+use App\Domain\Shared\Message\Models\Message;
 use App\Domain\User\Models\User;
 
 test('a link to a public page records a click and redirects', function (): void {
@@ -14,8 +14,8 @@ test('a link to a public page records a click and redirects', function (): void 
 
     $response->assertRedirect('https://example.org/guide');
     expect($link->refresh()->clicked_at)->toEqual(now())
-        ->and($link->mail->clicked_at)->toEqual(now())
-        ->and($link->mail->viewed_at)->toBeNull();
+        ->and($link->message->clicked_at)->toEqual(now())
+        ->and($link->message->viewed_at)->toBeNull();
 });
 
 test('a link to a page behind a sign-in sends a guest to the login page first', function (): void {
@@ -31,21 +31,21 @@ test('a link to a page behind a sign-in sends a guest to the login page first', 
 test('the signed-in recipient makes a view', function (): void {
     $this->freezeSecond();
     $user = User::factory()->create();
-    $mail = Mail::factory()->create(['recipient_email' => 'other@example.com']);
-    $mail->notifiable()->associate($user)->save();
-    $link = MailLink::factory()->for($mail)->requiringAuth()->create();
+    $message = Message::factory()->create(['recipient_address' => 'other@example.com']);
+    $message->notifiable()->associate($user)->save();
+    $link = MailLink::factory()->for($message)->requiringAuth()->create();
 
     $response = $this->actingAs($user)->get(route('mail.link', $link->token));
 
     $response->assertRedirect(route('settings'));
     expect($link->refresh()->viewed_at)->toEqual(now())
-        ->and($mail->refresh()->viewed_at)->toEqual(now());
+        ->and($message->refresh()->viewed_at)->toEqual(now());
 });
 
 test('a signed-in user whose address is the recipient makes a view', function (): void {
     $this->freezeSecond();
     $user = User::factory()->create(['email' => 'aisyah@example.com']);
-    $link = MailLink::factory()->for(Mail::factory()->state(['recipient_email' => 'Aisyah@Example.com']))->requiringAuth()->create();
+    $link = MailLink::factory()->for(Message::factory()->state(['recipient_address' => 'Aisyah@Example.com']))->requiringAuth()->create();
 
     $this->actingAs($user)->get(route('mail.link', $link->token));
 

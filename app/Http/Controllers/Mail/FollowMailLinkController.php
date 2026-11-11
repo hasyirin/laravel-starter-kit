@@ -13,7 +13,7 @@ class FollowMailLinkController extends Controller
 {
     public function __invoke(string $token): RedirectResponse
     {
-        $link = MailLink::query()->with('mail')->where('token', $token)->firstOrFail();
+        $link = MailLink::query()->with('message')->where('token', $token)->firstOrFail();
 
         if (! $link->requires_auth) {
             $link->recordClick();
@@ -27,7 +27,7 @@ class FollowMailLinkController extends Controller
             return redirect()->guest(route('login'));
         }
 
-        if ($link->mail->isRecipient($user)) {
+        if ($link->message->isRecipient($user)) {
             $link->recordView();
         }
 

@@ -12,6 +12,12 @@ test('login screen can be rendered', function (): void {
     $response->assertOk();
 });
 
+test('a guest can open the login screen more than five times a minute, because the limit of the guest forms skips it', function (): void {
+    foreach (range(1, 6) as $attempt) {
+        $this->get(route('login'))->assertOk();
+    }
+});
+
 test('users can authenticate using the login screen', function (): void {
     $user = User::factory()->create();
 

@@ -20,7 +20,7 @@ return [
     'logs' => 'Logs',
     'audit_log' => 'Audit log',
     'manual_letter' => 'Manual letter',
-    'mail_log' => 'Mail log',
+    'message_log' => 'Message log',
     'notifications' => 'Notifications',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',

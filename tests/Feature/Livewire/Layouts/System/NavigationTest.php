@@ -83,15 +83,15 @@ test('the system sidebar shows the audit log link only to users who can view the
     Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.audits'), 'data-flux-sidebar-spacer'], false);
 });
 
-test('the system sidebar shows the mail log link only to users who can view the mail log', function (): void {
+test('the system sidebar shows the message log link only to users who can view the message log', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
     grantPermissions($user, 'system.access');
     $this->actingAs($user);
 
-    Livewire::test(Navigation::class)->assertDontSee(route('system.logs.mail'));
+    Livewire::test(Navigation::class)->assertDontSee(route('system.logs.messages'));
 
-    grantPermissions($user, 'system.logs.mail.view');
+    grantPermissions($user, 'system.logs.messages.view');
 
-    Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.mail'), 'data-flux-sidebar-spacer'], false);
+    Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.messages'), 'data-flux-sidebar-spacer'], false);
 });

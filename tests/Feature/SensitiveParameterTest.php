@@ -12,6 +12,7 @@ test('a parameter that holds a phone number, a password, a one-time code, a pass
         'code', 'token' => str_starts_with($method->class, 'App\\Domain\\User\\'),
         'input' => str_starts_with($method->class, 'App\\Domain\\User\\Actions\\Fortify\\'),
         'message' => is_a($method->class, SmsGateway::class, true),
+        'address' => str_starts_with($method->class, 'App\\Domain\\Shared\\Message\\'),
         default => false,
     };
 

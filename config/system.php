@@ -20,6 +20,10 @@ return [
             'log' => LogGateway::class,
         ],
         'calling_codes' => ['+60'],
+        'intercept' => [
+            'enabled' => env('SMS_INTERCEPT', env('MAIL_INTERCEPT', false)),
+            'phone' => (string) env('SMS_INTERCEPT_PHONE'),
+        ],
     ],
 
     'navigation' => [
@@ -42,10 +46,10 @@ return [
         'types' => [],
     ],
 
-    'mail_log' => [
-        'retention_days' => env('MAIL_RETENTION_DAYS'),
-        'archive_disk' => env('MAIL_ARCHIVE_DISK', 'local'),
-        'queue_connection' => env('MAIL_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
+    'message_log' => [
+        'retention_days' => env('MESSAGE_RETENTION_DAYS'),
+        'archive_disk' => env('MESSAGE_ARCHIVE_DISK', 'local'),
+        'queue_connection' => env('MESSAGE_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
     ],
 
     'roles' => [
@@ -111,9 +115,9 @@ return [
                 'audits' => [
                     'view' => 'system.logs.audits.view',
                 ],
-                'mail' => [
-                    'view' => 'system.logs.mail.view',
-                    'resend' => 'system.logs.mail.resend',
+                'messages' => [
+                    'view' => 'system.logs.messages.view',
+                    'resend' => 'system.logs.messages.resend',
                 ],
             ],
             'letters' => [

@@ -22,6 +22,12 @@ class Erd implements Section
         'sessions',
     ];
 
+    private const string PARTIAL_OR_EXPRESSION_INDEXES = <<<'SQL'
+        select name from pragma_index_list(?) as list
+        where list.partial = 1
+            or exists (select 1 from pragma_index_xinfo(list.name) where cid = -2)
+        SQL;
+
     private const array TYPES = [
         'blob' => 'binary',
         'double' => 'float',
@@ -91,7 +97,7 @@ class Erd implements Section
             ->filter(fn (array $column): bool => $column['nullable'])
             ->map(fn (array $column): string => $column['name']);
 
-        $partialOrExpression = collect(DB::select('select name from pragma_index_list(?) as list where list.partial = 1 or exists (select 1 from pragma_index_xinfo(list.name) where cid = -2)', [$table]))
+        $partialOrExpression = collect(DB::select(self::PARTIAL_OR_EXPRESSION_INDEXES, [$table]))
             ->pluck('name');
 
         $unique = collect(Schema::getIndexes($table))

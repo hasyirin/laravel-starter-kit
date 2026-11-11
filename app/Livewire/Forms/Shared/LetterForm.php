@@ -109,7 +109,8 @@ class LetterForm extends Form
         $new = ! $this->letter->exists;
 
         return collect(LetterTypes::forSource($this->source))
-            ->filter(fn (LetterType $type, string $key): bool => $type->allowedFor($printer) && (! $new || $this->can('create', $this->newLetter($key))))
+            ->filter(fn (LetterType $type): bool => $type->allowedFor($printer))
+            ->filter(fn (LetterType $type, string $key): bool => ! $new || $this->can('create', $this->newLetter($key)))
             ->all();
     }
 

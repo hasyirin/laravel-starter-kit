@@ -88,12 +88,14 @@ test('the code step checks the number too, because a browser can change it', fun
 });
 
 test('asking again too soon says when to try again', function (): void {
+    $this->freezeTime();
+
     Livewire::test(SmsPasswordReset::class)
         ->set('phone', '+60123456789')
         ->call('send')
         ->call('send')
         ->assertHasErrors('phone')
-        ->assertSee('Too many codes. Try again in');
+        ->assertSee('Too many codes. Try again in 1 minute.');
 });
 
 test('a locked number says when to try again', function (): void {

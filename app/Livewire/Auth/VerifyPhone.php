@@ -12,6 +12,8 @@ use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use App\Domain\User\Support\SmsCode;
 use App\Livewire\Component;
+use Carbon\CarbonInterface;
+use Carbon\CarbonInterval;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
@@ -82,7 +84,7 @@ class VerifyPhone extends Component
         try {
             SendPhoneVerificationCode::make()->execute($this->user());
         } catch (SmsCodeThrottled $smsCodeThrottled) {
-            $this->notice = (string) __('auth/verify-phone.throttled', ['seconds' => $smsCodeThrottled->seconds]);
+            $this->notice = (string) __('auth/verify-phone.throttled', ['time' => $this->waitTime($smsCodeThrottled->seconds)]);
 
             return false;
         }
@@ -96,6 +98,13 @@ class VerifyPhone extends Component
         $user = auth()->user();
 
         return $user;
+    }
+
+    private function waitTime(int $seconds): string
+    {
+        return CarbonInterval::seconds($seconds)
+            ->cascade()
+            ->forHumans(['parts' => 1, 'options' => CarbonInterface::CEIL]);
     }
 
     public function render(): View

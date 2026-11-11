@@ -75,10 +75,11 @@ test('the resend button sends a new code', function (): void {
 });
 
 test('resending too soon says when to try again', function (): void {
+    $this->freezeTime();
     Notification::fake();
     $this->actingAs($user = User::factory()->unverifiedPhone()->create());
 
-    Livewire::test(VerifyPhone::class)->call('send')->assertSee('Too many codes. Try again in');
+    Livewire::test(VerifyPhone::class)->call('send')->assertSee('Too many codes. Try again in 1 minute.');
 
     Notification::assertSentToTimes($user, PhoneVerificationCodeSms::class, 1);
 });

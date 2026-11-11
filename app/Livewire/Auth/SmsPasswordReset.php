@@ -31,7 +31,7 @@ class SmsPasswordReset extends Component
         try {
             SendPasswordResetCode::make()->execute($this->phone, (string) request()->ip());
         } catch (SmsCodeThrottled $smsCodeThrottled) {
-            $this->addError('phone', (string) __('auth/sms-password-reset.throttled', ['seconds' => $smsCodeThrottled->seconds]));
+            $this->addError('phone', (string) __('auth/sms-password-reset.throttled', ['time' => $this->waitTime($smsCodeThrottled->seconds)]));
 
             return;
         } catch (SmsPasswordResetLocked $smsPasswordResetLocked) {
@@ -69,11 +69,14 @@ class SmsPasswordReset extends Component
 
     private function lockedMessage(SmsPasswordResetLocked $smsPasswordResetLocked): string
     {
-        $time = CarbonInterval::seconds($smsPasswordResetLocked->seconds)
+        return (string) __('auth/sms-password-reset.locked', ['time' => $this->waitTime($smsPasswordResetLocked->seconds)]);
+    }
+
+    private function waitTime(int $seconds): string
+    {
+        return CarbonInterval::seconds($seconds)
             ->cascade()
             ->forHumans(['parts' => 1, 'options' => CarbonInterface::CEIL]);
-
-        return (string) __('auth/sms-password-reset.locked', ['time' => $time]);
     }
 
     public function render(): View

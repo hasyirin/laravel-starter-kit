@@ -10,7 +10,7 @@ return [
     'sent' => 'If this number belongs to a user with a verified phone number, we sent a code to it.',
     'resend' => 'Resend code',
     'change_number' => 'Use another number',
-    'throttled' => 'Too many codes. Try again in :seconds seconds.',
+    'throttled' => 'Too many codes. Try again in :time.',
     'locked' => 'Too many wrong codes for this number. Try again in :time, or reset your password by email.',
     'mail' => [
         'subject' => 'Password reset by SMS',

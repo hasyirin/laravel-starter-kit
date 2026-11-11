@@ -2,7 +2,7 @@
 
 The app sends SMS through Laravel notification classes. A notification class that implements `SmsNotification` returns `SmsChannel` in `via()` and gives the text in `toSms()`. The channel reads the number from `User::routeNotificationForSms()`. Then it sends the text through the gateway that `SMS_GATEWAY` names.
 
-`LogGateway` is the only gateway in the kit. It writes each SMS to the log, so the codes show in the log during local work. In production it throws an exception, so an app cannot go live without a real gateway. See [ADR-0014](adr/0014-the-kit-sends-sms-through-its-own-channel.md).
+`LogGateway` is the only gateway in the kit. It writes each SMS to the log, so the codes show in the log during local work. In production it throws an exception, so an app cannot go live without a real gateway. See [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md).
 
 ## Add a Gateway
 

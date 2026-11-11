@@ -1,6 +1,6 @@
 # Impersonation Keeps the Impersonated User as the Actor
 
-During impersonation, the signed-in user is the impersonated user. So the actor of each action, and the user on each audit entry, is the impersonated user, as [ADR-0003](0003-user-is-the-actor-with-a-profile-snapshot.md) says. Each audit entry also stores the impersonator's id in its properties. The id comes from the context, so an audit entry from a queued job also gets it.
+During impersonation, the signed-in user is the impersonated user. So the actor of each action, and the user on each audit entry, is the impersonated user, as [kit ADR-0003](0003-user-is-the-actor-with-a-profile-snapshot.md) says. Each audit entry also stores the impersonator's id in its properties. The id comes from the context, so an audit entry from a queued job also gets it.
 
 ## Considered Options
 

@@ -1,6 +1,6 @@
 # Letters
 
-The kit makes PDF letters. A letter type maps a letter source to declared letter data. A Blade view prints that data. Headless Chrome turns the view into a PDF. See `docs/adr/0011-letters-render-from-blade-with-headless-chrome.md` and `docs/adr/0012-letters-are-kit-records-that-print-declared-letter-data.md` for the reasons.
+The kit makes PDF letters. A letter type maps a letter source to declared letter data. A Blade view prints that data. Headless Chrome turns the view into a PDF. See `docs/adr/kit/0011-letters-render-from-blade-with-headless-chrome.md` and `docs/adr/kit/0012-letters-are-kit-records-that-print-declared-letter-data.md` for the reasons.
 
 A letter is signed correspondence with a reference number. A report or a bill is not a letter. For these, see **Render a Report or a Bill**.
 

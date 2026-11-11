@@ -53,6 +53,18 @@ test('an optional field is not marked required', function (): void {
     expect($document->querySelectorAll('[data-input-label] > span[aria-hidden="true"]'))->toHaveCount(1);
 });
 
+test('a required field inside a group or a table row is marked required', function (): void {
+    $document = renderDataFields(
+        [
+            Field::group('extra', 'Extra', [Field::text('reason'), Field::text('note')->optional()]),
+            Field::table('lines', [Field::text('item'), Field::text('remark')->optional()])->optional(),
+        ],
+        ['_groups' => ['extra' => true], 'lines' => [['item' => 'Pen', 'remark' => null]]],
+    );
+
+    expect($document->querySelectorAll('[data-input-label] > span[aria-hidden="true"]'))->toHaveCount(2);
+});
+
 test('a locked field is disabled and the others are not', function (): void {
     $document = renderDataFields([Field::text('title'), Field::text('note')], locked: ['title']);
 

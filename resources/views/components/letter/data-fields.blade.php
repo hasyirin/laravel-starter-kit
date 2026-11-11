@@ -6,7 +6,6 @@
     'values' => [],
     'locked' => [],
     'disabled' => false,
-    'grouped' => false,
 ])
 
 <div {{ $attributes->class('space-y-6') }}>
@@ -15,7 +14,7 @@
             $key = $prefix.'.'.$field->name;
             $label = $field->label ?? str($field->name)->headline()->value();
             $fieldDisabled = $disabled || in_array($field->name, $locked, true);
-            $required = ! $field->isOptional && ! $grouped;
+            $required = ! $field->isOptional;
             $current = data_get($values, $field->name);
             $type = $field->type->value;
         @endphp
@@ -47,7 +46,7 @@
             <div class="space-y-6">
                 <x-switch :$label :disabled="$fieldDisabled" wire:model.live="{{ $prefix }}._groups.{{ $field->name }}" />
                 @if($groupOn)
-                    <x-letter.data-fields :fields="$field->children" :prefix="$key" :values="$current ?? []" :disabled="$fieldDisabled" grouped />
+                    <x-letter.data-fields :fields="$field->children" :prefix="$key" :values="$current ?? []" :disabled="$fieldDisabled" />
                 @endif
             </div>
         @elseif($type === 'list')
@@ -94,7 +93,6 @@
                                 :prefix="$key.'.'.$index"
                                 :values="is_array($current[$index] ?? null) ? $current[$index] : []"
                                 :disabled="$fieldDisabled"
-                                grouped
                             />
                             @unless($fieldDisabled)
                                 <flux:button

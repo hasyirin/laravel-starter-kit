@@ -31,7 +31,7 @@ Each field becomes the kit input of its type, bound to prefix.name:
 | Table      | The columns of the field, repeated for each row             |
 | Group      | A switch that shows the fields of the group                 |
 
-The label is the label of the field. If the field has no label, the label is its name as a heading. A field that is not optional shows the required mark.
+The label is the label of the field. If the field has no label, the label is its name as a heading. A field that is not optional shows the required mark, also inside a group or a table row.
 
 ## Values
 
@@ -109,7 +109,6 @@ The image input is `<x-file-upload>` without `multiple`. The property holds the 
 | `values`   | `[]`    | The current data at `prefix`. It sets the rows and the groups that are on.                        |
 | `locked`   | `[]`    | The names of the fields that the user cannot change.                                              |
 | `disabled` | `false` | Disables every input. It follows `disabled` on the card around it.                                |
-| `grouped`  | `false` | Used by the component for the fields of a group and a table row. Their required mark is not shown. |
 
 ### Attributes
 

@@ -666,6 +666,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an image renders the file upload bound to the field
 - a label comes from the field, or from its name
 - an optional field is not marked required
+- a required field inside a group or a table row is marked required
 - a locked field is disabled and the others are not
 - a locked field of every type is disabled
 - a locked image upload is disabled

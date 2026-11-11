@@ -133,6 +133,16 @@ it('accepts a temporary upload as an image', function (): void {
     expect(Validator::make(['logo' => $upload], Field::rules([Field::image('logo')]))->passes())->toBeTrue();
 });
 
+it('refuses a temporary upload larger than 10 MB', function (): void {
+    Storage::fake('local');
+    $image = UploadedFile::fake()->image('logo.png');
+    file_put_contents($image->getRealPath(), str_repeat("\0", 10 * 1024 * 1024), FILE_APPEND);
+    $image->storeAs('livewire-tmp', 'logo.png', 'local');
+    $upload = new TemporaryUploadedFile('logo.png', 'local');
+
+    expect(Validator::make(['logo' => $upload], Field::rules([Field::image('logo')]))->fails())->toBeTrue();
+});
+
 it('treats a group with only empty children as absent', function (): void {
     $rules = Field::rules(groupFields());
 

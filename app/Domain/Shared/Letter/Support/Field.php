@@ -17,6 +17,8 @@ final readonly class Field
 {
     public const array RASTER_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
+    public const int MAX_IMAGE_KILOBYTES = 10240;
+
     /**
      * @param  array<string, string>  $options
      * @param  list<Field>  $children
@@ -197,6 +199,12 @@ final readonly class Field
 
             if (! $valid) {
                 $fail(__('validation.image', ['attribute' => $attribute]));
+
+                return;
+            }
+
+            if ($value instanceof TemporaryUploadedFile && $value->getSize() > self::MAX_IMAGE_KILOBYTES * 1024) {
+                $fail(__('validation.max.file', ['attribute' => $attribute, 'max' => self::MAX_IMAGE_KILOBYTES]));
             }
         };
     }

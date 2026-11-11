@@ -85,6 +85,19 @@ test('an image narrower than 2480 pixels is refused', function (): void {
     expect(Letterhead::query()->count())->toBe(0);
 });
 
+test('an image larger than 10 MB is refused', function (): void {
+    $image = UploadedFile::fake()->image('header.png', 2480, 300);
+    file_put_contents($image->getRealPath(), str_repeat("\0", 10 * 1024 * 1024), FILE_APPEND);
+    $item = Livewire::test(FileUpload::class, ['fileRules' => ['image']])->set('uploads', $image)->get('items')[0];
+
+    Livewire::test(LetterheadModal::class, ['organization' => $this->organization])
+        ->call('show')
+        ->set('form.name', 'Main')
+        ->set('form.header', [$item])
+        ->call('save')
+        ->assertHasErrors('form.header');
+});
+
 test('the footer is checked like the header', function (): void {
     Livewire::test(LetterheadModal::class, ['organization' => $this->organization])
         ->call('show')

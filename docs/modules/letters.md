@@ -83,7 +83,7 @@ The mapping makes every decision. It compares dates with `$date`, never with tod
 
 `data()` must return every declared key. Return null for an empty optional field. If `data()` returns an undeclared key or misses a declared key, `LetterType::letterData()` throws a `LogicException` that names the letter type and the key. The values also pass the validation rules of the fields.
 
-An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. A table field cannot have an image column.
+An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. An uploaded image can be at most 10 MB. A table field cannot have an image column.
 
 #### Other Settings
 
@@ -234,6 +234,7 @@ A letterhead is a header image and an optional footer image for an organization.
 Staff with the `internal.controls.letterheads.create` permission manage letterheads on the Letterheads tab of the organization page, in internal controls.
 
 - Each image must be at least 2480 pixels wide (A4 at 300 ppi). The height is free.
+- Each image can be at most 10 MB.
 - An image letterhead prints on page 1 only. A `LetterheadView` can print on every page.
 - The letter form has a letterhead switch. The letter stores the choice.
 
@@ -246,6 +247,8 @@ Staff with the `internal.controls.letterheads.create` permission manage letterhe
 3. The best letterhead for the placement of the printer.
 
 For one placement, a letterhead for a branch wins over a letterhead for a department. A letterhead for both wins over both. A letterhead for the whole organization is the last choice.
+
+The placement of the signer comes from the profile on the signature, not from the newest profile. The letter form shows the same letterhead. For a newly chosen signer, the form uses the active profile of that signer.
 
 ### Write a Custom Letterhead View
 
@@ -331,6 +334,7 @@ A letter type can override `sourceAbility()`. For example, it can return `archiv
 In the letter form:
 
 - The print choices (signer, carbon copies, letterhead, computer signed) need the `print` ability.
+- A user without `print` cannot choose a signer. So for a new letter, the type list hides each letter type with a required signer.
 - The reference number, the sequence number, the date, and the extra fields need the `update` ability.
 - The signed scan upload needs `print`, not `update`. Scans come back after the source is locked.
 - The preview route `letters.preview` needs `print`. If the letter cannot be printed, the preview shows the messages with the status 422. It does not redirect.
@@ -586,6 +590,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it refuses an image uuid of another model
 - it refuses a path as an image
 - it accepts a temporary upload as an image
+- it refuses a temporary upload larger than 10 MB
 - it treats a group with only empty children as absent
 - it still requires the children of a filled group
 - it refuses a temporary upload that is not an image

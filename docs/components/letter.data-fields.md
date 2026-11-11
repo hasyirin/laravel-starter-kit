@@ -26,7 +26,7 @@ Each field becomes the kit input of its type, bound to prefix.name:
 | Number     | [`<x-input.number>`](input.number.md)                       |
 | Yes or no  | [`<x-switch>`](switch.md)                                   |
 | Choice     | [`<x-select>`](select.md) with the options of the field     |
-| Image      | [`<x-file-upload>`](file-upload.md) for one raster image    |
+| Image      | [`<x-file-upload>`](file-upload.md) for one raster image of at most 10 MB |
 | List       | One [`<x-input>`](input.md) for each row                    |
 | Table      | The columns of the field, repeated for each row             |
 | Group      | A switch that shows the fields of the group                 |

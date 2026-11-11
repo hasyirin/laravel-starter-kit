@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Components;
 
+use App\Domain\Shared\Actor\Models\Action;
 use App\Domain\Shared\Letter\Actions\ResolveLetterhead;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
@@ -117,13 +118,7 @@ class LetterModal extends RecordModal
             return (string) __('letters/letters.no_letterhead');
         }
 
-        $signerId = $this->form->signer_id;
-        $signer = $signerId !== null && array_key_exists($signerId, $this->signers) ? User::query()->find($signerId) : null;
-        $letterhead = ResolveLetterhead::make()->execute(
-            $type,
-            $signer instanceof User ? Placement::of($signer->profile) : null,
-            Placement::of($printer->profile),
-        );
+        $letterhead = ResolveLetterhead::make()->execute($type, $this->signerPlacement(), Placement::of($printer->profile));
 
         return match (true) {
             $letterhead instanceof Letterhead => $letterhead->name,
@@ -163,6 +158,27 @@ class LetterModal extends RecordModal
         $this->form->save();
 
         $this->dispatch(static::scopedEvent($this->source));
+    }
+
+    private function signerPlacement(): ?Placement
+    {
+        $signerId = $this->form->signer_id;
+
+        if ($signerId === null) {
+            return null;
+        }
+
+        $signature = $this->record->exists ? $this->record->signature : null;
+
+        if ($signature instanceof Action && $signature->actor_id === $signerId) {
+            return Placement::of($signature->profile()->withTrashed()->first());
+        }
+
+        if (! array_key_exists($signerId, $this->signers)) {
+            return null;
+        }
+
+        return Placement::of(User::query()->find($signerId)?->profile);
     }
 
     public function render(): View

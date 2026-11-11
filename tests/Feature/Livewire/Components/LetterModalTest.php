@@ -417,6 +417,12 @@ test('on a new letter the print parts follow the print ability of the chosen typ
     expect(openModal()->set('form.type', 'guarded')->instance()->editable('signer'))->toBeTrue();
 });
 
+test('a new letter hides a type with a required signer from a user who cannot print', function (): void {
+    $this->permit->update(['hidden' => true]);
+
+    expect(openModal()->instance()->types())->not->toHaveKey('signed')->toHaveKey('permit');
+});
+
 test('a new letter hides a type that locks a required extra field', function (): void {
     expect(openModal()->instance()->types())->not->toHaveKey('locked');
 
@@ -437,6 +443,24 @@ test('the letterhead of a signer outside the list is not used', function (): voi
 
     openModal()->set('form.type', 'permit')->set('form.signer_id', $outside->id)->assertDontSee('Foreign Office')->assertSee(__('letters/letters.no_letterhead'));
 });
+
+test('a saved signer shows the letterhead of the profile on the signature', function (bool $leavesOrganization): void {
+    $department = Department::factory()->for($this->organization)->create();
+    Letterhead::factory()->for($this->organization)->create(['name' => 'Signed Office', 'department_id' => $department->id]);
+    $signer = User::factory()->create();
+    $position = Position::factory()->for($this->organization)->create(['department_id' => $department->id]);
+    Profile::factory()->for($this->organization)->for($signer)->create(['department_id' => $department->id, 'position_id' => $position->id]);
+    $letter = savedLetter('permit');
+    $letter->act(Act::Sign, $signer);
+
+    $newOrganization = $leavesOrganization ? Organization::factory()->create() : $this->organization;
+    $newDepartment = Department::factory()->for($newOrganization)->create();
+    Letterhead::factory()->for($newOrganization)->create(['name' => 'Moved Office', 'department_id' => $newDepartment->id]);
+    $newPosition = Position::factory()->for($newOrganization)->create(['department_id' => $newDepartment->id]);
+    Profile::factory()->for($newOrganization)->for($signer)->create(['department_id' => $newDepartment->id, 'position_id' => $newPosition->id]);
+
+    openModal($letter)->assertSee('Signed Office')->assertDontSee('Moved Office');
+})->with(['still in the organization' => false, 'outside the organization' => true]);
 
 test('a letterhead set by the type shows a label, not a view path', function (): void {
     PermitViewHeadLetter::$letterheadView = new LetterheadView('tests::letters.letterhead-office', 20);

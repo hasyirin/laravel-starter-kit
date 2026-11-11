@@ -271,7 +271,13 @@ class LetterForm extends Form
             fn (Field $field): bool => in_array($field->name, $type->lockedFields(), true) && ! $field->isOptional && $field->type !== FieldType::Group,
         );
 
-        return ! $lockedRequired && $this->can($type->sourceAbility('create'), $this->source);
+        $signerRequired = $type->signer() === SignerRequirement::Required;
+
+        if ($lockedRequired || ($signerRequired && $this->cannot($type->sourceAbility('print'), $this->source))) {
+            return false;
+        }
+
+        return $this->can($type->sourceAbility('create'), $this->source);
     }
 
     private function signer(): ?User

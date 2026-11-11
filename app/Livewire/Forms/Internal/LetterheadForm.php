@@ -7,6 +7,7 @@ namespace App\Livewire\Forms\Internal;
 use App\Domain\Shared\Letter\Actions\SaveLetterhead;
 use App\Domain\Shared\Letter\Enums\LetterheadImage;
 use App\Domain\Shared\Letter\Models\Letterhead;
+use App\Domain\Shared\Letter\Support\Field;
 use App\Domain\Shared\Media\Rules\Uploads;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
@@ -18,7 +19,7 @@ use Livewire\Attributes\Locked;
 
 class LetterheadForm extends Form
 {
-    public const array IMAGE_RULES = ['image', 'dimensions:min_width=2480'];
+    public const array IMAGE_RULES = ['image', 'dimensions:min_width=2480', 'max:'.Field::MAX_IMAGE_KILOBYTES];
 
     #[Locked]
     public Organization $organization;

@@ -36,7 +36,7 @@
             <x-file-upload
                 :$label
                 :$required
-                :rules="['mimetypes:'.implode(',', \App\Domain\Shared\Letter\Support\Field::RASTER_TYPES)]"
+                :rules="['mimetypes:'.implode(',', \App\Domain\Shared\Letter\Support\Field::RASTER_TYPES), 'max:'.\App\Domain\Shared\Letter\Support\Field::MAX_IMAGE_KILOBYTES]"
                 :disabled="$fieldDisabled"
                 wire:model="{{ $key }}"
             />

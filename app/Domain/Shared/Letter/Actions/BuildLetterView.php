@@ -41,14 +41,14 @@ class BuildLetterView
             : null;
 
         return new LetterView(
-            $referenceNumber,
-            $date,
-            $this->formatDate($type, $date),
-            $signerProfile?->name,
-            $signerProfile?->position?->name,
-            $carbonCopies,
-            $letterhead,
-            $computerSigned,
+            referenceNumber: $referenceNumber,
+            date: $date,
+            formattedDate: $this->formatDate($type, $date),
+            signerName: $signerProfile?->name,
+            signerPosition: $signerProfile?->position?->name,
+            carbonCopies: $carbonCopies,
+            letterhead: $letterhead,
+            computerSigned: $computerSigned,
         );
     }
 

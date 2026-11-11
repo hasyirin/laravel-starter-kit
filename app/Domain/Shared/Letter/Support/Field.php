@@ -104,12 +104,26 @@ final readonly class Field
 
     public function optional(): static
     {
-        return new self($this->name, $this->type, $this->label, $this->options, $this->children, true);
+        return new self(
+            name: $this->name,
+            type: $this->type,
+            label: $this->label,
+            options: $this->options,
+            children: $this->children,
+            isOptional: true,
+        );
     }
 
     public function label(string $label): static
     {
-        return new self($this->name, $this->type, $label, $this->options, $this->children, $this->isOptional);
+        return new self(
+            name: $this->name,
+            type: $this->type,
+            label: $label,
+            options: $this->options,
+            children: $this->children,
+            isOptional: $this->isOptional,
+        );
     }
 
     /**

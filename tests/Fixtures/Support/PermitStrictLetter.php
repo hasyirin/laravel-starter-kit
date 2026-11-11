@@ -8,6 +8,10 @@ class PermitStrictLetter extends PermitLetter
 {
     public function sourceAbility(string $letterAbility): string
     {
-        return $letterAbility === 'create' ? 'archive' : parent::sourceAbility($letterAbility);
+        if ($letterAbility === 'create') {
+            return 'archive';
+        }
+
+        return parent::sourceAbility($letterAbility);
     }
 }

@@ -15,17 +15,15 @@ final class LetterTypes
      */
     public static function all(): array
     {
-        $types = [];
+        return collect(self::registered())
+            ->map(function (string $class, string $key): LetterType {
+                $type = resolve($class);
 
-        foreach (self::registered() as $key => $class) {
-            $type = resolve($class);
+                throw_unless($type instanceof LetterType, LogicException::class, "The container did not build a LetterType for [{$key}].");
 
-            throw_unless($type instanceof LetterType, LogicException::class, "The container did not build a LetterType for [{$key}].");
-
-            $types[$key] = $type;
-        }
-
-        return $types;
+                return $type;
+            })
+            ->all();
     }
 
     public static function find(string $key): LetterType
@@ -63,14 +61,12 @@ final class LetterTypes
      */
     private static function registered(): array
     {
-        $registered = [];
+        return collect(config()->array('system.letters.types'))
+            ->mapWithKeys(function (mixed $class, int|string $key): array {
+                throw_if(! is_string($key) || ! is_string($class) || ! is_subclass_of($class, LetterType::class), InvalidArgumentException::class, 'system.letters.types must map a key to a LetterType class.');
 
-        foreach (config()->array('system.letters.types') as $key => $class) {
-            throw_if(! is_string($key) || ! is_string($class) || ! is_subclass_of($class, LetterType::class), InvalidArgumentException::class, 'system.letters.types must map a key to a LetterType class.');
-
-            $registered[$key] = $class;
-        }
-
-        return $registered;
+                return [$key => $class];
+            })
+            ->all();
     }
 }

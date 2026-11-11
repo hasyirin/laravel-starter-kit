@@ -20,6 +20,10 @@ class PermitGuardedLetter extends PermitLetter
 
     public function sourceAbility(string $letterAbility): string
     {
-        return $letterAbility === 'print' ? 'archive' : parent::sourceAbility($letterAbility);
+        if ($letterAbility === 'print') {
+            return 'archive';
+        }
+
+        return parent::sourceAbility($letterAbility);
     }
 }

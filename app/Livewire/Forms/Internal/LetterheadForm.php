@@ -95,6 +95,14 @@ class LetterheadForm extends Form
     {
         $this->validate();
 
-        return SaveLetterhead::make()->execute($this->letterhead, $this->organization, $this->branch(), $this->department(), $this->name, $this->header, $this->footer);
+        return SaveLetterhead::make()->execute(
+            letterhead: $this->letterhead,
+            organization: $this->organization,
+            branch: $this->branch(),
+            department: $this->department(),
+            name: $this->name,
+            headerItems: $this->header,
+            footerItems: $this->footer,
+        );
     }
 }

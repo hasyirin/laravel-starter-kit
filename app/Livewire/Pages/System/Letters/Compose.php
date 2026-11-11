@@ -88,7 +88,7 @@ class Compose extends Page
 
             $query->where(fn (Builder $match): Builder => $match
                 ->whereKey(is_int($key) ? [$key] : [])
-                ->when($this->sourceHasName, fn (Builder $named): Builder => $named->orWhereLike('name', "%$search%")));
+                ->when($this->searchesName, fn (Builder $named): Builder => $named->orWhereLike('name', "%$search%")));
         }
 
         $sources = $query
@@ -137,7 +137,7 @@ class Compose extends Page
     }
 
     #[Computed]
-    public function sourceHasName(): bool
+    public function searchesName(): bool
     {
         $type = $this->letterType;
 
@@ -245,7 +245,7 @@ class Compose extends Page
 
     private function resetStart(): void
     {
-        unset($this->letterType, $this->signers, $this->sources, $this->letters, $this->pickedSource, $this->sourceHasName);
+        unset($this->letterType, $this->signers, $this->sources, $this->letters, $this->pickedSource, $this->searchesName);
 
         $this->sourceId = null;
         $this->letterId = null;

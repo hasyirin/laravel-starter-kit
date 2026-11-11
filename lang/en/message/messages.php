@@ -4,15 +4,39 @@ declare(strict_types=1);
 
 return [
     'status' => 'Status',
+    'channel' => 'Channel',
+    'channels' => [
+        'mail' => 'Email',
+        'sms' => 'SMS',
+    ],
     'recipient' => 'Recipient',
     'subject' => 'Subject',
+    'columns' => [
+        'content' => 'Content',
+        'opened' => 'Opened',
+        'clicked' => 'Clicked',
+        'resend' => 'Resend',
+    ],
+    'marks' => [
+        'resend' => 'Resend',
+        'resent' => '{1} Resent|[2,*] Resent :count times',
+    ],
+    'hints' => [
+        'opened' => 'The email client loaded the images of the email. It is not proof that a person read the email.',
+        'clicked' => 'Someone followed a link in the email. A link scanner can do this, so it is not proof that a person read the email.',
+        'viewed' => 'The recipient, signed in, followed a link in the email. It is the only proof that the recipient read the email.',
+        'resend' => 'A resend repeats an earlier message. "Resent" marks a message that staff sent again.',
+        'started' => 'The time when the app started to send the message.',
+        'sent' => 'The time when the mail server or the SMS gateway accepted the message. It is not proof that the message reached the person.',
+    ],
     'no_subject' => 'No subject',
     'cc' => 'CC',
     'bcc' => 'BCC',
     'intercepted_to' => 'Intercepted to',
-    'created_at' => 'Created',
+    'started_at' => 'Started',
     'sent_at' => 'Sent',
     'resend_of' => 'Resend of the message from',
+    'resends' => 'Resends',
     'tracking' => 'Tracking',
     'viewed' => 'Viewed',
     'clicked' => 'May have clicked',
@@ -24,6 +48,8 @@ return [
     'attachments' => 'Attachments',
     'body' => 'Body',
     'no_body' => 'The app does not keep the body of this email.',
+    'text' => 'Text',
+    'no_text' => 'The app does not keep the text of this message.',
     'resend_to' => 'Send to',
     'resend' => 'Resend',
     'resent' => 'The message is queued to send again.',
@@ -34,8 +60,8 @@ return [
     ],
     'reasons' => [
         'timeout' => [
-            'label' => 'The mail server took too long, so the app stopped the send.',
-            'suggestion' => 'The email may have arrived before the app stopped. Ask the recipient first, so that they do not get it twice.',
+            'label' => 'The send took too long, so the app stopped it.',
+            'suggestion' => 'The message may have arrived before the app stopped. Ask the recipient first, so that they do not get it twice.',
         ],
         'invalid_recipient' => [
             'label' => 'The email address of the recipient is not valid or does not exist.',
@@ -87,7 +113,7 @@ return [
         ],
         'unknown' => [
             'label' => 'An unknown error occurred.',
-            'suggestion' => 'Resend the email. If it fails again, give the technical message below to a system administrator.',
+            'suggestion' => 'Send the message again. If it fails again, give the technical message below to a system administrator.',
         ],
     ],
 ];

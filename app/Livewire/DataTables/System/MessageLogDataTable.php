@@ -22,6 +22,6 @@ class MessageLogDataTable extends DataTable
      */
     protected function query(): Builder
     {
-        return Message::query()->latest('id');
+        return $this->messages();
     }
 }

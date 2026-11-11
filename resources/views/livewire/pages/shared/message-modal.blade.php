@@ -11,7 +11,13 @@
 
             <div class="space-y-6">
                 <div class="space-y-2">
-                    <flux:heading size="lg">{{ $message->subject ?? __('message/messages.no_subject') }}</flux:heading>
+                    <flux:heading size="lg">
+                        @if($message->channel === 'mail')
+                            {{ $message->subject ?? __('message/messages.no_subject') }}
+                        @else
+                            {{ $message->channel_label }}
+                        @endif
+                    </flux:heading>
 
                     <flux:badge size="sm" :color="$message->status->color()">{{ $message->status->label() }}</flux:badge>
                 </div>
@@ -33,10 +39,21 @@
                         <x-entry :label="__('message/messages.bcc')">{{ collect($message->bcc)->pluck('address')->join(', ') }}</x-entry>
                     @endif
 
-                    <x-entry :label="__('message/messages.created_at')">{{ $preferences->datetime($message->created_at) }}</x-entry>
+                    <x-entry :label="__('message/messages.started_at')">{{ $preferences->datetime($message->created_at) }}</x-entry>
 
                     @if($message->sent_at)
                         <x-entry :label="__('message/messages.sent_at')">{{ $preferences->datetime($message->sent_at) }}</x-entry>
+                    @endif
+
+                    @if($message->resends->isNotEmpty())
+                        <x-entry :label="__('message/messages.resends')">
+                            @foreach($message->resends as $resend)
+                                <span class="flex items-center gap-2" wire:key="resend-{{ $resend->id }}">
+                                    <flux:link as="button" wire:click="show({{ $resend->id }})">{{ $preferences->datetime($resend->created_at) }}</flux:link>
+                                    <flux:badge size="sm" :color="$resend->status->color()">{{ $resend->status->label() }}</flux:badge>
+                                </span>
+                            @endforeach
+                        </x-entry>
                     @endif
 
                     @if($message->resendOf)
@@ -100,7 +117,7 @@
                 @endif
 
                 <div class="space-y-2">
-                    <flux:heading>{{ __('message/messages.body') }}</flux:heading>
+                    <flux:heading>{{ $message->channel === 'mail' ? __('message/messages.body') : __('message/messages.text') }}</flux:heading>
 
                     @if($message->html_body)
                         <iframe
@@ -115,23 +132,25 @@
                             >{{ $message->text_body }}</pre
                         >
                     @else
-                        <flux:text>{{ __('message/messages.no_body') }}</flux:text>
+                        <flux:text>{{ $message->channel === 'mail' ? __('message/messages.no_body') : __('message/messages.no_text') }}</flux:text>
                     @endif
                 </div>
 
-                @can('resend', $message)
-                    <form wire:submit="resend" class="space-y-6">
-                        @if($message->channel === 'sms')
-                            <x-input.phone wire:model="address" :label="__('message/messages.resend_to')" required />
-                        @else
-                            <x-input wire:model="address" name="address" type="email" :label="__('message/messages.resend_to')" required />
-                        @endif
+                @if($message->resendable)
+                    @can('resend', $message)
+                        <form wire:submit="resend" class="space-y-6">
+                            @if($message->channel === 'sms')
+                                <x-input.phone wire:model="address" :label="__('message/messages.resend_to')" required />
+                            @else
+                                <x-input wire:model="address" name="address" type="email" :label="__('message/messages.resend_to')" required />
+                            @endif
 
-                        <div class="flex justify-end gap-2">
-                            <flux:button type="submit" variant="primary">{{ __('message/messages.resend') }}</flux:button>
-                        </div>
-                    </form>
-                @endcan
+                            <div class="flex justify-end gap-2">
+                                <flux:button type="submit" variant="primary">{{ __('message/messages.resend') }}</flux:button>
+                            </div>
+                        </form>
+                    @endcan
+                @endif
             </div>
         @endif
     </flux:modal>

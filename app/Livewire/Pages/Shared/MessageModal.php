@@ -31,7 +31,7 @@ class MessageModal extends Modal
     {
         abort_if($id === null, 404);
 
-        $message = Message::query()->with(['media', 'resendOf'])->findOrFail($id);
+        $message = Message::query()->with(['media', 'resendOf', 'resends'])->findOrFail($id);
 
         $this->authorize('view', $message);
 
@@ -44,6 +44,7 @@ class MessageModal extends Modal
     public function resend(): void
     {
         abort_if(! $this->message instanceof Message, 404);
+        abort_unless($this->message->resendable, 403);
 
         $this->authorize('resend', $this->message);
 

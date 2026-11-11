@@ -27,6 +27,6 @@ class MessageLogDataTable extends DataTable
      */
     protected function query(): Builder
     {
-        return Message::query()->whereMorphedTo('resource', $this->resource)->latest('id');
+        return $this->messages()->whereMorphedTo('resource', $this->resource);
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Message\Actions\ResendMessage;
+use App\Domain\Shared\Message\Enums\MessageStatus;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
@@ -38,6 +39,36 @@ test('the modal shows the email, its failure reason, and its suggestion', functi
         ->assertSee('Letter issued')
         ->assertSee(__('message/messages.reasons.connection_failed.label'))
         ->assertSee(__('message/messages.reasons.connection_failed.suggestion'));
+});
+
+test('the modal of an sms has the channel as its heading and shows its text', function (): void {
+    $message = Message::factory()->sms()->create(['text_body' => 'Your letter is ready.']);
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: $message->id)
+        ->assertSeeInOrder(['SMS', __('message/messages.text'), 'Your letter is ready.'])
+        ->assertDontSee(__('message/messages.no_subject'))
+        ->assertDontSee(__('message/messages.body'));
+});
+
+test('the modal of an sms without a text says that the app does not keep the text', function (): void {
+    $message = Message::factory()->sms()->create(['text_body' => null]);
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: $message->id)
+        ->assertSee(__('message/messages.no_text'))
+        ->assertDontSee(__('message/messages.no_body'));
+});
+
+test('the modal of a message that staff resent lists its resends with their statuses', function (): void {
+    $first = Message::factory()->failed()->create();
+    $resend = Message::factory()->create(['resend_of_id' => $first->id]);
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: $first->id)
+        ->assertSeeInOrder([__('message/messages.started_at'), __('message/messages.resends'), $resend->status->label()])
+        ->assertSeeHtml('wire:click="show('.$resend->id.')"')
+        ->assertDontSee('Created');
 });
 
 test('the modal shows an email without a recipient', function (): void {
@@ -147,6 +178,28 @@ test('a user without system.logs.messages.resend cannot resend an email', functi
 
     $this->assertDatabaseCount(Message::class, 1);
 });
+
+test('a user with bypass-authorization gets no resend for a message that cannot be resent', function (Closure $message): void {
+    grantPermissions($this->viewer, 'bypass-authorization');
+    $message = $message();
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: $message->id)
+        ->assertDontSee(__('message/messages.resend_to'))
+        ->call('resend')
+        ->assertForbidden();
+
+    $this->assertDatabaseCount(Message::class, 1);
+})->with([
+    'an sms with a hidden value' => [fn (): Message => Message::factory()->sms()->create()],
+    'an email from a class without the contract' => [fn (): Message => Message::factory()->create()],
+    'an email that is still on its way' => [function (): Message {
+        $message = resendableMail();
+        $message->update(['status' => MessageStatus::Sending]);
+
+        return $message;
+    }],
+]);
 
 test('the modal does not find an email that does not exist', function (): void {
     Livewire::test(MessageModal::class)

@@ -242,6 +242,10 @@ _Avoid_: Mail log, email log, SMS log, outbox, sent items
 The status of a message that the mail server or the SMS gateway accepted. It is not proof that the message reached the person.
 _Avoid_: Delivered, successful
 
+**Started**:
+The time when the app started to send a message. For a message on the queue, it is the time of the first try.
+_Avoid_: Created, queued
+
 **Notification**:
 A message that the app shows to a user inside the app, under the bell. A notification class is the code's name for a class that sends a message of any kind.
 _Avoid_: Alert, in-app message
@@ -258,7 +262,7 @@ The first time that the recipient, signed in, follows a link in an email to a pa
 _Avoid_: Open, download, read receipt
 
 **Resend**:
-A new message that sends an earlier email or SMS again, to its recipient or to another email address or phone number. It links to the message that it repeats.
+A new message that sends an earlier email or SMS again, to its recipient or to another email address or phone number. It links to the message that it repeats. The message log marks the earlier message as resent.
 _Avoid_: Retry, which is another try of the same message after a failure
 
 **Intercept**:

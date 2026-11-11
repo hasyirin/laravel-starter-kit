@@ -30,6 +30,23 @@ class MessageFactory extends Factory
         ];
     }
 
+    public function sms(): static
+    {
+        return $this->state([
+            'channel' => 'sms',
+            'recipient_address' => fake()->numerify('+6012#######'),
+            'recipient_name' => null,
+            'subject' => null,
+            'html_body' => null,
+            'text_body' => fake()->sentence(),
+        ]);
+    }
+
+    public function tracked(): static
+    {
+        return $this->state(['tracked' => true]);
+    }
+
     public function sending(): static
     {
         return $this->state([

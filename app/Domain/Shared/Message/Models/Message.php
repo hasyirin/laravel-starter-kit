@@ -58,6 +58,8 @@ use Throwable;
  * @property CarbonImmutable|null $failed_at
  * @property int|null $resend_of_id
  * @property-read Notification|null $notification
+ * @property-read int|null $resends_count
+ * @property-read string $channel_label
  * @property-read MessageFailureReason|null $failure_reason
  * @property-read bool $resendable
  * @property-read bool $stuck
@@ -167,6 +169,14 @@ class Message extends Model implements HasMedia
         return $this->belongsTo(self::class);
     }
 
+    /**
+     * @return HasMany<self, $this>
+     */
+    public function resends(): HasMany
+    {
+        return $this->hasMany(self::class, 'resend_of_id');
+    }
+
     protected function shouldLogEvent(string $eventName): bool
     {
         // The message log is a log of its own, so its rows stay out of the audit log.
@@ -251,6 +261,22 @@ class Message extends Model implements HasMedia
     }
 
     /**
+     * @return Attribute<string, never>
+     */
+    protected function channelLabel(): Attribute
+    {
+        return Attribute::get(function (): string {
+            $key = "message/messages.channels.{$this->channel}";
+
+            if (trans()->has($key)) {
+                return (string) __($key);
+            }
+
+            return str($this->channel)->classBasename()->beforeLast('Channel')->headline()->value();
+        });
+    }
+
+    /**
      * @return Attribute<MessageFailureReason|null, never>
      */
     protected function failureReason(): Attribute
@@ -291,6 +317,12 @@ class Message extends Model implements HasMedia
      */
     protected function resendable(): Attribute
     {
-        return Attribute::get(fn (): bool => in_array($this->channel, ['mail', 'sms'], true) && $this->notification instanceof Notification);
+        return Attribute::get(function (): bool {
+            if ($this->status === MessageStatus::Sending && ! $this->stuck) {
+                return false;
+            }
+
+            return in_array($this->channel, ['mail', 'sms'], true) && $this->notification instanceof Notification;
+        });
     }
 }

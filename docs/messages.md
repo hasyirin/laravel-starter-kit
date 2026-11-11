@@ -79,6 +79,8 @@ The bodies of an email and the text of an SMS are in the row only for a class wi
 
 A row that stays in "sending" for more than 60 minutes lost its queue job. Staff can resend such a row.
 
+The list shows two times. Started is the time when the app started the send. Sent is the time when the mail server or the SMS gateway accepted the message.
+
 ## Queue and Tries
 
 - A class that extends the base class goes on the queue. Laravel makes one queue job for each channel.
@@ -96,6 +98,7 @@ Staff with `system.logs.messages.resend` can resend an email or an SMS from its 
 - A message on a channel that the app adds has no resend.
 - Another phone number must pass the `PhoneNumber` rule and the `AllowedCallingCode` rule.
 - A resend to another address or number does not link the new row to the user.
+- The list marks the new row as a resend, and the earlier row as resent. The modal of the earlier row lists its resends with their statuses.
 
 A model that gets messages uses `RoutesResentMessages`, as `User` does. A resend then gives that model to the notification class. Without the trait, the notification class gets an `Illuminate\Notifications\AnonymousNotifiable`.
 

@@ -1,6 +1,6 @@
 # Letters Render From Blade With Headless Chrome
 
-The kit makes each letter as a Blade view and turns it into a PDF with headless Chrome, through the Spatie Laravel PDF package and its Browsershot driver. Chrome supports current CSS, so a letter uses the app's own Tailwind build. The package hides the engine, so an app can change to another driver in config.
+The kit makes each letter as a Blade view and turns it into a PDF with headless Chrome. It uses the Spatie Laravel PDF package and its Browsershot driver. Chrome supports current CSS, so a letter uses the app's own Tailwind build. The package hides the engine, so an app can change to another driver in config.
 
 ## Considered Options
 

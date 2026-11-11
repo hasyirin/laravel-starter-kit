@@ -31,7 +31,7 @@ Each field becomes the kit input of its type, bound to prefix.name:
 | Table      | The columns of the field, repeated for each row             |
 | Group      | A switch that shows the fields of the group                 |
 
-The label is the label of the field. If the field has no label, the label is its name as a heading. A field that is not optional shows the required mark, also inside a group or a table row. The kit inputs also add the `required` attribute. A field inside a group is required only when another field of the group is filled, and the browser cannot check that. So add `novalidate` to the form and let the server rules decide, as the letter form and the manual letter page do.
+The label is the label of the field. If the field has no label, the label is its name as a heading. A field that is not optional shows the required mark, also inside a group or a table row. The kit inputs also add the `required` attribute. A field inside a group is required only when another field of the group is filled, and the browser cannot check that. So add `novalidate` to the form and let the server rules decide. The letter form and the manual letter page do this.
 
 ## Values
 

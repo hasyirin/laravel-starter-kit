@@ -8,7 +8,9 @@ use App\Domain\Shared\Message\Models\Message;
 use App\Domain\Shared\Message\Notifications\Notification;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Queue\TimeoutExceededException;
+use Illuminate\Support\Facades\Queue;
 use Tests\Fixtures\Gateways\FakeGateway;
 use Tests\Fixtures\Notifications\LetterIssued;
 use Tests\Fixtures\Notifications\LetterReady;
@@ -63,4 +65,15 @@ test('the last failed try of a queue job for the bell fails no row of the messag
 
     $this->assertDatabaseCount('failed_jobs', 1);
     expect($email->refresh()->status)->toBe(MessageStatus::Sending);
+});
+
+test('only the email of a notification goes on the mail queue connection', function (): void {
+    config(['mail.queue_connection' => 'redis-mail']);
+    $user = User::factory()->create();
+    Queue::fake([SendQueuedNotifications::class]);
+
+    $user->notify(new LetterReady(channels: ['mail', 'sms']));
+
+    Queue::assertPushed(SendQueuedNotifications::class, fn (SendQueuedNotifications $job): bool => $job->channels === ['mail'] && $job->connection === 'redis-mail');
+    Queue::assertPushed(SendQueuedNotifications::class, fn (SendQueuedNotifications $job): bool => $job->channels === ['sms'] && $job->connection === null);
 });

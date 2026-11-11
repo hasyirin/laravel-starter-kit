@@ -121,7 +121,11 @@
 
                 @can('resend', $message)
                     <form wire:submit="resend" class="space-y-6">
-                        <x-input wire:model="email" name="email" type="email" :label="__('message/messages.resend_to')" required />
+                        @if($message->channel === 'sms')
+                            <x-input.phone wire:model="address" :label="__('message/messages.resend_to')" required />
+                        @else
+                            <x-input wire:model="address" name="address" type="email" :label="__('message/messages.resend_to')" required />
+                        @endif
 
                         <div class="flex justify-end gap-2">
                             <flux:button type="submit" variant="primary">{{ __('message/messages.resend') }}</flux:button>

@@ -5,11 +5,16 @@ declare(strict_types=1);
 use App\Domain\Shared\Message\Actions\ResendMessage;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
+use App\Domain\Shared\Sms\Contracts\SmsGateway;
+use App\Domain\Shared\Sms\Rules\AllowedCallingCode;
 use App\Domain\User\Models\User;
+use App\Domain\User\Rules\PhoneNumber;
 use App\Livewire\Pages\Shared\MessageModal;
 use Dom\HTMLDocument;
 use Livewire\Livewire;
+use Tests\Fixtures\Gateways\FakeGateway;
 use Tests\Fixtures\Notifications\LetterIssued;
+use Tests\Fixtures\Notifications\LetterReady;
 
 beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
@@ -47,11 +52,11 @@ test('the modal shows an email without a recipient', function (): void {
 test('a user with system.logs.messages.resend can resend an email to a new address', function (): void {
     grantPermissions($this->viewer, 'system.logs.messages.resend');
     $message = resendableMail();
-    $this->mock(ResendMessage::class)->shouldReceive('execute')->once()->withArgs(fn (Message $resent, string $email): bool => $resent->is($message) && $email === 'new@example.com');
+    $this->mock(ResendMessage::class)->shouldReceive('execute')->once()->withArgs(fn (Message $resent, string $address): bool => $resent->is($message) && $address === 'new@example.com');
 
     Livewire::test(MessageModal::class)
         ->call('show', id: $message->id)
-        ->set('email', 'new@example.com')
+        ->set('address', 'new@example.com')
         ->call('resend')
         ->assertHasNoErrors();
 });
@@ -62,9 +67,9 @@ test('a resend needs a valid address', function (string $email, string $rule): v
 
     Livewire::test(MessageModal::class)
         ->call('show', id: $message->id)
-        ->set('email', $email)
+        ->set('address', $email)
         ->call('resend')
-        ->assertHasErrors(['email' => $rule]);
+        ->assertHasErrors(['address' => $rule]);
 
     $this->assertDatabaseCount(Message::class, 1);
 })->with([
@@ -72,6 +77,64 @@ test('a resend needs a valid address', function (string $email, string $rule): v
     'not an address' => ['not an address', 'email'],
     'longer than 255 characters' => [str_repeat('a', 244).'@example.com', 'max'],
 ]);
+
+function resendableSms(): Message
+{
+    app()->instance(SmsGateway::class, new FakeGateway);
+    User::factory()->create(['phone' => '+60123456789'])->notify(new LetterReady);
+
+    return Message::query()->sole();
+}
+
+test('a user with system.logs.messages.resend can resend an sms to another phone number', function (): void {
+    grantPermissions($this->viewer, 'system.logs.messages.resend');
+    $message = resendableSms();
+    $this->mock(ResendMessage::class)->shouldReceive('execute')->once()->withArgs(fn (Message $resent, string $address): bool => $resent->is($message) && $address === '+60111111111');
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: $message->id)
+        ->assertSet('address', '+60123456789')
+        ->assertSeeHtml('<ui-phone')
+        ->set('address', '+60111111111')
+        ->call('resend')
+        ->assertHasNoErrors();
+});
+
+test('a resend of an sms needs a phone number that the app sends sms to', function (string $phone, string $rule): void {
+    grantPermissions($this->viewer, 'system.logs.messages.resend');
+    $message = resendableSms();
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: $message->id)
+        ->set('address', $phone)
+        ->call('resend')
+        ->assertHasErrors(['address' => $rule]);
+
+    $this->assertDatabaseCount(Message::class, 1);
+})->with([
+    'empty' => ['', 'required'],
+    'an email address' => ['new@example.com', PhoneNumber::class],
+    'a calling code outside the list' => ['+6591234567', AllowedCallingCode::class],
+]);
+
+test('the error of a resend names the email or the phone number', function (): void {
+    grantPermissions($this->viewer, 'system.logs.messages.resend');
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: resendableMail()->id)
+        ->assertDontSeeHtml('<ui-phone')
+        ->set('address', 'not an address')
+        ->call('resend')
+        ->assertSee('The email field must be a valid email address.');
+
+    Message::query()->delete();
+
+    Livewire::test(MessageModal::class)
+        ->call('show', id: resendableSms()->id)
+        ->set('address', 'not a number')
+        ->call('resend')
+        ->assertSee('The phone number must be an international number, such as +60123456789.');
+});
 
 test('a user without system.logs.messages.resend cannot resend an email', function (): void {
     $message = resendableMail();

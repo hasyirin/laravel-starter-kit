@@ -9,7 +9,7 @@ use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
-use App\Domain\Shared\Mail\Concerns\RoutesResentMail;
+use App\Domain\Shared\Message\Concerns\RoutesResentMessages;
 use App\Domain\Shared\Permission\Concerns\HasRoles;
 use App\Domain\User\Concerns\HasProfile;
 use App\Domain\User\Concerns\InteractsWithPhoneVerification;
@@ -61,7 +61,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     use InteractsWithMedia;
     use InteractsWithPhoneVerification;
     use InteractsWithTimestamps;
-    use RoutesResentMail;
+    use RoutesResentMessages;
     use SoftDeletes;
 
     protected $fillable = [
@@ -120,11 +120,6 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     public function getActorName(): string
     {
         return $this->name;
-    }
-
-    public function routeNotificationForSms(): ?string
-    {
-        return $this->phone;
     }
 
     public function markEmailAsVerified(): bool

@@ -12,7 +12,7 @@ return [
     'intercepted_to' => 'Intercepted to',
     'created_at' => 'Created',
     'sent_at' => 'Sent',
-    'resend_of' => 'Resend of the email from',
+    'resend_of' => 'Resend of the message from',
     'tracking' => 'Tracking',
     'viewed' => 'Viewed',
     'clicked' => 'May have clicked',
@@ -26,7 +26,7 @@ return [
     'no_body' => 'The app does not keep the body of this email.',
     'resend_to' => 'Send to',
     'resend' => 'Resend',
-    'resent' => 'The email is queued to send again.',
+    'resent' => 'The message is queued to send again.',
     'statuses' => [
         'sending' => 'Sending',
         'sent' => 'Sent',

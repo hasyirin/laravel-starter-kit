@@ -291,6 +291,6 @@ class Message extends Model implements HasMedia
      */
     protected function resendable(): Attribute
     {
-        return Attribute::get(fn (): bool => $this->channel === 'mail' && $this->notification instanceof Notification);
+        return Attribute::get(fn (): bool => in_array($this->channel, ['mail', 'sms'], true) && $this->notification instanceof Notification);
     }
 }

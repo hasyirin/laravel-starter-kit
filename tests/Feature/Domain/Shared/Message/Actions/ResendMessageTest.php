@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Message\Actions\ResendMessage;
 use App\Domain\Shared\Message\Models\Message;
+use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
 use Illuminate\Support\Facades\Notification;
+use Tests\Fixtures\Gateways\FakeGateway;
 use Tests\Fixtures\Notifications\LetterIssued;
+use Tests\Fixtures\Notifications\LetterReady;
 
 test('a resend makes a new row that links to the original', function (): void {
     $user = User::factory()->create(['email' => 'aisyah@example.com']);
@@ -73,3 +76,72 @@ test('an email with sensitive values cannot be resent', function (): void {
 
     ResendMessage::make()->execute(Message::query()->sole());
 })->throws(LogicException::class, 'cannot be resent');
+
+test('a resend of an sms makes a new row for the same number that links to the original', function (): void {
+    app()->instance(SmsGateway::class, $gateway = new FakeGateway);
+    $user = User::factory()->create(['phone' => '+60123456789']);
+    $user->notify(new LetterReady);
+
+    $original = Message::query()->sole();
+
+    ResendMessage::make()->execute($original);
+
+    $resent = Message::query()->whereKeyNot($original->id)->sole();
+    expect($resent->channel)->toBe('sms')
+        ->and($resent->resend_of_id)->toBe($original->id)
+        ->and($resent->recipient_address)->toBe('+60123456789')
+        ->and($resent->notifiable->is($user))->toBeTrue()
+        ->and($gateway->sent)->toHaveCount(2);
+});
+
+test('a resend of an sms to another number goes to that number, and the user is no longer its recipient', function (): void {
+    app()->instance(SmsGateway::class, $gateway = new FakeGateway);
+    User::factory()->create(['phone' => '+60123456789'])->notify(new LetterReady);
+    $original = Message::query()->sole();
+
+    ResendMessage::make()->execute($original, '+60111111111');
+
+    $resent = Message::query()->whereKeyNot($original->id)->sole();
+    expect($resent->recipient_address)->toBe('+60111111111')
+        ->and($resent->notifiable)->toBeNull()
+        ->and($gateway->sent[1])->toBe(['phone' => '+60111111111', 'message' => 'Your letter is ready.']);
+});
+
+test('a resend of an sms to a number without an account goes to that number', function (): void {
+    app()->instance(SmsGateway::class, $gateway = new FakeGateway);
+    Notification::route('sms', '+60123456789')->notify(new LetterReady);
+    $original = Message::query()->sole();
+
+    ResendMessage::make()->execute($original);
+
+    expect(Message::query()->whereKeyNot($original->id)->sole()->recipient_address)->toBe('+60123456789')
+        ->and($gateway->sent)->toHaveCount(2);
+});
+
+test('an sms with sensitive values cannot be resent', function (): void {
+    app()->instance(SmsGateway::class, new FakeGateway);
+    User::factory()->create()->notify(new LetterReady(secret: '4821'));
+
+    ResendMessage::make()->execute(Message::query()->sole());
+})->throws(LogicException::class, 'cannot be resent');
+
+test('a message on a channel that an app adds cannot be resent', function (): void {
+    Notification::extend('pager', fn (): object => new class
+    {
+        public function send(object $notifiable, Illuminate\Notifications\Notification $notification): void {}
+    });
+    User::factory()->create()->notify(new LetterReady(channels: ['pager']));
+
+    ResendMessage::make()->execute(Message::query()->sole());
+})->throws(LogicException::class, 'cannot be resent');
+
+test('with the intercept on, a resend of an sms to another number goes to the signed-in user', function (): void {
+    config(['system.sms.intercept.enabled' => true]);
+    app()->instance(SmsGateway::class, $gateway = new FakeGateway);
+    $this->actingAs(User::factory()->create(['phone' => '+60111111111']));
+    User::factory()->create(['phone' => '+60123456789'])->notify(new LetterReady);
+
+    ResendMessage::make()->execute(Message::query()->sole(), '+60122222222');
+
+    expect(collect($gateway->sent)->pluck('phone')->all())->toBe(['+60111111111', '+60111111111']);
+});

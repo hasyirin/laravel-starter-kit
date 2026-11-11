@@ -21,14 +21,16 @@ class ResendMessage implements ShouldBeEncrypted, ShouldQueue
     /** @var list<int> */
     public array $backoff = [60, 300, 900];
 
-    public function __construct(public object $notifiable, public Notification $notification)
+    public function __construct(public object $notifiable, public Notification $notification, public string $channel)
     {
-        $this->onConnection(config()->string('mail.queue_connection'));
+        if ($channel === 'mail') {
+            $this->onConnection(config()->string('mail.queue_connection'));
+        }
     }
 
     public function handle(): void
     {
-        Notifications::sendNow($this->notifiable, $this->notification, ['mail']);
+        Notifications::sendNow($this->notifiable, $this->notification, [$this->channel]);
     }
 
     public function failed(Throwable $exception): void

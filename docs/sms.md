@@ -44,7 +44,7 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 
 ## Calling Codes
 
-`system.sms.calling_codes` lists the calling codes that the app sends SMS to. The default is +60. The channel throws an exception for a number with another calling code. The phone verification page and the SMS password reset check the list first. The verification page asks the user to change the number or to ask staff, and the reset page sends nothing.
+`system.sms.calling_codes` lists the calling codes that the app sends SMS to. The default is +60. The channel throws an exception for a number with another calling code. The phone verification page and the SMS password reset check the list first. The resend form of the message log checks it too, with the `AllowedCallingCode` rule. The verification page asks the user to change the number or to ask staff, and the reset page sends nothing.
 
 ## Intercept
 

@@ -1,6 +1,6 @@
 # Letters
 
-The kit makes PDF letters. A letter type maps a letter source to declared letter data. A Blade view prints that data. Headless Chrome turns the view into a PDF. See `docs/adr/0010-letters-render-from-blade-with-headless-chrome.md` and `docs/adr/0011-letters-are-kit-records-that-print-declared-letter-data.md` for the reasons.
+The kit makes PDF letters. A letter type maps a letter source to declared letter data. A Blade view prints that data. Headless Chrome turns the view into a PDF. See `docs/adr/0011-letters-render-from-blade-with-headless-chrome.md` and `docs/adr/0012-letters-are-kit-records-that-print-declared-letter-data.md` for the reasons.
 
 A letter is signed correspondence with a reference number. A report or a bill is not a letter. For these, see **Render a Report or a Bill**.
 
@@ -335,10 +335,9 @@ A letter type can override `sourceAbility()`. For example, it can return `archiv
 
 A letter of an unknown type has a key that is not in `system.letters.types` any more, for example after a letter type was removed. Such a letter passes only `view`, and `delete` with the `update` ability of the source. The letters table shows its raw key as the type. `DeleteLetter` does not release its number.
 
-`LetterPolicy` and `AuditEntryPolicy` are two stated exceptions to the rule that a policy extends `Policy` and checks permissions with `hasPermission()`.
+`LetterPolicy` is a stated exception to the rule that a policy extends `Policy` and checks permissions with `hasPermission()`. It has no permissions. The source decides, so each app controls its letters through the policy of its source.
 
-- `LetterPolicy` has no permissions. The source decides, so each app controls its letters through the policy of its source.
-- `AuditEntryPolicy` reads `system.audit-log.view` directly. `Policy::path()` builds plural names, and an audit entry has no plural permission path.
+`AuditEntryPolicy` checks `system.logs.audits.view`, the permission of the audit log page.
 
 In the letter form:
 

@@ -7,10 +7,14 @@ namespace App\Domain\Shared\Common\Policies;
 use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\User\Models\User;
 
-class AuditEntryPolicy
+class AuditEntryPolicy extends Policy
 {
+    protected static string $prefix = 'system.logs';
+
+    protected static ?string $segment = 'audits';
+
     public function view(User $user, AuditEntry $entry): bool
     {
-        return $user->hasPermissionTo(config()->string('system.permissions.system.audit-log.view'));
+        return $this->hasPermission($user, 'view');
     }
 }

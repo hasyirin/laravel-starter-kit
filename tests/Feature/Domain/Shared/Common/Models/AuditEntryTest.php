@@ -29,13 +29,13 @@ test('an audit entry stores media', function (): void {
         ->and($media->model_type)->toBe('audit_entry');
 });
 
-test('media of an audit entry needs system.audit-log.view', function (bool $allowed, int $status): void {
+test('media of an audit entry needs system.logs.audits.view', function (bool $allowed, int $status): void {
     $entry = activity()->event('printed-manual-letter')->log('printed');
     $media = $entry->addMedia(UploadedFile::fake()->createWithContent('logo.txt', 'logo'))->toMediaCollection();
     $user = User::factory()->create();
 
     if ($allowed) {
-        grantPermissions($user, 'system.audit-log.view');
+        grantPermissions($user, 'system.logs.audits.view');
     }
 
     $this->actingAs($user)->get(route('media.show', $media))->assertStatus($status);

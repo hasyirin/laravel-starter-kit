@@ -31,6 +31,14 @@ use Tests\Fixtures\Support\NumberedPrintedLetter;
 use Tests\Fixtures\Support\PrintedNoticeLetter;
 
 beforeEach(function (): void {
+    Schema::create('crests', function (Blueprint $table): void {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+        $table->softDeletes();
+    });
+
+    Relation::morphMap(['crest' => Crest::class]);
     Storage::fake('media');
     config(['system.letters.types' => [
         'printed' => PrintedNoticeLetter::class,
@@ -205,13 +213,6 @@ test('a refused print assigns no number and no date and leaves the sequence', fu
 
 test('a deleted image in the mapped data refuses the print and assigns no number', function (): void {
     Pdf::fake();
-    Schema::create('crests', function (Blueprint $table): void {
-        $table->id();
-        $table->string('name');
-        $table->timestamps();
-        $table->softDeletes();
-    });
-    Relation::morphMap(['crest' => Crest::class]);
     config(['system.letters.types' => ['crest' => CrestLetter::class]]);
     $crest = Crest::query()->create(['name' => 'Crest']);
     $media = $crest->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection();

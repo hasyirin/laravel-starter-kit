@@ -130,6 +130,13 @@ class LetterForm extends Form
         $this->computer_signed = false;
     }
 
+    public function chooseComputerSigned(): void
+    {
+        if ($this->computer_signed) {
+            $this->with_letterhead = true;
+        }
+    }
+
     public function editable(string $part): bool
     {
         $type = $this->letterType();
@@ -147,39 +154,6 @@ class LetterForm extends Form
         }
 
         return $this->can(in_array($part, self::PRINT_PARTS, true) ? 'print' : 'update', $this->letter);
-    }
-
-    public function save(): Letter
-    {
-        foreach (self::PARTS as $part) {
-            if (! $this->editable($part)) {
-                $this->keepSaved($part);
-            }
-        }
-
-        $this->keepLockedExtra();
-
-        $this->validate();
-
-        $type = $this->letterType();
-        assert($type instanceof LetterType);
-
-        if (! $this->letter->exists) {
-            $this->authorize('create', $this->newLetter($this->type));
-        }
-
-        try {
-            return SaveLetter::make()->execute(
-                $this->letter,
-                $type,
-                $this->source,
-                $this->printer(),
-                $this->details($type),
-                $this->payload($type->extraFields(), $this->extra),
-            );
-        } catch (ValidationException $validationException) {
-            throw $this->withFormKeys($validationException, $type);
-        }
     }
 
     /**
@@ -277,7 +251,11 @@ class LetterForm extends Form
             return $actor instanceof User ? $actor : null;
         }
 
-        return $this->signer_id === null ? null : User::query()->findOrFail($this->signer_id);
+        if ($this->signer_id === null) {
+            return null;
+        }
+
+        return User::query()->findOrFail($this->signer_id);
     }
 
     private function details(LetterType $type): PrintDetails
@@ -321,5 +299,38 @@ class LetterForm extends Form
         ]);
 
         return ValidationException::withMessages($messages->all());
+    }
+
+    public function save(): Letter
+    {
+        foreach (self::PARTS as $part) {
+            if (! $this->editable($part)) {
+                $this->keepSaved($part);
+            }
+        }
+
+        $this->keepLockedExtra();
+
+        $this->validate();
+
+        $type = $this->letterType();
+        assert($type instanceof LetterType);
+
+        if (! $this->letter->exists) {
+            $this->authorize('create', $this->newLetter($this->type));
+        }
+
+        try {
+            return SaveLetter::make()->execute(
+                $this->letter,
+                $type,
+                $this->source,
+                $this->printer(),
+                $this->details($type),
+                $this->payload($type->extraFields(), $this->extra),
+            );
+        } catch (ValidationException $validationException) {
+            throw $this->withFormKeys($validationException, $type);
+        }
     }
 }

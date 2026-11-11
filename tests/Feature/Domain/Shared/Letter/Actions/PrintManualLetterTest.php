@@ -38,6 +38,14 @@ use Tests\Fixtures\Support\NumberedPrintedLetter;
 use Tests\Fixtures\Support\PrintedNoticeLetter;
 
 beforeEach(function (): void {
+    Schema::create('crests', function (Blueprint $table): void {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+        $table->softDeletes();
+    });
+
+    Relation::morphMap(['crest' => Crest::class]);
     Storage::fake('media');
     Pdf::fake();
     config(['system.letters.types' => [
@@ -187,13 +195,6 @@ test('a failed audit entry leaves no stored image', function (): void {
 
 function manualCrestImage(): Media
 {
-    Schema::create('crests', function (Blueprint $table): void {
-        $table->id();
-        $table->string('name');
-        $table->timestamps();
-        $table->softDeletes();
-    });
-    Relation::morphMap(['crest' => Crest::class]);
     $crest = Crest::query()->create(['name' => 'Crest']);
 
     return $crest->addMedia(base_path('tests/Fixtures/Files/pixel.png'))->preservingOriginal()->toMediaCollection();

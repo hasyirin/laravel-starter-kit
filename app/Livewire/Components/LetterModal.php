@@ -111,6 +111,7 @@ class LetterModal extends RecordModal
     public function letterheadName(): string
     {
         $type = $this->letterType;
+
         /** @var User $printer */
         $printer = auth()->user();
 
@@ -134,9 +135,7 @@ class LetterModal extends RecordModal
 
     public function updatedFormComputerSigned(): void
     {
-        if ($this->form->computer_signed) {
-            $this->form->with_letterhead = true;
-        }
+        $this->form->chooseComputerSigned();
     }
 
     /**

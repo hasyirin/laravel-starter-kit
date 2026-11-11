@@ -19,10 +19,9 @@ beforeEach(function (): void {
     Storage::fake('media');
     $this->seed(PermissionSeeder::class);
     $this->actor = User::factory()->create();
-    grantPermissions($this->actor, 'internal.access', 'internal.controls.organizations.view', ...array_map(
-        fn (string $permission): string => "internal.controls.letterheads.$permission",
-        ['view-any', 'view', 'create', 'update', 'delete'],
-    ));
+    grantPermissions($this->actor, 'internal.access', 'internal.controls.organizations.view', ...collect(['view-any', 'view', 'create', 'update', 'delete'])
+        ->map(fn (string $permission): string => "internal.controls.letterheads.$permission")
+        ->all());
     $this->actingAs($this->actor);
     $this->organization = Organization::factory()->create();
 });

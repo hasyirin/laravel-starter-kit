@@ -213,18 +213,29 @@ class LetterDataTable extends DataTable
     private function prints(Letter $letter): array
     {
         $media = $letter->getMedia(MediaCollection::Prints->value);
-        $printers = User::query()->whereKey($media->map(fn (Media $print): mixed => $print->getCustomProperty('user_id'))->filter()->all())->pluck('name', 'id');
+        $printerIds = $media
+            ->map(fn (Media $print): mixed => $print->getCustomProperty('user_id'))
+            ->filter()
+            ->all();
 
-        return array_values($media->map(function (Media $print) use ($printers): array {
-            $printedAt = $print->getCustomProperty('printed_at');
+        $printers = User::query()
+            ->whereKey($printerIds)
+            ->pluck('name', 'id');
 
-            return [
-                'name' => $print->file_name,
-                'printer' => (string) $printers->get((int) $print->getCustomProperty('user_id'), ''),
-                'printed_at' => is_string($printedAt) ? Preferences::current()->datetime(CarbonImmutable::parse($printedAt)) : null,
-                'url' => $print->getUrl(),
-            ];
-        })->all());
+        $prints = $media
+            ->map(function (Media $print) use ($printers): array {
+                $printedAt = $print->getCustomProperty('printed_at');
+
+                return [
+                    'name' => $print->file_name,
+                    'printer' => (string) $printers->get((int) $print->getCustomProperty('user_id'), ''),
+                    'printed_at' => is_string($printedAt) ? Preferences::current()->datetime(CarbonImmutable::parse($printedAt)) : null,
+                    'url' => $print->getUrl(),
+                ];
+            })
+            ->all();
+
+        return array_values($prints);
     }
 
     public function render(): View

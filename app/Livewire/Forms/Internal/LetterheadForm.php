@@ -73,13 +73,28 @@ class LetterheadForm extends Form
             ->withoutTrashed();
     }
 
+    private function branch(): ?Branch
+    {
+        if ($this->branch_id === null) {
+            return null;
+        }
+
+        return Branch::query()->findOrFail($this->branch_id);
+    }
+
+    private function department(): ?Department
+    {
+        if ($this->department_id === null) {
+            return null;
+        }
+
+        return Department::query()->findOrFail($this->department_id);
+    }
+
     public function save(): Letterhead
     {
         $this->validate();
 
-        $branch = $this->branch_id === null ? null : Branch::query()->findOrFail($this->branch_id);
-        $department = $this->department_id === null ? null : Department::query()->findOrFail($this->department_id);
-
-        return SaveLetterhead::make()->execute($this->letterhead, $this->organization, $branch, $department, $this->name, $this->header, $this->footer);
+        return SaveLetterhead::make()->execute($this->letterhead, $this->organization, $this->branch(), $this->department(), $this->name, $this->header, $this->footer);
     }
 }

@@ -160,7 +160,11 @@ class ComposeLetterForm extends Form
      */
     protected function mediaOwners(): array
     {
-        return array_values(array_filter([$this->source, $this->letter]));
+        $owners = collect([$this->source, $this->letter])
+            ->filter()
+            ->all();
+
+        return array_values($owners);
     }
 
     private function fillPrintDetails(?Letter $letter): void
@@ -177,17 +181,24 @@ class ComposeLetterForm extends Form
 
     private function details(LetterType $type): PrintDetails
     {
-        $signer = $this->signer_id === null || $type->signer() === SignerRequirement::Hidden ? null : User::query()->findOrFail($this->signer_id);
-
         return new PrintDetails(
             $this->reference_number !== '' ? $this->reference_number : null,
             null,
             $this->date,
-            $signer,
+            $this->signer($type),
             $this->copiesFromRows($this->carbon_copies),
             $type->offersLetterhead() && $this->with_letterhead,
             $type->offersComputerSigned() && $this->computer_signed,
         );
+    }
+
+    private function signer(LetterType $type): ?User
+    {
+        if ($this->signer_id === null || $type->signer() === SignerRequirement::Hidden) {
+            return null;
+        }
+
+        return User::query()->findOrFail($this->signer_id);
     }
 
     /**
@@ -200,8 +211,15 @@ class ComposeLetterForm extends Form
         try {
             return $this->payload($fields, $values);
         } catch (ValidationException $validationException) {
-            throw $this->withFormKeys(PrintManualLetter::prefixErrors($validationException, $part));
+            throw $this->withFormKeys($this->prefixErrors($validationException, $part));
         }
+    }
+
+    private function prefixErrors(ValidationException $exception, string $part): ValidationException
+    {
+        $messages = collect($exception->errors())->mapWithKeys(fn (mixed $errors, int|string $key): array => ["$part.$key" => $errors]);
+
+        return ValidationException::withMessages($messages->all());
     }
 
     private function withFormKeys(ValidationException $exception): ValidationException

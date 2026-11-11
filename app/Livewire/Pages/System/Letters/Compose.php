@@ -91,14 +91,21 @@ class Compose extends Page
                 ->when($this->sourceHasName, fn (Builder $named): Builder => $named->orWhereLike('name', "%$search%")));
         }
 
-        $sources = $query->lazyById(self::PICKER_LIMIT * 5)->filter(fn (Model $source): bool => $this->can('view', $source))->take(self::PICKER_LIMIT)->collect();
+        $sources = $query
+            ->lazyById(self::PICKER_LIMIT * 5)
+            ->filter(fn (Model $source): bool => $this->can('view', $source))
+            ->take(self::PICKER_LIMIT)
+            ->collect();
         $picked = $this->pickedSource;
 
         if ($picked instanceof Model) {
             $sources->push($picked);
         }
 
-        return $sources->unique(fn (Model $source): mixed => $source->getKey())->mapWithKeys(fn (Model $source): array => [(string) $source->getKey() => $this->sourceLabel($source)])->all();
+        return $sources
+            ->unique(fn (Model $source): mixed => $source->getKey())
+            ->mapWithKeys(fn (Model $source): array => [(string) $source->getKey() => $this->sourceLabel($source)])
+            ->all();
     }
 
     /**
@@ -120,7 +127,12 @@ class Compose extends Page
             ->latest('id')
             ->limit(self::PICKER_LIMIT)
             ->get()
-            ->mapWithKeys(fn (Letter $letter): array => [$letter->id => trim(($letter->reference_number ?? "#{$letter->id}").' '.($letter->date?->toDateString() ?? ''))])
+            ->mapWithKeys(function (Letter $letter): array {
+                $reference = $letter->reference_number ?? "#{$letter->id}";
+                $date = $letter->date?->toDateString() ?? '';
+
+                return [$letter->id => trim($reference.' '.$date)];
+            })
             ->all();
     }
 

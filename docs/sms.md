@@ -34,13 +34,15 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 
 `SmsCodeLimit` allows 1 SMS code per minute and 5 per hour for each key. Phone verification counts per user. The SMS password reset counts per number and per IP address, also for a number that belongs to no user. The limit counts only codes. `SmsChannel` has no limit, so other SMS notifications do not count toward it.
 
-`SmsPasswordResetLock` counts the wrong codes on the SMS password reset for each number. After 10 wrong codes, it locks the SMS reset of the number until 24 hours after the first wrong code. It counts for every number, also for a number that belongs to no user, so the lock does not show which numbers have an account. During the lock, the reset page sends no code to the number and refuses every code, also the right one. The user can still reset the password by email.
+`SmsPasswordResetLock` counts the wrong codes on the SMS password reset for each number. After 10 wrong codes, it locks the SMS password reset for the number until 24 hours after the first wrong code. It counts for every number, also for a number that belongs to no user, so the lock does not show which numbers have an account. During the lock, the reset page sends no code to the number and refuses every code, also the right one. The user can still reset the password by email.
 
 ## Before You Go Live
 
 1. Add a gateway for the SMS provider of the organization. See Add a Gateway.
 2. Set a spend cap at the SMS provider. Public pages, such as registration and the SMS password reset, can make the app send SMS. The limits slow an attack, but the provider bills each SMS.
 3. If the app runs behind a proxy or a load balancer, trust it with `$middleware->trustProxies()` in `bootstrap/app.php`. Otherwise every request has the IP address of the proxy, and all visitors share the per-IP limit of the SMS password reset.
+4. Serve the app with PHP-FPM, FrankenPHP, or LiteSpeed. These servers send the response before the SMS password reset sends its code. On a server that cannot do this, such as `php artisan serve`, the page waits for the SMS. The response time then shows which numbers have an account.
+5. Run Horizon. See [Deployment](../README.md#deployment). The SMS password reset sends its alert emails, `SmsPasswordResetStarted` and `PasswordWasReset`, on the queue. If `QUEUE_CONNECTION` is `sync`, they go out during the request, and a mail failure breaks the reset.
 
 ## Test SMS
 

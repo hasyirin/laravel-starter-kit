@@ -6,10 +6,10 @@ use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
-test('a parameter that holds a phone number, a password, a one-time code or an sms text is marked sensitive, so a stack trace does not show it', function (): void {
+test('a parameter that holds a phone number, a password, a one-time code, a password reset token or an sms text is marked sensitive, so a stack trace does not show it', function (): void {
     $secret = fn (ReflectionMethod $method, ReflectionParameter $parameter): bool => match ($parameter->getName()) {
         'phone', 'password' => true,
-        'code' => str_starts_with($method->class, 'App\\Domain\\User\\'),
+        'code', 'token' => str_starts_with($method->class, 'App\\Domain\\User\\'),
         'input' => str_starts_with($method->class, 'App\\Domain\\User\\Actions\\Fortify\\'),
         'message' => is_a($method->class, SmsGateway::class, true),
         default => false,

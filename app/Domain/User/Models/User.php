@@ -27,6 +27,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use SensitiveParameter;
 use Spatie\Activitylog\Models\Concerns\CausesActivity;
 
 /**
@@ -146,7 +147,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     /**
      * @param  string  $token
      */
-    public function sendPasswordResetNotification($token): void
+    public function sendPasswordResetNotification(#[SensitiveParameter] $token): void
     {
         $this->notify(new ResetPassword($token));
     }

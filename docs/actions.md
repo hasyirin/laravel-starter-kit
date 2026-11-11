@@ -11,7 +11,7 @@ class UpdateUserInformation
 {
     use Actionable;
 
-    public function execute(User $user, string $name, string $email, ?string $phone): void
+    public function execute(User $user, string $name, string $email, #[\SensitiveParameter] ?string $phone): void
     {
         $user->fill(['name' => $name, 'email' => $email, 'phone' => $phone]);
 

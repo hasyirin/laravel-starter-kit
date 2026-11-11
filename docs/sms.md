@@ -34,7 +34,7 @@ Throw an exception when the provider refuses an SMS. The phone verification page
 
 `SmsCodeLimit` allows 1 SMS code per minute and 5 per hour for each key. Phone verification counts per user. The SMS password reset counts per number and per IP address, also for a number that belongs to no user. The limit counts only codes. `SmsChannel` has no limit, so other SMS notifications do not count toward it.
 
-`SmsPasswordResetLock` counts the wrong codes on the SMS password reset for each number. After 10 wrong codes, it locks the SMS password reset for the number until 24 hours after the first wrong code. It counts for every number, also for a number that belongs to no user, so the lock does not show which numbers have an account. During the lock, the reset page sends no code to the number and refuses every code, also the right one. The user can still reset the password by email.
+`SmsPasswordResetLock` counts the failed codes on the SMS password reset for each number. A code fails when it is wrong, expired, used, or out of tries. The cache no longer holds an expired or used code, so the server cannot tell it from a wrong one. A code that expires unused does not count. After 10 failed codes, it locks the SMS password reset for the number until 24 hours after the first failed code. It counts for every number, also for a number that belongs to no user, so the lock does not show which numbers have an account. During the lock, the reset page sends no code to the number and refuses every code, also the right one. The user can still reset the password by email.
 
 ## Before You Go Live
 

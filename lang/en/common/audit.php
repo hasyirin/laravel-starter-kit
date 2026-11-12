@@ -11,6 +11,8 @@ return [
     'subject' => 'Subject',
     'impersonator' => 'Impersonated by',
     'impersonated_only' => 'Only impersonated changes',
+    'ip_address' => 'IP address: :value',
+    'user_agent' => 'User agent: :value',
     'changes' => 'Changes',
     'field' => 'Field',
     'old' => 'Old value',

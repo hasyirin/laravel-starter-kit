@@ -263,6 +263,25 @@ test('the modal shows the impersonator of an entry', function (): void {
         ->assertSee(__('user/users.impersonation.by', ['name' => 'Ina Impersonator']));
 });
 
+test('the modal shows the ip address and the user agent of an entry', function (): void {
+    context()->addHidden(['ip_address' => '203.0.113.7', 'user_agent' => 'Test Browser']);
+    $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
+
+    Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
+        ->call('show', $entry->id)
+        ->assertSee(__('common/audit.ip_address', ['value' => '203.0.113.7']))
+        ->assertSee(__('common/audit.user_agent', ['value' => 'Test Browser']));
+});
+
+test('the modal shows no ip address and no user agent for an entry without them', function (): void {
+    $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
+
+    Livewire::test(AuditEntryModal::class, ['user' => $this->subject])
+        ->call('show', $entry->id)
+        ->assertDontSee(__('common/audit.ip_address', ['value' => '']))
+        ->assertDontSee(__('common/audit.user_agent', ['value' => '']));
+});
+
 test('the modal shows no impersonator for an entry without one', function (): void {
     $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
 

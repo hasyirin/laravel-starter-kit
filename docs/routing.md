@@ -68,7 +68,7 @@ After a user logs in with a password, a two-factor code, or a passkey, the app s
 
 If the user tried to open a page before they logged in, the app sends them to that page instead.
 
-The three login responses are in `app/Http/Responses`, and `FortifyServiceProvider` binds them. `LoginResponse::highestAreaUrl()` sets the order.
+The three login responses are in `app/Http/Responses`, and `FortifyServiceProvider` binds them. `LoginResponse::home()` sets the order.
 
 ## Pages and Layouts
 

@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Pages\System\ApiClient\Create as ApiClientCreate;
+use App\Livewire\Pages\System\ApiClient\Index as ApiClientIndex;
+use App\Livewire\Pages\System\ApiClient\Show as ApiClientShow;
 use App\Livewire\Pages\System\AuditLog;
 use App\Livewire\Pages\System\Dashboard;
 use App\Livewire\Pages\System\Letters\Compose;
@@ -14,6 +17,9 @@ Route::prefix('logs')->name('logs.')->group(function (): void {
     Route::livewire('messages', MessageLog::class)->name('messages');
 });
 Route::livewire('letters/compose', Compose::class)->name('letters.compose');
+Route::livewire('api-clients', ApiClientIndex::class)->name('api-clients.index');
+Route::livewire('api-clients/create', ApiClientCreate::class)->name('api-clients.create');
+Route::livewire('api-clients/{apiClient}', ApiClientShow::class)->name('api-clients.show');
 
 Route::redirect('settings', '/system/settings/user-information')->name('settings');
 

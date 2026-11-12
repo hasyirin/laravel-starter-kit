@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\IpUtils;
  * @property int $rate_limit_per_minute
  * @property string|null $service
  * @property-read Collection<int, ApiToken> $tokens
+ * @property-read Collection<int, ApiToken> $activeTokens
  */
 class ApiClient extends Model implements AuthenticatableContract
 {
@@ -71,6 +72,14 @@ class ApiClient extends Model implements AuthenticatableContract
     public function tokens(): HasMany
     {
         return $this->hasMany(ApiToken::class);
+    }
+
+    /**
+     * @return HasMany<ApiToken, $this>
+     */
+    public function activeTokens(): HasMany
+    {
+        return $this->tokens()->active();
     }
 
     public function allowsIpAddress(string $ipAddress): bool

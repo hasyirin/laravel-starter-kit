@@ -12,7 +12,7 @@ class SaveApiClient
     use Actionable;
 
     /**
-     * @param  list<string>  $allowedIpAddresses
+     * @param  array<int, string>  $allowedIpAddresses
      */
     public function execute(
         ApiClient $apiClient,

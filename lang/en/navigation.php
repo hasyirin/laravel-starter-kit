@@ -21,6 +21,7 @@ return [
     'audit_log' => 'Audit log',
     'manual_letter' => 'Manual letter',
     'message_log' => 'Message log',
+    'api_log' => 'API log',
     'notifications' => 'Notifications',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',

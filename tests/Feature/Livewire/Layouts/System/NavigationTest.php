@@ -95,3 +95,16 @@ test('the system sidebar shows the message log link only to users who can view t
 
     Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.messages'), 'data-flux-sidebar-spacer'], false);
 });
+
+test('the system sidebar shows the API log link only to users who can view the API log', function (): void {
+    $this->seed(PermissionSeeder::class);
+    $user = User::factory()->create();
+    grantPermissions($user, 'system.access');
+    $this->actingAs($user);
+
+    Livewire::test(Navigation::class)->assertDontSee(route('system.logs.api'));
+
+    grantPermissions($user, 'system.logs.api.view');
+
+    Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.api'), 'data-flux-sidebar-spacer'], false);
+});

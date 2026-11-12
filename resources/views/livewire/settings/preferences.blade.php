@@ -1,23 +1,25 @@
 <flux:main container>
-    @include('partials.settings-heading')
+    <div class="space-y-8">
+        @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('user/settings.preferences.title') }}</flux:heading>
+        <flux:heading level="2" class="sr-only">{{ __('user/settings.preferences.title') }}</flux:heading>
 
-    <x-settings.layout :heading="__('user/settings.preferences.heading')">
-        <form wire:submit="save" class="my-6 w-full space-y-6">
-            <x-select wire:model.live="timezone" :label="__('common/inputs.timezone')" :options="$this->timezones" />
+        <x-settings.layout :heading="__('user/settings.preferences.heading')">
+            <form wire:submit="save" class="my-6 w-full space-y-6">
+                <x-select wire:model.live="timezone" :label="__('common/inputs.timezone')" :options="$this->timezones" />
 
-            <x-select
-                wire:model.live="locale"
-                :label="__('common/inputs.locale')"
-                :options="$this->locales"
-                :searchable="false"
-                :description-trailing="$this->example === null ? null : __('user/settings.preferences.example', ['example' => $this->example])"
-            />
+                <x-select
+                    wire:model.live="locale"
+                    :label="__('common/inputs.locale')"
+                    :options="$this->locales"
+                    :searchable="false"
+                    :description-trailing="$this->example === null ? null : __('user/settings.preferences.example', ['example' => $this->example])"
+                />
 
-            <div class="flex justify-end gap-2">
-                <flux:button variant="primary" type="submit">{{ __('common/buttons.save') }}</flux:button>
-            </div>
-        </form>
-    </x-settings.layout>
+                <div class="flex justify-end gap-2">
+                    <flux:button variant="primary" type="submit">{{ __('common/buttons.save') }}</flux:button>
+                </div>
+            </form>
+        </x-settings.layout>
+    </div>
 </flux:main>

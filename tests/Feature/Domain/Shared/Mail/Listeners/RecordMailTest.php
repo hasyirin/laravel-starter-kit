@@ -13,6 +13,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Mime\Email;
 use Tests\Fixtures\Notifications\LetterIssued;
 
@@ -106,6 +107,7 @@ test('a notification without the message log contract sends one row to each to r
 });
 
 test('the log keeps its own copy of each attachment', function (): void {
+    Storage::fake('media');
     $user = User::factory()->create();
 
     $user->notify(new LetterIssued(attached: true));

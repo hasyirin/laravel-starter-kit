@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 test('pruning archives the old emails without their secrets, then deletes them with their attachments', function (): void {
     Storage::fake('local');
+    Storage::fake('media');
     config(['system.message_log.archive_disk' => 'local']);
     $old = Message::factory()->create(['created_at' => '2026-01-01 00:00:00', 'payload' => 'serialized']);
     $old->addMediaFromString('letter content')->usingFileName('letter.pdf')->toMediaCollection(MediaCollection::Attachments->value);

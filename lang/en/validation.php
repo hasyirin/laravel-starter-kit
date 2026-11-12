@@ -134,6 +134,7 @@ return [
     ],
     'phone_number' => 'The :attribute must be an international number, such as +60123456789.',
     'calling_code' => 'The app does not send SMS to this calling code.',
+    'allowed_ip_address' => 'The :attribute field must be an IP address or a CIDR range, such as 192.0.2.0/24.',
     'present' => 'The :attribute field must be present.',
     'present_if' => 'The :attribute field must be present when :other is :value.',
     'present_unless' => 'The :attribute field must be present unless :other is :value.',

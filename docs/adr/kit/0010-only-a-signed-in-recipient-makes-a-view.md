@@ -12,4 +12,4 @@ Staff need proof that a recipient read an email, but a pixel or a link fetch can
 - An email to a recipient without an account can never have a view. It can have only an open or a click.
 - An email that has no link to a page behind a sign-in can never have a view.
 - An open or a click stores no IP address and no user agent. They show the proxy or the scanner, not the person.
-- The audit log and the API log do record IP addresses. So a system administrator can investigate who did what from where.
+- The audit log and the API log do record IP addresses and user agents. So a system administrator can investigate who did what from where.

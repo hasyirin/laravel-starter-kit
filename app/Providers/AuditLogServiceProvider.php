@@ -6,7 +6,6 @@ namespace App\Providers;
 
 use App\Domain\Shared\Common\Support\AuditLog;
 use App\Domain\Shared\Common\Support\ContextCauserResolver;
-use Illuminate\Log\Context\Repository;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Activitylog\Actions\LogActivityAction;
 use Spatie\Activitylog\Contracts\Activity as ActivityContract;
@@ -28,10 +27,6 @@ class AuditLogServiceProvider extends ServiceProvider
             }
 
             $activity->properties = AuditLog::context()->merge($activity->properties ?? []);
-        });
-
-        context()->dehydrating(function (Repository $context): void {
-            $context->forgetHidden(['ip_address', 'user_agent']);
         });
     }
 }

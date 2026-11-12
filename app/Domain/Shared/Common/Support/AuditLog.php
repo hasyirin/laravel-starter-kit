@@ -39,8 +39,8 @@ class AuditLog
         return collect([
             'impersonator_id' => context()->get('impersonator_id'),
             'trace_id' => context()->get('trace_id'),
-            'ip_address' => context()->getHidden('ip_address'),
-            'user_agent' => context()->getHidden('user_agent'),
+            'ip_address' => request()->attributes->get('ip_address'),
+            'user_agent' => request()->attributes->get('user_agent'),
         ])->filter(fn (mixed $value): bool => $value !== null);
     }
 

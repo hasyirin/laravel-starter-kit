@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Http\Middleware\AddIpAddressAndUserAgentToContext;
+use App\Http\Middleware\AddIpAddressAndUserAgentToAuditLog;
 use App\Http\Middleware\AddTraceIdToContext;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsurePhoneIsVerified;
@@ -41,7 +41,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     }))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AddTraceIdToContext::class);
-        $middleware->append(AddIpAddressAndUserAgentToContext::class);
+        $middleware->append(AddIpAddressAndUserAgentToAuditLog::class);
         $middleware->alias([
             'verified' => EnsureEmailIsVerified::class,
             'phone.verified' => EnsurePhoneIsVerified::class,

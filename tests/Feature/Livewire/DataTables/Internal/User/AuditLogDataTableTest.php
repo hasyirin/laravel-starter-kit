@@ -264,7 +264,7 @@ test('the modal shows the impersonator of an entry', function (): void {
 });
 
 test('the modal shows the ip address and the user agent of an entry', function (): void {
-    context()->addHidden(['ip_address' => '203.0.113.7', 'user_agent' => 'Test Browser']);
+    request()->attributes->add(['ip_address' => '203.0.113.7', 'user_agent' => 'Test Browser']);
     $entry = renameAs($this->actor, $this->subject, 'Sam Renamed');
 
     Livewire::test(AuditEntryModal::class, ['user' => $this->subject])

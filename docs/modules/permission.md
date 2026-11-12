@@ -63,9 +63,16 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `internal.controls.letterheads.delete`           | ✓                    |
 | `system.access`                                  | ✓                    |
 | `system.horizon.view`                            | ✓                    |
+| `system.api-clients.view-any`                    | ✓                    |
+| `system.api-clients.view`                        | ✓                    |
+| `system.api-clients.create`                      | ✓                    |
+| `system.api-clients.update`                      | ✓                    |
+| `system.api-clients.delete`                      | ✓                    |
+| `system.api-clients.view-audit-log`              | ✓                    |
 | `system.logs.audits.view`                        | ✓                    |
 | `system.logs.messages.view`                      | ✓                    |
 | `system.logs.messages.resend`                    | ✓                    |
+| `system.logs.api.view`                           | ✓                    |
 | `system.letters.compose`                         | ✓                    |
 
 A role with `bypass-authorization` passes every check.

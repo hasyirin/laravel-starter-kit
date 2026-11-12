@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Shared\Actor\Models\Action;
+use App\Domain\Shared\Api\Models\ApiCall;
+use App\Domain\Shared\Api\Models\ApiClient;
+use App\Domain\Shared\Api\Models\ApiToken;
 use App\Domain\Shared\Common\Models\AuditEntry;
 use App\Domain\Shared\Geography\Models\Address;
 use App\Domain\Shared\Geography\Models\Country;
@@ -37,6 +40,9 @@ class EloquentServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'action' => Action::class,
             'address' => Address::class,
+            'api_call' => ApiCall::class,
+            'api_client' => ApiClient::class,
+            'api_token' => ApiToken::class,
             'audit_entry' => AuditEntry::class,
             'branch' => Branch::class,
             'country' => Country::class,

@@ -39,6 +39,6 @@ class AllowedIpAddress implements ValidationRule
 
         $maximum = filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false ? 128 : 32;
 
-        return ctype_digit($prefix) && (int) $prefix <= $maximum;
+        return ctype_digit($prefix) && (int) $prefix >= 1 && (int) $prefix <= $maximum;
     }
 }

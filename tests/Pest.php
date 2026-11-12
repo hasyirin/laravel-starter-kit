@@ -91,8 +91,16 @@ function callLivewireAction(TestResponse $page, string $component, string $metho
     return test()->call('POST', resolve('livewire')->getUpdateUri(), server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => '*/*', 'HTTP_X_LIVEWIRE' => '1'], content: $payload);
 }
 
+/**
+ * The browser plugin starts a script again when the script runs for more than 1 second, and the first run goes on.
+ * Each call of this function gives its script a key, and each run with that key waits for the first run.
+ * So an action in the script, such as a click, happens only once.
+ */
 function browserScript(string $body): string
 {
+    static $calls = 0;
+
+    $key = ++$calls;
     $helpers = <<<'SCRIPT'
         const tick = () => new Promise((resolve) => setTimeout(resolve, 50));
         const until = async (check) => {
@@ -116,7 +124,9 @@ function browserScript(string $body): string
         };
         SCRIPT;
 
-    return "async () => {\n{$helpers}\n{$body}\n}";
+    $run = "(async () => {\n{$helpers}\n{$body}\n})()";
+
+    return "async () => {\n    window.browserScriptRuns ??= {};\n\n    return (window.browserScriptRuns[{$key}] ??= {$run});\n}";
 }
 
 function wrongSmsCode(string $code): string

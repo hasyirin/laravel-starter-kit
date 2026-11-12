@@ -7,10 +7,12 @@ namespace App\Domain\Shared\Api\Models;
 use App\Domain\Shared\Api\Factories\ApiClientFactory;
 use App\Domain\Shared\Common\Models\Model;
 use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
@@ -24,9 +26,10 @@ use Symfony\Component\HttpFoundation\IpUtils;
  * @property string|null $service
  * @property-read Collection<int, ApiToken> $tokens
  */
-class ApiClient extends Model implements AuthenticatableContract
+class ApiClient extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable;
+    use Authorizable;
 
     /** @use HasFactory<ApiClientFactory> */
     use HasFactory;

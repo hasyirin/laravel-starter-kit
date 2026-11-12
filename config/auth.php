@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\User\Models\User;
 
 return [
@@ -44,6 +45,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'api' => [
+            'driver' => 'api-token',
+            'provider' => 'api_clients',
+        ],
     ],
 
     /*
@@ -67,6 +73,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'api_clients' => [
+            'driver' => 'eloquent',
+            'model' => ApiClient::class,
         ],
 
         // 'users' => [

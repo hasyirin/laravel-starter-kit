@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Common\Support;
 
+use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
 use Carbon\CarbonImmutable;
@@ -251,7 +252,7 @@ class AuditLog
 
     public static function causerName(Activity $entry): ?string
     {
-        if (! $entry->causer instanceof User) {
+        if (! $entry->causer instanceof User && ! $entry->causer instanceof ApiClient) {
             return null;
         }
 

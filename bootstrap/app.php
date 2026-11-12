@@ -3,9 +3,14 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\AddTraceIdToContext;
+use App\Http\Middleware\AuthenticateApiClient;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsurePhoneIsVerified;
+use App\Http\Middleware\EnsureTokenHasScope;
+use App\Http\Middleware\LogApiCallBodies;
+use App\Http\Middleware\RecordInboundApiCall;
 use App\Http\Middleware\ResolveUserPreferences;
+use App\Http\Responses\ProblemDetails;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -31,6 +36,7 @@ $domainFolders = function (string $name): Generator {
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -40,10 +46,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
     }))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AddTraceIdToContext::class);
+        $middleware->append(RecordInboundApiCall::class);
         $middleware->alias([
             'verified' => EnsureEmailIsVerified::class,
             'phone.verified' => EnsurePhoneIsVerified::class,
+            'scope' => EnsureTokenHasScope::class,
+            'log-bodies' => LogApiCallBodies::class,
         ]);
+        $middleware->api(prepend: [AuthenticateApiClient::class, 'throttle:api-client']);
         $middleware->web(append: [ResolveUserPreferences::class]);
         // app.js writes these from the browser, so the app does not encrypt them.
         $middleware->encryptCookies(except: ['timezone', 'locale']);
@@ -52,6 +62,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request): bool => $request->is('api/*') || $request->expectsJson(),
         );
+        $exceptions->render(ProblemDetails::render(...));
     })->create();
 
 // Scanning only when the console kernel resolves keeps the scan off web requests that never run a command.

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\Shared\Common\Support\AuditLog;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\User;
@@ -55,4 +56,10 @@ test('a record that defines its own audit label is named by it', function (): vo
     $entry->setRelation('subject', $badge);
 
     expect(AuditLog::subjectLabel($entry))->toBe('Badge ACME-01');
+});
+
+test('an API client that made a change is named as its causer', function (): void {
+    activity()->causedBy(ApiClient::factory()->create(['name' => 'Billing']))->log('Synced');
+
+    expect(AuditLog::causerName(Activity::query()->where('description', 'Synced')->sole()))->toBe('Billing');
 });

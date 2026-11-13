@@ -107,7 +107,7 @@ class ApiTokenDataTable extends DataTable
                 ->modalIcon(Heroicon::OutlinedArrowPath)
                 ->modalHeading((string) __('api/api-tokens.rotate_heading'))
                 ->modalDescription(fn (ApiToken $apiToken): string => (string) __('api/api-tokens.rotate_description', [
-                    'ending' => __('api/api-tokens.ending', ['last_four' => $apiToken->last_four]),
+                    'ending' => (string) __('api/api-tokens.ending', ['last_four' => $apiToken->last_four]),
                     'days' => config()->integer('system.api.rotation_overlap_days'),
                 ]))
                 ->modalSubmitActionLabel((string) __('api/api-tokens.rotate'))

@@ -158,7 +158,7 @@ test('an API client can be saved without an allowed IP address', function (): vo
         ->call('save')
         ->assertHasNoErrors();
 
-    expect(ApiClient::query()->sole()->allowed_ip_addresses)->toBe([]);
+    expect(ApiClient::query()->sole()->allowed_ip_addresses)->toBeEmpty();
 });
 
 test('the rate limit is a whole number of at least 1', function (mixed $rateLimit, string $rule): void {

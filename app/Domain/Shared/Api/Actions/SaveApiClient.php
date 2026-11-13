@@ -43,14 +43,15 @@ class SaveApiClient
      */
     private function allowedIpAddresses(array $rows): array
     {
-        return collect($rows)
+        $allowedIpAddresses = collect($rows)
             ->map(fn (array $row): array => [
                 'address' => trim($row['address']),
                 'description' => str($row['description'])->trim()->value() ?: null,
             ])
             ->reject(fn (array $row): bool => $row['address'] === '')
             ->unique('address')
-            ->values()
             ->all();
+
+        return array_values($allowedIpAddresses);
     }
 }

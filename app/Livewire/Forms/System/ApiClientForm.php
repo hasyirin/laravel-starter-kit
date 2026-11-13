@@ -38,9 +38,10 @@ class ApiClientForm extends Form
         $this->name = $apiClient->name;
         $this->description = $apiClient->description;
         $this->enabled = $apiClient->enabled;
-        $this->allowed_ip_addresses = collect($apiClient->allowed_ip_addresses)
+        $allowedIpAddresses = collect($apiClient->allowed_ip_addresses)
             ->map(fn (array $row): array => ['address' => $row['address'], 'description' => $row['description'] ?? ''])
             ->all();
+        $this->allowed_ip_addresses = array_values($allowedIpAddresses);
         $this->allows_any_ip_address = $apiClient->allows_any_ip_address;
         $this->rate_limit_per_minute = $apiClient->rate_limit_per_minute;
         $this->service = $apiClient->service;

@@ -31,7 +31,8 @@ return match ($this) {
 ## Name booleans without is
 Name a boolean variable or parameter with the plain word, such as `$self`, `$unchanged`, or `$disabled`, not `$isSelf`. Name a method that returns a boolean in the same way, such as `editable()`, not `canChange()` or `isEditable()`. Keep the `is` or `has` prefix only in these cases:
 - The plain word is already in use, by a fluent setter of the same name (`disabled()` sets the state, so `isDisabled()` reads it) or by a property.
-- The method overrides a framework or package method, such as `hasRole()`.
+- Without the prefix, the name reads like a getter or a noun. `hasRoute()` answers yes or no, but `route()` reads like it returns a route. If a plain word reads as yes or no, use it: `assignedToProfiles()`, not `hasProfiles()`.
+- The method overrides a framework or package method, such as `hasRole()`, or sits beside methods of that shape, such as `hasVerifiedPhone()` next to `hasVerifiedEmail()`.
 - The method tests its argument, such as `isDate($value)`. Without the prefix, `date($value)` reads like it returns a date.
 
 Start a flag that shows a modal or another part of the page with `showing`. Then name the part, such as `$showingDeleteModal` or `$showingVerificationStep`. If the class name already names the part, such as `DeleteModal`, write only `$showing`. The name then does not repeat the class. Do not write `$deleteOpen` or `$verifying`: the first does not say what opens, and the second reads like a process.

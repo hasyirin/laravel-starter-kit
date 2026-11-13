@@ -16,6 +16,8 @@ return [
 
     'languages' => ['en' => 'English', 'ms' => 'Bahasa Melayu'],
 
+    'language_abbreviations' => ['ms' => 'BM'],
+
     'country' => 'MY',
 
     'sms' => [

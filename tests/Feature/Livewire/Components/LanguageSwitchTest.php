@@ -61,3 +61,21 @@ test('the auth pages show the switch to guests and to signed-in users', function
         ->assertOk()
         ->assertSeeLivewire(LanguageSwitch::class);
 });
+
+test('the short switch shows an abbreviation for each language, with the name for screen readers', function (): void {
+    Livewire::test(LanguageSwitch::class, ['short' => true])->assertSeeInOrder(['aria-label="English"', 'EN', '|', 'aria-label="Bahasa Melayu"', 'BM'], false)->assertDontSeeHtml('Bahasa Melayu</button>');
+});
+
+test('a language without an abbreviation shows its code in capitals', function (): void {
+    config(['system.languages' => ['en' => 'English', 'ta' => 'Tamil'], 'system.language_abbreviations' => []]);
+
+    Livewire::test(LanguageSwitch::class, ['short' => true])->assertSeeInOrder(['EN', 'TA']);
+});
+
+test('the signed-in pages show the short switch', function (): void {
+    $this->actingAs(User::factory()->create())
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSeeLivewire(LanguageSwitch::class)
+        ->assertSeeInOrder(['EN', 'BM']);
+});

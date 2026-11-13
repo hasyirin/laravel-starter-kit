@@ -20,6 +20,20 @@ final class Languages
         return $languages;
     }
 
+    /**
+     * @return Collection<string, string>
+     */
+    public static function abbreviations(): Collection
+    {
+        $abbreviations = config()->array('system.language_abbreviations');
+
+        return self::all()->map(function (string $name, string $code) use ($abbreviations): string {
+            $abbreviation = $abbreviations[$code] ?? null;
+
+            return is_string($abbreviation) ? $abbreviation : str($code)->upper()->value();
+        });
+    }
+
     public static function default(): string
     {
         $languages = self::all();

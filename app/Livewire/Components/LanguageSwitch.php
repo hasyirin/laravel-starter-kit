@@ -14,6 +14,9 @@ use Livewire\Attributes\Locked;
 class LanguageSwitch extends Component
 {
     #[Locked]
+    public bool $short = false;
+
+    #[Locked]
     public string $url = '';
 
     public function mount(): void
@@ -40,6 +43,7 @@ class LanguageSwitch extends Component
     {
         return view('livewire.components.language-switch', [
             'languages' => Languages::all(),
+            'labels' => $this->short ? Languages::abbreviations() : Languages::all(),
             'current' => app()->getLocale(),
         ]);
     }

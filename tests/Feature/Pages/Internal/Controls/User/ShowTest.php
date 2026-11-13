@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Permission;
@@ -120,6 +121,8 @@ test('the heading shows the email of a user without a placement', function (): v
 });
 
 test('the details show when the user was created and verified the email', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
     $user = User::factory()->create([
         'created_at' => CarbonImmutable::parse('2026-01-02 08:30', 'UTC'),
@@ -416,6 +419,8 @@ test('bypass-authorization is not sent to the browser without bypass', function 
 });
 
 test('an unverified email can be marked as verified', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     Livewire::test(Show::class, ['user' => $this->subject])
         ->assertSee(__('user/users.unverified'))
         ->call('verifyEmail')
@@ -451,7 +456,7 @@ test('a user without a profile opens', function (): void {
 });
 
 test('the show page opens without a tab bar when no tab is available', function (): void {
-    config()->set('fortify.features', []);
+    $this->disableFeature(Feature::Passkeys);
 
     $this->get(route('internal.controls.users.show', $this->subject))
         ->assertOk()
@@ -537,6 +542,8 @@ test('marking a phone number as verified needs update', function (): void {
 });
 
 test('the details show when the user verified the phone number', function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
     $subject = User::factory()->create(['phone_verified_at' => CarbonImmutable::parse('2026-01-03 09:45', 'UTC')]);
 
@@ -546,6 +553,24 @@ test('the details show when the user verified the phone number', function (): vo
 });
 
 test('the details say so when the user has no phone number', function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     Livewire::test(Show::class, ['user' => User::factory()->withoutPhone()->create()])
         ->assertSee(__('user/users.no_phone'));
+});
+
+test('the details leave out the phone verification when phone verification is off', function (): void {
+    $this->disableFeature(Feature::PhoneVerification, Feature::SmsPasswordReset);
+
+    Livewire::test(Show::class, ['user' => User::factory()->unverifiedPhone()->create()])
+        ->assertDontSee(__('user/users.phone_verified_at'))
+        ->assertDontSee(__('user/users.mark_as_verified'));
+});
+
+test('the details leave out the email verification when email verification is off', function (): void {
+    $this->disableFeature(Feature::EmailVerification);
+
+    Livewire::test(Show::class, ['user' => User::factory()->unverified()->create()])
+        ->assertDontSee(__('user/users.email_verified_at'))
+        ->assertDontSee(__('user/users.verify.heading'));
 });

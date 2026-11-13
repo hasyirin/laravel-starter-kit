@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Testing\TestResponse;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse;
+
+beforeEach(function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+});
 
 test('a passkey login sends the browser to the highest area the user can open', function (): void {
     $this->seed(PermissionSeeder::class);

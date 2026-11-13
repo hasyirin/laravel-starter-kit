@@ -2,12 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PasswordWasReset;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Queue;
+
+beforeEach(function (): void {
+    $this->skipUnlessFeature(Feature::PasswordReset);
+});
 
 test('a reset on the reset page emails the user', function (): void {
     Notification::fake();

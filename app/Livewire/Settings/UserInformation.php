@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Actions\UpdateUserInformation;
 use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Contracts\Models\MustVerifyPhone;
@@ -71,6 +72,10 @@ class UserInformation extends Page
             return;
         }
 
+        if (! Feature::EmailVerification->enabled()) {
+            return;
+        }
+
         $key = 'verification-notification:'.$user->id;
 
         if (! RateLimiter::attempt($key, 6, $user->sendEmailVerificationNotification(...))) {
@@ -87,7 +92,7 @@ class UserInformation extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail();
+        return Feature::EmailVerification->enabled() && $user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail();
     }
 
     #[Computed]
@@ -104,6 +109,6 @@ class UserInformation extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof MustVerifyPhone && $user->getPhoneForVerification() !== null && ! $user->hasVerifiedPhone();
+        return Feature::PhoneVerification->enabled() && $user instanceof MustVerifyPhone && $user->getPhoneForVerification() !== null && ! $user->hasVerifiedPhone();
     }
 }

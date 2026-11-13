@@ -1,3 +1,5 @@
+@use(App\Domain\Shared\Common\Enums\Feature)
+
 <x-layouts::auth :title="__('auth/login.title')">
     <div class="flex flex-col gap-6">
         <x-auth-header :title="__('auth/login.heading')" />
@@ -5,7 +7,9 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <x-passkey-verify />
+        @if(Feature::Passkeys->enabled())
+            <x-passkey-verify />
+        @endif
 
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf

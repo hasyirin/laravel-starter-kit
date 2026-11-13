@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
-use Laravel\Fortify\Features;
 
 beforeEach(function (): void {
-    $this->enableFortifyFeature(Features::registration());
+    $this->enableFeature(Feature::Registration);
 });
 
 test('the registration form posts the phone number in international format', function (): void {

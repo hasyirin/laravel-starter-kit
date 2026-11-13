@@ -1,3 +1,5 @@
+@use(App\Domain\Shared\Common\Enums\Feature)
+
 <x-layouts::auth :title="__('auth/forgot-password.title')">
     <div class="flex flex-col gap-6">
         <x-auth-header :title="__('auth/forgot-password.heading')" />
@@ -16,9 +18,11 @@
             </flux:button>
         </form>
 
-        <div class="text-center text-sm">
-            <flux:link :href="route('password.sms')" wire:navigate>{{ __('auth/forgot-password.sms') }}</flux:link>
-        </div>
+        @if(Feature::SmsPasswordReset->enabled())
+            <div class="text-center text-sm">
+                <flux:link :href="route('password.sms')" wire:navigate>{{ __('auth/forgot-password.sms') }}</flux:link>
+            </div>
+        @endif
 
         <div class="space-x-1 text-center text-sm text-zinc-400 rtl:space-x-reverse">
             <span>{{ __('auth/forgot-password.return_to') }}</span>

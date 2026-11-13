@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
@@ -12,6 +13,10 @@ use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
+beforeEach(function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+});
+
 test('the phone verification page opens for a user with an unverified phone number', function (): void {
     $this->actingAs(User::factory()->unverifiedPhone()->create());
 
@@ -19,6 +24,8 @@ test('the phone verification page opens for a user with an unverified phone numb
 });
 
 test('the phone verification page needs a verified email first', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     $this->actingAs(User::factory()->unverified()->unverifiedPhone()->create());
 
     $this->get(route('phone-verification.notice'))->assertRedirect(route('verification.notice'));

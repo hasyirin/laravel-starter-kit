@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Mail\Models\MailLink;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\User\Models\User;
 
 test('the message log keeps no signed link and no tracking for a verification email', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     config(['mail.tracking' => true, 'mail.intercept.enabled' => false]);
     $user = User::factory()->unverified()->create();
 

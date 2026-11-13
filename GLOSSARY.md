@@ -145,6 +145,7 @@ _Malay_: Pengguna yang disamar
 **Management**:
 Work that a user does on records of other users, by permission. Examples: create a user, verify a user's email, approve an application. The opposite is work on your own records, such as a change to your preferences.
 _Avoid_: Administration, admin; also internal or system for this, because those are areas, not kinds of work
+_Malay_: Pengurusan
 
 ### Actions
 

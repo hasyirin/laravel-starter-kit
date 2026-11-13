@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Components;
 
-use App\Domain\User\Actions\UpdateLanguage;
+use App\Domain\User\Actions\Settings\UpdateLanguage;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use App\Domain\User\Support\Languages;

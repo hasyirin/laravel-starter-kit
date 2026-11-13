@@ -60,7 +60,7 @@ class ApiClientForm extends Form
             'enabled' => ['boolean'],
             'allowed_ip_addresses' => ['array'],
             'allowed_ip_addresses.*' => ['array'],
-            'allowed_ip_addresses.*.address' => ['required', 'string', 'distinct:ignore_case', $this->validateAllowedIpAddress(...)],
+            'allowed_ip_addresses.*.address' => ['bail', 'required', 'string', 'max:255', 'distinct:ignore_case', $this->validateAllowedIpAddress(...)],
             'allowed_ip_addresses.*.description' => ['nullable', 'string', 'max:255'],
             'allows_any_ip_address' => ['boolean'],
             'rate_limit_per_minute' => ['required', 'integer', 'min:1'],
@@ -107,7 +107,7 @@ class ApiClientForm extends Form
      */
     private function validateAllowedIpAddress(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! is_string($value) || AllowedIpAddress::valid(trim($value))) {
+        if (! is_string($value) || AllowedIpAddress::valid($value)) {
             return;
         }
 
@@ -117,7 +117,15 @@ class ApiClientForm extends Form
     public function save(): ApiClient
     {
         $allowedIpAddresses = collect($this->allowed_ip_addresses)
-            ->map(fn (array $row): array => [...$row, 'address' => trim((string) data_get($row, 'address'))])
+            ->map(function (mixed $row): mixed {
+                $address = data_get($row, 'address');
+
+                if (! is_string($address)) {
+                    return $row;
+                }
+
+                return [...$row, 'address' => trim($address)];
+            })
             ->all();
         $this->allowed_ip_addresses = array_values($allowedIpAddresses);
 

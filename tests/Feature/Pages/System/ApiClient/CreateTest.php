@@ -148,6 +148,35 @@ test('an allowed IP address row without an address key is refused', function ():
         ->assertHasErrors(['form.allowed_ip_addresses.0.address' => 'required']);
 });
 
+test('an allowed IP address row that is not a list of fields is refused', function (mixed $row): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [$row])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.0' => 'array']);
+
+    expect(ApiClient::query()->exists())->toBeFalse();
+})->with([
+    'text' => ['192.0.2.10'],
+    'null' => [null],
+    'number' => [10],
+]);
+
+test('an allowed IP address that is not text is refused', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [['address' => ['192.0.2.10'], 'description' => '']])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.0.address' => 'string']);
+
+    expect(ApiClient::query()->exists())->toBeFalse();
+});
+
+test('an allowed IP address has at most 255 characters', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [['address' => str_repeat('a', 100000), 'description' => '']])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.0.address' => 'max']);
+});
+
 test('an allowed IP address can be listed only once', function (): void {
     apiClientCreate()
         ->set('form.allowed_ip_addresses', [

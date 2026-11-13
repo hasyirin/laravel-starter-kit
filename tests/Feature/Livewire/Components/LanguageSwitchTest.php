@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
 use App\Livewire\Components\LanguageSwitch;
 use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
@@ -62,8 +63,8 @@ test('the auth pages show the switch to guests and to signed-in users', function
         ->assertSeeLivewire(LanguageSwitch::class);
 });
 
-test('the short switch shows an abbreviation for each language, with the name for screen readers', function (): void {
-    Livewire::test(LanguageSwitch::class, ['short' => true])->assertSeeInOrder(['aria-label="English"', 'EN', '|', 'aria-label="Bahasa Melayu"', 'BM'], false)->assertDontSeeHtml('Bahasa Melayu</button>');
+test('the short switch shows an abbreviation for each language, with the name as its tooltip', function (): void {
+    Livewire::test(LanguageSwitch::class, ['short' => true])->assertSeeInOrder(['title="English"', 'EN', '|', 'title="Bahasa Melayu"', 'BM'], false)->assertDontSeeHtml('Bahasa Melayu</button>');
 });
 
 test('a language without an abbreviation shows its code in capitals', function (): void {
@@ -78,4 +79,19 @@ test('the signed-in pages show the short switch', function (): void {
         ->assertOk()
         ->assertSeeLivewire(LanguageSwitch::class)
         ->assertSeeInOrder(['EN', 'BM']);
+});
+
+test('the switch does not show during impersonation, and it changes nothing', function (): void {
+    $user = User::factory()->create(['language' => 'en']);
+
+    $this->actingAs($user);
+    Impersonation::begin(User::factory()->create(), route('dashboard'));
+
+    Livewire::test(LanguageSwitch::class, ['short' => true])
+        ->assertDontSee('BM')
+        ->call('switch', 'ms')
+        ->assertForbidden();
+
+    expect($user->refresh()->language)->toBe('en')
+        ->and(cookie()->hasQueued('language'))->toBeFalse();
 });

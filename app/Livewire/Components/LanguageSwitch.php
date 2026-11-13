@@ -6,6 +6,7 @@ namespace App\Livewire\Components;
 
 use App\Domain\User\Actions\UpdateLanguage;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
 use App\Domain\User\Support\Languages;
 use App\Livewire\Component;
 use Illuminate\Contracts\View\View;
@@ -26,6 +27,7 @@ class LanguageSwitch extends Component
 
     public function switch(string $language): void
     {
+        abort_if(Impersonation::active(), 403);
         abort_unless(Languages::all()->has($language), 404);
 
         $user = auth()->user();
@@ -43,6 +45,7 @@ class LanguageSwitch extends Component
     {
         return view('livewire.components.language-switch', [
             'languages' => Languages::all(),
+            'hidden' => Impersonation::active() || Languages::all()->count() < 2,
             'labels' => $this->short ? Languages::abbreviations() : Languages::all(),
             'current' => app()->getLocale(),
         ]);

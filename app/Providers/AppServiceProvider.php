@@ -15,14 +15,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
@@ -64,7 +61,6 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimits();
 
         $this->configureApiGuard();
-        $this->configureServices();
     }
 
     protected function preventDebugModeInProduction(): void
@@ -124,38 +120,6 @@ class AppServiceProvider extends ServiceProvider
             $app->refresh('request', $guard, 'setRequest');
 
             return $guard;
-        });
-    }
-
-    protected function configureServices(): void
-    {
-        Http::macro('service', function (string $name): PendingRequest {
-            $key = "system.api.services.{$name}";
-
-            throw_unless(is_array(config($key)), LogicException::class, "The service [{$name}] is not in system.api.services.");
-
-            $traceId = context()->get('trace_id');
-            $retry = config("{$key}.retry");
-
-            $request = Http::baseUrl(config()->string("{$key}.base_url"))
-                ->timeout(config()->integer("{$key}.timeout", 30))
-                ->connectTimeout(config()->integer("{$key}.connect_timeout", 10))
-                ->withAttributes(['api_log' => ['service' => $name]]);
-
-            if (is_string($traceId)) {
-                $request->withHeader('X-Request-Id', $traceId);
-            }
-
-            if (is_int($retry) || is_array($retry)) {
-                $request->retry($retry, throw: false);
-            }
-
-            return $request;
-        });
-
-        PendingRequest::macro('about', function (Model $resource): PendingRequest {
-            /** @var PendingRequest $this */
-            return $this->withAttributes(['api_log' => ['resource' => $resource]]);
         });
     }
 }

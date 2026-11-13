@@ -8,8 +8,6 @@ use App\Domain\Shared\Sms\Gateways\LogGateway;
 use App\Domain\User\Models\User;
 use App\Providers\AppServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
 use Tests\Fixtures\Gateways\FakeGateway;
 
 test('booting in production with debug mode on turns debug mode off and throws', function (): void {
@@ -115,22 +113,4 @@ test('the rate limit counts the calls of each API client apart', function (): vo
     $this->withToken($busy)->getJson('/api/v1/ping')->assertOk();
 
     $this->withToken($other)->getJson('/api/v1/ping')->assertOk();
-});
-
-test('the service entry point sends to the base URL of the service with its timeouts and the trace ID, and adds no credentials', function (): void {
-    config(['system.api.services.billing' => ['base_url' => 'https://billing.test', 'timeout' => 5, 'connect_timeout' => 2, 'retry' => 1, 'log_bodies' => false]]);
-    context()->add('trace_id', 'trace-123');
-    Http::fake();
-
-    $pendingRequest = Http::service('billing');
-    $pendingRequest->get('/v1/status');
-
-    expect($pendingRequest->getOptions())->toMatchArray(['timeout' => 5, 'connect_timeout' => 2]);
-    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://billing.test/v1/status'
-        && $request->header('X-Request-Id') === ['trace-123']
-        && ! $request->hasHeader('Authorization'));
-});
-
-test('a service name that system.api.services does not list is refused', function (): void {
-    expect(fn () => Http::service('acme'))->toThrow(LogicException::class, 'The service [acme] is not in system.api.services.');
 });

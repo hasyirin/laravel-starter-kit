@@ -8,6 +8,7 @@ use App\Domain\Shared\Api\Models\ApiCall;
 use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\Shared\Api\Models\ApiToken;
 use App\Domain\Shared\Api\Support\ApiTokenFormat;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
 
 beforeEach(function (): void {
@@ -139,6 +140,25 @@ test('a route that does not opt in stores no bodies', function (): void {
         ->response_body->toBeNull()
         ->request_size->toBe(strlen('{"title":"Hello"}'));
 });
+
+test('a multipart call stores the request size from the Content-Length header', function (): void {
+    $token = createApiToken();
+
+    $this->withToken($token)
+        ->withHeader('Content-Length', '512000')
+        ->post('/api/v1/notes', ['title' => 'Hello', 'file' => UploadedFile::fake()->create('report.pdf', 500)]);
+
+    expect(ApiCall::query()->sole()->request_size)->toBe(512000);
+});
+
+test('a call without a numeric Content-Length header stores no request size', function (array $headers): void {
+    $this->withHeaders($headers)->get('/api/v1/ping');
+
+    expect(ApiCall::query()->sole()->request_size)->toBeNull();
+})->with([
+    'no header' => [[]],
+    'not a number' => [['Content-Length' => 'abc']],
+]);
 
 test('a call to a web route writes no row', function (): void {
     $this->get('/')->assertOk();

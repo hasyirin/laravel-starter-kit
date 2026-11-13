@@ -267,7 +267,7 @@ A row holds:
 - The status, the outcome, and the duration in milliseconds. A call that cannot connect has no status.
 - The IP address and the user agent of an inbound call.
 - The trace ID.
-- The sizes of the request body and the response body, in bytes.
+- The sizes of the request body and the response body, in bytes. An inbound call takes the request size from its Content-Length header. Without that header, the row has no request size.
 - The bodies, if the route or the service turns them on.
 - The error of an outbound call that cannot connect.
 

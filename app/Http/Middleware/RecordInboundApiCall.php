@@ -46,7 +46,7 @@ class RecordInboundApiCall
             routeName: $request->route()?->getName(),
             ipAddress: $request->ip(),
             userAgent: $request->userAgent(),
-            requestSize: strlen($request->getContent()),
+            requestSize: $this->requestSize($request),
             responseSize: is_string($responseBody) ? strlen($responseBody) : null,
             requestBody: $logsBodies ? $request->getContent() : null,
             responseBody: $logsBodies && is_string($responseBody) ? $responseBody : null,
@@ -62,5 +62,16 @@ class RecordInboundApiCall
         }
 
         return $guard->failure() ?? ApiCallOutcome::fromStatus($response->getStatusCode());
+    }
+
+    private function requestSize(Request $request): ?int
+    {
+        $contentLength = $request->header('Content-Length');
+
+        if (! is_string($contentLength) || ! ctype_digit($contentLength)) {
+            return null;
+        }
+
+        return (int) $contentLength;
     }
 }

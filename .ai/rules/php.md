@@ -17,6 +17,17 @@ Check the edge cases first and return early, so the main path stays at the lowes
 ## Write code that reads easily
 Choose readable code over short code. Never nest ternaries: use guard clauses, `if` statements, or `match`. Give each step its own line instead of a long chain on one line. If a variable needs a docblock, such as `/** @var User $actor */`, and the line above it declares another variable, put an empty line between them.
 
+## Choose by enum case with match
+When an enum method gives a result for each case, use `match ($this)`. Do not use `if ($this === self::X)`. Give each case its own arm. Use `default` only when most cases give the same result. Without `default`, PHPStan reports a new case that has no arm. A case that needs several steps of logic can keep its own `if`. Static methods are not part of this rule.
+
+```php
+return match ($this) {
+    self::Sending => 'amber',
+    self::Sent => 'green',
+    self::Failed => 'red',
+};
+```
+
 ## Name booleans without is
 Name a boolean variable or parameter with the plain word, such as `$self`, `$unchanged`, or `$disabled`, not `$isSelf`. Name a method that returns a boolean in the same way, such as `editable()`, not `canChange()` or `isEditable()`. Keep the `is` or `has` prefix only in these cases:
 - The plain word is already in use, by a fluent setter of the same name (`disabled()` sets the state, so `isDisabled()` reads it) or by a property.

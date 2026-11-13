@@ -8,6 +8,7 @@ use App\Domain\User\Actions\UpdatePreferences;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Languages;
 use App\Domain\User\Support\Preferences as UserPreferences;
+use App\Http\Enums\Area;
 use App\Livewire\Pages\Shared\Page;
 use DateTimeZone;
 use Flux\Flux;
@@ -53,7 +54,7 @@ class Preferences extends Page
         cookie()->queue(cookie()->forever('language', $this->language));
 
         if ($this->language !== app()->getLocale()) {
-            $this->redirectRoute('preferences.edit');
+            $this->redirectRoute(Area::current()->route('preferences.edit'));
 
             return;
         }

@@ -2,7 +2,7 @@
 
 The app shows its text in English or in Malay. Each user picks a language, and a guest gets the language of their browser. `system.languages` in `config/system.php` lists the languages, each with its own name: `en` is English and `ms` is Bahasa Melayu.
 
-The language is not the locale. The language sets the words. The locale (`users.locale`, `system.locales`) sets the format of dates and times. A user can read Malay text with English dates. See [kit ADR-0016](adr/kit/0016-language-is-separate-from-locale.md).
+The language is not the locale. The language sets the words. The locale (`users.locale`, `system.locales`) sets the format of dates and times. A user can read Malay text with English dates. See [kit ADR-0017](adr/kit/0017-language-is-separate-from-locale.md).
 
 ## How the App Chooses the Language
 

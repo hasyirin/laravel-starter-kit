@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
-use App\Domain\User\Notifications\VerifyEmail;
+use App\Domain\User\Notifications\PasswordWasReset;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Notification;
 
@@ -97,9 +97,9 @@ test('a message to a user uses the language of that user', function (): void {
     Notification::fake();
     $user = User::factory()->create(['language' => 'ms']);
 
-    $user->notify(new VerifyEmail);
+    $user->notify(new PasswordWasReset);
 
-    Notification::assertSentTo($user, VerifyEmail::class, fn (VerifyEmail $notification, array $channels, User $notifiable, ?string $locale): bool => $locale === 'ms');
+    Notification::assertSentTo($user, PasswordWasReset::class, fn (PasswordWasReset $notification, array $channels, User $notifiable, ?string $locale): bool => $locale === 'ms');
 });
 
 test('a message to a user without a listed language uses the language of the app, not of the sender', function (?string $language): void {

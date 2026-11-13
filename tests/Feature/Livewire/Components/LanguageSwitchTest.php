@@ -57,8 +57,8 @@ test('the switch shows nothing when the app lists one language', function (): vo
 test('the auth pages show the switch to guests and to signed-in users', function (): void {
     $this->get(route('login'))->assertOk()->assertSeeLivewire(LanguageSwitch::class);
 
-    $this->actingAs(User::factory()->unverified()->create())
-        ->get(route('verification.notice'))
+    $this->actingAs(User::factory()->create())
+        ->get(route('password.confirm'))
         ->assertOk()
         ->assertSeeLivewire(LanguageSwitch::class);
 });

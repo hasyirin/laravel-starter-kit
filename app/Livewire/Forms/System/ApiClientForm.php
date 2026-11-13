@@ -58,7 +58,12 @@ class ApiClientForm extends Form
             'allowed_ip_addresses' => ['nullable', 'string', $this->validateAllowedIpAddresses(...)],
             'allows_any_ip_address' => ['boolean'],
             'rate_limit_per_minute' => ['required', 'integer', 'min:1'],
-            'service' => ['nullable', 'string', Rule::in($this->services())],
+            'service' => [
+                'nullable',
+                'string',
+                Rule::in($this->services()),
+                Rule::unique('api_clients', 'service')->withoutTrashed()->ignore($this->apiClient?->id),
+            ],
         ];
     }
 

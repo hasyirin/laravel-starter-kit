@@ -129,6 +129,23 @@ test('the service must be a service that the app declares', function (): void {
         ->assertHasErrors(['form.service' => 'in']);
 });
 
+test('the service must not be linked to another API client that is not deleted', function (): void {
+    config(['system.api.services' => ['billing' => ['base_url' => 'https://billing.test'], 'maps' => ['base_url' => 'https://maps.test']]]);
+    ApiClient::factory()->create(['service' => 'billing']);
+    ApiClient::factory()->create(['service' => 'maps'])->delete();
+
+    apiClientCreate()
+        ->set('form.service', 'billing')
+        ->call('save')
+        ->assertHasErrors(['form.service' => 'unique'])
+        ->assertSee('The service has already been taken.');
+
+    apiClientCreate()
+        ->set('form.service', 'maps')
+        ->call('save')
+        ->assertHasNoErrors();
+});
+
 test('the service field shows only when the app declares a service', function (): void {
     Livewire::test(Create::class)->assertDontSeeHtml('wire:model="form.service"');
 

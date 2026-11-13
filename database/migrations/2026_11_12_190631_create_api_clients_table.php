@@ -27,6 +27,7 @@ return new class extends Migration
         });
 
         DB::statement('create unique index api_clients_name_unique on api_clients (name) where deleted_at is null');
+        DB::statement('create unique index api_clients_service_unique on api_clients (service) where deleted_at is null');
 
         Schema::create(new ApiToken()->getTable(), function (Blueprint $table): void {
             $table->id();

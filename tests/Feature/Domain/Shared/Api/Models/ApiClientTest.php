@@ -73,3 +73,11 @@ test('a change to an API client goes to the audit log', function (): void {
 
     expect($entry->attribute_changes?->get('attributes'))->toBe(['enabled' => false]);
 });
+
+test('a service is linked to at most one API client that is not deleted', function (): void {
+    ApiClient::factory()->create(['service' => 'billing'])->delete();
+    ApiClient::factory()->create(['service' => 'billing']);
+    ApiClient::factory()->count(2)->create(['service' => null]);
+
+    expect(fn (): ApiClient => ApiClient::factory()->create(['service' => 'billing']))->toThrow(UniqueConstraintViolationException::class);
+});

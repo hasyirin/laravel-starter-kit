@@ -60,6 +60,16 @@ test('saving changes the API client and keeps its own name', function (): void {
     ]);
 });
 
+test('saving keeps the service that the API client itself is linked to', function (): void {
+    config(['system.api.services' => ['billing' => ['base_url' => 'https://billing.test']]]);
+    $this->apiClient->update(['service' => 'billing']);
+
+    Livewire::test(Show::class, ['apiClient' => $this->apiClient])
+        ->set('form.rate_limit_per_minute', 30)
+        ->call('save')
+        ->assertHasNoErrors();
+});
+
 test('the form is read-only without update', function (): void {
     revokePermissions($this->actor, 'system.api-clients.update');
 

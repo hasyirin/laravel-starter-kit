@@ -100,6 +100,11 @@ class ApiToken extends Model
         return $apiToken;
     }
 
+    public function auditLabel(): string
+    {
+        return (string) __('api/api-tokens.ending', ['last_four' => $this->last_four]);
+    }
+
     public function recordUse(): void
     {
         if ($this->last_used_at?->gt(now()->subSeconds(self::LAST_USE_INTERVAL_SECONDS)) === true) {

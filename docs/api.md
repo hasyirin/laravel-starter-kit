@@ -11,7 +11,7 @@ An API client has these fields:
 - **Name**: unique among the API clients that are not deleted.
 - **Description**: optional.
 - **Enabled**: on by default. When it is off, the API rejects each call of the API client. The app still calls the service of the API client.
-- **Allowed IP addresses**: one IPv4 or IPv6 address, or one CIDR range, on each line. The form refuses a range with the prefix `/0`, such as 0.0.0.0/0.
+- **Allowed IP addresses**: one row for each IPv4 or IPv6 address or CIDR range, with an optional description of at most 255 characters. The form refuses an empty address, an address that is in the list two times, and a range with the prefix `/0`, such as 0.0.0.0/0. `api_clients.allowed_ip_addresses` holds the rows as a JSON list. Each item has the keys address and description.
 - **Allow any IP address**: off by default. When it is on, each IP address can call with an API token of the API client, and the page shows a warning.
 - **Rate limit**: the calls per minute that the API client can make. The default is 60.
 - **Service**: optional. See Link an API Client to a Service, below.

@@ -54,7 +54,7 @@
                 $rows = is_array($current) ? array_keys($current) : [];
             @endphp
             <x-field :$label :$required :name="$key">
-                <div class="space-y-2" x-data="letterRows(@js($key))">
+                <div class="space-y-2" x-data="repeatableRows(@js($key))">
                     @foreach($rows as $index)
                         <div class="flex items-start gap-2" wire:key="{{ $key }}.{{ $index }}">
                             <div class="grow">
@@ -82,7 +82,7 @@
                 $blankRow = collect($field->children)->mapWithKeys(fn ($column): array => [$column->name => null])->all();
             @endphp
             <x-field :$label :$required :name="$key">
-                <div class="space-y-4" x-data="letterRows(@js($key))">
+                <div class="space-y-4" x-data="repeatableRows(@js($key))">
                     @foreach($rows as $index)
                         <div class="flex items-start gap-2 rounded-lg border border-zinc-200 p-4 dark:border-white/10" wire:key="{{ $key }}.{{ $index }}">
                             <x-letter.data-fields

@@ -12,7 +12,7 @@ class SaveApiClient
     use Actionable;
 
     /**
-     * @param  array<int, string>  $allowedIpAddresses
+     * @param  array<int, array{address: string, description: string|null}>  $allowedIpAddresses
      */
     public function execute(
         ApiClient $apiClient,
@@ -28,12 +28,29 @@ class SaveApiClient
             'name' => $name,
             'description' => $description,
             'enabled' => $enabled,
-            'allowed_ip_addresses' => collect($allowedIpAddresses)->map(fn (string $ipAddress): string => trim($ipAddress))->filter()->unique()->values()->all(),
+            'allowed_ip_addresses' => $this->allowedIpAddresses($allowedIpAddresses),
             'allows_any_ip_address' => $allowsAnyIpAddress,
             'rate_limit_per_minute' => $rateLimitPerMinute,
             'service' => $service,
         ])->save();
 
         return $apiClient;
+    }
+
+    /**
+     * @param  array<int, array{address: string, description: string|null}>  $rows
+     * @return list<array{address: string, description: string|null}>
+     */
+    private function allowedIpAddresses(array $rows): array
+    {
+        return collect($rows)
+            ->map(fn (array $row): array => [
+                'address' => trim($row['address']),
+                'description' => str($row['description'])->trim()->value() ?: null,
+            ])
+            ->reject(fn (array $row): bool => $row['address'] === '')
+            ->unique('address')
+            ->values()
+            ->all();
     }
 }

@@ -9,7 +9,6 @@ use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\Shared\Api\Support\AllowedIpAddress;
 use App\Livewire\Form;
 use Closure;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 
@@ -24,7 +23,8 @@ class ApiClientForm extends Form
 
     public bool $enabled = true;
 
-    public string $allowed_ip_addresses = '';
+    /** @var list<array{address: string, description: string|null}> */
+    public array $allowed_ip_addresses = [];
 
     public bool $allows_any_ip_address = false;
 
@@ -38,7 +38,9 @@ class ApiClientForm extends Form
         $this->name = $apiClient->name;
         $this->description = $apiClient->description;
         $this->enabled = $apiClient->enabled;
-        $this->allowed_ip_addresses = collect($apiClient->allowed_ip_addresses)->implode("\n");
+        $this->allowed_ip_addresses = collect($apiClient->allowed_ip_addresses)
+            ->map(fn (array $row): array => ['address' => $row['address'], 'description' => $row['description'] ?? ''])
+            ->all();
         $this->allows_any_ip_address = $apiClient->allows_any_ip_address;
         $this->rate_limit_per_minute = $apiClient->rate_limit_per_minute;
         $this->service = $apiClient->service;
@@ -55,7 +57,10 @@ class ApiClientForm extends Form
             'name' => ['required', 'string', 'max:255', Rule::unique('api_clients', 'name')->withoutTrashed()->ignore($this->apiClient?->id)],
             'description' => ['nullable', 'string'],
             'enabled' => ['boolean'],
-            'allowed_ip_addresses' => ['nullable', 'string', $this->validateAllowedIpAddresses(...)],
+            'allowed_ip_addresses' => ['array'],
+            'allowed_ip_addresses.*' => ['array'],
+            'allowed_ip_addresses.*.address' => ['required', 'string', 'distinct:ignore_case', $this->validateAllowedIpAddress(...)],
+            'allowed_ip_addresses.*.description' => ['nullable', 'string', 'max:255'],
             'allows_any_ip_address' => ['boolean'],
             'rate_limit_per_minute' => ['required', 'integer', 'min:1'],
             'service' => [
@@ -86,30 +91,26 @@ class ApiClientForm extends Form
     }
 
     /**
-     * @return Collection<int, non-empty-string>
+     * @return array<string, string>
      */
-    public function allowedIpAddresses(): Collection
+    public function validationAttributes(): array
     {
-        return str($this->allowed_ip_addresses)
-            ->explode("\n")
-            ->map(fn (string $line): string => trim($line))
-            ->reject(fn (string $line): bool => $line === '')
-            ->values();
+        return [
+            'allowed_ip_addresses.*.address' => (string) __('api/api-clients.ip_address'),
+            'allowed_ip_addresses.*.description' => (string) __('api/api-clients.description'),
+        ];
     }
 
     /**
      * @param  Closure(string): mixed  $fail
      */
-    private function validateAllowedIpAddresses(string $attribute, mixed $value, Closure $fail): void
+    private function validateAllowedIpAddress(string $attribute, mixed $value, Closure $fail): void
     {
-        $invalid = $this->allowedIpAddresses()
-            ->first(fn (string $address): bool => ! AllowedIpAddress::valid($address));
-
-        if ($invalid === null) {
+        if (! is_string($value) || AllowedIpAddress::valid(trim($value))) {
             return;
         }
 
-        $fail((string) __('api/api-clients.invalid_ip_address', ['address' => $invalid]));
+        $fail((string) __('api/api-clients.invalid_ip_address'));
     }
 
     public function save(): ApiClient
@@ -121,7 +122,7 @@ class ApiClientForm extends Form
             name: $this->name,
             description: $this->description,
             enabled: $this->enabled,
-            allowedIpAddresses: $this->allowedIpAddresses()->all(),
+            allowedIpAddresses: $this->allowed_ip_addresses,
             allowsAnyIpAddress: $this->allows_any_ip_address,
             rateLimitPerMinute: (int) $this->rate_limit_per_minute,
             service: $this->service,

@@ -7,6 +7,8 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\Pages\System\ApiClient\Show;
 use App\Livewire\Pages\System\ApiClient\Tabs;
+use Dom\Element;
+use Dom\HTMLDocument;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
@@ -15,7 +17,10 @@ beforeEach(function (): void {
     $this->actor = User::factory()->create();
     grantPermissions($this->actor, 'system.access', 'system.api-clients.view', 'system.api-clients.update');
     $this->actingAs($this->actor);
-    $this->apiClient = ApiClient::factory()->create(['name' => 'Billing', 'allowed_ip_addresses' => ['192.0.2.10', '198.51.100.0/24']]);
+    $this->apiClient = ApiClient::factory()->create(['name' => 'Billing', 'allowed_ip_addresses' => [
+        ['address' => '192.0.2.10', 'description' => 'Head office'],
+        ['address' => '198.51.100.0/24', 'description' => null],
+    ]]);
 });
 
 test('viewing an API client needs view', function (): void {
@@ -40,14 +45,27 @@ test('the browser cannot change the API client of the form', function (): void {
     Livewire::test(Show::class, ['apiClient' => $this->apiClient])->set('form.apiClient', ApiClient::factory()->create()->id);
 })->throws(CannotUpdateLockedPropertyException::class);
 
-test('the form shows each allowed IP address on its own line', function (): void {
-    Livewire::test(Show::class, ['apiClient' => $this->apiClient])
-        ->assertSet('form.allowed_ip_addresses', "192.0.2.10\n198.51.100.0/24");
+test('the form shows each allowed IP address as a row with its description', function (): void {
+    $component = Livewire::test(Show::class, ['apiClient' => $this->apiClient])
+        ->assertSet('form.allowed_ip_addresses', [
+            ['address' => '192.0.2.10', 'description' => 'Head office'],
+            ['address' => '198.51.100.0/24', 'description' => ''],
+        ]);
+    $document = HTMLDocument::createFromString($component->html(), LIBXML_NOERROR);
+
+    $rows = $document->querySelector('[data-row-add]')?->closest('[x-data]')?->getAttribute('x-data');
+    $removes = collect($document->querySelectorAll('[data-row-remove]'))->map(fn (Element $button): ?string => $button->getAttribute('x-on:click'))->all();
+
+    expect($document->querySelector('input[wire\:model="form.allowed_ip_addresses.1.address"]'))->not->toBeNull()
+        ->and($document->querySelector('input[wire\:model="form.allowed_ip_addresses.1.description"]'))->not->toBeNull()
+        ->and($rows)->toBe("repeatableRows('form.allowed_ip_addresses')")
+        ->and($document->querySelector('[data-row-add]')?->textContent)->toContain('Allowed IP address')
+        ->and($removes)->toBe(['removeRow(0)', 'removeRow(1)']);
 });
 
 test('saving changes the API client and keeps its own name', function (): void {
     Livewire::test(Show::class, ['apiClient' => $this->apiClient])
-        ->set('form.allowed_ip_addresses', '203.0.113.5')
+        ->set('form.allowed_ip_addresses', [['address' => '203.0.113.5', 'description' => 'Branch']])
         ->set('form.rate_limit_per_minute', 30)
         ->call('save')
         ->assertHasNoErrors()
@@ -55,7 +73,7 @@ test('saving changes the API client and keeps its own name', function (): void {
 
     expect($this->apiClient->fresh()->only('name', 'allowed_ip_addresses', 'rate_limit_per_minute'))->toBe([
         'name' => 'Billing',
-        'allowed_ip_addresses' => ['203.0.113.5'],
+        'allowed_ip_addresses' => [['address' => '203.0.113.5', 'description' => 'Branch']],
         'rate_limit_per_minute' => 30,
     ]);
 });
@@ -93,6 +111,8 @@ test('the form is read-only without update', function (): void {
 
     Livewire::test(Show::class, ['apiClient' => $this->apiClient])
         ->assertDontSeeHtml('type="submit"')
+        ->assertDontSeeHtml('data-row-add')
+        ->assertDontSeeHtml('data-row-remove')
         ->set('form.name', 'Changed')
         ->call('save')
         ->assertForbidden();
@@ -110,7 +130,7 @@ test('the page warns while any IP address is allowed', function (): void {
 test('the page says that every call is rejected while no IP address is allowed', function (): void {
     Livewire::test(Show::class, ['apiClient' => $this->apiClient])
         ->assertDontSee(__('api/api-clients.no_ip_address_note'))
-        ->set('form.allowed_ip_addresses', "  \n")
+        ->set('form.allowed_ip_addresses', [])
         ->assertSee(__('api/api-clients.no_ip_address_note'))
         ->set('form.allows_any_ip_address', true)
         ->assertDontSee(__('api/api-clients.no_ip_address_note'));

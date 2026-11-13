@@ -36,14 +36,48 @@
             <x-switch wire:model="form.enabled" :label="__('api/api-clients.enabled')" :description="__('api/api-clients.enabled_description')" />
         </div>
 
-        <x-textarea
-            wire:model.live.blur="form.allowed_ip_addresses"
+        <x-field
             :label="__('api/api-clients.allowed_ip_addresses')"
             :description="__('api/api-clients.allowed_ip_addresses_description')"
-            rows="4"
-            input-class="font-mono"
+            name="form.allowed_ip_addresses"
             class="sm:col-span-2"
-        />
+        >
+            <div class="space-y-2" x-data="repeatableRows('form.allowed_ip_addresses')">
+                @foreach($form->allowed_ip_addresses as $index => $row)
+                    <div class="flex items-start gap-2" wire:key="allowed-ip-address-{{ $index }}">
+                        <div class="grid grow gap-2 sm:grid-cols-2">
+                            <x-input
+                                wire:model="form.allowed_ip_addresses.{{ $index }}.address"
+                                :aria-label="__('api/api-clients.ip_address')"
+                                :placeholder="__('api/api-clients.ip_address')"
+                                input-class="font-mono"
+                                autocomplete="off"
+                            />
+                            <x-input
+                                wire:model="form.allowed_ip_addresses.{{ $index }}.description"
+                                :aria-label="__('api/api-clients.description')"
+                                :placeholder="__('api/api-clients.description')"
+                                autocomplete="off"
+                            />
+                        </div>
+                        @unless($disabled)
+                            <flux:button
+                                icon="trash"
+                                variant="ghost"
+                                data-row-remove
+                                :aria-label="__('common/buttons.delete')"
+                                x-on:click="removeRow({{ Js::from($index) }})"
+                            />
+                        @endunless
+                    </div>
+                @endforeach
+                @unless($disabled)
+                    <flux:button icon="plus" size="sm" data-row-add x-on:click="addRow({ address: '', description: '' })">
+                        {{ __('api/api-clients.allowed_ip_address') }}
+                    </flux:button>
+                @endunless
+            </div>
+        </x-field>
 
         <div class="sm:col-span-2">
             <x-switch wire:model.live="form.allows_any_ip_address" :label="__('api/api-clients.allows_any_ip_address')" />
@@ -51,7 +85,7 @@
 
         @if($form->allows_any_ip_address)
             <flux:callout variant="warning" icon="exclamation-triangle" :heading="__('api/api-clients.any_ip_address_warning')" class="sm:col-span-2" />
-        @elseif($form->allowedIpAddresses()->isEmpty())
+        @elseif($form->allowed_ip_addresses === [])
             <flux:callout icon="information-circle" :heading="__('api/api-clients.no_ip_address_note')" class="sm:col-span-2" />
         @endif
     </x-card>

@@ -16,7 +16,7 @@ test('the add and remove buttons change the rows in the browser', function (): v
     $add = $document->querySelector('[data-row-add]')?->getAttribute('x-on:click');
     $removes = collect($document->querySelectorAll('[data-row-remove]'))->map(fn (Element $button): ?string => $button->getAttribute('x-on:click'))->all();
 
-    expect($rows)->toBe("letterRows('form.carbon_copies')")
+    expect($rows)->toBe("repeatableRows('form.carbon_copies')")
         ->and($add)->toContain('addRow')
         ->and($removes)->toBe(['removeRow(0)', 'removeRow(1)']);
 });

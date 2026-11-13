@@ -8,7 +8,7 @@ use App\Domain\Shared\Common\Models\AuditEntry;
 use Illuminate\Database\UniqueConstraintViolationException;
 
 test('an API client allows an IP address that its list holds as an address or a range', function (string $ipAddress, bool $allowed): void {
-    $apiClient = ApiClient::factory()->make(['allowed_ip_addresses' => ['192.0.2.10', '198.51.100.0/24', '2001:db8::/32']]);
+    $apiClient = ApiClient::factory()->allowedIpAddresses('192.0.2.10', '198.51.100.0/24', '2001:db8::/32')->make();
 
     expect($apiClient->allowsIpAddress($ipAddress))->toBe($allowed);
 })->with([
@@ -21,17 +21,24 @@ test('an API client allows an IP address that its list holds as an address or a 
 ]);
 
 test('an API client with an empty list allows no IP address, also not localhost', function (): void {
-    $apiClient = ApiClient::factory()->make(['allowed_ip_addresses' => []]);
+    $apiClient = ApiClient::factory()->allowedIpAddresses()->make();
 
     expect($apiClient->allowsIpAddress('127.0.0.1'))->toBeFalse()
         ->and($apiClient->allowsIpAddress('::1'))->toBeFalse();
 });
 
 test('an API client that allows any IP address allows every IP address, also with an empty list', function (): void {
-    $apiClient = ApiClient::factory()->anyIpAddress()->make(['allowed_ip_addresses' => []]);
+    $apiClient = ApiClient::factory()->anyIpAddress()->allowedIpAddresses()->make();
 
     expect($apiClient->allowsIpAddress('203.0.113.5'))->toBeTrue()
         ->and($apiClient->allowsIpAddress('2001:db8::1'))->toBeTrue();
+});
+
+test('an API client stores a description with each allowed IP address', function (): void {
+    $apiClient = ApiClient::factory()->create(['allowed_ip_addresses' => [['address' => '192.0.2.10', 'description' => 'Head office']]]);
+
+    expect($apiClient->fresh()?->allowed_ip_addresses)->toBe([['address' => '192.0.2.10', 'description' => 'Head office']])
+        ->and($apiClient->allowsIpAddress('192.0.2.10'))->toBeTrue();
 });
 
 test('an API client can call with a scope only when its current token has that scope', function (): void {

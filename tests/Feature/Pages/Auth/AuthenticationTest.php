@@ -12,6 +12,12 @@ test('login screen can be rendered', function (): void {
     $response->assertOk();
 });
 
+test('the login screen shows the passkey button when passkeys are on', function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+
+    $this->get(route('login'))->assertOk()->assertSee(__('user/passkeys.verify.button'));
+});
+
 test('the login screen opens without the passkey button when passkeys are off', function (): void {
     $this->disableFeature(Feature::Passkeys);
 

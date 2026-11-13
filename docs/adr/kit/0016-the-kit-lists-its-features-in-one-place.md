@@ -14,6 +14,6 @@
 - `config/fortify.php` has an empty `features` list. A change there does nothing, because the kit overwrites it.
 - A Fortify feature that the kit does not use, such as `update-passwords`, has no case. An app that needs one adds a case.
 - A test that changes `system.features` at runtime calls `Feature::syncFortify()`, or the `TestCase` helpers that call it, so Fortify sees the change.
-- The kit registers the routes of a feature only when the feature is on. With cached routes, run `php artisan route:clear` after a change to `system.features`. In tests, `enableFeature()` reloads only the Fortify routes, and `disableFeature()` removes no route.
+- The kit registers the routes of a feature only when the feature is on. With cached routes, run `php artisan route:clear` after a change to `system.features`. In tests, `enableFeature()` reloads only the Fortify routes and refuses a kit feature, and `disableFeature()` removes no route.
 - The app throws on boot when `system.features` has the SMS password reset without phone verification or without the password reset. The SMS reset sends codes only to verified numbers, and it ends on the reset page of the password reset.
-- Every page, link, and email follows the list, so a test that needs a feature skips when the feature is off. The suite passes with any feature off.
+- Every page, link, and email follows the list, so a test that needs a feature skips when the feature is off (`skipUnlessFeature()`), and a test that needs it off skips when it is on (`skipIfFeature()`). The suite passes with any feature off, and with registration on.

@@ -72,6 +72,10 @@ class UserInformation extends Page
             return;
         }
 
+        if (! Feature::EmailVerification->enabled()) {
+            return;
+        }
+
         $key = 'verification-notification:'.$user->id;
 
         if (! RateLimiter::attempt($key, 6, $user->sendEmailVerificationNotification(...))) {

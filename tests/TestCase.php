@@ -7,6 +7,7 @@ namespace Tests;
 use App\Domain\Shared\Common\Enums\Feature;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Route;
+use LogicException;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -24,8 +25,17 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
+    protected function skipIfFeature(Feature $feature): void
+    {
+        if ($feature->enabled()) {
+            $this->markTestSkipped("The [{$feature->value}] feature is on in system.features.");
+        }
+    }
+
     protected function enableFeature(Feature $feature): void
     {
+        throw_unless($feature->belongsToFortify(), LogicException::class, "enableFeature() reloads only the Fortify routes, so it cannot turn on [{$feature->value}].");
+
         config()->push('system.features', $feature);
         Feature::syncFortify();
 
@@ -39,12 +49,12 @@ abstract class TestCase extends BaseTestCase
 
     protected function disableFeature(Feature ...$features): void
     {
-        $enabled = collect(config()->array('system.features'))
+        $remaining = collect(config()->array('system.features'))
             ->reject(fn (mixed $feature): bool => in_array($feature, $features, true))
             ->values()
             ->all();
 
-        config(['system.features' => $enabled]);
+        config(['system.features' => $remaining]);
         Feature::syncFortify();
     }
 

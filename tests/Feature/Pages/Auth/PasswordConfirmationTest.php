@@ -14,6 +14,12 @@ test('confirm password screen can be rendered', function (): void {
     $response->assertOk();
 });
 
+test('the confirm password screen shows the passkey button when passkeys are on', function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+
+    $this->actingAs(User::factory()->create())->get(route('password.confirm'))->assertOk()->assertSee(__('user/passkeys.confirm.button'));
+});
+
 test('the confirm password screen opens without the passkey button when passkeys are off', function (): void {
     $this->disableFeature(Feature::Passkeys);
 

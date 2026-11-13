@@ -22,11 +22,11 @@ class EnsureEmailIsVerified extends LaravelEnsureEmailIsVerified
      */
     public function handle($request, Closure $next, $redirectToRoute = null)
     {
-        $user = $request->user();
-
         if (! Feature::EmailVerification->enabled()) {
             return $next($request);
         }
+
+        $user = $request->user();
 
         if ($user instanceof User && $user->checkPermissionTo(config()->string('system.permissions.bypass-authorization'))) {
             return $next($request);

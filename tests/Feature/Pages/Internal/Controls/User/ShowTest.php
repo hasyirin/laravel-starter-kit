@@ -121,6 +121,8 @@ test('the heading shows the email of a user without a placement', function (): v
 });
 
 test('the details show when the user was created and verified the email', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
     $user = User::factory()->create([
         'created_at' => CarbonImmutable::parse('2026-01-02 08:30', 'UTC'),
@@ -417,6 +419,8 @@ test('bypass-authorization is not sent to the browser without bypass', function 
 });
 
 test('an unverified email can be marked as verified', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     Livewire::test(Show::class, ['user' => $this->subject])
         ->assertSee(__('user/users.unverified'))
         ->call('verifyEmail')
@@ -561,4 +565,12 @@ test('the details leave out the phone verification when phone verification is of
     Livewire::test(Show::class, ['user' => User::factory()->unverifiedPhone()->create()])
         ->assertDontSee(__('user/users.phone_verified_at'))
         ->assertDontSee(__('user/users.mark_as_verified'));
+});
+
+test('the details leave out the email verification when email verification is off', function (): void {
+    $this->disableFeature(Feature::EmailVerification);
+
+    Livewire::test(Show::class, ['user' => User::factory()->unverified()->create()])
+        ->assertDontSee(__('user/users.email_verified_at'))
+        ->assertDontSee(__('user/users.verify.heading'));
 });

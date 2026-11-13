@@ -6,11 +6,15 @@ use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
 
 test('registration is off by default', function (): void {
+    $this->skipIfFeature(Feature::Registration);
+
     $this->get('/register')->assertNotFound();
     $this->post('/register')->assertNotFound();
 });
 
 test('the login page hides the sign-up link when registration is off', function (): void {
+    $this->skipIfFeature(Feature::Registration);
+
     $this->get(route('login'))->assertOk()->assertDontSee(__('auth/login.sign_up'));
 });
 

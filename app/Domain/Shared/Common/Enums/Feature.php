@@ -19,12 +19,12 @@ enum Feature: string
         return in_array($this, config()->array('system.features'), true);
     }
 
-    public function option(string $option): bool
+    public function optionEnabled(string $option): bool
     {
         return $this->enabled() && config("system.feature_options.{$this->value}.{$option}") === true;
     }
 
-    private function belongsToFortify(): bool
+    public function belongsToFortify(): bool
     {
         return match ($this) {
             self::PhoneVerification, self::SmsPasswordReset => false,
@@ -40,7 +40,9 @@ enum Feature: string
                 ->map(fn (self $feature): string => $feature->value)
                 ->values()
                 ->all(),
-            'fortify-options' => config()->array('system.feature_options'),
+            'fortify-options' => collect(config()->array('system.feature_options'))
+                ->filter(fn (mixed $options, string $feature): bool => self::tryFrom($feature)?->enabled() ?? false)
+                ->all(),
         ]);
     }
 }

@@ -83,7 +83,7 @@ class Security extends Page
             }
 
             $this->twoFactorEnabled = $user->hasEnabledTwoFactorAuthentication();
-            $this->requiresConfirmation = Feature::TwoFactorAuthentication->option('confirm');
+            $this->requiresConfirmation = Feature::TwoFactorAuthentication->optionEnabled('confirm');
         }
 
         if (Feature::Passkeys->enabled()) {

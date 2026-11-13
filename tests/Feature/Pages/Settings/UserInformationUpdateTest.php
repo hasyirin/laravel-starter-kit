@@ -206,3 +206,13 @@ test('an unverified email shows no notice and keeps the delete account form when
         ->assertDontSee(__('user/settings.user_information.unverified'))
         ->assertSeeLivewire('settings.delete-user-form');
 });
+
+test('resending the verification email sends nothing when email verification is off', function (): void {
+    $this->disableFeature(Feature::EmailVerification);
+    Notification::fake();
+    $this->actingAs($user = User::factory()->unverified()->create());
+
+    Livewire::test(UserInformation::class)->call('resendVerificationNotification');
+
+    Notification::assertNothingSentTo($user);
+});

@@ -6,10 +6,11 @@ namespace App\Livewire\Pages\System\ApiClient;
 
 use App\Domain\Shared\Api\Actions\RotateApiToken;
 use App\Domain\Shared\Api\Models\ApiClient;
-use App\Domain\Shared\Api\Models\ApiToken;
 use App\Livewire\Forms\System\ApiTokenForm;
 use App\Livewire\Modal;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 
@@ -17,9 +18,6 @@ class ApiTokenModal extends Modal
 {
     #[Locked]
     public ApiClient $apiClient;
-
-    #[Locked]
-    public ?ApiToken $apiToken = null;
 
     public ApiTokenForm $form;
 
@@ -31,16 +29,34 @@ class ApiTokenModal extends Modal
     }
 
     #[On('show')]
-    public function show(?int $id = null): void
+    public function show(): void
     {
         $this->authorize('update', $this->apiClient);
-
-        $this->apiToken = $id === null ? null : $this->apiClient->tokens()->findOrFail($id);
-        abort_if($this->apiToken?->revoked === true || $this->apiToken?->expired === true, 403);
 
         $this->form->reset();
 
         parent::show();
+    }
+
+    #[On('rotate')]
+    public function rotate(int $id): void
+    {
+        $this->authorize('update', $this->apiClient);
+
+        $apiToken = $this->apiClient->tokens()->findOrFail($id);
+        abort_if($apiToken->revoked || $apiToken->expired, 403);
+
+        try {
+            $this->plainToken = RotateApiToken::make()->execute($apiToken)->plainToken;
+        } catch (ValidationException $validationException) {
+            Flux::toast(variant: 'danger', text: (string) collect($validationException->errors())->flatten()->first());
+
+            return;
+        }
+
+        parent::show();
+
+        $this->dispatch(self::event());
     }
 
     public function save(): void
@@ -49,11 +65,7 @@ class ApiTokenModal extends Modal
 
         $this->authorize('update', $this->apiClient);
 
-        $issued = $this->apiToken instanceof ApiToken
-            ? RotateApiToken::make()->execute($this->apiToken)
-            : $this->form->save($this->apiClient);
-
-        $this->plainToken = $issued->plainToken;
+        $this->plainToken = $this->form->save($this->apiClient)->plainToken;
 
         $this->dispatch(self::event());
     }

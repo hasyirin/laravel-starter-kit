@@ -28,7 +28,7 @@ A system administrator issues API tokens on the API tokens tab of an API client.
 
 - **Format**: the prefix, an underscore, 40 random letters and digits, and a checksum of 6 letters and digits. `API_TOKEN_PREFIX` sets the prefix. The default is `app`, so a token looks like `app_` and then 46 letters and digits.
 - **Prefix change**: the API checks the prefix of each token. If you change `API_TOKEN_PREFIX`, each API token that exists stops working, and its calls get 401. Issue new API tokens after the change.
-- **Shown once**: the dialog shows the plain token one time, when the system administrator issues it. The app keeps only a SHA-256 hash and the last 4 characters. Nobody can see the token again.
+- **Shown once**: the dialog shows the plain token one time, when the system administrator issues it or confirms a rotate. The app keeps only a SHA-256 hash and the last 4 characters. Nobody can see the token again.
 - **Scopes**: the system administrator selects the scopes of each API token when they issue it. The list comes from `system.api.scopes`. The kit ships an empty list.
 - **Expiry**: an API token expires after 365 days (`system.api.token_lifetime_days`). "Never expires" is a choice in the dialog. The tab marks an API token that expires within 30 days.
 - **Limit**: an API client can have at most 2 active API tokens (`system.api.max_active_tokens`). An active API token is not revoked and not expired.

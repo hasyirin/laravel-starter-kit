@@ -24,6 +24,8 @@ return [
     'expiry_description' => 'When it is off, the API token expires in :days days.',
     'issue' => 'Issue',
     'issued_heading' => 'Copy the API token',
+    'copy' => 'Copy the API token',
+    'copied' => 'The API token is copied.',
     'issued_warning' => 'You cannot see this API token again after you close this dialog. Copy it and keep it in a safe place now.',
     'rotate' => 'Rotate',
     'rotate_heading' => 'Rotate this API token?',

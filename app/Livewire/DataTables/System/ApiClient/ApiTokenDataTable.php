@@ -101,8 +101,16 @@ class ApiTokenDataTable extends DataTable
             Action::make('rotate')
                 ->label((string) __('api/api-tokens.rotate'))
                 ->icon(Heroicon::ArrowPath)
+                ->requiresConfirmation()
+                ->modalIcon(Heroicon::OutlinedArrowPath)
+                ->modalHeading((string) __('api/api-tokens.rotate_heading'))
+                ->modalDescription(fn (ApiToken $apiToken): string => (string) __('api/api-tokens.rotate_description', [
+                    'ending' => __('api/api-tokens.ending', ['last_four' => $apiToken->last_four]),
+                    'days' => config()->integer('system.api.rotation_overlap_days'),
+                ]))
+                ->modalSubmitActionLabel((string) __('api/api-tokens.rotate'))
                 ->visible(fn (ApiToken $apiToken): bool => $this->changeable($apiToken) && ! $this->full())
-                ->action(fn (ApiToken $apiToken) => $this->dispatch('show', id: $apiToken->id)->to(ApiTokenModal::class)),
+                ->action(fn (ApiToken $apiToken) => $this->dispatch('rotate', id: $apiToken->id)->to(ApiTokenModal::class)),
 
             Action::make('revoke')
                 ->label((string) __('api/api-tokens.revoke'))

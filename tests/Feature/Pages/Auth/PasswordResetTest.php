@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
-use Laravel\Fortify\Features;
 
 beforeEach(function (): void {
-    $this->skipUnlessFortifyHas(Features::resetPasswords());
+    $this->skipUnlessFeature(Feature::PasswordReset);
 });
 
 test('reset password link screen can be rendered', function (): void {
@@ -72,4 +72,10 @@ test('a guest can request a reset link five times a minute', function (): void {
     }
 
     $this->post(route('password.email'), ['email' => 'nobody@example.com'])->assertTooManyRequests();
+});
+
+test('the forgot password page hides the sms reset link when the sms reset is off', function (): void {
+    $this->disableFeature(Feature::SmsPasswordReset);
+
+    $this->get(route('password.request'))->assertOk()->assertDontSee(__('auth/forgot-password.sms'));
 });

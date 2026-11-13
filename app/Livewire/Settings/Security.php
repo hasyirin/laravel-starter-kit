@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Actions\UpdatePassword;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
@@ -16,7 +17,6 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
-use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Actions\DeletePasskey;
 use Livewire\Attributes\Computed;
@@ -73,7 +73,7 @@ class Security extends Page
      */
     public function mount(): void
     {
-        if (Features::enabled(Features::twoFactorAuthentication())) {
+        if (Feature::TwoFactorAuthentication->enabled()) {
             /** @var User $user */
             $user = auth()->user();
 
@@ -82,10 +82,10 @@ class Security extends Page
             }
 
             $this->twoFactorEnabled = $user->hasEnabledTwoFactorAuthentication();
-            $this->requiresConfirmation = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
+            $this->requiresConfirmation = Feature::TwoFactorAuthentication->optionEnabled('confirm');
         }
 
-        if (Features::enabled(Features::passkeys())) {
+        if (Feature::Passkeys->enabled()) {
             $this->loadPasskeys();
         }
     }

@@ -9,6 +9,7 @@ use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Message\Concerns\RoutesResentMessages;
 use App\Domain\Shared\Permission\Concerns\HasRoles;
 use App\Domain\User\Concerns\HasProfile;
@@ -159,6 +160,10 @@ class User extends Authenticatable implements HasActorName, HasLocalePreference,
 
     public function sendEmailVerificationNotification(): void
     {
+        if (! Feature::EmailVerification->enabled()) {
+            return;
+        }
+
         $this->notify(new VerifyEmail);
     }
 }

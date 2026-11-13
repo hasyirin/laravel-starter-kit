@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\Shared\Sms\Gateways\LogGateway;
 use App\Domain\User\Models\User;
@@ -33,7 +34,9 @@ test('scheduled tasks run on the clock of the business, not in the time zone of 
     expect(resolve(Schedule::class)->command('inspire')->timezone)->toBe(config('system.timezone'));
 });
 
-test('an open page that needs a verified email sends the user to verify it once the email is unverified', function (bool $verified, int $status, ?string $location): void {
+test('an open page that needs a verified email sends the user to verify it once the email is unverified', function (bool $verified, int $status, ?string $route): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
     $page = $this->get(route('security.edit'));
@@ -46,13 +49,15 @@ test('an open page that needs a verified email sends the user to verify it once 
 
     $response->assertStatus($status);
 
-    expect($response->headers->get('Location'))->toBe($location);
+    expect($response->headers->get('Location'))->toBe($route === null ? null : route($route));
 })->with([
     'a verified email' => [true, 200, null],
-    'an unverified email' => [false, 302, fn (): string => route('verification.notice')],
+    'an unverified email' => [false, 302, 'verification.notice'],
 ]);
 
-test('an open page that needs a verified phone number sends the user to verify it once the number is unverified', function (bool $verified, int $status, ?string $location): void {
+test('an open page that needs a verified phone number sends the user to verify it once the number is unverified', function (bool $verified, int $status, ?string $route): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
     $page = $this->get(route('security.edit'));
@@ -65,11 +70,23 @@ test('an open page that needs a verified phone number sends the user to verify i
 
     $response->assertStatus($status);
 
-    expect($response->headers->get('Location'))->toBe($location);
+    expect($response->headers->get('Location'))->toBe($route === null ? null : route($route));
 })->with([
     'a verified phone number' => [true, 200, null],
-    'an unverified phone number' => [false, 302, fn (): string => route('phone-verification.notice')],
+    'an unverified phone number' => [false, 302, 'phone-verification.notice'],
 ]);
+
+test('booting with the sms password reset on and phone verification off throws', function (): void {
+    config(['system.features' => [Feature::SmsPasswordReset]]);
+
+    expect(new AppServiceProvider(app())->boot(...))->toThrow(LogicException::class, 'The SMS password reset needs phone verification. Add Feature::PhoneVerification to system.features.');
+});
+
+test('booting with the sms password reset on and the password reset off throws', function (): void {
+    config(['system.features' => [Feature::PhoneVerification, Feature::SmsPasswordReset]]);
+
+    expect(new AppServiceProvider(app())->boot(...))->toThrow(LogicException::class, 'The SMS password reset needs the password reset. Add Feature::PasswordReset to system.features.');
+});
 
 test('the kit sends sms through the log gateway by default', function (): void {
     expect(resolve(SmsGateway::class))->toBeInstanceOf(LogGateway::class);

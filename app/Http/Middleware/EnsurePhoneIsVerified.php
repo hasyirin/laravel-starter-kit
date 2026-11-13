@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Contracts\Models\MustVerifyPhone;
 use Closure;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class EnsurePhoneIsVerified
     {
         $user = $request->user();
 
-        if (! $user instanceof MustVerifyPhone || $user->hasVerifiedPhone()) {
+        if (! Feature::PhoneVerification->enabled() || ! $user instanceof MustVerifyPhone || $user->hasVerifiedPhone()) {
             return $next($request);
         }
 

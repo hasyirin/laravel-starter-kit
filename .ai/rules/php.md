@@ -17,10 +17,29 @@ Check the edge cases first and return early, so the main path stays at the lowes
 ## Write code that reads easily
 Choose readable code over short code. Never nest ternaries: use guard clauses, `if` statements, or `match`. Give each step its own line instead of a long chain on one line. If a variable needs a docblock, such as `/** @var User $actor */`, and the line above it declares another variable, put an empty line between them.
 
+## Choose by enum case with match
+When an enum method gives a result for each case, use `match ($this)`. Do not use `if ($this === self::X)`. Name every case in an arm. If cases give the same result, put them in one arm and separate them with commas. Do not repeat the same result in several arms. Prefer a shared arm to `default`: without `default`, PHPStan reports a new case that has no arm. Use `default` only when almost all cases of a large enum give the same result, and the shared arm would be long. A case that needs several steps of logic can keep its own `if`. Static methods are not part of this rule.
+
+```php
+return match ($this) {
+    self::Sending => 'amber',
+    self::Sent => 'green',
+    self::Failed => 'red',
+};
+```
+
+```php
+return match ($this) {
+    self::Internal, self::System => "{$this->value}.{$name}",
+    self::Guest, self::App => $name,
+};
+```
+
 ## Name booleans without is
 Name a boolean variable or parameter with the plain word, such as `$self`, `$unchanged`, or `$disabled`, not `$isSelf`. Name a method that returns a boolean in the same way, such as `editable()`, not `canChange()` or `isEditable()`. Keep the `is` or `has` prefix only in these cases:
 - The plain word is already in use, by a fluent setter of the same name (`disabled()` sets the state, so `isDisabled()` reads it) or by a property.
-- The method overrides a framework or package method, such as `hasRole()`.
+- Without the prefix, the name reads like a getter or a noun. `hasRoute()` answers yes or no, but `route()` reads like it returns a route. If a plain word reads as yes or no, use it: `assignedToProfiles()`, not `hasProfiles()`.
+- The method overrides a framework or package method, such as `hasRole()`, or sits beside methods of that shape, such as `hasVerifiedPhone()` next to `hasVerifiedEmail()`.
 - The method tests its argument, such as `isDate($value)`. Without the prefix, `date($value)` reads like it returns a date.
 
 Start a flag that shows a modal or another part of the page with `showing`. Then name the part, such as `$showingDeleteModal` or `$showingVerificationStep`. If the class name already names the part, such as `DeleteModal`, write only `$showing`. The name then does not repeat the class. Do not write `$deleteOpen` or `$verifying`: the first does not say what opens, and the second reads like a process.

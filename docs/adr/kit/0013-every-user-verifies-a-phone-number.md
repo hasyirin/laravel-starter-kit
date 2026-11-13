@@ -4,7 +4,7 @@ Every user has a phone number and verifies it with an SMS code before they use t
 
 ## Considered Options
 
-- **An optional number, with the guard only on the routes that need it**: rejected. The kit treats the number like the email: every user has one, and every area checks it. An app that does not need a verified number removes `MustVerifyPhone` from `User`. Then `phone.verified` lets every user pass.
+- **An optional number, with the guard only on the routes that need it**: rejected. The kit treats the number like the email: every user has one, and every area checks it. An app that does not need a verified number removes `Feature::PhoneVerification` and `Feature::SmsPasswordReset` from `system.features`. Then `phone.verified` lets every user pass, and the kit tests that need phone verification skip.
 - **Exempt every user who can open the system area**: rejected. Staff who can change permissions can grant `system.access`, so they could exempt any user. Only a holder of `bypass-authorization` can grant `bypass-authorization`.
 
 ## Consequences

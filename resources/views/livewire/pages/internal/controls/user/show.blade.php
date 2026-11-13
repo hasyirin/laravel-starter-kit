@@ -1,3 +1,4 @@
+@use(App\Domain\Shared\Common\Enums\Feature)
 @use(App\Domain\User\Support\Impersonation)
 
 <flux:main container>
@@ -34,7 +35,7 @@
     @endif
 
     @can('update', $user)
-        @unless($user->hasVerifiedEmail())
+        @if(Feature::EmailVerification->enabled() && ! $user->hasVerifiedEmail())
             <flux:modal name="verify-email" class="max-w-md">
                 <div class="space-y-6">
                     <div>
@@ -52,9 +53,9 @@
                     </div>
                 </div>
             </flux:modal>
-        @endunless
+        @endif
 
-        @if($user->phone !== null && ! $user->hasVerifiedPhone())
+        @if(Feature::PhoneVerification->enabled() && $user->phone !== null && ! $user->hasVerifiedPhone())
             <flux:modal name="verify-phone" class="max-w-md">
                 <div class="space-y-6">
                     <div>

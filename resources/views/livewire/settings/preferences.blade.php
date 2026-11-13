@@ -8,6 +8,10 @@
             <form wire:submit="save" class="my-6 w-full space-y-6">
                 <x-select wire:model.live="timezone" :label="__('common/inputs.timezone')" :options="$this->timezones" />
 
+                @if($this->languages->count() > 1)
+                    <x-select wire:model="language" :label="__('common/inputs.language')" :options="$this->languages->all()" :searchable="false" />
+                @endif
+
                 <x-select
                     wire:model.live="locale"
                     :label="__('common/inputs.locale')"

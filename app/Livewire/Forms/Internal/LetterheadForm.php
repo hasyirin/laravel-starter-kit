@@ -66,6 +66,17 @@ class LetterheadForm extends Form
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function validationAttributes(): array
+    {
+        return [
+            'header' => str((string) __('letters/letterheads.header'))->lower()->value(),
+            'footer' => str((string) __('letters/letterheads.footer'))->lower()->value(),
+        ];
+    }
+
     private function inOrganization(string $table): mixed
     {
         return Rule::exists($table, 'id')

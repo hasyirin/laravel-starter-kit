@@ -462,6 +462,16 @@ test('a crafted carbon copy row is a validation error', function (): void {
     openModal()->set('form.type', 'permit')->set('form.carbon_copies', [['text' => 'x']])->call('save')->assertHasErrors(['form.carbon_copies.0.kind']);
 });
 
+test('a letter message names the letter type and a carbon copy row in the language of the page', function (): void {
+    app()->setLocale('ms');
+
+    $withoutType = openModal()->set('form.type', '')->call('save')->errors();
+    $withEmptyCopy = openModal()->set('form.type', 'permit')->set('form.carbon_copies', [['kind' => 'text', 'text' => '']])->call('save')->errors();
+
+    expect($withoutType->first('form.type'))->toBe('Medan jenis surat diperlukan.')
+        ->and($withEmptyCopy->first('form.carbon_copies.0.text'))->toBe('Medan salinan kepada diperlukan.');
+});
+
 test('the letterhead of a signer outside the list is not used', function (): void {
     $other = Organization::factory()->create();
     Letterhead::factory()->for($other)->create(['name' => 'Foreign Office']);

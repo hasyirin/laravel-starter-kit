@@ -290,7 +290,7 @@ class AuditLog
             return str($field)->replaceEnd('_id', '')->headline()->value();
         }
 
-        return (string) __($key);
+        return str((string) __($key))->ucfirst()->value();
     }
 
     /**

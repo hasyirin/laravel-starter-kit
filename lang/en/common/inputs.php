@@ -16,6 +16,7 @@ return [
     'confirm_password' => 'Confirm password',
     'otp_code' => 'OTP code',
     'timezone' => 'Time zone',
+    'language' => 'Language',
     'locale' => 'Date and time format',
     'use_default' => 'Use the default: :value',
     'select_all' => 'Select all',

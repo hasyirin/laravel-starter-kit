@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
+use App\Domain\User\Support\Languages;
 use Closure;
 use DateTimeZone;
 use Illuminate\Http\Request;
@@ -19,11 +21,13 @@ class ResolveUserPreferences
     {
         $timezone = $this->browserTimezone($request);
         $locale = $this->browserLocale($request);
+        $language = Languages::firstListed([$request->cookie('language'), ...$this->browserLanguages($request)]);
         $user = auth()->user();
 
-        if ($user instanceof User) {
+        if ($user instanceof User && ! Impersonation::active()) {
             $missing = array_filter([
                 'timezone' => $user->timezone === null ? $timezone : null,
+                'language' => $user->language === null ? $language : null,
                 'locale' => $user->locale === null ? $locale : null,
             ]);
 
@@ -36,6 +40,8 @@ class ResolveUserPreferences
             'timezone' => ($user instanceof User ? $user->timezone : null) ?? $timezone ?? config()->string('system.timezone'),
             'locale' => ($user instanceof User ? $user->locale : null) ?? $locale ?? config()->string('system.locale'),
         ]);
+
+        app()->setLocale(Languages::firstListed([$user?->language, $language]) ?? Languages::default());
 
         return $next($request);
     }
@@ -60,6 +66,20 @@ class ResolveUserPreferences
         }
 
         return null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function browserLanguages(Request $request): array
+    {
+        $cookie = $request->cookie('locale');
+
+        return str(is_string($cookie) ? $cookie : '')
+            ->lower()
+            ->explode(',')
+            ->map(fn (string $language): string => str($language)->trim()->before('-')->value())
+            ->all();
     }
 
     /**

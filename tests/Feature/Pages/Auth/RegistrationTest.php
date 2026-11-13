@@ -33,6 +33,18 @@ describe('with registration on', function (): void {
         $response->assertOk();
     });
 
+    test('a new user gets the language of the registration page', function (): void {
+        $this->withCookie('language', 'ms')->post(route('register.store'), [
+            'name' => 'John Doe',
+            'email' => 'test@example.com',
+            'phone' => '+60123456789',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        expect(User::query()->where('email', 'test@example.com')->sole()->language)->toBe('ms');
+    });
+
     test('new users can register', function (): void {
         $response = $this->post(route('register.store'), [
             'name' => 'John Doe',

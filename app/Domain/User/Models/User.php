@@ -18,8 +18,10 @@ use App\Domain\User\Contracts\Models\MustVerifyPhone;
 use App\Domain\User\Factories\UserFactory;
 use App\Domain\User\Notifications\ResetPassword;
 use App\Domain\User\Notifications\VerifyEmail;
+use App\Domain\User\Support\Languages;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -40,6 +42,7 @@ use Spatie\Activitylog\Models\Concerns\CausesActivity;
  * @property CarbonImmutable|null $phone_verified_at
  * @property string $password
  * @property string|null $timezone
+ * @property string|null $language
  * @property string|null $locale
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
@@ -49,7 +52,7 @@ use Spatie\Activitylog\Models\Concerns\CausesActivity;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  */
-class User extends Authenticatable implements HasActorName, HasMedia, MustVerifyEmail, MustVerifyPhone, PasskeyUser
+class User extends Authenticatable implements HasActorName, HasLocalePreference, HasMedia, MustVerifyEmail, MustVerifyPhone, PasskeyUser
 {
     use CausesActivity;
 
@@ -71,6 +74,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
         'phone',
         'password',
         'timezone',
+        'language',
         'locale',
     ];
 
@@ -83,6 +87,7 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
 
     protected $attributes = [
         'timezone' => null,
+        'language' => null,
         'locale' => null,
     ];
 
@@ -102,6 +107,11 @@ class User extends Authenticatable implements HasActorName, HasMedia, MustVerify
     protected function email(): Attribute
     {
         return Attribute::make(set: fn (string $value): string => str($value)->lower()->value());
+    }
+
+    public function preferredLocale(): string
+    {
+        return Languages::firstListed([$this->language]) ?? Languages::default();
     }
 
     protected static function newFactory(): UserFactory

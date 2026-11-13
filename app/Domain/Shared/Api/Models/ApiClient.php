@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\IpUtils;
  * @property string $name
  * @property string|null $description
  * @property bool $enabled
- * @property list<string> $allowed_ip_addresses
+ * @property list<array{address: string, description: string|null}> $allowed_ip_addresses
  * @property bool $allows_any_ip_address
  * @property int $rate_limit_per_minute
  * @property string|null $service
@@ -95,7 +95,9 @@ class ApiClient extends Model implements AuthenticatableContract, AuthorizableCo
             return false;
         }
 
-        return IpUtils::checkIp($ipAddress, $this->allowed_ip_addresses);
+        $addresses = collect($this->allowed_ip_addresses)->pluck('address')->all();
+
+        return IpUtils::checkIp($ipAddress, $addresses);
     }
 
     public function withToken(ApiToken $apiToken): static

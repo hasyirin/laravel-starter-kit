@@ -150,7 +150,7 @@ test('the add and remove buttons change the property in the browser', function (
     $add = $document->querySelector('[data-row-add]')?->getAttribute('x-on:click');
     $remove = $document->querySelector('[data-row-remove]')?->getAttribute('x-on:click');
 
-    expect($rows)->toContain('letterRows')->toContain('form.data.lines')
+    expect($rows)->toContain('repeatableRows')->toContain('form.data.lines')
         ->and($add)->toContain('addRow')->toContain('item')
         ->and($remove)->toBe('removeRow(0)');
 });

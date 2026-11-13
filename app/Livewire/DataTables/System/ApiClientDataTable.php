@@ -75,9 +75,11 @@ class ApiClientDataTable extends DataTable
                 ->trueColor('warning'),
             TimestampColumn::make('tokens_max_last_used_at')
                 ->label((string) __('api/api-clients.last_used_at'))
+                ->placeholder((string) __('api/api-tokens.never'))
                 ->sortable(),
             TextColumn::make('service')
-                ->label((string) __('api/api-clients.service')),
+                ->label((string) __('api/api-clients.service'))
+                ->placeholder((string) __('api/api-clients.no_service')),
         ];
     }
 

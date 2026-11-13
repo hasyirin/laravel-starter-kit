@@ -40,6 +40,25 @@ test('the list names the API client of an inbound call, and the service of an ou
         ->assertTableColumnExists('party', fn (TextColumn $column): bool => $column->getDescriptionBelow() === null, $unlinked);
 });
 
+test('an empty cell says what is missing: no status for a failed connection, and no API client for a call without one', function (): void {
+    $failed = ApiCall::factory()->connectionFailed()->create();
+    $unknown = ApiCall::factory()->inbound()->rejected()->create(['api_client_id' => null, 'api_client_name' => null]);
+
+    Livewire::test(ApiLogDataTable::class)
+        ->assertTableColumnExists('status', fn (TextColumn $column): bool => $column->getState() === null && $column->getPlaceholder() === __('api/api-calls.status_classes.none'), $failed)
+        ->assertTableColumnExists('party', fn (TextColumn $column): bool => $column->getState() === null && $column->getPlaceholder() === __('api/api-calls.no_api_client'), $unknown);
+});
+
+test('the IP address column is hidden at first and can be shown with the column toggle', function (): void {
+    $apiCall = ApiCall::factory()->inbound()->create(['ip_address' => '192.0.2.10']);
+
+    Livewire::test(ApiLogDataTable::class)
+        ->assertCanNotRenderTableColumn('ip_address')
+        ->toggleAllTableColumns()
+        ->assertCanRenderTableColumn('ip_address')
+        ->assertTableColumnStateSet('ip_address', '192.0.2.10', $apiCall);
+});
+
 test('the list shows the outcome as a label in the color of the outcome, and the duration in milliseconds', function (): void {
     $apiCall = ApiCall::factory()->rejected(ApiCallOutcome::RevokedToken)->create(['duration_ms' => 42]);
 

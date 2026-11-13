@@ -20,7 +20,7 @@ function apiClientCreate(): Testable
 {
     return Livewire::test(Create::class)
         ->set('form.name', 'Billing')
-        ->set('form.allowed_ip_addresses', '192.0.2.10');
+        ->set('form.allowed_ip_addresses', [['address' => '192.0.2.10', 'description' => '']]);
 }
 
 test('creating an API client needs create', function (): void {
@@ -40,7 +40,10 @@ test('saving creates the API client and opens its page', function (): void {
         ->set('form.name', 'Billing')
         ->set('form.description', 'Sends invoices')
         ->set('form.enabled', false)
-        ->set('form.allowed_ip_addresses', "192.0.2.10\n\n 198.51.100.0/24 \r\n")
+        ->set('form.allowed_ip_addresses', [
+            ['address' => '192.0.2.10', 'description' => 'Head office'],
+            ['address' => ' 198.51.100.0/24 ', 'description' => ''],
+        ])
         ->set('form.rate_limit_per_minute', 120)
         ->set('form.service', 'billing')
         ->call('save')
@@ -51,7 +54,10 @@ test('saving creates the API client and opens its page', function (): void {
     expect(ApiClient::query()->where('name', 'Billing')->firstOrFail()->only('description', 'enabled', 'allowed_ip_addresses', 'allows_any_ip_address', 'rate_limit_per_minute', 'service'))->toBe([
         'description' => 'Sends invoices',
         'enabled' => false,
-        'allowed_ip_addresses' => ['192.0.2.10', '198.51.100.0/24'],
+        'allowed_ip_addresses' => [
+            ['address' => '192.0.2.10', 'description' => 'Head office'],
+            ['address' => '198.51.100.0/24', 'description' => null],
+        ],
         'allows_any_ip_address' => false,
         'rate_limit_per_minute' => 120,
         'service' => 'billing',
@@ -93,21 +99,66 @@ test('the name has at most 255 characters', function (): void {
         ->assertHasErrors(['form.name' => 'max']);
 });
 
-test('each allowed IP address must be an IP address or a CIDR range', function (): void {
+test('each allowed IP address must be an IP address or a CIDR range, with the error on its own row', function (): void {
     apiClientCreate()
-        ->set('form.allowed_ip_addresses', "192.0.2.10\nlocalhost")
+        ->set('form.allowed_ip_addresses', [
+            ['address' => 'localhost', 'description' => ''],
+            ['address' => '192.0.2.10', 'description' => ''],
+            ['address' => '192.0.2.300', 'description' => ''],
+        ])
         ->call('save')
-        ->assertHasErrors('form.allowed_ip_addresses')
-        ->assertSee('localhost is not an IP address or a CIDR range of at least 1 bit. To allow every address, turn on &quot;Allow any IP address&quot;.', false);
+        ->assertHasErrors(['form.allowed_ip_addresses.0.address', 'form.allowed_ip_addresses.2.address'])
+        ->assertHasNoErrors('form.allowed_ip_addresses.1.address')
+        ->assertSee('Enter an IP address or a CIDR range, such as 198.51.100.0/24. To allow every address, turn on &quot;Allow any IP address&quot;.', false);
 
     expect(ApiClient::query()->exists())->toBeFalse();
 });
 
-test('a range of every address is refused, so only the switch allows every address', function (): void {
+test('a range of every address is refused, so only the switch allows every address', function (string $range): void {
     apiClientCreate()
-        ->set('form.allowed_ip_addresses', '0.0.0.0/0')
+        ->set('form.allowed_ip_addresses', [['address' => $range, 'description' => '']])
         ->call('save')
-        ->assertHasErrors('form.allowed_ip_addresses');
+        ->assertHasErrors('form.allowed_ip_addresses.0.address');
+})->with(['0.0.0.0/0', '::/0']);
+
+test('an allowed IP address row needs an address', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [['address' => ' ', 'description' => 'Head office']])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.0.address' => 'required'])
+        ->assertSee('The IP address field is required.');
+});
+
+test('an allowed IP address can be listed only once', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [
+            ['address' => '192.0.2.10', 'description' => 'Head office'],
+            ['address' => '192.0.2.10', 'description' => 'Branch'],
+        ])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.1.address' => 'distinct'])
+        ->assertSee('The IP address field has a duplicate value.');
+});
+
+test('the description of an allowed IP address is optional and has at most 255 characters', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [['address' => '192.0.2.10', 'description' => str_repeat('a', 256)]])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.0.description' => 'max']);
+
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [['address' => '192.0.2.10', 'description' => '']])
+        ->call('save')
+        ->assertHasNoErrors();
+});
+
+test('an API client can be saved without an allowed IP address', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(ApiClient::query()->sole()->allowed_ip_addresses)->toBeEmpty();
 });
 
 test('the rate limit is a whole number of at least 1', function (mixed $rateLimit, string $rule): void {

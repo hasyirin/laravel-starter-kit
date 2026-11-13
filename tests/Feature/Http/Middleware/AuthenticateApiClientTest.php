@@ -13,7 +13,7 @@ test('a call with a valid token from an allowed IP address passes, and the API c
         'request' => request()->user()?->getMorphClass().':'.request()->user()?->getAuthIdentifier(),
         'token' => request()->user()?->currentToken()?->id,
     ]);
-    $apiClient = ApiClient::factory()->create(['allowed_ip_addresses' => ['192.0.2.0/24']]);
+    $apiClient = ApiClient::factory()->allowedIpAddresses('192.0.2.0/24')->create();
     $token = createApiToken($apiClient);
 
     $response = $this->withToken($token)->withServerVariables(['REMOTE_ADDR' => '192.0.2.10'])->getJson('/api/v1/whoami');
@@ -62,8 +62,8 @@ test('a disabled API client or a call from an IP address that is not allowed ret
         ]);
 })->with([
     'disabled' => [fn (): ApiClient => ApiClient::factory()->anyIpAddress()->disabled()->create()],
-    'IP address not allowed' => [fn (): ApiClient => ApiClient::factory()->create(['allowed_ip_addresses' => ['192.0.2.10']])],
-    'no allowed IP address' => [fn (): ApiClient => ApiClient::factory()->create(['allowed_ip_addresses' => []])],
+    'IP address not allowed' => [fn (): ApiClient => ApiClient::factory()->allowedIpAddresses('192.0.2.10')->create()],
+    'no allowed IP address' => [fn (): ApiClient => ApiClient::factory()->allowedIpAddresses()->create()],
 ]);
 
 test('an IP address with too many failed authentications in a minute gets 429, even with a valid token', function (): void {
@@ -98,7 +98,7 @@ test('the limit of failed authentications counts each IP address apart', functio
 
 test('behind a trusted proxy, the allowed IP address comes from X-Forwarded-For', function (): void {
     config(['trustedproxy.proxies' => '10.0.0.0/8']);
-    $token = createApiToken(ApiClient::factory()->create(['allowed_ip_addresses' => ['192.0.2.10']]));
+    $token = createApiToken(ApiClient::factory()->allowedIpAddresses('192.0.2.10')->create());
 
     $response = $this->withToken($token)
         ->withServerVariables(['REMOTE_ADDR' => '10.0.0.5'])
@@ -109,7 +109,7 @@ test('behind a trusted proxy, the allowed IP address comes from X-Forwarded-For'
 });
 
 test('without a trusted proxy, a spoofed X-Forwarded-For does not pass the allowed IP address check', function (): void {
-    $token = createApiToken(ApiClient::factory()->create(['allowed_ip_addresses' => ['192.0.2.10']]));
+    $token = createApiToken(ApiClient::factory()->allowedIpAddresses('192.0.2.10')->create());
 
     $response = $this->withToken($token)
         ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
@@ -120,7 +120,7 @@ test('without a trusted proxy, a spoofed X-Forwarded-For does not pass the allow
 });
 
 test('without a trusted proxy, a host on Forge or Vapor does not make the app trust X-Forwarded-For', function (string $host): void {
-    $token = createApiToken(ApiClient::factory()->create(['allowed_ip_addresses' => ['192.0.2.10']]));
+    $token = createApiToken(ApiClient::factory()->allowedIpAddresses('192.0.2.10')->create());
 
     $response = $this->withToken($token)
         ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])

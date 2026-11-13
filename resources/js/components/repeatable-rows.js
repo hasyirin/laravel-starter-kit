@@ -1,4 +1,4 @@
-export default function letterRows(key) {
+export default function repeatableRows(key) {
     return {
         addRow(blank) {
             this.$wire.$set(key, [...(this.$wire.$get(key) ?? []), blank]);

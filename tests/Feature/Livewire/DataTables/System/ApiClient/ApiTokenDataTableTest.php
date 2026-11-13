@@ -8,7 +8,9 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\System\ApiClient\ApiTokenDataTable;
 use App\Livewire\Pages\System\ApiClient\ApiTokenModal;
+use Filament\Actions\Action;
 use Filament\Actions\Testing\TestAction;
+use Filament\Tables\Columns\TextColumn;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -39,6 +41,13 @@ test('the list shows the API tokens of the API client with their state', functio
         ->assertSee(__('api/api-tokens.never'));
 });
 
+test('an API token that was never used says so', function (): void {
+    $apiToken = ApiToken::factory()->for($this->apiClient)->create(['last_used_at' => null]);
+
+    Livewire::test(ApiTokenDataTable::class, ['apiClient' => $this->apiClient])
+        ->assertTableColumnExists('last_used_at', fn (TextColumn $column): bool => $column->getState() === null && $column->getPlaceholder() === __('api/api-tokens.never'), $apiToken);
+});
+
 test('the list needs view', function (): void {
     revokePermissions($this->actor, 'system.api-clients.view');
 
@@ -61,12 +70,23 @@ test('the actions are hidden without update', function (): void {
         ->assertActionHidden(TestAction::make('revoke')->table($apiToken));
 });
 
-test('the rotate action opens the API token modal with the API token', function (): void {
-    $apiToken = ApiToken::factory()->for($this->apiClient)->create();
+test('the rotate action asks for confirmation like revoke, then has the API token modal rotate the API token', function (): void {
+    config(['system.api.rotation_overlap_days' => 3]);
+    $apiToken = ApiToken::factory()->for($this->apiClient)->create(['last_four' => '1234']);
+    $description = __('api/api-tokens.rotate_description', ['ending' => __('api/api-tokens.ending', ['last_four' => '1234']), 'days' => 3]);
 
     Livewire::test(ApiTokenDataTable::class, ['apiClient' => $this->apiClient])
+        ->assertActionExists(
+            TestAction::make('rotate')->table($apiToken),
+            fn (Action $action): bool => $action->isConfirmationRequired()
+                && $action->getModalHeading() === __('api/api-tokens.rotate_heading')
+                && $action->getModalDescription() === $description
+                && $action->getModalSubmitActionLabel() === __('api/api-tokens.rotate'),
+        )
         ->callAction(TestAction::make('rotate')->table($apiToken))
-        ->assertDispatchedTo(ApiTokenModal::class, 'show', id: $apiToken->id);
+        ->assertDispatchedTo(ApiTokenModal::class, 'rotate', id: $apiToken->id);
+
+    expect($this->apiClient->tokens()->count())->toBe(1);
 });
 
 test('rotate is offered only for an active API token', function (): void {

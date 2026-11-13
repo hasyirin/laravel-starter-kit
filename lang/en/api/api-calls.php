@@ -7,6 +7,7 @@ return [
     'direction' => 'Direction',
     'party' => 'API client or service',
     'api_client' => 'API client',
+    'no_api_client' => 'No API client',
     'service' => 'Service',
     'method' => 'Method',
     'url' => 'URL',

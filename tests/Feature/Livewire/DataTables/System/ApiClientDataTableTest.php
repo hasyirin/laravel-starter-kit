@@ -8,6 +8,7 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\System\ApiClientDataTable;
 use Filament\Actions\Testing\TestAction;
+use Filament\Tables\Columns\TextColumn;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -35,6 +36,12 @@ test('the list shows each API client with its active API tokens, its last use, a
         ->assertTableColumnStateSet('allows_any_ip_address', false, $this->apiClient)
         ->assertTableColumnStateSet('allows_any_ip_address', true, $open)
         ->assertTableColumnStateSet('service', 'billing', $open);
+});
+
+test('an empty cell says what is missing: no service, and never used', function (): void {
+    Livewire::test(ApiClientDataTable::class)
+        ->assertTableColumnExists('service', fn (TextColumn $column): bool => $column->getState() === null && $column->getPlaceholder() === __('api/api-clients.no_service'), $this->apiClient)
+        ->assertTableColumnExists('tokens_max_last_used_at', fn (TextColumn $column): bool => $column->getState() === null && $column->getPlaceholder() === __('api/api-tokens.never'), $this->apiClient);
 });
 
 test('the list searches by name', function (): void {

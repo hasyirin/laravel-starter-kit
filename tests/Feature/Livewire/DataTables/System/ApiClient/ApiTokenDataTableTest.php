@@ -10,6 +10,7 @@ use App\Livewire\DataTables\System\ApiClient\ApiTokenDataTable;
 use App\Livewire\Pages\System\ApiClient\ApiTokenModal;
 use Filament\Actions\Action;
 use Filament\Actions\Testing\TestAction;
+use Filament\Tables\Columns\TextColumn;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -38,6 +39,13 @@ test('the list shows the API tokens of the API client with their state', functio
         ->assertTableColumnStateSet('scopes', ['orders.read'], $active)
         ->assertSee($active->last_four)
         ->assertSee(__('api/api-tokens.never'));
+});
+
+test('an API token that was never used says so', function (): void {
+    $apiToken = ApiToken::factory()->for($this->apiClient)->create(['last_used_at' => null]);
+
+    Livewire::test(ApiTokenDataTable::class, ['apiClient' => $this->apiClient])
+        ->assertTableColumnExists('last_used_at', fn (TextColumn $column): bool => $column->getState() === null && $column->getPlaceholder() === __('api/api-tokens.never'), $apiToken);
 });
 
 test('the list needs view', function (): void {

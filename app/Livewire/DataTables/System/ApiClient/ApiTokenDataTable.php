@@ -88,7 +88,9 @@ class ApiTokenDataTable extends DataTable
             TimestampColumn::make('expires_at')
                 ->label((string) __('api/api-tokens.expires_at'))
                 ->placeholder((string) __('api/api-tokens.never')),
-            TimestampColumn::make('last_used_at')->label((string) __('api/api-tokens.last_used_at')),
+            TimestampColumn::make('last_used_at')
+                ->label((string) __('api/api-tokens.last_used_at'))
+                ->placeholder((string) __('api/api-tokens.never')),
         ];
     }
 

@@ -60,19 +60,25 @@ class ApiLogDataTable extends DataTable
             TextColumn::make('party')
                 ->label((string) __('api/api-calls.party'))
                 ->state(fn (ApiCall $apiCall): ?string => $apiCall->direction === ApiCallDirection::Inbound ? $apiCall->api_client_name : $apiCall->service)
-                ->description(fn (ApiCall $apiCall): ?string => $apiCall->direction === ApiCallDirection::Outbound ? $apiCall->api_client_name : null),
+                ->description(fn (ApiCall $apiCall): ?string => $apiCall->direction === ApiCallDirection::Outbound ? $apiCall->api_client_name : null)
+                ->placeholder((string) __('api/api-calls.no_api_client')),
             TextColumn::make('method')->label((string) __('api/api-calls.method')),
             TextColumn::make('url')
                 ->label((string) __('api/api-calls.url'))
                 ->limit(60)
                 ->wrap()
                 ->searchable(),
-            TextColumn::make('status')->label((string) __('api/api-calls.status')),
+            TextColumn::make('status')
+                ->label((string) __('api/api-calls.status'))
+                ->placeholder((string) __('api/api-calls.status_classes.none')),
             TextColumn::make('outcome')->label((string) __('api/api-calls.outcome'))->badge(),
             TextColumn::make('duration_ms')
                 ->label((string) __('api/api-calls.duration'))
                 ->formatStateUsing(fn (int $state): string => (string) __('api/api-calls.duration_ms', ['duration' => $state]))
                 ->alignEnd(),
+            TextColumn::make('ip_address')
+                ->label((string) __('api/api-calls.ip_address'))
+                ->toggleable(isToggledHiddenByDefault: true),
         ];
     }
 

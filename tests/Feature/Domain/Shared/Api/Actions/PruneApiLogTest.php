@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Api\Actions\PruneApiLog;
 use App\Domain\Shared\Api\Models\ApiCall;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -49,4 +50,16 @@ test('pruning without old calls writes no archive', function (): void {
 
     expect($count)->toBe(0)
         ->and(Storage::disk('local')->allFiles())->toBeEmpty();
+});
+
+test('a failed archive write deletes nothing', function (): void {
+    config(['system.api_log.archive_disk' => 'archive']);
+    $old = ApiCall::factory()->create(['created_at' => '2026-01-01 00:00:00']);
+    $disk = Mockery::mock(Filesystem::class);
+    $disk->shouldReceive('writeStream')->andReturnFalse();
+    Storage::set('archive', $disk);
+
+    expect(fn (): int => PruneApiLog::make()->execute(CarbonImmutable::parse('2026-02-01 00:00:00'), 100))->toThrow(RuntimeException::class);
+
+    $this->assertModelExists($old);
 });

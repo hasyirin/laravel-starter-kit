@@ -178,7 +178,7 @@ After each deploy:
 Check these before the first deploy:
 
 - The app forces `https` URLs in every environment (`URL::forceHttps()` in `AppServiceProvider`). Serve the site over HTTPS, and set `APP_URL` to its `https://` address, because passkeys check the origin against it.
-- Behind a load balancer or a reverse proxy, trust it with `$middleware->trustProxies()` in `bootstrap/app.php`. Otherwise every request has the proxy's IP address. The login rate limit counts per email and IP address, so it then locks out a user for everyone.
+- Behind a load balancer or a reverse proxy, set `TRUSTED_PROXIES` in `.env` to its address ([API](docs/api.md#trusted-proxies)). Otherwise every request has the proxy's IP address. The login rate limit counts per email and IP address, so it then locks out a user for everyone.
 
 ## License
 

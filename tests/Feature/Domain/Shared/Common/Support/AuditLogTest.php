@@ -58,6 +58,15 @@ test('a record that defines its own audit label is named by it', function (): vo
     expect(AuditLog::subjectLabel($entry))->toBe('Badge ACME-01');
 });
 
+test('a search finds the changes that an API client made by its name', function (): void {
+    activity()->causedBy(ApiClient::factory()->create(['name' => 'Billing']))->log('Synced');
+    $query = Activity::query();
+
+    AuditLog::search($query, 'billing');
+
+    expect($query->pluck('description'))->toContain('Synced');
+});
+
 test('an API client that made a change is named as its causer', function (): void {
     activity()->causedBy(ApiClient::factory()->create(['name' => 'Billing']))->log('Synced');
 

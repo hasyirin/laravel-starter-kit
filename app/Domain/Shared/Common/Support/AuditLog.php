@@ -61,7 +61,7 @@ class AuditLog
         $query->where(fn (Builder $query): Builder => $query
             ->whereIn('event', $events)
             ->orWhereIn('subject_type', $types)
-            ->orWhereHasMorph('causer', [User::class], fn (Builder $causer): Builder => $causer->whereLike('name', "%$term%"))
+            ->orWhereHasMorph('causer', [User::class, ApiClient::class], fn (Builder $causer): Builder => $causer->whereLike('name', "%$term%"))
             ->orWhereLike(new Expression('CAST(attribute_changes AS TEXT)'), "%$term%"));
     }
 

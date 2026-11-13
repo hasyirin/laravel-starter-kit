@@ -2,23 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Api\Rules;
+namespace App\Domain\Shared\Api\Support;
 
-use Closure;
-use Illuminate\Contracts\Validation\ValidationRule;
-
-class AllowedIpAddress implements ValidationRule
+class AllowedIpAddress
 {
-    public function validate(string $attribute, mixed $value, Closure $fail): void
-    {
-        if (is_string($value) && $this->valid($value)) {
-            return;
-        }
-
-        $fail('validation.allowed_ip_address')->translate();
-    }
-
-    private function valid(string $value): bool
+    public static function valid(string $value): bool
     {
         $parts = explode('/', $value);
 

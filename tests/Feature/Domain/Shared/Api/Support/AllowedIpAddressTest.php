@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Domain\Shared\Api\Rules\AllowedIpAddress;
-use Illuminate\Support\Facades\Validator;
+use App\Domain\Shared\Api\Support\AllowedIpAddress;
 
-test('the rule accepts an IPv4 or IPv6 address, or a CIDR range with a valid prefix length', function (mixed $value, bool $passes): void {
-    expect(Validator::make(['ip' => $value], ['ip' => [new AllowedIpAddress]])->passes())->toBe($passes);
+test('an allowed IP address is an IPv4 or IPv6 address, or a CIDR range with a valid prefix length', function (string $value, bool $valid): void {
+    expect(AllowedIpAddress::valid($value))->toBe($valid);
 })->with([
     'an IPv4 address' => ['192.0.2.10', true],
     'an IPv6 address' => ['2001:db8::1', true],
@@ -26,11 +25,4 @@ test('the rule accepts an IPv4 or IPv6 address, or a CIDR range with a valid pre
     'an address out of range' => ['192.0.2.256', false],
     'a host name' => ['localhost', false],
     'a wildcard' => ['*', false],
-    'a value that is not text' => [19202, false],
 ]);
-
-test('the rule says what an allowed IP address must be', function (): void {
-    $validator = Validator::make(['ip' => 'localhost'], ['ip' => [new AllowedIpAddress]]);
-
-    expect($validator->errors()->first('ip'))->toBe('The ip field must be an IP address or a CIDR range, such as 192.0.2.0/24.');
-});

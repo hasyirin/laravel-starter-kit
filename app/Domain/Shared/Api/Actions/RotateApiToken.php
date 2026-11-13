@@ -20,7 +20,11 @@ class RotateApiToken
         throw_if($apiClient === null || $apiToken->revoked || $apiToken->expired, LogicException::class, 'Only an active API token of an API client can be rotated.');
 
         return $apiToken->getConnection()->transaction(function () use ($apiToken, $apiClient): IssuedApiToken {
-            $issued = IssueApiToken::make()->execute($apiClient, $apiToken->scopes, neverExpires: $apiToken->expires_at === null);
+            /** @var list<string> $declared */
+            $declared = config()->array('system.api.scopes');
+
+            $scopes = collect($apiToken->scopes)->intersect($declared)->values()->all();
+            $issued = IssueApiToken::make()->execute($apiClient, $scopes, neverExpires: $apiToken->expires_at === null);
 
             $overlapEnd = now()->addDays(config()->integer('system.api.rotation_overlap_days'));
 

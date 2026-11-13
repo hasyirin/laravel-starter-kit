@@ -179,7 +179,7 @@ The app writes the API log row of a call in the database transaction of the call
 
 ### Link an API Client to a Service
 
-A system administrator can link an API client to one service on its page. The Service field shows only when the app declares a service. Each service can be linked to one API client at most. The API log rows of calls to that service then also show the API client. The enabled switch of the API client does not stop these calls.
+A system administrator can link an API client to one service on its page. The Service field shows when the app declares a service. It also shows a linked service that the app no longer declares. The page then cannot save until a system administrator clears the field. Each service can be linked to one API client at most. The API log rows of calls to that service then also show the API client. The enabled switch of the API client does not stop these calls.
 
 ## API Log
 

@@ -70,6 +70,24 @@ test('saving keeps the service that the API client itself is linked to', functio
         ->assertHasNoErrors();
 });
 
+test('a service that the app no longer declares still shows, and saving is refused until the system administrator clears it', function (): void {
+    config(['system.api.services' => []]);
+    $this->apiClient->update(['service' => 'billing']);
+
+    Livewire::test(Show::class, ['apiClient' => $this->apiClient])
+        ->assertSeeHtml('wire:model="form.service"')
+        ->assertSeeHtml('value="billing"')
+        ->set('form.enabled', false)
+        ->call('save')
+        ->assertHasErrors(['form.service' => 'in'])
+        ->assertSee('The selected service is invalid.')
+        ->set('form.service', null)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->apiClient->fresh()->only('enabled', 'service'))->toBe(['enabled' => false, 'service' => null]);
+});
+
 test('the form is read-only without update', function (): void {
     revokePermissions($this->actor, 'system.api-clients.update');
 

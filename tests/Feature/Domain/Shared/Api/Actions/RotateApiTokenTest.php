@@ -29,6 +29,14 @@ test('rotating makes a new token with the same scopes and lets the old token wor
         ->and($old->fresh()?->expires_at?->equalTo(now()->addDays(7)))->toBeTrue();
 });
 
+test('rotating gives the new token only the scopes that the app still declares', function (): void {
+    $old = ApiToken::factory()->create(['scopes' => ['orders.read', 'orders.delete']]);
+
+    $issued = RotateApiToken::make()->execute($old);
+
+    expect($issued->apiToken->scopes)->toBe(['orders.read']);
+});
+
 test('rotating keeps the expiry of an old token that expires sooner than 7 days', function (): void {
     $old = ApiToken::factory()->create(['expires_at' => now()->addDays(2)]);
 

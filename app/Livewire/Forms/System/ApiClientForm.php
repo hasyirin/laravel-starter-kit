@@ -6,7 +6,7 @@ namespace App\Livewire\Forms\System;
 
 use App\Domain\Shared\Api\Actions\SaveApiClient;
 use App\Domain\Shared\Api\Models\ApiClient;
-use App\Domain\Shared\Api\Rules\AllowedIpAddress;
+use App\Domain\Shared\Api\Support\AllowedIpAddress;
 use App\Livewire\Form;
 use Closure;
 use Illuminate\Support\Collection;
@@ -61,7 +61,7 @@ class ApiClientForm extends Form
             'service' => [
                 'nullable',
                 'string',
-                Rule::in($this->services()),
+                Rule::in(collect(config()->array('system.api.services'))->keys()),
                 Rule::unique('api_clients', 'service')->withoutTrashed()->ignore($this->apiClient?->id),
             ],
         ];
@@ -72,8 +72,15 @@ class ApiClientForm extends Form
      */
     public function services(): array
     {
-        return collect(config()->array('system.api.services'))
-            ->keys()
+        $services = collect(config()->array('system.api.services'))->keys();
+        $stored = $this->apiClient?->service;
+
+        if ($stored !== null) {
+            $services->push($stored);
+        }
+
+        return $services
+            ->unique()
             ->mapWithKeys(fn (string $service): array => [$service => $service])
             ->all();
     }
@@ -96,7 +103,7 @@ class ApiClientForm extends Form
     private function validateAllowedIpAddresses(string $attribute, mixed $value, Closure $fail): void
     {
         $invalid = $this->allowedIpAddresses()
-            ->first(fn (string $address): bool => validator(['address' => $address], ['address' => [new AllowedIpAddress]])->fails());
+            ->first(fn (string $address): bool => ! AllowedIpAddress::valid($address));
 
         if ($invalid === null) {
             return;
@@ -110,14 +117,14 @@ class ApiClientForm extends Form
         $this->validate();
 
         return SaveApiClient::make()->execute(
-            $this->apiClient ?? new ApiClient,
-            $this->name,
-            $this->description,
-            $this->enabled,
-            $this->allowedIpAddresses()->all(),
-            $this->allows_any_ip_address,
-            (int) $this->rate_limit_per_minute,
-            $this->service,
+            apiClient: $this->apiClient ?? new ApiClient,
+            name: $this->name,
+            description: $this->description,
+            enabled: $this->enabled,
+            allowedIpAddresses: $this->allowedIpAddresses()->all(),
+            allowsAnyIpAddress: $this->allows_any_ip_address,
+            rateLimitPerMinute: (int) $this->rate_limit_per_minute,
+            service: $this->service,
         );
     }
 }

@@ -40,7 +40,7 @@ class ApiTokenFormat
 
     public static function lastFour(#[SensitiveParameter] string $token): string
     {
-        return substr($token, -4);
+        return str($token)->substr(-4)->value();
     }
 
     private static function prefix(): string
@@ -58,6 +58,6 @@ class ApiTokenFormat
             $number = intdiv($number, 62);
         } while ($number > 0);
 
-        return str_pad($checksum, self::CHECKSUM_LENGTH, '0', STR_PAD_LEFT);
+        return str($checksum)->padLeft(self::CHECKSUM_LENGTH, '0')->value();
     }
 }

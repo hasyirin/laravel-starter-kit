@@ -16,7 +16,7 @@ class IssueApiToken
     use Actionable;
 
     /**
-     * @param  list<string>  $scopes
+     * @param  array<int, string>  $scopes
      */
     public function execute(ApiClient $apiClient, array $scopes, bool $neverExpires = false): IssuedApiToken
     {

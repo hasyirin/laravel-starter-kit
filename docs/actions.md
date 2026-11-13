@@ -4,7 +4,7 @@ An Action class holds one business operation, for example updating the informati
 
 ## Write an Action Class
 
-Put the class in the Actions folder of its domain, for example `app/Domain/User/Actions/UpdateUserInformation.php`. Name it after the operation. Use the `Actionable` trait, and give the class one public `execute()` method with typed parameters:
+Put the class in the Actions folder of its domain, for example `app/Domain/User/Actions/Settings/UpdateUserInformation.php`. Name it after the operation. Use the `Actionable` trait, and give the class one public `execute()` method with typed parameters:
 
 ```php
 class UpdateUserInformation
@@ -33,7 +33,25 @@ class UpdateUserInformation
 - The caller validates the input and authorizes the user before it calls the Action class.
 - Every caller, another Action class too, gets the Action class with `UpdateUserInformation::make()`. It comes from the container, so a test can swap it.
 - Nothing takes an Action class or another class as a parameter or through a constructor. Get any other class where you use it, with `resolve()`, such as `resolve(DeletePasskey::class)`.
-- Every Action class uses the trait, and a test fails when one does not. Fortify's Action classes keep the method names of their Fortify contracts instead of `execute()`, for example `CreateNewUser::create()`.
+- Every Action class uses the trait, and a test fails when one does not. An Action class that implements a Fortify contract keeps the method name of the contract instead of `execute()`, for example `RegisterUser::create()`.
+
+## Group Action Classes
+
+Keep the Actions folder flat while a domain has few Action classes. When a domain has two or more clear groups, add group folders and put every Action class in one of them. The User domain has five groups:
+
+| Group         | Holds                                               | Example                 |
+| ------------- | --------------------------------------------------- | ----------------------- |
+| Registration  | How a person becomes a user                         | `RegisterUser`          |
+| Security      | How you prove who you are                           | `UpdatePassword`        |
+| Settings      | Changes to your own user                            | `UpdateUserInformation` |
+| Management    | Work that a user does on other users, by permission | `CreateUser`            |
+| Impersonation | The start and the stop of an impersonation          | `StartImpersonation`    |
+
+- Name a group after a topic, not after the area that calls it. An Action class stays in the Management group when a second area starts to call it.
+- Give each Action class a name that is unique in its domain, for example `DeleteOtherUser` in the Management group and `DeleteUser` in the Settings group.
+- Use `User` before the object in a name only when the operation is on another user, for example `VerifyUserEmail`.
+- A group can hold one Action class. Add a second level only when a group is crowded itself.
+- Put the test of an Action class in the same group folder under `tests/Feature/Domain`.
 
 ## Call an Action Class from a Component
 

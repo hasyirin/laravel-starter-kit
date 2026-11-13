@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Auth;
 
 use App\Domain\Shared\Sms\Support\CallingCodes;
-use App\Domain\User\Actions\ConfirmPhone;
-use App\Domain\User\Actions\SendPhoneVerificationCode;
+use App\Domain\User\Actions\Security\ConfirmPhone;
+use App\Domain\User\Actions\Security\SendPhoneVerificationCode;
 use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;

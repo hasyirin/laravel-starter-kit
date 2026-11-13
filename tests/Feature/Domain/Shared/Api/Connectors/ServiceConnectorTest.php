@@ -8,6 +8,10 @@ use App\Domain\Shared\Api\Enums\ApiCallOutcome;
 use App\Domain\Shared\Api\Models\ApiCall;
 use App\Domain\Shared\Api\Models\ApiClient;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\NoSeekStream;
+use GuzzleHttp\Psr7\Response as PsrResponse;
+use GuzzleHttp\Psr7\Utils;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use Saloon\Config;
@@ -17,6 +21,7 @@ use Saloon\Http\Connector;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\PendingRequest;
 use Saloon\Http\Response;
+use Saloon\Http\Senders\GuzzleSender;
 use Saloon\Laravel\Facades\Saloon;
 use Tests\Fixtures\Connectors\BillingConnector;
 use Tests\Fixtures\Requests\CreateBill;
@@ -267,6 +272,45 @@ test('the row never keeps the headers, the credentials in the URL or the query s
     expect($apiCall->url)->toBe('https://billing.test/v1/status')
         ->and($apiCall->error)->toBe('cURL error 28: Timed out for https://billing.test/v1/status')
         ->and(json_encode($apiCall->getAttributes()))->not->toContain('bearer-secret', 'header-secret', 'leaked', 'pass');
+});
+
+test('a streamed response reaches the caller in full and still makes a row without its body', function (): void {
+    config(['system.api.services.billing.log_bodies' => true]);
+    $connector = new BillingConnector;
+    $sender = $connector->sender();
+    assert($sender instanceof GuzzleSender);
+    $sender->getHandlerStack()->setHandler(new MockHandler([
+        new PsrResponse(200, [], new NoSeekStream(Utils::streamFor('{"id":7}'))),
+    ]));
+
+    $response = $connector->send(new GetStatus);
+
+    expect($response->body())->toBe('{"id":7}')
+        ->and(ApiCall::query()->sole()->only('status', 'response_size', 'response_body'))->toBe([
+            'status' => 200,
+            'response_size' => strlen('{"id":7}'),
+            'response_body' => null,
+        ]);
+});
+
+test('a response middleware of the connector that throws still leaves a row', function (): void {
+    Saloon::fake([MockResponse::make('', 500)]);
+    $connector = new class extends ServiceConnector
+    {
+        public function service(): string
+        {
+            return 'billing';
+        }
+
+        public function boot(PendingRequest $pendingRequest): void
+        {
+            $pendingRequest->middleware()->onResponse(fn (Response $response): Response => $response->throw());
+        }
+    };
+
+    $connector->send(new GetStatus);
+
+    expect(ApiCall::query()->sole()->outcome)->toBe(ApiCallOutcome::ServerError);
 });
 
 test('the row carries the API client that is linked to the service, and its name', function (): void {

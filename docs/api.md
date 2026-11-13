@@ -161,7 +161,7 @@ Add each service to `system.api.services` in `config/system.php`. The key is the
 | `connect_timeout` | 10 | The seconds that the connection can take. |
 | `tries` | 1 | The number of attempts of each call. 1 means no retry. |
 | `retry_interval` | 0 | The milliseconds to wait before each retry. |
-| `exponential_backoff` | `false` | Whether the wait doubles before each next retry. With 500, the waits are 500, 1000, and 2000 milliseconds. |
+| `exponential_backoff` | `false` | Whether the wait doubles before each next retry. With the example above, the waits are 500 and 1000 milliseconds. |
 | `log_bodies` | `false` | Whether the API log stores the request body and the response body. |
 
 A connector retries a call that cannot connect, and a call with a status of 400 or more. After the last attempt, a call with an error status returns the last response and does not throw. A call that cannot connect throws `Saloon\Exceptions\Request\FatalRequestException`. A request class can set its own `$tries`, `$retryInterval`, and `$useExponentialBackoff`. Its values come before the values of the service.
@@ -269,7 +269,10 @@ A row holds:
 
 The row stores no header, except the user agent of an inbound call. So it never stores the Authorization header or the API token.
 
-The duration of an outbound row is the time of its own attempt. It does not include the wait before a retry.
+The duration of an outbound row is the time of its own attempt. It does not include the wait before a retry. It does include the request delay of Saloon and the time of the request middleware, such as an authenticator or `boot()` of the connector.
+
+> [!WARNING]
+> An outbound URL loses only its user name, its password, and its query string. The API log stores the path as it is, also the path of `base_url`. So never put a secret in the path.
 
 The API log rows do not go to the audit log.
 
@@ -298,7 +301,7 @@ The API log stores the bodies only for a route with `log-bodies` or a service wi
 1. It masks the listed keys of a JSON body. The value of each such key, at any depth, becomes `[hidden]`. `system.api_log.masked_keys` lists the keys. The default list is `password`, `token`, `secret`, `authorization`, `apikey`, and `privatekey`. A key matches when it contains a listed key, without case, `_`, or `-`. So `access_token` and `api-key` match too.
 2. It cuts the body to 16,384 bytes (`system.api_log.body_limit`).
 
-An outbound form body goes to the log as JSON, so its keys are masked too. An outbound multipart body is never stored, because it can hold files. An outbound stream body is never stored either, because the app can read it only once.
+An outbound form body goes to the log as JSON, so its keys are masked too. An outbound multipart body is never stored, because it can hold files. An outbound stream body is never stored either, because the app can read it only once. For the same reason, a streamed response body is not stored, and its size is stored only when the stream knows it.
 
 > [!WARNING]
 > The API log stores any other body without a mask. This includes an inbound form body, an inbound multipart body, XML, and plain text. Keep body logging off for a route or a service that sends such bodies with secrets.

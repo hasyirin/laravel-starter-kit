@@ -12,6 +12,7 @@ use App\Domain\Shared\Api\Requests\ServiceRequest;
 use LogicException;
 use Psr\Http\Message\RequestInterface;
 use Saloon\Contracts\Body\BodyRepository;
+use Saloon\Enums\PipeOrder;
 use Saloon\Exceptions\Request\FatalRequestException;
 use Saloon\Http\Connector;
 use Saloon\Http\Faking\MockClient;
@@ -69,10 +70,10 @@ abstract class ServiceConnector extends Connector
         $pendingRequest->middleware()
             ->onResponse(function (Response $response) use ($pendingRequest, $startedAt): void {
                 $this->record($pendingRequest, $startedAt, $response->getPsrRequest(), $response);
-            })
+            }, order: PipeOrder::FIRST)
             ->onFatalException(function (FatalRequestException $exception) use ($pendingRequest, $startedAt): void {
                 $this->record($pendingRequest, $startedAt, $pendingRequest->createPsrRequest(), error: $exception->getMessage());
-            });
+            }, order: PipeOrder::FIRST);
 
         return $pendingRequest;
     }
@@ -93,6 +94,7 @@ abstract class ServiceConnector extends Connector
         $logsBodies = config()->boolean("{$this->configKey()}.log_bodies", false);
         $request = $pendingRequest->getRequest();
         $url = (string) $psrRequest->getUri()->withUserInfo('')->withQuery('')->withFragment('');
+        $responseStream = $response?->getPsrResponse()->getBody();
 
         RecordApiCall::make()->execute(
             direction: ApiCallDirection::Outbound,
@@ -105,9 +107,9 @@ abstract class ServiceConnector extends Connector
             service: $this->service(),
             resource: $request instanceof ServiceRequest ? $request->resource() : null,
             requestSize: $psrRequest->getBody()->getSize(),
-            responseSize: $response instanceof Response ? strlen($response->body()) : null,
+            responseSize: $responseStream?->getSize(),
             requestBody: $logsBodies ? $this->requestBody($pendingRequest, $psrRequest) : null,
-            responseBody: $logsBodies ? $response?->body() : null,
+            responseBody: $logsBodies && $responseStream?->isSeekable() ? $response->body() : null,
             error: $error === null ? null : str($error)->replace((string) $psrRequest->getUri(), $url)->value(),
         );
     }

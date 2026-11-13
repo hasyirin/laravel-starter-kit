@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Position;
@@ -95,6 +96,8 @@ test('a new user starts with an unverified phone number', function (): void {
 });
 
 test('a new user gets a verification email', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     Notification::fake();
 
     $user = CreateUser::make()->execute(
@@ -107,6 +110,22 @@ test('a new user gets a verification email', function (): void {
     );
 
     Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+test('a new user gets no verification email when email verification is off', function (): void {
+    $this->disableFeature(Feature::EmailVerification);
+    Notification::fake();
+
+    $user = CreateUser::make()->execute(
+        actor: User::factory()->create(),
+        name: 'New Person',
+        email: 'new.person@example.com',
+        phone: '+60123456789',
+        password: 'password',
+        placement: new Placement,
+    );
+
+    Notification::assertNotSentTo($user, VerifyEmail::class);
 });
 
 test('a refused new user gets no verification email', function (): void {

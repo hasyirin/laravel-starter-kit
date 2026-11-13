@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 
@@ -11,6 +12,12 @@ test('confirm password screen can be rendered', function (): void {
     $response = $this->actingAs($user)->get(route('password.confirm'));
 
     $response->assertOk();
+});
+
+test('the confirm password screen opens without the passkey button when passkeys are off', function (): void {
+    $this->disableFeature(Feature::Passkeys);
+
+    $this->actingAs(User::factory()->create())->get(route('password.confirm'))->assertOk()->assertDontSee(__('user/passkeys.confirm.button'));
 });
 
 test('password confirmation takes the impersonator password while impersonating', function (): void {

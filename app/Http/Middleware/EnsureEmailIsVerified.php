@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
 use Closure;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified as LaravelEnsureEmailIsVerified;
@@ -22,6 +23,10 @@ class EnsureEmailIsVerified extends LaravelEnsureEmailIsVerified
     public function handle($request, Closure $next, $redirectToRoute = null)
     {
         $user = $request->user();
+
+        if (! Feature::EmailVerification->enabled()) {
+            return $next($request);
+        }
 
         if ($user instanceof User && $user->checkPermissionTo(config()->string('system.permissions.bypass-authorization'))) {
             return $next($request);

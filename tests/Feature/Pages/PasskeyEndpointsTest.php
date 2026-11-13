@@ -2,7 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
+
+beforeEach(function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+});
 
 test('guests can read the passkey endpoints', function (): void {
     $response = $this->get(route('well-known.passkeys'));

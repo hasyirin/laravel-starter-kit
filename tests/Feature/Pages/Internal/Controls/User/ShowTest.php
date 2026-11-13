@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Permission;
@@ -451,7 +452,7 @@ test('a user without a profile opens', function (): void {
 });
 
 test('the show page opens without a tab bar when no tab is available', function (): void {
-    config()->set('fortify.features', []);
+    $this->disableFeature(Feature::Passkeys);
 
     $this->get(route('internal.controls.users.show', $this->subject))
         ->assertOk()
@@ -537,6 +538,8 @@ test('marking a phone number as verified needs update', function (): void {
 });
 
 test('the details show when the user verified the phone number', function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
     $subject = User::factory()->create(['phone_verified_at' => CarbonImmutable::parse('2026-01-03 09:45', 'UTC')]);
 
@@ -546,6 +549,16 @@ test('the details show when the user verified the phone number', function (): vo
 });
 
 test('the details say so when the user has no phone number', function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     Livewire::test(Show::class, ['user' => User::factory()->withoutPhone()->create()])
         ->assertSee(__('user/users.no_phone'));
+});
+
+test('the details leave out the phone verification when phone verification is off', function (): void {
+    $this->disableFeature(Feature::PhoneVerification, Feature::SmsPasswordReset);
+
+    Livewire::test(Show::class, ['user' => User::factory()->unverifiedPhone()->create()])
+        ->assertDontSee(__('user/users.phone_verified_at'))
+        ->assertDontSee(__('user/users.mark_as_verified'));
 });

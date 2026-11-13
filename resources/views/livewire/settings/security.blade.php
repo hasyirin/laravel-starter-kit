@@ -1,4 +1,4 @@
-@use(Laravel\Fortify\Features)
+@use(App\Domain\Shared\Common\Enums\Feature)
 
 <flux:main container>
     <div class="space-y-8">
@@ -29,7 +29,7 @@
                 </div>
             </form>
 
-            @if(Features::enabled(Features::twoFactorAuthentication()))
+            @if(Feature::TwoFactorAuthentication->enabled())
                 <section class="mt-8">
                     <flux:heading>{{ __('user/settings.two_factor.heading') }}</flux:heading>
 
@@ -55,7 +55,7 @@
                 </section>
             @endif
 
-            @if(Features::enabled(Features::twoFactorAuthentication()))
+            @if(Feature::TwoFactorAuthentication->enabled())
                 <flux:modal name="two-factor-setup-modal" class="max-w-md md:min-w-md" @close="closeModal" wire:model="showingSetupModal">
                     <div class="space-y-6">
                         <div class="flex flex-col items-center space-y-4">
@@ -171,7 +171,7 @@
                 </flux:modal>
             @endif
 
-            @if(Features::enabled(Features::passkeys()))
+            @if(Feature::Passkeys->enabled())
                 <section class="mt-8">
                     <flux:heading>{{ __('user/passkeys.heading') }}</flux:heading>
                     <flux:subheading>{{ __('user/passkeys.description') }}</flux:subheading>

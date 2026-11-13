@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Actions\UpdateUserInformation;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
-use Laravel\Fortify\Features;
 
 beforeEach(function (): void {
-    $this->skipUnlessFortifyHas(Features::emailVerification());
+    $this->skipUnlessFeature(Feature::EmailVerification);
 });
 
 test('email verification screen can be rendered', function (): void {

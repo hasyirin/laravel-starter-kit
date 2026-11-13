@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\VerifyEmail;
@@ -82,6 +83,8 @@ test('correct password must be provided to delete account', function (): void {
 });
 
 test('the delete account form shows only once the email is verified', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     $user = User::factory()->unverified()->create();
 
     $this->actingAs($user);
@@ -116,6 +119,8 @@ test('an email that differs from another user only in case is taken', function (
 });
 
 test('the verification email can be sent six times a minute', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     Notification::fake();
     $this->actingAs($user = User::factory()->unverified()->create());
 
@@ -177,9 +182,27 @@ test('a phone number that another user has is taken', function (): void {
 });
 
 test('an unverified phone number links to the phone verification page', function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     $this->actingAs(User::factory()->unverifiedPhone()->create());
 
     Livewire::test(UserInformation::class)
         ->assertSee(__('user/settings.user_information.phone_unverified'))
         ->assertSee(route('phone-verification.notice'));
+});
+
+test('an unverified phone number shows no notice when phone verification is off', function (): void {
+    $this->disableFeature(Feature::PhoneVerification, Feature::SmsPasswordReset);
+    $this->actingAs(User::factory()->unverifiedPhone()->create());
+
+    Livewire::test(UserInformation::class)->assertDontSee(__('user/settings.user_information.phone_unverified'));
+});
+
+test('an unverified email shows no notice and keeps the delete account form when email verification is off', function (): void {
+    $this->disableFeature(Feature::EmailVerification);
+    $this->actingAs(User::factory()->unverified()->create());
+
+    Livewire::test(UserInformation::class)
+        ->assertDontSee(__('user/settings.user_information.unverified'))
+        ->assertSeeLivewire('settings.delete-user-form');
 });

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Http\Controllers\LetterPreviewController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\StopImpersonationController;
@@ -15,7 +16,9 @@ Route::get('letters/{letter}/preview', LetterPreviewController::class)->middlewa
 
 Route::post('impersonation/stop', StopImpersonationController::class)->name('impersonation.stop');
 
-Route::livewire('phone/verify', VerifyPhone::class)->middleware('verified')->name('phone-verification.notice');
+if (Feature::PhoneVerification->enabled()) {
+    Route::livewire('phone/verify', VerifyPhone::class)->middleware('verified')->name('phone-verification.notice');
+}
 
 Route::redirect('settings', '/settings/user-information')->name('settings');
 

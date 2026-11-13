@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Actions\RevokeUserPasskey;
 use App\Domain\User\Models\User;
@@ -17,6 +18,10 @@ function userPasskey(User $user): Passkey
         'credential' => ['id' => 'credential'],
     ]);
 }
+
+beforeEach(function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+});
 
 test('an actor revokes a passkey of another user', function (): void {
     $user = User::factory()->create();

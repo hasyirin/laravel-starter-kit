@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
-use Laravel\Fortify\Features;
 
 test('registration is off by default', function (): void {
     $this->get('/register')->assertNotFound();
@@ -16,7 +16,7 @@ test('the login page hides the sign-up link when registration is off', function 
 
 describe('with registration on', function (): void {
     beforeEach(function (): void {
-        $this->enableFortifyFeature(Features::registration());
+        $this->enableFeature(Feature::Registration);
     });
 
     test('the login page shows the sign-up link', function (): void {

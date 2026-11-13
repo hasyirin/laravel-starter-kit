@@ -13,7 +13,7 @@ Fortify registers the routes for login, registration, password reset, email veri
 
 ### Registration
 
-Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Laravel\Fortify\Features::registration()` to `fortify.features` in `config/fortify.php`. The login page then shows a sign-up link.
+Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Feature::Registration` to `system.features` in `config/system.php`. The login page then shows a sign-up link.
 
 The `guest-forms` limiter lets each IP address send the registration form and the reset link form five times a minute. `config/fortify.php` adds it to every Fortify route, and it skips the other routes. If an app lets the public sign up, also add a captcha, such as Cloudflare Turnstile, to the registration form. The limit slows bots down, but it does not stop them.
 

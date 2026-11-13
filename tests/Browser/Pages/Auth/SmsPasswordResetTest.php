@@ -2,9 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
 use Tests\Fixtures\Gateways\FakeGateway;
+
+beforeEach(function (): void {
+    $this->skipUnlessFeature(Feature::SmsPasswordReset);
+});
 
 test('the sms reset page sends the code in a real request, and the code opens the new password form', function (): void {
     app()->instance(SmsGateway::class, $gateway = new FakeGateway);

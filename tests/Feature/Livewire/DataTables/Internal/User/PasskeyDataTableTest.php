@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Internal\User\PasskeyDataTable;
@@ -34,6 +35,10 @@ function passkeyTable(User $user): Testable
 {
     return Livewire::test(PasskeyDataTable::class, ['user' => $user]);
 }
+
+beforeEach(function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+});
 
 test('the passkeys tab lists the passkeys of the user', function (): void {
     $own = createPasskey($this->subject, 'Laptop');

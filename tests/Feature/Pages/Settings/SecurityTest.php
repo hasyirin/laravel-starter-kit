@@ -2,27 +2,28 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
 use App\Livewire\Settings\Security;
 use App\Livewire\Settings\TwoFactor\RecoveryCodes;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Fortify\Features;
 use Livewire\Livewire;
 use PragmaRX\Google2FA\Google2FA;
 
 beforeEach(function (): void {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
-    Features::twoFactorAuthentication([
+    $this->configureFeature(Feature::TwoFactorAuthentication, [
         'confirm' => true,
         'confirmPassword' => true,
     ]);
-    Features::passkeys([
+    $this->configureFeature(Feature::Passkeys, [
         'confirmPassword' => true,
     ]);
 });
 
 test('security settings page can be rendered', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+    $this->skipUnlessFeature(Feature::Passkeys);
+
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)
@@ -47,7 +48,7 @@ test('security settings page requires password confirmation when enabled', funct
 });
 
 test('security settings page renders without two factor when feature is disabled', function (): void {
-    config(['fortify.features' => []]);
+    $this->disableFeature(Feature::TwoFactorAuthentication, Feature::Passkeys);
 
     $user = User::factory()->create();
 
@@ -62,6 +63,8 @@ test('security settings page renders without two factor when feature is disabled
 });
 
 test('the security page lists the passkeys of the user', function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+
     $user = User::factory()->create();
     $user->passkeys()->create([
         'name' => 'Work laptop',
@@ -78,6 +81,8 @@ test('the security page lists the passkeys of the user', function (): void {
 });
 
 test('two factor authentication disabled when confirmation abandoned between requests', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->create();
 
     $user->forceFill([
@@ -134,6 +139,8 @@ test('correct password must be provided to update password', function (): void {
 });
 
 test('an open security page asks for the password again after the confirmation expires', function (string $method): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->create();
     $user->forceFill(['two_factor_secret' => encrypt('test-secret'), 'two_factor_recovery_codes' => encrypt(json_encode(['code1'])), 'two_factor_confirmed_at' => now()])->save();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time() - config()->integer('auth.password_timeout') - 1]);
@@ -146,6 +153,8 @@ test('an open security page asks for the password again after the confirmation e
 })->with(['disable', 'enable']);
 
 test('a recently confirmed password lets the security page disable two factor', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->create();
     $user->forceFill(['two_factor_secret' => encrypt('test-secret'), 'two_factor_recovery_codes' => encrypt(json_encode(['code1'])), 'two_factor_confirmed_at' => now()])->save();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
@@ -156,6 +165,8 @@ test('a recently confirmed password lets the security page disable two factor', 
 });
 
 test('enabling two factor shows the setup for a new secret', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
 
@@ -170,6 +181,8 @@ test('enabling two factor shows the setup for a new secret', function (): void {
 });
 
 test('a valid code turns two factor on', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
     $component = Livewire::test(Security::class)->call('enable');
@@ -185,6 +198,8 @@ test('a valid code turns two factor on', function (): void {
 });
 
 test('a code that does not match the secret leaves two factor off', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
     $component = Livewire::test(Security::class)->call('enable');
@@ -198,6 +213,8 @@ test('a code that does not match the secret leaves two factor off', function ():
 });
 
 test('confirming two factor asks for the password again after the confirmation expires', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
     $component = Livewire::test(Security::class)->call('enable');
@@ -211,6 +228,8 @@ test('confirming two factor asks for the password again after the confirmation e
 });
 
 test('removing a passkey deletes it and drops it from the list', function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+
     $user = User::factory()->create();
     $passkey = $user->passkeys()->create([
         'name' => 'Work laptop',
@@ -229,6 +248,8 @@ test('removing a passkey deletes it and drops it from the list', function (): vo
 });
 
 test('removing a passkey asks for the password again after the confirmation expires', function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+
     $user = User::factory()->create();
     $passkey = $user->passkeys()->create([
         'name' => 'Work laptop',
@@ -245,6 +266,8 @@ test('removing a passkey asks for the password again after the confirmation expi
 });
 
 test('removing the passkey of another user gives 404', function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+
     $passkey = User::factory()->create()->passkeys()->create([
         'name' => 'Work laptop',
         'credential_id' => str()->random(32),
@@ -259,6 +282,8 @@ test('removing the passkey of another user gives 404', function (): void {
 });
 
 test('regenerating recovery codes replaces the old codes', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->withTwoFactor()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
 
@@ -270,6 +295,8 @@ test('regenerating recovery codes replaces the old codes', function (): void {
 });
 
 test('regenerating recovery codes asks for the password again after the confirmation expires', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
     $user = User::factory()->withTwoFactor()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time() - config()->integer('auth.password_timeout') - 1]);
 

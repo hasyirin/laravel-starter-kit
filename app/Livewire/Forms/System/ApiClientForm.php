@@ -63,7 +63,7 @@ class ApiClientForm extends Form
             'allowed_ip_addresses.*.address' => ['bail', 'required', 'string', 'max:255', 'distinct:ignore_case', $this->validateAllowedIpAddress(...)],
             'allowed_ip_addresses.*.description' => ['nullable', 'string', 'max:255'],
             'allows_any_ip_address' => ['boolean'],
-            'rate_limit_per_minute' => ['required', 'integer', 'min:1'],
+            'rate_limit_per_minute' => ['required', 'integer', 'min:1', 'max:100000'],
             'service' => [
                 'nullable',
                 'string',

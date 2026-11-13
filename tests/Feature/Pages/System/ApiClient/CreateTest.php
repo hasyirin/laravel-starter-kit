@@ -230,7 +230,7 @@ test('an API client can be saved without an allowed IP address', function (): vo
     expect(ApiClient::query()->sole()->allowed_ip_addresses)->toBeEmpty();
 });
 
-test('the rate limit is a whole number of at least 1', function (mixed $rateLimit, string $rule): void {
+test('the rate limit is a whole number from 1 to 100000', function (mixed $rateLimit, string $rule): void {
     apiClientCreate()
         ->set('form.rate_limit_per_minute', $rateLimit)
         ->call('save')
@@ -238,6 +238,7 @@ test('the rate limit is a whole number of at least 1', function (mixed $rateLimi
 })->with([
     'empty' => [null, 'required'],
     'zero' => [0, 'min'],
+    'above the maximum' => [100_001, 'max'],
 ]);
 
 test('the service must be a service that the app declares', function (): void {

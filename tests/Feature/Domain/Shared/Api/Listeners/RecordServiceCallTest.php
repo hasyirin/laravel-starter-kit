@@ -120,6 +120,17 @@ test('a service that logs bodies keeps both bodies with the listed keys masked',
     ]);
 });
 
+test('a service that logs bodies stores a binary response body as valid UTF-8 without NUL bytes', function (): void {
+    config(['system.api.services.billing.log_bodies' => true]);
+    Http::fake(['billing.test/*' => Http::response("\x89PNG\r\n\x1a\n\0\0\0\rIHDR\xff")]);
+
+    Http::service('billing')->get('/v1/logo');
+
+    $responseBody = (string) ApiCall::query()->sole()->response_body;
+    expect(mb_check_encoding($responseBody, 'UTF-8'))->toBeTrue()
+        ->and($responseBody)->not->toContain("\0");
+});
+
 test('a service that logs bodies masks the listed keys of a form body too', function (): void {
     config(['system.api.services.billing.log_bodies' => true]);
     Http::fake();

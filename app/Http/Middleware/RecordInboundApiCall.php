@@ -41,7 +41,7 @@ class RecordInboundApiCall
             outcome: $this->outcome($request, $response, $guard),
             durationMs: (int) round((microtime(true) - (float) $request->server('REQUEST_TIME_FLOAT')) * 1000),
             status: $response->getStatusCode(),
-            apiClient: $apiToken?->apiClient,
+            apiClient: $apiToken->apiClient ?? $apiToken?->apiClient()->withTrashed()->first(),
             apiToken: $apiToken,
             routeName: $request->route()?->getName(),
             ipAddress: $request->ip(),

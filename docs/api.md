@@ -175,6 +175,8 @@ Http::service('billing')
 
 The API log records only calls made through `Http::service()`. A call made with `Http::get()` or another method of `Http` leaves no row.
 
+The app writes the API log row of a call in the database transaction of the caller. If the transaction rolls back, the row goes too. If the row must stay, call the service outside a transaction.
+
 ### Link an API Client to a Service
 
 A system administrator can link an API client to one service on its page. The Service field shows only when the app declares a service. Each service can be linked to one API client at most. The API log rows of calls to that service then also show the API client. The enabled switch of the API client does not stop these calls.

@@ -71,7 +71,7 @@ class RecordServiceCall
             outcome: $response instanceof Response ? ApiCallOutcome::fromStatus($response->status()) : ApiCallOutcome::ConnectionFailed,
             durationMs: $this->elapsedMs(),
             status: $response?->status(),
-            apiClient: ApiClient::query()->where('service', $service)->oldest('id')->first(),
+            apiClient: ApiClient::query()->where('service', $service)->first(),
             service: $service,
             resource: $resource instanceof Model ? $resource : null,
             requestSize: $request->toPsrRequest()->getBody()->getSize(),

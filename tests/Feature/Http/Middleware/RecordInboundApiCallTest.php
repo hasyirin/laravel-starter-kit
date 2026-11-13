@@ -90,12 +90,32 @@ test('a call with an expired or revoked token keeps the token and the API client
     'revoked' => [fn (): array => ['revoked_at' => now()]],
 ]);
 
+test('a call with a token of a deleted API client is rejected and keeps the API client and its name in its row', function (): void {
+    $apiClient = ApiClient::factory()->anyIpAddress()->create(['name' => 'Billing']);
+    $token = createApiToken($apiClient);
+    $apiClient->delete();
+
+    $this->withToken($token)->getJson('/api/v1/ping')->assertUnauthorized();
+
+    expect(ApiCall::query()->sole())
+        ->outcome->toBe(ApiCallOutcome::InvalidToken)
+        ->api_client_id->toBe($apiClient->id)
+        ->api_client_name->toBe('Billing')
+        ->api_token_id->toBe(ApiToken::query()->sole()->id);
+});
+
 test('a call with an unknown token writes a row without an API client', function (): void {
     $this->withToken(ApiTokenFormat::generate())->getJson('/api/v1/ping');
 
     expect(ApiCall::query()->sole())
         ->api_client_id->toBeNull()
         ->api_token_id->toBeNull();
+});
+
+test('a user agent with bytes that are not UTF-8 or NUL bytes is stored as valid UTF-8 without NUL bytes', function (): void {
+    $this->withHeader('User-Agent', "bad\xff\0agent")->getJson('/api/v1/ping');
+
+    expect(ApiCall::query()->sole()->user_agent)->toBe('bad?agent');
 });
 
 test('a route that opts in stores the masked bodies, and the Authorization header is never stored', function (): void {

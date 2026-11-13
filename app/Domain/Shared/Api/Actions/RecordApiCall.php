@@ -48,19 +48,31 @@ class RecordApiCall
             'resource_type' => $resource?->getMorphClass(),
             'resource_id' => $resource?->getKey(),
             'method' => $method,
-            'url' => $url,
+            'url' => $this->text($url),
             'route_name' => $routeName,
             'status' => $status,
             'outcome' => $outcome,
             'duration_ms' => $durationMs,
             'ip_address' => $ipAddress,
-            'user_agent' => $userAgent,
+            'user_agent' => $this->text($userAgent),
             'trace_id' => $traceId ?? context()->get('trace_id'),
             'request_size' => $requestSize,
             'response_size' => $responseSize,
-            'request_body' => MaskedBody::of($requestBody),
-            'response_body' => MaskedBody::of($responseBody),
-            'error' => $error,
+            'request_body' => $this->text(MaskedBody::of($requestBody)),
+            'response_body' => $this->text(MaskedBody::of($responseBody)),
+            'error' => $this->text($error),
         ]);
+    }
+
+    /**
+     * PostgreSQL refuses bytes that are not UTF-8 and NUL bytes in a text column.
+     */
+    private function text(#[SensitiveParameter] ?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return str(mb_scrub($value, 'UTF-8'))->remove("\0")->value();
     }
 }

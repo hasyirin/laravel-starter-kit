@@ -210,6 +210,8 @@ class CreateBill extends ServiceRequest implements HasBody
 }
 ```
 
+A response middleware that a connector or a request registers with `Saloon\Enums\PipeOrder::FIRST` runs before the API log records the call. If it throws, the call leaves no row.
+
 ### Credentials
 
 `ServiceConnector` adds no credentials. Keep the credentials of a service in the environment, and read them in `config/services.php`, as for an SMS gateway (see [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md)). Give them to the connector with a Saloon authenticator in `defaultAuth()`, as in the example above. For OAuth2, use the Saloon OAuth2 traits on the connector.

@@ -121,6 +121,10 @@ test('the list of an API client shows only the calls of that API client', functi
         ->assertCanNotSeeTableRecords([$other]);
 });
 
+test('the list of an API client has no API client filter', function (): void {
+    Livewire::test(ApiLogDataTable::class, ['apiClient' => ApiClient::factory()->create()])->assertTableFilterHidden('api_client');
+});
+
 test('the API log list needs system.logs.api.view', function (): void {
     revokePermissions($this->viewer, 'system.logs.api.view');
 

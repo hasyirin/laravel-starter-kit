@@ -26,6 +26,7 @@ return [
     'last_used_at' => 'Last used',
     'tabs' => [
         'tokens' => 'API tokens',
+        'api_log' => 'API log',
         'audit' => 'Audit',
     ],
     'create' => [

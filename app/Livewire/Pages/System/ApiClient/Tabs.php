@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\System\ApiClient;
 
+use App\Domain\Shared\Api\Models\ApiCall;
 use App\Domain\Shared\Api\Models\ApiClient;
 use App\Livewire\Component;
 use App\Livewire\Components\Tab;
@@ -28,6 +29,11 @@ class Tabs extends Component
                 ->label((string) __('api/api-clients.tabs.tokens'))
                 ->content(Tokens::class)
                 ->params(['apiClient' => $this->apiClient]),
+            Tab::make('api-log')
+                ->label((string) __('api/api-clients.tabs.api_log'))
+                ->content(ApiLog::class)
+                ->params(['apiClient' => $this->apiClient])
+                ->visible(fn (): bool => $this->can('viewAny', ApiCall::class)),
             Tab::make('audit')
                 ->label((string) __('api/api-clients.tabs.audit'))
                 ->content(Audit::class)

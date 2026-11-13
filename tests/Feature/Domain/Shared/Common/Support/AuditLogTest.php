@@ -72,3 +72,16 @@ test('an API client that made a change is named as its causer', function (): voi
 
     expect(AuditLog::causerName(Activity::query()->where('description', 'Synced')->sole()))->toBe('Billing');
 });
+
+test('a changed list of rows shows one line per row with its values', function (): void {
+    $apiClient = ApiClient::factory()->create(['allowed_ip_addresses' => [['address' => '203.0.113.10', 'description' => 'HQ firewall']]]);
+    $apiClient->update(['allowed_ip_addresses' => [
+        ['address' => '203.0.113.10', 'description' => 'HQ firewall'],
+        ['address' => '198.51.100.0/24', 'description' => null],
+    ]]);
+
+    $change = AuditLog::changes(Activity::query()->whereMorphedTo('subject', $apiClient)->where('event', 'updated')->sole())->sole();
+
+    expect($change['old'])->toBe('203.0.113.10 (HQ firewall)')
+        ->and($change['new'])->toBe("203.0.113.10 (HQ firewall)\n198.51.100.0/24");
+});

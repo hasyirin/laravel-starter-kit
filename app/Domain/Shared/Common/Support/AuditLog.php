@@ -540,8 +540,43 @@ class AuditLog
             is_string($value) && self::isDate($model, $field) => (string) Preferences::current()->calendarDate(CarbonImmutable::parse($value)),
             is_string($value) && self::isDateTime($model, $field) => (string) Preferences::current()->datetime(CarbonImmutable::parse($value)),
             is_scalar($value) => (string) $value,
+            self::isRowList($value) => self::rowLines($value),
             default => (string) json_encode($value),
         };
+    }
+
+    /**
+     * @phpstan-assert-if-true non-empty-list<array<array-key, scalar|null>> $value
+     */
+    private static function isRowList(mixed $value): bool
+    {
+        if (! is_array($value) || $value === [] || ! array_is_list($value)) {
+            return false;
+        }
+
+        return collect($value)->every(fn (mixed $row): bool => is_array($row) && collect($row)->every(fn (mixed $item): bool => $item === null || is_scalar($item)));
+    }
+
+    /**
+     * @param  list<array<array-key, scalar|null>>  $rows
+     */
+    private static function rowLines(array $rows): string
+    {
+        return collect($rows)
+            ->map(function (array $row): string {
+                $values = collect($row)
+                    ->reject(fn (mixed $value): bool => $value === null || $value === '')
+                    ->map(fn (mixed $value): string => (string) $value)
+                    ->values();
+                $details = $values->slice(1);
+
+                if ($details->isEmpty()) {
+                    return (string) $values->first();
+                }
+
+                return "{$values->first()} ({$details->implode(', ')})";
+            })
+            ->implode("\n");
     }
 
     private static function isDate(?Model $model, string $field): bool

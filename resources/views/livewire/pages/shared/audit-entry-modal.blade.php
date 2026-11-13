@@ -79,8 +79,8 @@
                             @foreach($changes as $change)
                                 <flux:table.row wire:key="change-{{ $loop->index }}">
                                     <flux:table.cell>{{ $change['field'] }}</flux:table.cell>
-                                    <flux:table.cell class="break-all whitespace-normal">{{ $change['old'] }}</flux:table.cell>
-                                    <flux:table.cell class="break-all whitespace-normal">{{ $change['new'] }}</flux:table.cell>
+                                    <flux:table.cell class="break-all whitespace-pre-line">{{ $change['old'] }}</flux:table.cell>
+                                    <flux:table.cell class="break-all whitespace-pre-line">{{ $change['new'] }}</flux:table.cell>
                                 </flux:table.row>
                             @endforeach
                         </flux:table.rows>

@@ -2,7 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Bootstrap\LoadConfiguration;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
@@ -95,3 +100,15 @@ test('it leaves markers in code blocks alone', function (string $contents): void
     'a section' => ["```markdown\n<!-- generated:unknown -->\n<!-- /generated:unknown -->\n```\n"],
     'an opening marker' => ["```markdown\n<!-- generated:permission-matrix -->\n```\n"],
 ]);
+
+test('the docs match the code with every feature off', function (): void {
+    $app = require base_path('bootstrap/app.php');
+    $app->afterBootstrapping(LoadConfiguration::class, fn (Application $app) => $app->make(Repository::class)->set('system.features', []));
+    $app->make(Kernel::class)->bootstrap();
+    $this->app = $app;
+    $this->restoreInMemoryDatabase();
+
+    expect(Route::has('password.sms'))->toBeFalse();
+
+    $this->artisan('docs:generate', ['--check' => true])->assertSuccessful();
+});

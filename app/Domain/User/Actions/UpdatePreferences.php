@@ -11,10 +11,11 @@ class UpdatePreferences
 {
     use Actionable;
 
-    public function execute(User $user, string $timezone, string $locale): void
+    public function execute(User $user, string $timezone, string $language, string $locale): void
     {
         $user->update([
             'timezone' => $timezone,
+            'language' => $language,
             'locale' => $locale,
         ]);
     }

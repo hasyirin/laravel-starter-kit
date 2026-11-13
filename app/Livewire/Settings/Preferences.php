@@ -6,6 +6,7 @@ namespace App\Livewire\Settings;
 
 use App\Domain\User\Actions\UpdatePreferences;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Languages;
 use App\Domain\User\Support\Preferences as UserPreferences;
 use App\Livewire\Pages\Shared\Page;
 use DateTimeZone;
@@ -21,6 +22,8 @@ class Preferences extends Page
 {
     public string $timezone = '';
 
+    public string $language = '';
+
     public string $locale = '';
 
     public function mount(): void
@@ -31,6 +34,7 @@ class Preferences extends Page
         $preferences = UserPreferences::of($user);
 
         $this->timezone = $preferences->timezone;
+        $this->language = Languages::firstListed([$user->language]) ?? Languages::default();
         $this->locale = $preferences->locale;
     }
 
@@ -41,10 +45,19 @@ class Preferences extends Page
 
         $this->validate([
             'timezone' => ['required', 'timezone:all'],
+            'language' => ['required', Rule::in($this->languages->keys())],
             'locale' => ['required', Rule::in(array_keys($this->locales))],
         ]);
 
-        UpdatePreferences::make()->execute($user, $this->timezone, $this->locale);
+        UpdatePreferences::make()->execute($user, $this->timezone, $this->language, $this->locale);
+
+        cookie()->queue(cookie()->forever('language', $this->language));
+
+        if ($this->language !== app()->getLocale()) {
+            $this->redirectRoute('preferences.edit');
+
+            return;
+        }
 
         Flux::toast(variant: 'success', text: __('user/settings.preferences.updated'));
     }
@@ -61,6 +74,15 @@ class Preferences extends Page
                 $timezone => str($timezone)->after('/')->replace(['_', '/'], [' ', ' / '])->append(' (UTC', now($timezone)->format('P'), ')')->value(),
             ])->all())
             ->all();
+    }
+
+    /**
+     * @return Collection<string, string>
+     */
+    #[Computed]
+    public function languages(): Collection
+    {
+        return Languages::all();
     }
 
     /**

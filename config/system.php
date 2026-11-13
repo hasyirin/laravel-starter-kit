@@ -12,6 +12,10 @@ return [
 
     'locales' => ['en-MY', 'ms-MY', 'en-GB', 'en-US'],
 
+    'language' => env('APP_LOCALE', 'en'),
+
+    'languages' => ['en' => 'English', 'ms' => 'Bahasa Melayu'],
+
     'country' => 'MY',
 
     'sms' => [

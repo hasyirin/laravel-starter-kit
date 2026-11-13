@@ -1,6 +1,6 @@
 # API
 
-The app has an API that API clients call with an API token. The app also calls services. The API log records each call in both directions. The [glossary](../GLOSSARY.md#api) defines the terms: API client, service, API token, scope, allowed IP address, and API log. See [kit ADR-0016](adr/kit/0016-the-kit-issues-its-own-api-tokens.md) and [kit ADR-0017](adr/kit/0017-one-api-log-records-both-directions.md).
+The app has an API that API clients call with an API token. The app also calls services. The API log records each call in both directions. The [glossary](../GLOSSARY.md#api) defines the terms: API client, service, API token, scope, allowed IP address, and API log. See [kit ADR-0016](adr/kit/0016-the-kit-issues-its-own-api-tokens.md), [kit ADR-0017](adr/kit/0017-one-api-log-records-both-directions.md), and [kit ADR-0018](adr/kit/0018-calls-to-services-go-through-saloon-connectors.md).
 
 ## Register an API Client
 
@@ -134,6 +134,8 @@ See Bodies and Masking, below, before you turn it on.
 
 ## Call a Service
 
+The app calls each service through a [Saloon](https://docs.saloon.dev) connector. See [kit ADR-0018](adr/kit/0018-calls-to-services-go-through-saloon-connectors.md). The API log records each call through a connector that extends `ServiceConnector`.
+
 ### Declare a Service
 
 Add each service to `system.api.services` in `config/system.php`. The key is the name of the service:
@@ -144,7 +146,9 @@ Add each service to `system.api.services` in `config/system.php`. The key is the
         'base_url' => 'https://billing.example.com',
         'timeout' => 30,
         'connect_timeout' => 10,
-        'retry' => [100, 500, 1000],
+        'tries' => 3,
+        'retry_interval' => 500,
+        'exponential_backoff' => true,
         'log_bodies' => false,
     ],
 ],
@@ -155,27 +159,87 @@ Add each service to `system.api.services` in `config/system.php`. The key is the
 | `base_url` | None. It is required. | The start of each URL of the service. |
 | `timeout` | 30 | The seconds that a call can take. |
 | `connect_timeout` | 10 | The seconds that the connection can take. |
-| `retry` | No retry | A number of tries, or a list of waits in milliseconds between the tries. After the last try, a call with an error status returns the last response and does not throw. A call that cannot connect throws `Illuminate\Http\Client\ConnectionException`. |
+| `tries` | 1 | The number of attempts of each call. 1 means no retry. |
+| `retry_interval` | 0 | The milliseconds to wait before each retry. |
+| `exponential_backoff` | `false` | Whether the wait doubles before each next retry. With 500, the waits are 500, 1000, and 2000 milliseconds. |
 | `log_bodies` | `false` | Whether the API log stores the request body and the response body. |
 
-Keep the credentials of a service in the environment, and read them in `config/services.php`, as for an SMS gateway (see [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md)).
+A connector retries a call that cannot connect, and a call with a status of 400 or more. After the last attempt, a call with an error status returns the last response and does not throw. A call that cannot connect throws `Saloon\Exceptions\Request\FatalRequestException`. A request class can set its own `$tries`, `$retryInterval`, and `$useExponentialBackoff`. Its values come before the values of the service.
+
+### Write a Connector and Requests
+
+Put the connector of a service in the Connectors folder of its domain, such as app/Domain/Billing/Connectors/BillingConnector.php. Put its request classes in the Requests folder next to it. Write them by hand. `php artisan saloon:connector` and `php artisan saloon:request` write to app/Http/Integrations, and their classes extend the Saloon classes, not the kit's classes.
+
+The connector extends `ServiceConnector` and returns the name of the service from `service()`. It reads the base URL, the timeouts, and the retry settings from config. It also sends the trace ID of the request or the job in the header `X-Request-Id`. A name that is not in `system.api.services` throws a `LogicException` at the first call.
+
+```php
+class BillingConnector extends ServiceConnector
+{
+    public function service(): string
+    {
+        return 'billing';
+    }
+
+    protected function defaultAuth(): TokenAuthenticator
+    {
+        return new TokenAuthenticator(config()->string('services.billing.token'));
+    }
+}
+```
+
+Each request class extends `ServiceRequest`, and gives the method and the endpoint. The endpoint is a path. Saloon refuses an absolute URL, so a request cannot send the credentials of the service to another host.
+
+```php
+class CreateBill extends ServiceRequest implements HasBody
+{
+    use HasJsonBody;
+
+    protected Method $method = Method::POST;
+
+    public function __construct(private readonly Invoice $invoice) {}
+
+    public function resolveEndpoint(): string
+    {
+        return '/v1/bills';
+    }
+
+    protected function defaultBody(): array
+    {
+        return ['amount' => $this->invoice->total];
+    }
+}
+```
+
+### Credentials
+
+`ServiceConnector` adds no credentials. Keep the credentials of a service in the environment, and read them in `config/services.php`, as for an SMS gateway (see [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md)). Give them to the connector with a Saloon authenticator in `defaultAuth()`, as in the example above. For OAuth2, use the Saloon OAuth2 traits on the connector.
 
 ### Make a Call
 
-Call a service with `Http::service()`. It returns a Laravel HTTP client request with the base URL, the timeouts, and the retry of the service. If the request or the job has a trace ID, it also sends the trace ID in the header `X-Request-Id`. Add `about()` to link the API log row to a record:
+Send a request through the connector. Add `about()` to link the API log row to a record:
 
 ```php
-Http::service('billing')
-    ->withToken(config()->string('services.billing.token'))
-    ->about($invoice)
-    ->post('/v1/bills', ['amount' => $invoice->total]);
+$response = new BillingConnector()->send(new CreateBill($invoice)->about($invoice));
 ```
 
-`Http::service()` and `about()` are macros. `AppServiceProvider::configureServices()` defines them. `Http::service()` throws a `LogicException` for a name that is not in `system.api.services`.
+`about()` belongs to the request object, so the next request does not get the record. If you send the same request object again, its rows get the same record.
 
-The API log records only calls made through `Http::service()`. A call made with `Http::get()` or another method of `Http` leaves no row.
+A call made with `Http::get()` or another method of `Http` leaves no row. A call through a connector that extends Saloon's `Saloon\Http\Connector` directly leaves no row either.
 
 The app writes the API log row of a call in the database transaction of the caller. If the transaction rolls back, the row goes too. If the row must stay, call the service outside a transaction.
+
+> [!WARNING]
+> An asynchronous call, in a Saloon pool or with `sendAsync()`, leaves a row only when it gets a status below 400. If it gets an error status or cannot connect, it leaves no row, because Saloon then runs no response middleware and no fatal exception middleware. Saloon also does not retry an asynchronous call. Use `send()` for calls that the API log must show.
+
+### Test a Call
+
+`Http::fake()` does not catch a call through a connector. Use `Saloon::fake()` from `Saloon\Laravel\Facades\Saloon` with `Saloon\Http\Faking\MockResponse` objects. A list of responses answers the calls in order:
+
+```php
+Saloon::fake([MockResponse::make(['id' => 7], 201)]);
+```
+
+The API log still records each faked call. To fake a call that cannot connect, make the response throw a `Saloon\Exceptions\Request\FatalRequestException`. `tests/Feature/Domain/Shared/Api/Connectors/ServiceConnectorTest.php` shows how.
 
 ### Link an API Client to a Service
 
@@ -187,7 +251,7 @@ System administrators read the API log at `/system/logs/api`. The page needs `sy
 
 ### What a Row Holds
 
-The API log has one row for each call to a path under `/api/`, also for each call that the API rejects. It also has one row for each try of each call through `Http::service()`, also for a try that cannot connect.
+The API log has one row for each call to a path under `/api/`, also for each call that the API rejects. It also has one row for each attempt of each call through a connector that extends `ServiceConnector`, also for an attempt that cannot connect.
 
 A row holds:
 
@@ -205,7 +269,7 @@ A row holds:
 
 The row stores no header, except the user agent of an inbound call. So it never stores the Authorization header or the API token.
 
-The duration of an outbound call is the time of its last try. It is not correct for calls to services that run at the same time, such as calls with `async()`.
+The duration of an outbound row is the time of its own attempt. It does not include the wait before a retry.
 
 The API log rows do not go to the audit log.
 
@@ -234,7 +298,7 @@ The API log stores the bodies only for a route with `log-bodies` or a service wi
 1. It masks the listed keys of a JSON body. The value of each such key, at any depth, becomes `[hidden]`. `system.api_log.masked_keys` lists the keys. The default list is `password`, `token`, `secret`, `authorization`, `apikey`, and `privatekey`. A key matches when it contains a listed key, without case, `_`, or `-`. So `access_token` and `api-key` match too.
 2. It cuts the body to 16,384 bytes (`system.api_log.body_limit`).
 
-An outbound form body goes to the log as JSON, so its keys are masked too. An outbound multipart body is never stored, because it can hold files.
+An outbound form body goes to the log as JSON, so its keys are masked too. An outbound multipart body is never stored, because it can hold files. An outbound stream body is never stored either, because the app can read it only once.
 
 > [!WARNING]
 > The API log stores any other body without a mask. This includes an inbound form body, an inbound multipart body, XML, and plain text. Keep body logging off for a route or a service that sends such bodies with secrets.

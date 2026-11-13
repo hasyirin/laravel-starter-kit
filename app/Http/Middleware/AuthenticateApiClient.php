@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Domain\Shared\Api\Enums\ApiCallOutcome;
+use App\Domain\Shared\Api\Models\ApiClient;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -29,7 +30,7 @@ class AuthenticateApiClient
 
         $apiClient = auth('api')->user();
 
-        if ($apiClient === null) {
+        if (! $apiClient instanceof ApiClient) {
             RateLimiter::hit($failureKey);
 
             throw new AuthenticationException(guards: ['api']);

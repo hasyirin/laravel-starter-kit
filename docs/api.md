@@ -117,7 +117,7 @@ Each error on a path under `/api/` uses the application/problem+json format of R
 
 The API gets the IP address of the caller from `request()->ip()`. Behind a proxy or a load balancer, that is the address of the proxy. Set `TRUSTED_PROXIES` to the addresses or CIDR ranges of your proxies, with a comma between them. The app then takes the address of the caller from the `X-Forwarded-For` header. `config/trustedproxy.php` reads the value.
 
-The default is empty, so the app trusts no proxy. On Laravel Cloud, Forge, and Vapor, Laravel trusts every proxy when the value is empty.
+The default is empty, so the app trusts no proxy. This is also true on Laravel Cloud, Forge, and Vapor. If the app runs behind a load balancer or on one of these platforms, set `TRUSTED_PROXIES`. Otherwise each call has the IP address of the proxy.
 
 > [!WARNING]
 > Do not set `TRUSTED_PROXIES` to `*`. The app then trusts the `X-Forwarded-For` header of every caller. A caller can then send any IP address and pass the allowed IP address check of each API client. It can also pass the limit of failed authentications.

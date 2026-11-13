@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Models\ApiCall;
 use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\Shared\Api\Support\ApiTokenFormat;
 use Illuminate\Support\Facades\Route;
@@ -117,3 +118,16 @@ test('without a trusted proxy, a spoofed X-Forwarded-For does not pass the allow
 
     $response->assertForbidden();
 });
+
+test('without a trusted proxy, a host on Forge or Vapor does not make the app trust X-Forwarded-For', function (string $host): void {
+    $token = createApiToken(ApiClient::factory()->create(['allowed_ip_addresses' => ['192.0.2.10']]));
+
+    $response = $this->withToken($token)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->withHeader('X-Forwarded-For', '192.0.2.10')
+        ->getJson("http://{$host}/api/v1/ping");
+
+    $response->assertForbidden();
+
+    expect(ApiCall::query()->sole()->ip_address)->toBe('198.51.100.7');
+})->with(['evil.on-forge.com', 'evil.on-vapor.com']);

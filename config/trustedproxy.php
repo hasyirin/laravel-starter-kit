@@ -3,5 +3,5 @@
 declare(strict_types=1);
 
 return [
-    'proxies' => env('TRUSTED_PROXIES') ?: null,
+    'proxies' => env('TRUSTED_PROXIES') ?: [],
 ];

@@ -61,7 +61,9 @@ Each route in the file gets these middleware from the `api` group, in this order
 1. `AuthenticateApiClient` reads the API token and checks the API client. It also checks the enabled switch and the allowed IP addresses.
 2. The `api-client` rate limiter applies the rate limit of the API client.
 
-In these routes, `auth()->user()` returns the `ApiClient`. The `api` guard sets it.
+In these routes, `auth()->user()` returns the `ApiClient`. The `api` guard sets it. `ApiClient::currentToken()` returns the API token of the call.
+
+Do not protect a route in another file with `auth:api` alone. The `api` guard checks only the API token. So the route skips the enabled switch, the allowed IP address check, the limit of failed authentications, and the rate limit.
 
 ### Scopes
 
@@ -157,8 +159,8 @@ Add each service to `system.api.services` in `config/system.php`. The key is the
 | Key | Default | What it does |
 | --- | --- | --- |
 | `base_url` | None. It is required. | The start of each URL of the service. |
-| `timeout` | 30 | The seconds that a call can take. |
-| `connect_timeout` | 10 | The seconds that the connection can take. |
+| `timeout` | 30 | The seconds that a call can take, as a whole number. |
+| `connect_timeout` | 10 | The seconds that the connection can take, as a whole number. |
 | `tries` | 1 | The number of attempts of each call. 1 means no retry. |
 | `retry_interval` | 0 | The milliseconds to wait before each retry. |
 | `exponential_backoff` | `false` | Whether the wait doubles before each next retry. With the example above, the waits are 500 and 1000 milliseconds. |

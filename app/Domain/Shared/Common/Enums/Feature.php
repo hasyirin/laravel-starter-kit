@@ -27,8 +27,8 @@ enum Feature: string
     public function belongsToFortify(): bool
     {
         return match ($this) {
+            self::Registration, self::PasswordReset, self::EmailVerification, self::TwoFactorAuthentication, self::Passkeys => true,
             self::PhoneVerification, self::SmsPasswordReset => false,
-            default => true,
         };
     }
 

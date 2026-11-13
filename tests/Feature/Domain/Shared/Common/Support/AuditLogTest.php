@@ -85,3 +85,27 @@ test('a changed list of rows shows one line per row with its values', function (
     expect($change['old'])->toBe('203.0.113.10 (HQ firewall)')
         ->and($change['new'])->toBe("203.0.113.10 (HQ firewall)\n198.51.100.0/24");
 });
+
+/**
+ * @param  array<array-key, mixed>  $rows
+ */
+function auditedNewAllowedIpAddresses(array $rows): string
+{
+    $apiClient = ApiClient::factory()->create(['allowed_ip_addresses' => []]);
+    $apiClient->update(['allowed_ip_addresses' => $rows]);
+
+    return AuditLog::changes(Activity::query()->whereMorphedTo('subject', $apiClient)->where('event', 'updated')->sole())->sole()['new'];
+}
+
+test('a yes or no value in a changed row shows as Yes or No', function (): void {
+    expect(auditedNewAllowedIpAddresses([['name' => 'x', 'active' => false], ['name' => 'y', 'active' => true]]))->toBe("x (No)\ny (Yes)");
+});
+
+test('a changed list of rows that are empty, plain lists, or start with no value shows as JSON', function (array $rows, string $json): void {
+    expect(auditedNewAllowedIpAddresses($rows))->toBe($json);
+})->with([
+    'an empty row' => [[[]], '[[]]'],
+    'two empty rows' => [[[], []], '[[],[]]'],
+    'plain lists' => [[[1, 2], [3, 4]], '[[1,2],[3,4]]'],
+    'a row that starts with no value' => [[['address' => null, 'description' => 'HQ']], '[{"address":null,"description":"HQ"}]'],
+]);

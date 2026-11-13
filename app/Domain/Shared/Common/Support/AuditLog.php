@@ -554,7 +554,11 @@ class AuditLog
             return false;
         }
 
-        return collect($value)->every(fn (mixed $row): bool => is_array($row) && collect($row)->every(fn (mixed $item): bool => $item === null || is_scalar($item)));
+        return collect($value)->every(fn (mixed $row): bool => is_array($row)
+            && $row !== []
+            && ! array_is_list($row)
+            && collect($row)->first() !== null
+            && collect($row)->every(fn (mixed $item): bool => $item === null || is_scalar($item)));
     }
 
     /**
@@ -566,7 +570,11 @@ class AuditLog
             ->map(function (array $row): string {
                 $values = collect($row)
                     ->reject(fn (mixed $value): bool => $value === null || $value === '')
-                    ->map(fn (mixed $value): string => (string) $value)
+                    ->map(fn (mixed $value): string => match ($value) {
+                        true => (string) __('common/audit.yes'),
+                        false => (string) __('common/audit.no'),
+                        default => (string) $value,
+                    })
                     ->values();
                 $details = $values->slice(1);
 

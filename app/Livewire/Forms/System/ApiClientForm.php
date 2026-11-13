@@ -117,7 +117,7 @@ class ApiClientForm extends Form
     public function save(): ApiClient
     {
         $allowedIpAddresses = collect($this->allowed_ip_addresses)
-            ->map(fn (array $row): array => [...$row, 'address' => trim($row['address'])])
+            ->map(fn (array $row): array => [...$row, 'address' => trim((string) data_get($row, 'address'))])
             ->all();
         $this->allowed_ip_addresses = array_values($allowedIpAddresses);
 

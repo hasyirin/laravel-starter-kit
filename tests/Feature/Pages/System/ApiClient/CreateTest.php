@@ -141,6 +141,13 @@ test('an allowed IP address row needs an address', function (): void {
         ->assertSee('The IP address field is required.');
 });
 
+test('an allowed IP address row without an address key is refused', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [['description' => 'Head office']])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.0.address' => 'required']);
+});
+
 test('an allowed IP address can be listed only once', function (): void {
     apiClientCreate()
         ->set('form.allowed_ip_addresses', [

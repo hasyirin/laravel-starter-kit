@@ -63,3 +63,18 @@ test('saving trims the allowed IP addresses, drops blank and repeated addresses,
         ['address' => '2001:db8::/32', 'description' => null],
     ]);
 });
+
+test('saving keeps a description of 0', function (): void {
+    $apiClient = SaveApiClient::make()->execute(
+        new ApiClient,
+        name: 'Billing',
+        description: null,
+        enabled: true,
+        allowedIpAddresses: [['address' => '192.0.2.10', 'description' => '0']],
+        allowsAnyIpAddress: false,
+        rateLimitPerMinute: 60,
+        service: null,
+    );
+
+    expect($apiClient->fresh()?->allowed_ip_addresses)->toBe([['address' => '192.0.2.10', 'description' => '0']]);
+});

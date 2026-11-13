@@ -140,6 +140,27 @@ test('an allowed IP address can be listed only once', function (): void {
         ->assertSee('The IP address field has a duplicate value.');
 });
 
+test('an allowed IP address that differs from another only by spaces is a duplicate', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [
+            ['address' => '192.0.2.10', 'description' => 'Head office'],
+            ['address' => ' 192.0.2.10 ', 'description' => 'Branch'],
+        ])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.1.address' => 'distinct']);
+
+    expect(ApiClient::query()->exists())->toBeFalse();
+});
+
+test('an allowed IP address row without a description is saved without one', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [['address' => '192.0.2.10']])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(ApiClient::query()->sole()->allowed_ip_addresses)->toBe([['address' => '192.0.2.10', 'description' => null]]);
+});
+
 test('the description of an allowed IP address is optional and has at most 255 characters', function (): void {
     apiClientCreate()
         ->set('form.allowed_ip_addresses', [['address' => '192.0.2.10', 'description' => str_repeat('a', 256)]])

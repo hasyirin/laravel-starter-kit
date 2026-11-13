@@ -26,3 +26,6 @@ Use the Malay word when a Malaysian government system shows it on its sign-in an
 Never write "lalai" or "tembok api". For "default", write the sentence in another way, for example "Kepala surat utama". Write the word "default" only when no other wording works.
 
 If a word fits no group, ask the user.
+
+## Add each key to every language
+Add a new key to `lang/en` and to the same file of every other language, such as `lang/ms`, in the same change. Keep the placeholders, such as `:name`, the same in each language. `tests/Feature/Lang/ParityTest.php` fails when a key is in one language only. Put only the English sentences that packages use as keys in a JSON file, such as `lang/ms.json`. See `docs/localization.md`.

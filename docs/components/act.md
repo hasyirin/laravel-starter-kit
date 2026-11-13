@@ -64,7 +64,7 @@ The time takes any `DateTimeInterface`, such as `now()`.
 
 `act()` saves through Eloquent, so the `saving` observer sets the profile in the same write as the user. To react to an action, listen to `Hasyirin\Actor\Events\ActionRecorded`, which fires after the commit.
 
-For each kind of action, add a case to `App\Domain\Shared\Actor\Enums\Act`. Add its text to `lang/en/common/acts.php`: `label` names the action, and `by` names the person, such as "Prepared by".
+For each kind of action, add a case to `App\Domain\Shared\Actor\Enums\Act`. Add its text to `lang/en/common/acts.php`, and to the same file of each other language: `label` names the action, and `by` names the person, such as "Prepared by".
 
 ## Preparer
 

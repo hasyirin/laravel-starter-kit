@@ -29,3 +29,6 @@ If a word fits no group, ask the user.
 
 ## Add each key to every language
 Add a new key to `lang/en` and to the same file of every other language, such as `lang/ms`, in the same change. Keep the placeholders, such as `:name`, the same in each language. `tests/Feature/Lang/ParityTest.php` fails when a key is in one language only. Put only the English sentences that packages use as keys in a JSON file, such as `lang/ms.json`. See `docs/localization.md`.
+
+## Name each validated field in validation.attributes
+Give each field that a form validates a name in `attributes` of `lang/en/validation.php` and of every other language, such as `'department_id' => 'department'`. A message then reads "The department field is required", not "The department id field is required". These names reach every validator, also Fortify's Action classes, which are not Livewire. Add `validationAttributes()` to a form, or the `attributes` argument to `validate()`, only when that form needs another name than the rest of the app. Write such a name in lower case, as the names in `attributes` are.

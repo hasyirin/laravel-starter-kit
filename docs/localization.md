@@ -42,6 +42,12 @@ Put each text in a PHP file under `lang/en`, with a short key, and add the same 
 
 `lang/ms.json` holds the Malay for the English sentences that packages use as keys: Flux, Fortify, Livewire, Laravel, and its passkeys package. Filament has its own Malay text. Do not put the text of the app in this file.
 
+## Name the Fields in Validation Messages
+
+A validation message names its field, for example "The department field is required". The names are in `attributes` of `lang/en/validation.php` and of the same file of every other language. Add each field that a form validates, with its key, such as `department_id`. The names reach every validator, also the Action classes of Fortify.
+
+A form gives its own name only for a key that means another thing in another form, such as `type`. A Livewire form does this in `validationAttributes()`. The audit log also uses these names as labels for the fields of a change.
+
 ## Write Malay
 
 Use the `_Malay_` term of `GLOSSARY.md` for each glossary term. `.ai/rules/lang.md` gives the style: formal Malaysian usage, with common IT terms in English.

@@ -146,3 +146,17 @@ test('a position keeps its own name on save', function (): void {
         ->call('save')
         ->assertHasNoErrors();
 });
+
+test('a form names its fields in the language of the page', function (): void {
+    app()->setLocale('ms');
+
+    $errors = Livewire::test(PositionModal::class, ['organization' => $this->organization])
+        ->call('show')
+        ->set('form.name', '')
+        ->set('form.department_id', Department::factory()->create()->id)
+        ->call('save')
+        ->errors();
+
+    expect($errors->first('form.name'))->toBe('Medan nama diperlukan.')
+        ->and($errors->first('form.department_id'))->toBe('Medan jabatan yang dipilih tidak sah.');
+});

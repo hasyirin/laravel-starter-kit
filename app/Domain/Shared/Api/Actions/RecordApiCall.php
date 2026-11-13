@@ -58,8 +58,8 @@ class RecordApiCall
             'trace_id' => $traceId ?? context()->get('trace_id'),
             'request_size' => $requestSize,
             'response_size' => $responseSize,
-            'request_body' => $this->text(MaskedBody::of($requestBody)),
-            'response_body' => $this->text(MaskedBody::of($responseBody)),
+            'request_body' => MaskedBody::of($this->text($requestBody)),
+            'response_body' => MaskedBody::of($this->text($responseBody)),
             'error' => $this->text($error),
         ]);
     }

@@ -103,3 +103,19 @@ test('recorded bodies are masked and capped', function (): void {
         ->request_body->toBe('{"email":"ali@example.com","password":"[hidden]"}')
         ->response_body->toBe(str_repeat('x', 100));
 });
+
+test('a JSON body with a byte that is not UTF-8 is stored masked', function (): void {
+    config(['system.api_log.masked_keys' => ['password']]);
+
+    $apiCall = RecordApiCall::make()->execute(
+        direction: ApiCallDirection::Inbound,
+        method: 'POST',
+        url: '/api/v1/users',
+        outcome: ApiCallOutcome::Ok,
+        durationMs: 10,
+        status: 200,
+        requestBody: "{\"password\":\"s3cret\",\"note\":\"\xff\"}",
+    );
+
+    expect($apiCall->fresh()?->request_body)->toBe('{"password":"[hidden]","note":"?"}');
+});

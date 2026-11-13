@@ -33,6 +33,25 @@ test('a body that is not JSON stays as it is', function (): void {
     expect(MaskedBody::of('plain text'))->toBe('plain text');
 });
 
+test('an empty JSON object stays an object', function (): void {
+    expect(MaskedBody::of('{"filters":{},"password":"x"}'))->toBe('{"filters":{},"password":"[hidden]"}');
+});
+
+test('a number keeps its zero fraction', function (): void {
+    expect(MaskedBody::of('{"total":1.0,"password":"x"}'))->toBe('{"total":1.0,"password":"[hidden]"}');
+});
+
+test('a big integer keeps all its digits as a string', function (): void {
+    expect(MaskedBody::of('{"id":12345678901234567890,"password":"x"}'))->toBe('{"id":"12345678901234567890","password":"[hidden]"}');
+});
+
+test('a body that starts like JSON but cannot be decoded stores nothing', function (string $body): void {
+    expect(MaskedBody::of($body))->toBeNull();
+})->with([
+    'nested too deep' => [' '.str_repeat('[', 600).'{"password":"s3cret"}'.str_repeat(']', 600)],
+    'byte that is not UTF-8' => ["{\"password\":\"s3cret\",\"note\":\"\xff\"}"],
+]);
+
 test('a body longer than the limit is cut to the limit', function (): void {
     config(['system.api_log.body_limit' => 10]);
 

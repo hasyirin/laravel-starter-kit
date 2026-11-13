@@ -302,8 +302,11 @@ The API log rows do not go to the audit log.
 
 The API log stores the bodies only for a route with `log-bodies` or a service with `log_bodies` on. Before it stores a body, it does these steps:
 
-1. It masks the listed keys of a JSON body. The value of each such key, at any depth, becomes `[hidden]`. `system.api_log.masked_keys` lists the keys. The default list is `password`, `token`, `secret`, `authorization`, `apikey`, and `privatekey`. A key matches when it contains a listed key, without case, `_`, or `-`. So `access_token` and `api-key` match too.
-2. It cuts the body to 16,384 bytes (`system.api_log.body_limit`).
+1. It replaces each byte that is not UTF-8 with a question mark, and it removes each NUL byte.
+2. It masks the listed keys of a JSON body. The value of each such key, at any depth, becomes `[hidden]`. `system.api_log.masked_keys` lists the keys. The default list is `password`, `token`, `secret`, `authorization`, `apikey`, and `privatekey`. A key matches when it contains a listed key, without case, `_`, or `-`. So `access_token` and `api-key` match too.
+3. It cuts the body to 16,384 bytes (`system.api_log.body_limit`).
+
+A masked JSON body keeps its empty objects and the zero fraction of each number, such as 1.0. An integer that is too large for PHP becomes a string in quotes. If a body starts with { or [ but the app cannot decode it as JSON, the API log stores no body. An example is JSON that is nested more than 512 levels deep.
 
 An outbound form body goes to the log as JSON, so its keys are masked too. An outbound multipart body is never stored, because it can hold files. An outbound stream body is never stored either, because the app can read it only once. For the same reason, a streamed response body is not stored, and its size is stored only when the stream knows it.
 

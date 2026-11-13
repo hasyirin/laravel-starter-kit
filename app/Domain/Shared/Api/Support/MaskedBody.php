@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Api\Support;
 
 use Illuminate\Support\Collection;
+use JsonException;
 use SensitiveParameter;
+use stdClass;
 
 class MaskedBody
 {
@@ -15,18 +17,41 @@ class MaskedBody
             return null;
         }
 
-        return mb_strcut(self::mask($body), 0, config()->integer('system.api_log.body_limit'));
+        $masked = self::mask($body);
+
+        if ($masked === null) {
+            return null;
+        }
+
+        return mb_strcut($masked, 0, config()->integer('system.api_log.body_limit'));
     }
 
-    private static function mask(#[SensitiveParameter] string $body): string
+    private static function mask(#[SensitiveParameter] string $body): ?string
     {
-        $decoded = json_decode($body, true);
+        try {
+            $decoded = json_decode($body, false, flags: JSON_BIGINT_AS_STRING | JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return str($body)->trim()->startsWith(['{', '[']) ? null : $body;
+        }
 
-        if (! is_array($decoded)) {
+        if (! is_array($decoded) && ! $decoded instanceof stdClass) {
             return $body;
         }
 
-        return (string) json_encode(self::maskValues($decoded), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return (string) json_encode(self::maskValue($decoded), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+    }
+
+    private static function maskValue(#[SensitiveParameter] mixed $value): mixed
+    {
+        if ($value instanceof stdClass) {
+            return (object) self::maskValues(get_object_vars($value));
+        }
+
+        if (is_array($value)) {
+            return self::maskValues($value);
+        }
+
+        return $value;
     }
 
     /**
@@ -41,11 +66,7 @@ class MaskedBody
                     return '[hidden]';
                 }
 
-                if (is_array($value)) {
-                    return self::maskValues($value);
-                }
-
-                return $value;
+                return self::maskValue($value);
             })
             ->all();
     }

@@ -5,7 +5,7 @@
     "All Time": "Sepanjang masa",
     "Blockquote": "Petikan blok",
     "Bold": "Tebal",
-    "Bullet list": "Senarai berbutir",
+    "Bullet list": "Senarai bertitik",
     "Cancel": "Batal",
     "Center": "Tengah",
     "Change country": "Tukar negara",
@@ -95,7 +95,7 @@
     "Select range": "Pilih julat",
     "Showing": "Memaparkan",
     "Start": "Mula",
-    "Strikethrough": "Garis lorek",
+    "Strikethrough": "Garis tengah",
     "Styles": "Gaya",
     "Subscript": "Subskrip",
     "Superscript": "Superskrip",
@@ -157,5 +157,14 @@
     "Verify Email Address": "Sahkan alamat e-mel",
     "Verify your email address": "Sahkan alamat e-mel anda",
     "Please click the button below to verify your email address.": "Sila klik butang di bawah untuk mengesahkan alamat e-mel anda.",
-    "If you did not create an account, no further action is required.": "Jika anda tidak mencipta akaun, tiada tindakan lanjut diperlukan."
+    "If you did not create an account, no further action is required.": "Jika anda tidak mencipta akaun, tiada tindakan lanjut diperlukan.",
+    "This action is unauthorized.": "Tindakan ini tidak dibenarkan.",
+    "Invalid credential format.": "Format kelayakan tidak sah.",
+    "Passkey registration session expired. Please try again.": "Sesi pendaftaran passkey telah tamat. Sila cuba lagi.",
+    "Passkey verification session expired. Please try again.": "Sesi pengesahan passkey telah tamat. Sila cuba lagi.",
+    "Unable to register passkey. Please try again.": "Passkey tidak dapat didaftarkan. Sila cuba lagi.",
+    "Unable to register this passkey.": "Passkey ini tidak dapat didaftarkan.",
+    "Unable to sign in with this account.": "Tidak dapat log masuk dengan akaun ini.",
+    "Unable to verify passkey. Please try again.": "Passkey tidak dapat disahkan. Sila cuba lagi.",
+    "Passkey not recognized. It may have been removed from your account.": "Passkey tidak dikenali. Passkey ini mungkin telah dibuang daripada akaun anda."
 }

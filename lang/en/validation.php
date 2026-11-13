@@ -202,7 +202,15 @@ return [
     */
 
     'attributes' => [
+        'code' => 'code',
+        'current_password' => 'current password',
+        'email' => 'email',
+        'language' => 'language',
+        'locale' => 'date and time format',
+        'name' => 'name',
+        'password' => 'password',
         'phone' => 'phone number',
+        'timezone' => 'time zone',
     ],
 
 ];

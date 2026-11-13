@@ -10,7 +10,7 @@ return [
     ],
     'recovery' => [
         'heading' => 'Kod pemulihan',
-        'description' => 'Sila sahkan akses ke akaun anda dengan memasukkan salah satu kod pemulihan kecemasan anda.',
+        'description' => 'Sila sahkan akaun anda dengan memasukkan salah satu kod pemulihan kecemasan anda.',
     ],
     'or_you_can' => 'atau anda boleh',
     'use_recovery_code' => 'log masuk menggunakan kod pemulihan',

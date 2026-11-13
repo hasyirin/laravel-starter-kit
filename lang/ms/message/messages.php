@@ -35,7 +35,7 @@ return [
     'intercepted_to' => 'Intercept kepada',
     'started_at' => 'Dimulakan',
     'sent_at' => 'Dihantar',
-    'resend_of' => 'Hantar semula bagi mesej daripada',
+    'resend_of' => 'Hantar semula bagi mesej bertarikh',
     'resends' => 'Hantar semula',
     'tracking' => 'Penjejakan',
     'viewed' => 'Dilihat',
@@ -97,7 +97,7 @@ return [
         ],
         'dropped' => [
             'label' => 'Aplikasi menghentikan mesej sebelum mesej dihantar.',
-            'suggestion' => 'Di luar production, intercept menggugurkan mesej apabila tiada alamat atau nombor telefon untuk menerimanya.',
+            'suggestion' => 'Di luar production, Intercept menggugurkan mesej apabila tiada alamat atau nombor telefon untuk menerimanya.',
         ],
         'no_address' => [
             'label' => 'Penerima tiada alamat e-mel.',

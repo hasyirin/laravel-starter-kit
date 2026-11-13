@@ -42,10 +42,11 @@ return [
         'disable' => 'Nyahaktifkan 2FA',
         'manual_entry' => 'atau, masukkan kod secara manual',
         'setup_key' => 'Kunci persediaan',
+        'setup_failed' => 'Data persediaan tidak dapat dimuatkan.',
         'modal' => [
             'setup' => [
                 'title' => 'Aktifkan pengesahan dua faktor',
-                'description' => 'Untuk selesai mengaktifkan pengesahan dua faktor, imbas kod QR atau masukkan kunci persediaan dalam aplikasi pengesah anda.',
+                'description' => 'Untuk melengkapkan pengaktifan pengesahan dua faktor, imbas kod QR atau masukkan kunci persediaan dalam aplikasi pengesah anda.',
             ],
             'verify' => [
                 'title' => 'Sahkan kod pengesahan',
@@ -59,12 +60,13 @@ return [
     ],
     'recovery_codes' => [
         'heading' => 'Kod pemulihan 2FA',
-        'description' => 'Kod pemulihan membolehkan anda mendapat semula akses jika anda kehilangan peranti 2FA anda. Simpan kod ini dalam pengurus kata laluan yang selamat.',
+        'description' => 'Kod pemulihan membolehkan anda masuk semula ke akaun anda jika anda kehilangan peranti 2FA anda. Simpan kod ini dalam pengurus kata laluan yang selamat.',
         'show' => 'Lihat kod pemulihan',
         'hide' => 'Sembunyikan kod pemulihan',
         'regenerate' => 'Jana semula kod',
         'list' => 'Kod pemulihan',
-        'help' => 'Setiap kod pemulihan boleh digunakan sekali untuk mengakses akaun anda dan akan dibuang selepas digunakan. Jika anda memerlukan lebih banyak kod, klik Jana semula kod di atas.',
+        'load_failed' => 'Kod pemulihan tidak dapat dimuatkan.',
+        'help' => 'Setiap kod pemulihan boleh digunakan sekali untuk masuk ke akaun anda dan akan dibuang selepas digunakan. Jika anda memerlukan lebih banyak kod, klik Jana semula kod di atas.',
     ],
     'appearance' => [
         'title' => 'Tetapan paparan',

@@ -341,7 +341,7 @@ _Malay_: Dibuka
 
 **Click**:
 The first time that anyone follows a link in an email to a public page or another site. Link scanners can cause it, so it is not proof that a person read the email.
-_Malay_: Klik
+_Malay_: Diklik
 
 **View**:
 The first time that the recipient, signed in, follows a link in an email to a page that needs a sign-in. It is the only proof that the recipient read the email.

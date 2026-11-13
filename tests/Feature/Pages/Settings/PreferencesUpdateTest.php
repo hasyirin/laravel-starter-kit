@@ -164,3 +164,14 @@ test('the language select is hidden when the app lists one language', function (
 
     Livewire::test(Preferences::class)->assertDontSeeHtml('wire:model="language"');
 });
+
+test('each settings page has its title in the language of the user', function (string $route, string $title): void {
+    $this->actingAs(User::factory()->create(['language' => 'ms']))
+        ->get(route($route))
+        ->assertOk()
+        ->assertSee("<title>{$title} - ", false);
+})->with([
+    'user information' => ['user-information.edit', 'Tetapan maklumat pengguna'],
+    'preferences' => ['preferences.edit', 'Pilihan'],
+    'appearance' => ['appearance.edit', 'Tetapan paparan'],
+]);

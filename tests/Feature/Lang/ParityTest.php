@@ -71,3 +71,30 @@ test('no translation is empty', function (): void {
         expect($empty->all())->toBe([], "Empty lines of lang/{$language}");
     });
 });
+
+test('no translation has a word or a mark that the style forbids', function (): void {
+    otherLanguages()->each(function (string $language): void {
+        /** @var array<string, string> $sentences */
+        $sentences = File::json(lang_path("{$language}.json"));
+
+        $forbidden = translations($language)
+            ->merge($sentences)
+            ->filter(fn (string $line): bool => preg_match('/\blalai\b|tembok api|—|&mdash;/iu', $line) === 1)
+            ->keys();
+
+        expect($forbidden->all())->toBe([], "Lines of lang/{$language} with a forbidden word or an em dash");
+    });
+});
+
+test('a sentence that a package uses as a key keeps its placeholders', function (): void {
+    otherLanguages()->each(function (string $language): void {
+        /** @var array<string, string> $sentences */
+        $sentences = File::json(lang_path("{$language}.json"));
+
+        $different = collect($sentences)
+            ->filter(fn (string $line, string $key): bool => trim($line) === '' || placeholders($key)->all() !== placeholders($line)->all())
+            ->keys();
+
+        expect($different->all())->toBe([], "Sentences of lang/{$language}.json that are empty or have other placeholders");
+    });
+});

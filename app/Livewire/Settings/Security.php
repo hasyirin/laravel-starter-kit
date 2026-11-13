@@ -225,7 +225,7 @@ class Security extends Page
             $this->qrCodeSvg = $user->twoFactorQrCodeSvg();
             $this->manualSetupKey = $manualSetupKey;
         } catch (Exception) {
-            $this->addError('setupData', 'Failed to fetch setup data.');
+            $this->addError('setupData', __('user/settings.two_factor.setup_failed'));
 
             $this->reset('qrCodeSvg', 'manualSetupKey');
         }

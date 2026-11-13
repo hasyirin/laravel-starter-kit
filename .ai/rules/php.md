@@ -18,13 +18,20 @@ Check the edge cases first and return early, so the main path stays at the lowes
 Choose readable code over short code. Never nest ternaries: use guard clauses, `if` statements, or `match`. Give each step its own line instead of a long chain on one line. If a variable needs a docblock, such as `/** @var User $actor */`, and the line above it declares another variable, put an empty line between them.
 
 ## Choose by enum case with match
-When an enum method gives a result for each case, use `match ($this)`. Do not use `if ($this === self::X)`. Give each case its own arm. Use `default` only when most cases give the same result. Without `default`, PHPStan reports a new case that has no arm. A case that needs several steps of logic can keep its own `if`. Static methods are not part of this rule.
+When an enum method gives a result for each case, use `match ($this)`. Do not use `if ($this === self::X)`. Name every case in an arm. If cases give the same result, put them in one arm and separate them with commas. Do not repeat the same result in several arms. Prefer a shared arm to `default`: without `default`, PHPStan reports a new case that has no arm. Use `default` only when almost all cases of a large enum give the same result, and the shared arm would be long. A case that needs several steps of logic can keep its own `if`. Static methods are not part of this rule.
 
 ```php
 return match ($this) {
     self::Sending => 'amber',
     self::Sent => 'green',
     self::Failed => 'red',
+};
+```
+
+```php
+return match ($this) {
+    self::Internal, self::System => "{$this->value}.{$name}",
+    self::Guest, self::App => $name,
 };
 ```
 

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use Saloon\Config;
 use Saloon\Exceptions\Request\FatalRequestException;
+use Saloon\Exceptions\StrayRequestException;
 use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Connector;
 use Saloon\Http\Faking\MockResponse;
@@ -70,6 +71,12 @@ test('a service name that system.api.services does not list is refused', functio
     };
 
     expect(fn (): Response => $connector->send(new GetStatus))->toThrow(LogicException::class, 'The service [acme] is not in system.api.services.');
+});
+
+test('a call to a service in a test without a fake fails before it is sent', function (): void {
+    config(['system.api.services.billing.base_url' => 'https://billing.invalid']);
+
+    expect(fn (): Response => new BillingConnector()->send(new GetStatus))->toThrow(StrayRequestException::class);
 });
 
 test('a call to a service makes one outbound row with the service, the method, the URL, the status, the outcome, the sizes and the trace ID', function (int $status, ApiCallOutcome $outcome): void {
@@ -283,7 +290,13 @@ test('a streamed response reaches the caller in full and still makes a row witho
         new PsrResponse(200, [], new NoSeekStream(Utils::streamFor('{"id":7}'))),
     ]));
 
-    $response = $connector->send(new GetStatus);
+    Config::allowStrayRequests();
+
+    try {
+        $response = $connector->send(new GetStatus);
+    } finally {
+        Config::preventStrayRequests();
+    }
 
     expect($response->body())->toBe('{"id":7}')
         ->and(ApiCall::query()->sole()->only('status', 'response_size', 'response_body'))->toBe([

@@ -239,6 +239,8 @@ The app writes the API log row of a call in the database transaction of the call
 Saloon::fake([MockResponse::make(['id' => 7], 201)]);
 ```
 
+A test that calls a service without a fake fails with a `Saloon\Exceptions\StrayRequestException`. The request is not sent.
+
 The API log still records each faked call. To fake a call that cannot connect, make the response throw a `Saloon\Exceptions\Request\FatalRequestException`. `tests/Feature/Domain/Shared/Api/Connectors/ServiceConnectorTest.php` shows how.
 
 ### Link an API Client to a Service

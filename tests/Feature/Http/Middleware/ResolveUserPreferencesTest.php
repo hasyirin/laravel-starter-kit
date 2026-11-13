@@ -132,3 +132,10 @@ test('impersonation never fills the empty preferences of the user from the brows
 
     expect([$user->refresh()->timezone, $user->language, $user->locale])->toBe([null, null, null]);
 });
+
+test('a page shows its text in the chosen language', function (string $language, string $heading): void {
+    $this->withCookie('language', $language)->get(route('login'))->assertOk()->assertSee($heading)->assertSee('lang="'.$language.'"', false);
+})->with([
+    'English' => ['en', 'Log in to your account'],
+    'Malay' => ['ms', 'Log masuk ke akaun anda'],
+]);

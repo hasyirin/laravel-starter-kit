@@ -11,13 +11,12 @@ use App\Domain\User\Support\Preferences as UserPreferences;
 use App\Livewire\Pages\Shared\Page;
 use DateTimeZone;
 use Flux\Flux;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Title;
 use Locale;
 
-#[Title('Preferences')]
 class Preferences extends Page
 {
     public string $timezone = '';
@@ -105,5 +104,10 @@ class Preferences extends Page
         }
 
         return new UserPreferences($this->timezone, $this->locale)->datetime(now());
+    }
+
+    public function render(): View
+    {
+        return view('livewire.settings.preferences')->title(__('user/settings.preferences.title'));
     }
 }

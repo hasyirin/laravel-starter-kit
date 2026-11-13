@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Livewire\Pages\Shared\Page;
-use Livewire\Attributes\Title;
+use Illuminate\Contracts\View\View;
 
-#[Title('Appearance settings')]
 class Appearance extends Page
 {
-    //
+    public function render(): View
+    {
+        return view('livewire.settings.appearance')->title(__('user/settings.appearance.title'));
+    }
 }

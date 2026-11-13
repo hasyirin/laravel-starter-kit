@@ -11,6 +11,7 @@ use App\Livewire\Concerns\ConfirmsPassword;
 use App\Livewire\Pages\Shared\Page;
 use Exception;
 use Flux\Flux;
+use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
@@ -20,11 +21,9 @@ use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Actions\DeletePasskey;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use UnexpectedValueException;
 
-#[Title('Security settings')]
 class Security extends Page
 {
     use ConfirmsPassword;
@@ -342,5 +341,10 @@ class Security extends Page
             'description' => (string) __('user/settings.two_factor.modal.setup.description'),
             'buttonText' => (string) __('common/buttons.continue'),
         ];
+    }
+
+    public function render(): View
+    {
+        return view('livewire.settings.security')->title(__('user/settings.security.title'));
     }
 }

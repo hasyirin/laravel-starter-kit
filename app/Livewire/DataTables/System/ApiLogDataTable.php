@@ -78,6 +78,7 @@ class ApiLogDataTable extends DataTable
                 ->alignEnd(),
             TextColumn::make('ip_address')
                 ->label((string) __('api/api-calls.ip_address'))
+                ->placeholder((string) __('api/api-calls.no_ip_address'))
                 ->toggleable(isToggledHiddenByDefault: true),
         ];
     }

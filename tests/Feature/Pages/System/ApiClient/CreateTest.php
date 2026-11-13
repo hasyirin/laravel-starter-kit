@@ -114,6 +114,18 @@ test('each allowed IP address must be an IP address or a CIDR range, with the er
     expect(ApiClient::query()->exists())->toBeFalse();
 });
 
+test('the error of an allowed IP address row shows one time, on its row', function (): void {
+    $html = apiClientCreate()
+        ->set('form.allowed_ip_addresses', [
+            ['address' => 'localhost', 'description' => ''],
+            ['address' => '192.0.2.10', 'description' => ''],
+        ])
+        ->call('save')
+        ->html();
+
+    expect(substr_count($html, 'Enter an IP address or a CIDR range'))->toBe(1);
+});
+
 test('a range of every address is refused, so only the switch allows every address', function (string $range): void {
     apiClientCreate()
         ->set('form.allowed_ip_addresses', [['address' => $range, 'description' => '']])

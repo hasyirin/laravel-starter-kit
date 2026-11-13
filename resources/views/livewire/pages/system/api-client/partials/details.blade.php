@@ -40,6 +40,7 @@
             :label="__('api/api-clients.allowed_ip_addresses')"
             :description="__('api/api-clients.allowed_ip_addresses_description')"
             name="form.allowed_ip_addresses"
+            no-error-message
             class="sm:col-span-2"
         >
             <div class="space-y-2" x-data="repeatableRows('form.allowed_ip_addresses')">
@@ -64,6 +65,7 @@
                             <flux:button
                                 icon="trash"
                                 variant="ghost"
+                                class="shrink-0"
                                 data-row-remove
                                 :aria-label="__('common/buttons.delete')"
                                 x-on:click="removeRow({{ Js::from($index) }})"
@@ -77,6 +79,8 @@
                     </flux:button>
                 @endunless
             </div>
+
+            <flux:error name="form.allowed_ip_addresses" :deep="false" />
         </x-field>
 
         <div class="sm:col-span-2">

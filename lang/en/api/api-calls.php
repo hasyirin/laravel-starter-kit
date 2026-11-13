@@ -18,6 +18,7 @@ return [
     'from' => 'From',
     'until' => 'Until',
     'ip_address' => 'IP address',
+    'no_ip_address' => 'No IP address',
     'user_agent' => 'User agent',
     'trace_id' => 'Trace ID',
     'route_name' => 'Route name',

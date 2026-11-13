@@ -59,6 +59,15 @@ test('the IP address column is hidden at first and can be shown with the column 
         ->assertTableColumnStateSet('ip_address', '192.0.2.10', $apiCall);
 });
 
+test('the IP address cell of an outbound call says that it has no IP address', function (): void {
+    $outbound = ApiCall::factory()->outbound()->create();
+
+    Livewire::test(ApiLogDataTable::class)
+        ->toggleAllTableColumns()
+        ->assertTableColumnExists('ip_address', fn (TextColumn $column): bool => $column->getState() === null && $column->getPlaceholder() === __('api/api-calls.no_ip_address'), $outbound)
+        ->assertSee('No IP address');
+});
+
 test('the list shows the outcome as a label in the color of the outcome, and the duration in milliseconds', function (): void {
     $apiCall = ApiCall::factory()->rejected(ApiCallOutcome::RevokedToken)->create(['duration_ms' => 42]);
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Domain\User\Actions\Fortify\CreateNewUser;
-use App\Domain\User\Actions\Fortify\ResetUserPassword;
+use App\Domain\User\Actions\Registration\RegisterUser;
+use App\Domain\User\Actions\Security\ResetForgottenPassword;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use App\Http\Responses\LoginResponse;
@@ -51,8 +51,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureActions(): void
     {
-        Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
-        Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::resetUserPasswordsUsing(ResetForgottenPassword::class);
+        Fortify::createUsersUsing(RegisterUser::class);
         Fortify::confirmPasswordsUsing(function (User $user, #[SensitiveParameter] ?string $password): bool {
             if (Impersonation::active()) {
                 $user = Impersonation::impersonator();

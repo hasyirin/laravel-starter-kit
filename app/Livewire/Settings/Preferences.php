@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
-use App\Domain\User\Actions\UpdatePreferences;
+use App\Domain\User\Actions\Settings\UpdatePreferences;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Languages;
 use App\Domain\User\Support\Preferences as UserPreferences;

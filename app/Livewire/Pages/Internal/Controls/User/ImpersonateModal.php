@@ -8,7 +8,7 @@ use App\Domain\Shared\Organization\Models\Branch;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Permission\Models\Role;
-use App\Domain\User\Actions\StartImpersonation;
+use App\Domain\User\Actions\Impersonation\StartImpersonation;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;

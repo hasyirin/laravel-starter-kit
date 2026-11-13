@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Domain\Shared\Common\Enums\Feature;
-use App\Domain\User\Actions\UpdatePassword;
+use App\Domain\User\Actions\Security\UpdatePassword;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
 use App\Livewire\Concerns\ConfirmsPassword;

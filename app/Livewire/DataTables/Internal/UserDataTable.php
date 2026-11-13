@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\DataTables\Internal;
 
-use App\Domain\User\Actions\DeleteOtherUser;
+use App\Domain\User\Actions\Management\DeleteOtherUser;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use App\Filament\Actions\CreateAction;

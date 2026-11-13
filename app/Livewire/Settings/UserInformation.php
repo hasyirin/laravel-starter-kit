@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Domain\Shared\Common\Enums\Feature;
-use App\Domain\User\Actions\UpdateUserInformation;
+use App\Domain\User\Actions\Settings\UpdateUserInformation;
 use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Contracts\Models\MustVerifyPhone;
 use App\Domain\User\Models\User;

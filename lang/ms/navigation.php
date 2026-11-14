@@ -19,8 +19,10 @@ return [
     'horizon' => 'Horizon',
     'logs' => 'Log',
     'audit_log' => 'Log audit',
+    'api_clients' => 'Klien API',
     'manual_letter' => 'Surat manual',
     'message_log' => 'Log mesej',
+    'api_log' => 'Log API',
     'notifications' => 'Notifikasi',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',

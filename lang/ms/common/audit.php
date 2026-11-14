@@ -34,6 +34,8 @@ return [
     ],
     'subjects' => [
         'action' => 'Tindakan',
+        'api_client' => 'Klien API',
+        'api_token' => 'Token API',
         'branch' => 'Cawangan',
         'country' => 'Negara',
         'department' => 'Jabatan',

@@ -2,7 +2,7 @@
 
 The app calls each service through a Saloon connector that extends `ServiceConnector`. The connector reads the base URL, the timeouts, and the retry settings of the service from `system.api.services`. Each endpoint of the service is a request class that extends `ServiceRequest`. The connector writes one API log row for each attempt of each call. See [API](../../api.md).
 
-Saloon gives each service a structure: one connector for the service, and one request class for each endpoint. A developer finds all the calls to a service in one place. Saloon also has authenticators, OAuth2 grants, pagination, and test fixtures, so an app does not write them again for each service. Saloon sends each attempt as a new request, so each attempt gets its own row and its own duration. Since Saloon 4, a request cannot replace the base URL with an absolute URL, so it cannot send the credentials of a service to another host.
+Saloon gives each service a structure: one connector for the service, and one request class for each endpoint. A developer finds all the calls to a service in one place. Saloon also has authenticators, OAuth2 grants, pagination, and test fixtures, so an app does not write them again for each service. Saloon sends each attempt as a new request, so each attempt gets its own row and its own duration. Since Saloon 4, a request cannot replace the base URL with an absolute URL. So it cannot send the credentials of a service to another host.
 
 ## Considered Options
 

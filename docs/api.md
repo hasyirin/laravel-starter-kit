@@ -82,7 +82,7 @@ Do not protect a route in another file with `auth:api` alone. The `api` guard ch
 
     The API log shows such a 403 as Client error, not as Missing scope. So use the middleware when the whole route needs the scope.
 
-An API client is not a `User`. It has no roles and no permissions. Gates and policies are not for API clients: `Gate::before` in `AppServiceProvider` gives no answer for an API client, and each policy of the kit takes a `User`. So check scopes only, with the middleware or with `tokenCan()`.
+An API client is not a `User`. It has no roles and no permissions. Gates and policies are not for API clients. `Gate::before` in `AppServiceProvider` gives no answer for an API client. Each policy of the kit takes a `User`. So check scopes only, with the middleware or with `tokenCan()`.
 
 ## Status Codes and Errors
 
@@ -105,7 +105,7 @@ Each error on a path under `/api/` uses the application/problem+json format of R
 }
 ```
 
-- `detail` comes from `lang/en/api/problems.php`, or from the same file of the language in `app.locale`, such as `lang/ms/api/problems.php`. The messages of a 422 use that language too. The `detail` is the same for each reason of a 401 or a 403, so the response does not tell a caller why the API rejected the call. The API log row has the reason.
+- `detail` comes from `lang/en/api/problems.php`, or from the same file of the language in `app.locale`, such as `lang/ms/api/problems.php`. The messages of a 422 use that language too. The `detail` is the same for each reason of a 401 or a 403. So the response does not tell a caller why the API rejected the call. The API log row has the reason.
 - `trace_id` is the trace ID of the request. The response also sends it in the header `X-Request-Id`.
 - A 422 adds `errors`, with the messages for each field.
 - A 500 shows the message of the exception only while debug mode is on.
@@ -126,7 +126,7 @@ The default is empty, so the app trusts no proxy. This is also true on Laravel C
 
 ## CORS
 
-API clients are servers, not browsers, so the API sends no CORS headers. `config/cors.php` lists no paths. If an app needs a browser to call the API, add the paths to `paths` and the origins to `allowed_origins` in `config/cors.php`.
+API clients are servers, not browsers, so the API sends no CORS headers. `config/cors.php` lists no paths. If an app needs a browser to call the API, change `config/cors.php`. Add the paths to `paths` and the origins to `allowed_origins`.
 
 ## Log the Bodies of a Route
 
@@ -220,7 +220,7 @@ A response middleware that a connector or a request registers with `Saloon\Enums
 
 ### Credentials
 
-`ServiceConnector` adds no credentials. Keep the credentials of a service in the environment, and read them in `config/services.php`, as for an SMS gateway (see [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md)). Give them to the connector with a Saloon authenticator in `defaultAuth()`, as in the example above. For OAuth2, use the Saloon OAuth2 traits on the connector.
+`ServiceConnector` adds no credentials. Keep the credentials of a service in the environment, and read them in `config/services.php`. Do the same as for an SMS gateway (see [kit ADR-0014](adr/kit/0014-the-kit-sends-sms-through-its-own-channel.md)). Give them to the connector with a Saloon authenticator in `defaultAuth()`, as in the example above. For OAuth2, use the Saloon OAuth2 traits on the connector.
 
 ### Make a Call
 

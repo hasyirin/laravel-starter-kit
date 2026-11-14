@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
 use App\Livewire\Settings\Preferences;
 use Carbon\CarbonImmutable;
 use Livewire\Livewire;
@@ -74,3 +75,103 @@ test('the date and time formats are named in the language of the app', function 
         ->assertSee('Malay (Malaysia)')
         ->assertDontSee('Melayu (Malaysia)');
 });
+
+test('the language starts at the one of the user, or else at the one of the app', function (?string $language, string $expected): void {
+    app()->setLocale('ms');
+    $this->actingAs(User::factory()->create(['language' => $language]));
+
+    Livewire::test(Preferences::class)->assertSet('language', $expected);
+})->with([
+    'a chosen language' => ['ms', 'ms'],
+    'no language yet' => [null, 'en'],
+]);
+
+test('a save during impersonation never gives the language of the impersonator to a user without one', function (): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+    Impersonation::begin(User::factory()->create(['language' => 'ms']), route('dashboard'));
+    app()->setLocale('ms');
+
+    Livewire::test(Preferences::class)
+        ->set('timezone', 'Asia/Tokyo')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($user->refresh()->language)->toBe('en');
+});
+
+test('a user whose language is no longer listed can still save', function (): void {
+    config(['system.languages' => ['en' => 'English']]);
+    $user = User::factory()->create(['language' => 'ms']);
+
+    $this->actingAs($user);
+
+    Livewire::test(Preferences::class)
+        ->set('timezone', 'Asia/Tokyo')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect([$user->refresh()->timezone, $user->language])->toBe(['Asia/Tokyo', 'en']);
+});
+
+test('the language can be updated, and the page loads again in that language', function (): void {
+    $user = User::factory()->create(['language' => 'en']);
+
+    $this->actingAs($user);
+
+    Livewire::test(Preferences::class)
+        ->set('language', 'ms')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('preferences.edit'));
+
+    expect($user->refresh()->language)->toBe('ms')
+        ->and(cookie()->queued('language')?->getValue())->toBe('ms');
+});
+
+test('a save that keeps the language does not load the page again', function (): void {
+    $this->actingAs(User::factory()->create(['language' => 'en']));
+
+    Livewire::test(Preferences::class)
+        ->set('timezone', 'Asia/Tokyo')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertNoRedirect();
+
+    expect(cookie()->queued('language')?->getValue())->toBe('en');
+});
+
+test('an unlisted language is rejected', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(Preferences::class)
+        ->set('language', 'fr')
+        ->call('save')
+        ->assertHasErrors(['language']);
+});
+
+test('each language is named in its own language', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(Preferences::class)
+        ->assertSeeInOrder(['wire:model="language"', 'English', 'Bahasa Melayu']);
+});
+
+test('the language select is hidden when the app lists one language', function (): void {
+    config(['system.languages' => ['en' => 'English']]);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(Preferences::class)->assertDontSeeHtml('wire:model="language"');
+});
+
+test('each settings page has its title in the language of the user', function (string $route, string $title): void {
+    $this->actingAs(User::factory()->create(['language' => 'ms']))
+        ->get(route($route))
+        ->assertOk()
+        ->assertSee("<title>{$title} - ", false);
+})->with([
+    'user information' => ['user-information.edit', 'Tetapan maklumat pengguna'],
+    'preferences' => ['preferences.edit', 'Pilihan'],
+    'appearance' => ['appearance.edit', 'Tetapan paparan'],
+]);

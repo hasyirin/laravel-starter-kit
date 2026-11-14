@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Domain\Shared\Common\Enums\Feature;
-use App\Domain\User\Actions\UpdateUserInformation;
+use App\Domain\User\Actions\Settings\UpdateUserInformation;
 use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Contracts\Models\MustVerifyPhone;
 use App\Domain\User\Models\User;
@@ -13,11 +13,10 @@ use App\Http\Enums\Area;
 use App\Livewire\Pages\Shared\Page;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Title;
 
-#[Title('User information settings')]
 class UserInformation extends Page
 {
     use UserInformationValidationRules;
@@ -110,5 +109,10 @@ class UserInformation extends Page
         $user = auth()->user();
 
         return Feature::PhoneVerification->enabled() && $user instanceof MustVerifyPhone && $user->getPhoneForVerification() !== null && ! $user->hasVerifiedPhone();
+    }
+
+    public function render(): View
+    {
+        return view('livewire.settings.user-information')->title(__('user/settings.user_information.title'));
     }
 }

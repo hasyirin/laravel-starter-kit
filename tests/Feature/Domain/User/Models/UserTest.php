@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
+use App\Domain\User\Notifications\PasswordWasReset;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Notification;
 
 test('deleting a user soft deletes it', function (): void {
     $user = User::factory()->create();
@@ -90,3 +92,22 @@ test('many users can have no phone number', function (): void {
 
     expect(User::query()->whereNull('phone')->count())->toBe(2);
 });
+
+test('a message to a user uses the language of that user', function (): void {
+    Notification::fake();
+    $user = User::factory()->create(['language' => 'ms']);
+
+    $user->notify(new PasswordWasReset);
+
+    Notification::assertSentTo($user, PasswordWasReset::class, fn (PasswordWasReset $notification, array $channels, User $notifiable, ?string $locale): bool => $locale === 'ms');
+});
+
+test('a message to a user without a listed language uses the language of the app, not of the sender', function (?string $language): void {
+    config(['system.languages' => ['en' => 'English']]);
+    app()->setLocale('ms');
+
+    expect(User::factory()->make(['language' => $language])->preferredLocale())->toBe('en');
+})->with([
+    'no language' => [null],
+    'an unlisted language' => ['ms'],
+]);

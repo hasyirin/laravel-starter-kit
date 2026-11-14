@@ -48,6 +48,7 @@ return [
         'disable' => 'Disable 2FA',
         'manual_entry' => 'or, enter the code manually',
         'setup_key' => 'Setup key',
+        'setup_failed' => 'The setup data could not be loaded.',
         'modal' => [
             'setup' => [
                 'title' => 'Enable two-factor authentication',
@@ -71,6 +72,7 @@ return [
         'hide' => 'Hide recovery codes',
         'regenerate' => 'Regenerate codes',
         'list' => 'Recovery codes',
+        'load_failed' => 'The recovery codes could not be loaded.',
         'help' => 'Each recovery code can be used once to access your account and will be removed after use. If you need more, click Regenerate codes above.',
     ],
 

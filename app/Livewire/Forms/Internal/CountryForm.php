@@ -51,16 +51,6 @@ class CountryForm extends Form
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function validationAttributes(): array
-    {
-        return [
-            'alpha_2' => (string) __('common/inputs.alpha_2'),
-        ];
-    }
-
     public function editable(string $part): bool
     {
         if ($part !== 'code' || ! $this->country instanceof Country) {

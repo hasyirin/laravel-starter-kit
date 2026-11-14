@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Domain\Shared\Common\Enums\Feature;
-use App\Domain\User\Actions\UpdatePassword;
+use App\Domain\User\Actions\Security\UpdatePassword;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
 use App\Livewire\Concerns\ConfirmsPassword;
 use App\Livewire\Pages\Shared\Page;
 use Exception;
 use Flux\Flux;
+use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
@@ -20,11 +21,9 @@ use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Actions\DeletePasskey;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use UnexpectedValueException;
 
-#[Title('Security settings')]
 class Security extends Page
 {
     use ConfirmsPassword;
@@ -226,7 +225,7 @@ class Security extends Page
             $this->qrCodeSvg = $user->twoFactorQrCodeSvg();
             $this->manualSetupKey = $manualSetupKey;
         } catch (Exception) {
-            $this->addError('setupData', 'Failed to fetch setup data.');
+            $this->addError('setupData', __('user/settings.two_factor.setup_failed'));
 
             $this->reset('qrCodeSvg', 'manualSetupKey');
         }
@@ -342,5 +341,10 @@ class Security extends Page
             'description' => (string) __('user/settings.two_factor.modal.setup.description'),
             'buttonText' => (string) __('common/buttons.continue'),
         ];
+    }
+
+    public function render(): View
+    {
+        return view('livewire.settings.security')->title(__('user/settings.security.title'));
     }
 }

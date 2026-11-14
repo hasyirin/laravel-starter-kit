@@ -96,7 +96,7 @@ _Malay_: Kawasan sistem
 
 **Staff**:
 The users who can open the internal area.
-_Malay_: Kakitangan
+_Malay_: Pegawai
 
 **System administrator**:
 A user who can open the system area.

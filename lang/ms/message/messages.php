@@ -25,7 +25,7 @@ return [
         'opened' => 'Klien e-mel telah memuatkan imej dalam e-mel. Ini bukan bukti bahawa seseorang telah membaca e-mel tersebut.',
         'clicked' => 'Seseorang telah mengikuti pautan dalam e-mel. Pengimbas pautan boleh melakukannya, jadi ini bukan bukti bahawa seseorang telah membaca e-mel tersebut.',
         'viewed' => 'Penerima, selepas log masuk, telah mengikuti pautan dalam e-mel. Ini satu-satunya bukti bahawa penerima telah membaca e-mel tersebut.',
-        'resend' => '"Hantar semula" mengulangi mesej yang terdahulu. "Dihantar semula" menandakan mesej yang telah dihantar sekali lagi oleh kakitangan.',
+        'resend' => '"Hantar semula" mengulangi mesej yang terdahulu. "Dihantar semula" menandakan mesej yang telah dihantar sekali lagi oleh pegawai.',
         'started' => 'Masa aplikasi mula menghantar mesej.',
         'sent' => 'Masa server e-mel atau gateway SMS menerima mesej. Ini bukan bukti bahawa mesej telah sampai kepada penerima.',
     ],

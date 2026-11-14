@@ -10,7 +10,7 @@ test('a parameter that holds a phone number, a password, a one-time code, a pass
     $secret = fn (ReflectionMethod $method, ReflectionParameter $parameter): bool => match ($parameter->getName()) {
         'phone', 'password' => true,
         'code', 'token' => str_starts_with($method->class, 'App\\Domain\\User\\'),
-        'input' => str_starts_with($method->class, 'App\\Domain\\User\\Actions\\Fortify\\'),
+        'input' => collect($method->getDeclaringClass()->getInterfaceNames())->contains(fn (string $interface): bool => str_starts_with($interface, 'Laravel\\Fortify\\Contracts\\')),
         'message' => is_a($method->class, SmsGateway::class, true),
         'address' => str_starts_with($method->class, 'App\\Domain\\Shared\\Message\\'),
         default => false,

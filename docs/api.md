@@ -124,6 +124,10 @@ The default is empty, so the app trusts no proxy. This is also true on Laravel C
 > [!WARNING]
 > Do not set `TRUSTED_PROXIES` to `*`. The app then trusts the `X-Forwarded-For` header of every caller. A caller can then send any IP address and pass the allowed IP address check of each API client. It can also pass the limit of failed authentications.
 
+## CORS
+
+API clients are servers, not browsers, so the API sends no CORS headers. `config/cors.php` lists no paths. If an app needs a browser to call the API, add the paths to `paths` and the origins to `allowed_origins` in `config/cors.php`.
+
 ## Log the Bodies of a Route
 
 The API log stores no bodies by default. To store the request body and the response body of a route, add the `log-bodies` middleware:

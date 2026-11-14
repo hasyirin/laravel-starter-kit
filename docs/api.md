@@ -1,6 +1,6 @@
 # API
 
-The app has an API that API clients call with an API token. The app also calls services. The API log records each call in both directions. The [glossary](../GLOSSARY.md#api) defines the terms: API client, service, API token, scope, allowed IP address, and API log. See [kit ADR-0016](adr/kit/0016-the-kit-issues-its-own-api-tokens.md), [kit ADR-0017](adr/kit/0017-one-api-log-records-both-directions.md), and [kit ADR-0018](adr/kit/0018-calls-to-services-go-through-saloon-connectors.md).
+The app has an API that API clients call with an API token. The app also calls services. The API log records each call in both directions. The [glossary](../GLOSSARY.md#api) defines the terms: API client, service, API token, scope, allowed IP address, and API log. See [kit ADR-0019](adr/kit/0019-the-kit-issues-its-own-api-tokens.md), [kit ADR-0020](adr/kit/0020-one-api-log-records-both-directions.md), and [kit ADR-0021](adr/kit/0021-calls-to-services-go-through-saloon-connectors.md).
 
 ## Register an API Client
 
@@ -136,7 +136,7 @@ See Bodies and Masking, below, before you turn it on.
 
 ## Call a Service
 
-The app calls each service through a [Saloon](https://docs.saloon.dev) connector. See [kit ADR-0018](adr/kit/0018-calls-to-services-go-through-saloon-connectors.md). The API log records each call through a connector that extends `ServiceConnector`.
+The app calls each service through a [Saloon](https://docs.saloon.dev) connector. See [kit ADR-0021](adr/kit/0021-calls-to-services-go-through-saloon-connectors.md). The API log records each call through a connector that extends `ServiceConnector`.
 
 ### Declare a Service
 

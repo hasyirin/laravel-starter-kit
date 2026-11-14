@@ -241,6 +241,22 @@ test('the rate limit is a whole number from 1 to 100000', function (mixed $rateL
     'above the maximum' => [100_001, 'max'],
 ]);
 
+test('a form names its fields in the language of the page', function (string $language, string $rateLimitMessage, string $addressMessage): void {
+    app()->setLocale($language);
+
+    $errors = apiClientCreate()
+        ->set('form.rate_limit_per_minute', null)
+        ->set('form.allowed_ip_addresses', [['address' => '', 'description' => '']])
+        ->call('save')
+        ->errors();
+
+    expect($errors->first('form.rate_limit_per_minute'))->toBe($rateLimitMessage)
+        ->and($errors->first('form.allowed_ip_addresses.0.address'))->toBe($addressMessage);
+})->with([
+    'English' => ['en', 'The rate limit field is required.', 'The IP address field is required.'],
+    'Malay' => ['ms', 'Medan had panggilan diperlukan.', 'Medan alamat IP diperlukan.'],
+]);
+
 test('the service must be a service that the app declares', function (): void {
     config(['system.api.services' => ['billing' => ['base_url' => 'https://billing.test']]]);
 

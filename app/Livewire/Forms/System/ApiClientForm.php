@@ -92,17 +92,6 @@ class ApiClientForm extends Form
     }
 
     /**
-     * @return array<string, string>
-     */
-    public function validationAttributes(): array
-    {
-        return [
-            'allowed_ip_addresses.*.address' => (string) __('api/api-clients.ip_address'),
-            'allowed_ip_addresses.*.description' => (string) __('api/api-clients.description'),
-        ];
-    }
-
-    /**
      * @param  Closure(string): mixed  $fail
      */
     private function validateAllowedIpAddress(string $attribute, mixed $value, Closure $fail): void

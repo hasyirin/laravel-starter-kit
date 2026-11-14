@@ -245,7 +245,7 @@ test('a form names its fields in the language of the page', function (string $la
     app()->setLocale($language);
 
     $errors = apiClientCreate()
-        ->set('form.rate_limit_per_minute', null)
+        ->set('form.rate_limit_per_minute')
         ->set('form.allowed_ip_addresses', [['address' => '', 'description' => '']])
         ->call('save')
         ->errors();

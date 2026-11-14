@@ -105,6 +105,9 @@
         @endif
     </head>
     <body class="mx-[20mm] font-sans text-sm text-black">
+        {{-- Chrome prints the page number in a system font unless the body has text in the regular face. --}}
+        <span class="invisible fixed">0</span>
+
         @if($draft)
             <div class="pointer-events-none fixed inset-0 flex items-center justify-center">
                 <span class="-rotate-45 text-9xl font-bold tracking-widest text-gray-300 uppercase opacity-50">{{ __('letters/letters.draft') }}</span>

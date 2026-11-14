@@ -4,6 +4,49 @@
 @source '../views/components/letter';
 @source '../views/components/letter.blade.php';
 @source '../views/components/letterhead.blade.php';
+@source inline('font-bold italic font-mono');
+
+@font-face {
+    font-family: 'Letter Sans';
+    font-weight: 400;
+    font-style: normal;
+    src: url('../fonts/letter/sans/regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Letter Sans';
+    font-weight: 700;
+    font-style: normal;
+    src: url('../fonts/letter/sans/bold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Letter Sans';
+    font-weight: 400;
+    font-style: italic;
+    src: url('../fonts/letter/sans/italic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Letter Sans';
+    font-weight: 700;
+    font-style: italic;
+    src: url('../fonts/letter/sans/bold-italic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Letter Mono';
+    font-weight: 400;
+    font-style: normal;
+    src: url('../fonts/letter/mono/regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Letter Mono';
+    font-weight: 700;
+    font-style: normal;
+    src: url('../fonts/letter/mono/bold.woff2') format('woff2');
+}
 
 @page {
     size: A4;
@@ -20,7 +63,8 @@
 }
 
 @theme {
-    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Letter Sans', sans-serif;
+    --font-mono: 'Letter Mono', 'Letter Sans', monospace;
 }
 
 .letter-item {

@@ -384,6 +384,90 @@ Each print writes an audit entry with the event `printed-manual-letter`. The ent
 
 The signer list on this page holds all staff with a position, in any organization.
 
+## Fonts
+
+Each letter uses only bundled fonts, so a letter looks the same on every server. See `docs/adr/kit/0018-letters-bundle-their-fonts-in-one-folder-for-each-family.md` for the reasons.
+
+The folder `resources/fonts/letter` holds one folder for each font family. Each folder holds static font files and the font license:
+
+| Folder                        | Font           | Family name | Tailwind class | Files                              |
+| ----------------------------- | -------------- | ----------- | -------------- | ---------------------------------- |
+| `resources/fonts/letter/sans` | Inter          | Letter Sans | `font-sans`    | regular, bold, italic, bold-italic |
+| `resources/fonts/letter/mono` | JetBrains Mono | Letter Mono | `font-mono`    | regular, bold                      |
+
+Both fonts have the SIL Open Font License. All letter text uses `font-sans`, and so does the page number. Put `font-mono` on text that needs equal character widths. Put `tabular-nums` on a column of numbers in `font-sans`, so that the digits align.
+
+`resources/css/letter.css` has one `@font-face` rule for each file. The build writes each file into the stylesheet as a `data:` URI, so the letter page loads no font file.
+
+The letter page holds one hidden character in the regular sans file. Without it, Chrome prints the page number in a system font when the body has no regular text.
+
+### Replace a Font
+
+1. Overwrite the files in the folder with the files of your font. Keep the file names.
+2. If your font has other files or another file format, change the `@font-face` rules of the family in `resources/css/letter.css`.
+3. Replace `LICENSE.txt` in the folder with the license of your font.
+4. Run `bun run build`.
+5. Change the font names in the two font tests of `tests/Feature/Views/Components/Letter/PageTest.php`.
+6. Run `composer test`. The font tests fail when a letter PDF holds a font that they do not name, or a font that is not of the type CID TrueType. `tests/Pest.php` makes `composer test` run the letter page tests again after a change to a font file or to `resources/css/letter.css`.
+
+### Add a Font Family
+
+This example adds a font for headings.
+
+1. Make the folder resources/fonts/letter/heading and put the font files and the license in it.
+2. Add one `@font-face` rule for each file to `resources/css/letter.css`, with a new family name:
+
+    ```css
+    @font-face {
+        font-family: 'Letter Heading';
+        font-weight: 700;
+        font-style: normal;
+        src: url('../fonts/letter/heading/bold.woff2') format('woff2');
+    }
+    ```
+
+3. Add the family to the `@theme` block. Tailwind then makes the class `font-heading`:
+
+    ```css
+    --font-heading: 'Letter Heading', 'Letter Sans', sans-serif;
+    ```
+
+4. Add the class to the `@source inline(...)` line of `resources/css/letter.css`. The class is then in the stylesheet for the test, also when no letter view uses it.
+5. Add a line of text with the class to `tests/Fixtures/Views/letters/fonts.blade.php`, and add the font names to the font test.
+6. Use the class in a letter view, and run `bun run build`.
+7. Run `composer test`.
+
+For another weight or style of a family, such as `font-semibold`, add a font file and a `@font-face` rule. For a weight without a file, Chrome uses the nearest file and gives no error: `font-medium` prints as regular, and `font-semibold` prints as bold.
+
+### Rules for Font Files
+
+- Use static font files with TrueType outlines, one for each weight and style: TTF files, or WOFF2 files made from TTF files. Chrome embeds a variable font, and a font with CFF outlines (most OTF files), as a Type 3 font. The PDF text measurements then become wrong.
+- Use only a font whose license allows a copy on your server. A font from Microsoft Office, such as Aptos, needs a server license. Keep a licensed font out of a public repository.
+- Each letter page holds all the font files, about 350 KB together. The PDF holds only the fonts that the letter uses.
+- Chrome prints a character that no bundled file has in a system font. That character can look different on each server.
+
+### The Bundled Files
+
+The bundled files are subsets of the static TTF files of the Inter 4.1 and JetBrains Mono 2.304 releases.
+
+- They hold the Latin and Latin Extended characters. These include the letters of Malay, Turkish, Vietnamese, and the European languages that use the Latin script. Greek and Cyrillic are not included.
+- They hold common symbols: currency signs, arrows, fractions, superscript and subscript digits, common mathematical signs, the circled numbers ① to ⑨, and marks such as ✓ and ●.
+- They do not hold the checkbox marks ☐ and ☑, the heavy check mark ✔, or the circled numbers from ⑩. Chrome prints these in a system font.
+- JetBrains Mono has fewer characters than Inter. For a character that JetBrains Mono does not have, mono text uses the Inter file.
+- The files have no contextual alternates and no code ligatures, so the characters of -> and != print as typed.
+- Mono text has no italic file. Chrome slants the regular file.
+
+The fonttools command `pyftsubset` made each file. This is the command for the regular sans file:
+
+```sh
+pyftsubset Inter-Regular.ttf --output-file=regular.woff2 --flavor=woff2 --no-hinting \
+    --name-IDs=0,1,2,3,4,5,6,7,8,9,11,12,13,14 \
+    --layout-features+=tnum,pnum,case,zero,ordn,sups,subs,sinf --layout-features-=calt,liga \
+    --unicodes=U+0000-024F,U+0259,U+02BB-02DD,U+0300-036F,U+1E00-1EFF,U+2000-206F,U+2070-209F,U+20A0-20C0,U+2100-22FF,U+2460-24FF,U+25A0-25FF,U+2600-27BF,U+FEFF,U+FFFD
+```
+
+The mono files use `--layout-features+=case,zero,ordn,sups,subs,sinf` in place of the first `--layout-features` option.
+
 ## Server Setup
 
 Each server needs Node, Puppeteer, and Chrome 131 or later. Chrome 131 supports the CSS page margin boxes that the letters use.
@@ -391,7 +475,7 @@ Each server needs Node, Puppeteer, and Chrome 131 or later. Chrome 131 supports 
 - `composer setup` runs `bunx puppeteer browsers install chrome-headless-shell`. Run it on each server.
 - Set the package variables in `.env` when the defaults do not fit: `LARAVEL_PDF_NODE_BINARY`, `LARAVEL_PDF_NPM_BINARY`, `LARAVEL_PDF_CHROME_PATH`, `LARAVEL_PDF_NODE_MODULES_PATH`, `LARAVEL_PDF_BIN_PATH`, and `LARAVEL_PDF_TEMP_PATH`.
 - Set `LARAVEL_PDF_NO_SANDBOX` to true when Chrome runs as root or in a container.
-- Install a font package on each server, for example `apt install fonts-liberation`. Without fonts, Chrome prints empty boxes or a poor fallback font.
+- Install a font package on each server, for example `apt install fonts-liberation`. Chrome uses it for a character that the bundled letter fonts do not have. Without it, Chrome prints empty boxes for those characters. `fonts-liberation` holds Latin, Greek, and Cyrillic. For symbols or another script, install a package that holds them.
 - Run `bun run build` before the first render. The letter page reads the built `resources/css/letter.css`.
 - Keep `app.timezone` at `UTC`.
 - CI needs `poppler-utils` for the tests that read PDF text. `.github/workflows/tests.yml` installs it.
@@ -742,6 +826,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it prints an html header and footer on each page
 - it keeps body text clear of an html header and footer
 - it prints page numbers as page of pages
+- it prints the text and the page number in the bundled fonts only
+- it prints the page number in the bundled font when the body has no regular text
 
 <!-- /generated:test-rules -->
 

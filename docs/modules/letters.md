@@ -408,7 +408,7 @@ The letter page holds one hidden character in the regular sans file. Without it,
 3. Replace `LICENSE.txt` in the folder with the license of your font.
 4. Run `bun run build`.
 5. Change the font names in the two font tests of `tests/Feature/Views/Components/Letter/PageTest.php`.
-6. Run `composer test`. The font tests fail when a letter PDF holds a font that they do not name, or a font that is not of the type CID TrueType. `tests/Pest.php` makes `composer test` run the letter page tests again after a change to a font file or to `resources/css/letter.css`.
+6. Run `composer test`. The font tests fail when a letter PDF holds a font that they do not name, or a font that is not of the type CID TrueType. `tests/Pest.php` makes `composer test` run the letter tests that make a PDF again after a change to a font file or to `resources/css/letter.css`.
 
 ### Add a Font Family
 
@@ -479,6 +479,8 @@ Each server needs Node, Puppeteer, and Chrome 131 or later. Chrome 131 supports 
 - Run `bun run build` before the first render. The letter page reads the built `resources/css/letter.css`.
 - Keep `app.timezone` at `UTC`.
 - CI needs `poppler-utils` for the tests that read PDF text. `.github/workflows/tests.yml` installs it.
+
+`RenderPdf` starts Chrome with the option `--font-render-hinting=none`. Without it, the headless Chrome on Linux puts each character on a whole pixel. The width of a line then differs from macOS, and a PDF reader can split a word into parts. With it, the character positions on Linux and on macOS are the same. An app that changes the PDF driver must set the same option in the new driver.
 
 `RenderPdf` blocks every `http://` and `https://` request and turns off JavaScript. The page has a content security policy that allows only inline styles and data images. A letter cannot load a file or a URL.
 

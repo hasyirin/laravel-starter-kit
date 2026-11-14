@@ -15,16 +15,25 @@ class VerifyUserEmail
     /**
      * @throws AuthorizationException
      */
-    public function execute(User $actor, User $user): void
+    public function execute(User $actor, User $user, string $email): bool
     {
         $bypassPermission = config()->string('system.permissions.bypass-authorization');
 
         throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
 
-        if ($user->hasVerifiedEmail()) {
-            return;
-        }
+        return $user->getConnection()->transaction(function () use ($user, $email): bool {
+            $user->newQueryWithoutRelationships()->whereKey($user->getKey())->lockForUpdate()->first();
+            $user->refresh();
 
-        $user->markEmailAsVerified();
+            if ($user->email !== $email) {
+                return false;
+            }
+
+            if (! $user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
+            }
+
+            return true;
+        });
     }
 }

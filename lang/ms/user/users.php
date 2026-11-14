@@ -58,9 +58,11 @@ return [
     'verify' => [
         'heading' => 'Tandakan e-mel sebagai disahkan?',
         'description' => 'Pengguna tidak perlu mengesahkan :email.',
+        'changed' => 'E-mel ini telah berubah selepas anda membuka halaman. Sila semak e-mel baharu sebelum anda menandakannya sebagai disahkan.',
     ],
     'verify_phone' => [
         'heading' => 'Tandakan nombor telefon sebagai disahkan?',
         'description' => 'Pengguna tidak perlu mengesahkan :phone.',
+        'changed' => 'Nombor telefon ini telah berubah selepas anda membuka halaman. Sila semak nombor baharu sebelum anda menandakannya sebagai disahkan.',
     ],
 ];

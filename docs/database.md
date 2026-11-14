@@ -409,6 +409,7 @@ erDiagram
         text two_factor_recovery_codes
         datetime two_factor_confirmed_at
         string timezone
+        string language
         string locale
         string phone
         datetime phone_verified_at

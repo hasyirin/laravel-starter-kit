@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\DataTables\Internal\User;
 
-use App\Domain\User\Actions\RevokeUserPasskey;
+use App\Domain\User\Actions\Management\RevokeUserPasskey;
 use App\Domain\User\Models\User;
 use App\Filament\Tables\Columns\TimestampColumn;
 use App\Livewire\DataTables\DataTable;

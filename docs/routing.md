@@ -15,13 +15,13 @@ Fortify registers the routes for login, registration, password reset, email veri
 
 ### Registration
 
-Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Laravel\Fortify\Features::registration()` to `fortify.features` in `config/fortify.php`. The login page then shows a sign-up link.
+Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Feature::Registration` to `system.features` in `config/system.php`. The login page then shows a sign-up link.
 
 The `guest-forms` limiter lets each IP address send the registration form and the reset link form five times a minute. `config/fortify.php` adds it to every Fortify route, and it skips the other routes. If an app lets the public sign up, also add a captcha, such as Cloudflare Turnstile, to the registration form. The limit slows bots down, but it does not stop them.
 
 ## Choose the Area
 
-- **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to the group of this file. That middleware sends signed-in users away, so the other routes would stop working for them. A page only for signed-out users, such as `password.sms`, adds it to its own route, as Fortify's routes do.
+- **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to the group of this file. That middleware sends signed-in users away, so the other routes would stop working for them. A page only for signed-out users, such as `/forgot-password/sms`, adds it to its own route, as Fortify's routes do.
 - **App**: pages for every signed-in user, such as the dashboard, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` and `phone.verified` middleware to a route that needs a verified email address and phone number.
 - **Internal**: the daily work of the staff, such as users, roles, orders, and reports.
 - **System**: the tools that run the app, such as Horizon.

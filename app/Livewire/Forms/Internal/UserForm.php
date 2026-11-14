@@ -6,8 +6,8 @@ namespace App\Livewire\Forms\Internal;
 
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Support\PermissionTree;
-use App\Domain\User\Actions\CreateUser;
-use App\Domain\User\Actions\UpdateUser;
+use App\Domain\User\Actions\Management\CreateUser;
+use App\Domain\User\Actions\Management\UpdateUser;
 use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Placement;

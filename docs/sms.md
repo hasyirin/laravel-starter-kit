@@ -42,6 +42,21 @@ class AcmeGateway implements SmsGateway
 
 Throw an exception when the provider refuses an SMS. The phone verification page then reports the exception and asks the user to try again later. The code that did not go out stops working, so a later visit sends a new one. The failed send still counts toward the limits. The SMS password reset sends its code after the response, so the response takes the same time for every number. There, a failed send goes to the Laravel log and to the message log.
 
+## Turn SMS Features Off
+
+`system.features` in `config/system.php` lists the features of the app. See [kit ADR-0016](adr/kit/0016-the-kit-lists-its-features-in-one-place.md). Two of them send SMS: `Feature::PhoneVerification` and `Feature::SmsPasswordReset`. An app that does not need them removes both from the list. Then:
+
+- `phone.verified` lets every user pass, and the phone verification page has no route.
+- The SMS password reset has no route, and the forgot password page shows no link to it.
+- The settings and the internal user page show nothing about phone verification.
+- The phone number stays required.
+
+The SMS password reset needs phone verification, because it sends codes only to verified numbers. It also needs `Feature::PasswordReset`, because a correct code opens the reset page of the password reset. The app throws an exception on boot when the list has the SMS reset without both.
+
+The features decide which routes exist. With cached routes, run `php artisan route:clear` after a change to the list.
+
+A kit test that needs a feature calls `$this->skipUnlessFeature(Feature::PhoneVerification)`. So the kit tests pass in an app that turns a feature off.
+
 ## Calling Codes
 
 `system.sms.calling_codes` lists the calling codes that the app sends SMS to. The default is +60. The channel throws an exception for a number with another calling code. The phone verification page and the SMS password reset check the list first. The resend form of the message log checks it too, with the `AllowedCallingCode` rule. The verification page asks the user to change the number or to ask staff, and the reset page sends nothing.

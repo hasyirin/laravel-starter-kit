@@ -53,7 +53,7 @@ class RecoveryCodes extends Component
             try {
                 $this->recoveryCodes = array_values(array_filter($user->recoveryCodes(), is_string(...)));
             } catch (Exception) {
-                $this->addError('recoveryCodes', 'Failed to load recovery codes');
+                $this->addError('recoveryCodes', __('user/settings.recovery_codes.load_failed'));
 
                 $this->recoveryCodes = [];
             }

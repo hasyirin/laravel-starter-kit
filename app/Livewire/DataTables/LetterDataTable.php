@@ -79,7 +79,7 @@ class LetterDataTable extends DataTable
         $letter = $this->findLetter((int) $this->scanLetterId);
 
         $this->authorize('print', $letter);
-        $this->validate(['scan' => ['array', 'max:1', new Uploads(self::SCAN_RULES)]]);
+        $this->validate(['scan' => ['array', 'max:1', new Uploads(self::SCAN_RULES)]], attributes: ['scan' => str((string) __('letters/letters.signed_scan'))->lower()->value()]);
 
         UploadSignedScan::make()->execute($letter, $this->scan);
 

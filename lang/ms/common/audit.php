@@ -1,0 +1,51 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'time' => 'Masa',
+    'from' => 'Dari',
+    'until' => 'Hingga',
+    'event' => 'Peristiwa',
+    'causer' => 'Oleh',
+    'subject' => 'Subjek',
+    'impersonator' => 'Disamar oleh',
+    'impersonated_only' => 'Perubahan semasa menyamar sahaja',
+    'changes' => 'Perubahan',
+    'field' => 'Medan',
+    'old' => 'Nilai lama',
+    'new' => 'Nilai baharu',
+    'no_changes' => 'Tiada medan yang berubah.',
+    'none' => 'Tiada',
+    'yes' => 'Ya',
+    'no' => 'Tidak',
+    'letter' => [
+        'type' => 'Jenis surat',
+        'data' => 'Data surat',
+        'extra' => 'Nilai tambahan',
+        'details' => 'Butiran cetakan',
+        'images' => 'Imej',
+    ],
+    'events' => [
+        'created' => 'Dicipta',
+        'updated' => 'Dikemas kini',
+        'deleted' => 'Dipadam',
+        'restored' => 'Dipulihkan',
+    ],
+    'subjects' => [
+        'action' => 'Tindakan',
+        'branch' => 'Cawangan',
+        'country' => 'Negara',
+        'department' => 'Jabatan',
+        'district' => 'Daerah',
+        'organization' => 'Organisasi',
+        'position' => 'Jawatan',
+        'post_office' => 'Bandar',
+        'postcode' => 'Poskod',
+        'profile' => 'Profil',
+        'role' => 'Peranan',
+        'state' => 'Negeri',
+        'subdistrict' => 'Mukim',
+        'user' => 'Pengguna',
+    ],
+];

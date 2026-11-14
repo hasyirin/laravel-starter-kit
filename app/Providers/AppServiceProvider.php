@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Domain\Shared\Api\Guards\ApiTokenGuard;
 use App\Domain\Shared\Api\Models\ApiClient;
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Sms\Channels\SmsChannel;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
@@ -56,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->preventDebugModeInProduction();
 
+        $this->checkFeatures();
+
         $this->configureDefaults();
 
         $this->configureRateLimits();
@@ -71,6 +74,21 @@ class AppServiceProvider extends ServiceProvider
 
             throw new RuntimeException('Debug mode must be off in production. Set APP_DEBUG=false.');
         }
+    }
+
+    protected function checkFeatures(): void
+    {
+        throw_if(
+            Feature::SmsPasswordReset->enabled() && ! Feature::PhoneVerification->enabled(),
+            LogicException::class,
+            'The SMS password reset needs phone verification. Add Feature::PhoneVerification to system.features.',
+        );
+
+        throw_if(
+            Feature::SmsPasswordReset->enabled() && ! Feature::PasswordReset->enabled(),
+            LogicException::class,
+            'The SMS password reset needs the password reset. Add Feature::PasswordReset to system.features.',
+        );
     }
 
     protected function configureDefaults(): void

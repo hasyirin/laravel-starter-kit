@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Http\Middleware\AddTraceIdToContext;
 use App\Http\Middleware\AuthenticateApiClient;
 use App\Http\Middleware\EnsureEmailIsVerified;
@@ -13,6 +14,7 @@ use App\Http\Middleware\ResolveUserPreferences;
 use App\Http\Responses\ProblemDetails;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Bootstrap\LoadConfiguration;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Foundation\Console\Kernel;
@@ -64,6 +66,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
         );
         $exceptions->render(ProblemDetails::render(...));
     })->create();
+
+// Fortify reads its features and options while it registers, so they must come from system.features before any provider runs.
+$app->afterBootstrapping(LoadConfiguration::class, function (): void {
+    Feature::syncFortify();
+});
 
 // Scanning only when the console kernel resolves keeps the scan off web requests that never run a command.
 $app->afterResolving(ConsoleKernel::class, function (Kernel $kernel) use ($app, $domainFolders): void {

@@ -12,14 +12,15 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table): void {
             $table->string('timezone')->nullable()->after('password');
-            $table->string('locale')->nullable()->after('timezone');
+            $table->string('language')->nullable()->after('timezone');
+            $table->string('locale')->nullable()->after('language');
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table): void {
-            $table->dropColumn(['timezone', 'locale']);
+            $table->dropColumn(['timezone', 'language', 'locale']);
         });
     }
 };

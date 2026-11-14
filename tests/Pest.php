@@ -22,6 +22,14 @@ pest()->beforeEach(function (): void {
     app()->detectEnvironment(fn (): string => 'local');
 })->in('Browser');
 
+pest()->tia()->watch([
+    'resources/css/letter.css' => 'tests/Feature/Views/Components/Letter',
+    'resources/fonts/letter/**' => 'tests/Feature/Views/Components/Letter',
+])->watch([
+    'resources/css/letter.css' => 'tests/Feature/Domain/Shared/Letter/Actions',
+    'resources/fonts/letter/**' => 'tests/Feature/Domain/Shared/Letter/Actions',
+]);
+
 /**
  * @param  string|array<int, string>  ...$permissions
  */

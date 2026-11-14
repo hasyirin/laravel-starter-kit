@@ -2,14 +2,26 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
-use Laravel\Fortify\Features;
 
 test('login screen can be rendered', function (): void {
     $response = $this->get(route('login'));
 
     $response->assertOk();
+});
+
+test('the login screen shows the passkey button when passkeys are on', function (): void {
+    $this->skipUnlessFeature(Feature::Passkeys);
+
+    $this->get(route('login'))->assertOk()->assertSee(__('user/passkeys.verify.button'));
+});
+
+test('the login screen opens without the passkey button when passkeys are off', function (): void {
+    $this->disableFeature(Feature::Passkeys);
+
+    $this->get(route('login'))->assertOk()->assertDontSee(__('user/passkeys.verify.button'));
 });
 
 test('a guest can open the login screen more than five times a minute, because the limit of the guest forms skips it', function (): void {
@@ -78,9 +90,9 @@ test('users can not authenticate with invalid password', function (): void {
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function (): void {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
 
-    Features::twoFactorAuthentication([
+    $this->configureFeature(Feature::TwoFactorAuthentication, [
         'confirm' => true,
         'confirmPassword' => true,
     ]);

@@ -20,7 +20,7 @@ if (window.livewireStarted) {
     window.location.reload();
 } else {
     window.livewireStarted = true;
-    // The server fills an empty time zone and locale of the user from these.
+    // The server fills an empty time zone, language, and locale of the user from these.
     remember('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
     remember('locale', navigator.languages.join(','));
     blurOnLeave();

@@ -37,6 +37,7 @@
                         <span>{{ config('app.name', 'Laravel') }}</span>
                     </a>
                     {{ $slot }}
+                    <livewire:components.language-switch />
                 </div>
             </div>
         </div>

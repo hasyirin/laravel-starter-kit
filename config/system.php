@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Sms\Gateways\LogGateway;
 use App\Livewire\Components\Navigation\Style;
 
@@ -12,7 +13,33 @@ return [
 
     'locales' => ['en-MY', 'ms-MY', 'en-GB', 'en-US'],
 
+    'language' => env('APP_LOCALE', 'en'),
+
+    'languages' => ['en' => 'English', 'ms' => 'Bahasa Melayu'],
+
+    'language_abbreviations' => ['ms' => 'BM'],
+
     'country' => 'MY',
+
+    'features' => [
+        Feature::PasswordReset,
+        Feature::EmailVerification,
+        Feature::TwoFactorAuthentication,
+        Feature::Passkeys,
+        Feature::PhoneVerification,
+        Feature::SmsPasswordReset,
+    ],
+
+    'feature_options' => [
+        Feature::TwoFactorAuthentication->value => [
+            'confirm' => true,
+            'confirmPassword' => true,
+            // 'window' => 0
+        ],
+        Feature::Passkeys->value => [
+            'confirmPassword' => true,
+        ],
+    ],
 
     'sms' => [
         'gateway' => env('SMS_GATEWAY', 'log'),

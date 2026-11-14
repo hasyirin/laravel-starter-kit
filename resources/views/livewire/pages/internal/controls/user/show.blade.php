@@ -1,5 +1,6 @@
 @use(App\Domain\Shared\Common\Enums\Feature)
 @use(App\Domain\User\Support\Impersonation)
+@use(Illuminate\Support\Js)
 
 <flux:main container>
     <div class="space-y-8">
@@ -49,7 +50,7 @@
                             <flux:button variant="filled">{{ __('common/buttons.cancel') }}</flux:button>
                         </flux:modal.close>
 
-                        <flux:button variant="primary" wire:click="verifyEmail">{{ __('common/buttons.confirm') }}</flux:button>
+                        <flux:button variant="primary" wire:click="verifyEmail({{ Js::from($user->email) }})">{{ __('common/buttons.confirm') }}</flux:button>
                     </div>
                 </div>
             </flux:modal>
@@ -69,7 +70,7 @@
                             <flux:button variant="filled">{{ __('common/buttons.cancel') }}</flux:button>
                         </flux:modal.close>
 
-                        <flux:button variant="primary" wire:click="verifyPhone">{{ __('common/buttons.confirm') }}</flux:button>
+                        <flux:button variant="primary" wire:click="verifyPhone({{ Js::from($user->phone) }})">{{ __('common/buttons.confirm') }}</flux:button>
                     </div>
                 </div>
             </flux:modal>

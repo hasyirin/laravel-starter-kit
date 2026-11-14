@@ -14,9 +14,11 @@ use App\Domain\User\Models\User;
 use App\Livewire\Concerns\CanBeDisabled;
 use App\Livewire\Pages\Internal\Controls\User\Concerns\InteractsWithUserForm;
 use App\Livewire\Pages\Shared\Page;
+use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use SensitiveParameter;
 
 class Show extends Page
 {
@@ -127,28 +129,32 @@ class Show extends Page
         $this->notifySaved((string) __('user/users.user'), created: false);
     }
 
-    public function verifyEmail(): void
+    public function verifyEmail(mixed $email = null): void
     {
         $this->authorize('update', $this->user);
 
         /** @var User $actor */
         $actor = auth()->user();
-
-        VerifyUserEmail::make()->execute($actor, $this->user);
 
         $this->dispatch('modal-close', name: 'verify-email');
+
+        if (! is_string($email) || ! VerifyUserEmail::make()->execute($actor, $this->user, $email)) {
+            Flux::toast(variant: 'warning', text: __('user/users.verify.changed'));
+        }
     }
 
-    public function verifyPhone(): void
+    public function verifyPhone(#[SensitiveParameter] mixed $phone = null): void
     {
         $this->authorize('update', $this->user);
 
         /** @var User $actor */
         $actor = auth()->user();
 
-        VerifyUserPhone::make()->execute($actor, $this->user);
-
         $this->dispatch('modal-close', name: 'verify-phone');
+
+        if (! is_string($phone) || ! VerifyUserPhone::make()->execute($actor, $this->user, $phone)) {
+            Flux::toast(variant: 'warning', text: __('user/users.verify_phone.changed'));
+        }
     }
 
     /**

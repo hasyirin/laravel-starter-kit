@@ -38,7 +38,7 @@ enum ApiCallOutcome: string implements HasColor, HasLabel
         return match ($this) {
             self::Ok => 'green',
             self::RateLimited, self::ValidationFailed, self::ClientError => 'amber',
-            default => 'red',
+            self::MissingToken, self::InvalidToken, self::ExpiredToken, self::RevokedToken, self::ClientDisabled, self::IpNotAllowed, self::MissingScope, self::ServerError, self::ConnectionFailed => 'red',
         };
     }
 

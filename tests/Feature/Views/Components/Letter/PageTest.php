@@ -66,6 +66,23 @@ function letterPageImages(string $path): Collection
         ->values();
 }
 
+/**
+ * @return Collection<int, array{name: string, type: string}>
+ */
+function letterPageFonts(string $path): Collection
+{
+    return str((string) shell_exec('pdffonts '.escapeshellarg($path)))
+        ->explode("\n")
+        ->skip(2)
+        ->filter(fn (string $line): bool => trim($line) !== '')
+        ->map(fn (string $line): array => [
+            'name' => str($line)->before(' ')->after('+')->toString(),
+            'type' => str($line)->match('/^\S+\s+(.+?)\s+\S+(?:\s+(?:yes|no)){3}\s+\d+\s+\d+\s*$/')->toString(),
+        ])
+        ->sortBy('name')
+        ->values();
+}
+
 function letterPagePoints(float $millimeters): float
 {
     return $millimeters * 72 / 25.4;
@@ -153,4 +170,23 @@ it('prints page numbers as page of pages', function (): void {
         expect($words->pluck('text')->implode(' '))->toContain(($index + 1).' / 3');
     });
 
+})->group('chrome');
+
+it('prints the text and the page number in the bundled fonts only', function (): void {
+    $fonts = letterPageFonts(renderLetterPage('tests::letters.fonts'));
+
+    expect($fonts->pluck('name')->all())->toBe([
+        'Inter-Bold',
+        'Inter-BoldItalic',
+        'Inter-Italic',
+        'Inter-Regular',
+        'JetBrainsMono-Bold',
+        'JetBrainsMono-Regular',
+    ])->and($fonts->pluck('type')->unique()->all())->toBe(['CID TrueType']);
+})->group('chrome');
+
+it('prints the page number in the bundled font when the body has no regular text', function (): void {
+    $fonts = letterPageFonts(renderLetterPage('tests::letters.bold'));
+
+    expect($fonts->pluck('name')->all())->toBe(['Inter-Bold', 'Inter-Regular']);
 })->group('chrome');

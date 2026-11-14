@@ -167,6 +167,7 @@ return [
     ],
     'attributes' => [
         'allowed_ip_addresses' => 'alamat IP yang dibenarkan',
+        'allowed_ip_addresses.*' => 'alamat IP yang dibenarkan',
         'allowed_ip_addresses.*.address' => 'alamat IP',
         'allowed_ip_addresses.*.description' => 'keterangan',
         'allows_any_ip_address' => 'benarkan sebarang alamat IP',

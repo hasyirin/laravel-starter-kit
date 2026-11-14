@@ -23,7 +23,7 @@ class ApiClientForm extends Form
 
     public bool $enabled = true;
 
-    /** @var list<array{address: string, description: string|null}> */
+    /** @var array<int, array{address: string, description: string|null}> */
     public array $allowed_ip_addresses = [];
 
     public bool $allows_any_ip_address = false;
@@ -38,10 +38,10 @@ class ApiClientForm extends Form
         $this->name = $apiClient->name;
         $this->description = $apiClient->description;
         $this->enabled = $apiClient->enabled;
-        $allowedIpAddresses = collect($apiClient->allowed_ip_addresses)
+        $this->allowed_ip_addresses = collect($apiClient->allowed_ip_addresses)
             ->map(fn (array $row): array => ['address' => $row['address'], 'description' => $row['description'] ?? ''])
+            ->values()
             ->all();
-        $this->allowed_ip_addresses = array_values($allowedIpAddresses);
         $this->allows_any_ip_address = $apiClient->allows_any_ip_address;
         $this->rate_limit_per_minute = $apiClient->rate_limit_per_minute;
         $this->service = $apiClient->service;
@@ -105,7 +105,7 @@ class ApiClientForm extends Form
 
     public function save(): ApiClient
     {
-        $allowedIpAddresses = collect($this->allowed_ip_addresses)
+        $this->allowed_ip_addresses = collect($this->allowed_ip_addresses)
             ->map(function (mixed $row): mixed {
                 $address = data_get($row, 'address');
 
@@ -113,10 +113,10 @@ class ApiClientForm extends Form
                     return $row;
                 }
 
-                return [...$row, 'address' => trim($address)];
+                return [...$row, 'address' => str($address)->trim()->value()];
             })
+            ->values()
             ->all();
-        $this->allowed_ip_addresses = array_values($allowedIpAddresses);
 
         $this->validate();
 

@@ -203,6 +203,7 @@ return [
 
     'attributes' => [
         'allowed_ip_addresses' => 'allowed IP addresses',
+        'allowed_ip_addresses.*' => 'allowed IP address',
         'allowed_ip_addresses.*.address' => 'IP address',
         'allowed_ip_addresses.*.description' => 'description',
         'allows_any_ip_address' => 'allow any IP address',

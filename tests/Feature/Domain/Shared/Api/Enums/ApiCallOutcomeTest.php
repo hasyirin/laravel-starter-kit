@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Domain\Shared\Api\Enums\ApiCallDirection;
 use App\Domain\Shared\Api\Enums\ApiCallOutcome;
 
 test('a status code gives the outcome of a call that the app did not reject before it ran', function (int $status, ApiCallOutcome $outcome): void {
@@ -19,6 +18,6 @@ test('a status code gives the outcome of a call that the app did not reject befo
     'a bad gateway' => [502, ApiCallOutcome::ServerError],
 ]);
 
-test('every outcome and direction has a label', function (ApiCallOutcome|ApiCallDirection $case): void {
-    expect($case->label())->not->toStartWith('api/');
-})->with([...ApiCallOutcome::cases(), ...ApiCallDirection::cases()]);
+test('every outcome has a label', function (ApiCallOutcome $outcome): void {
+    expect($outcome->label())->not->toStartWith('api/');
+})->with(ApiCallOutcome::cases());

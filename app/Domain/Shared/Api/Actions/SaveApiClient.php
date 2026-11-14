@@ -39,23 +39,22 @@ class SaveApiClient
 
     /**
      * @param  array<int, array{address: string, description?: string|null}>  $rows
-     * @return list<array{address: string, description: string|null}>
+     * @return array<int, array{address: string, description: string|null}>
      */
     private function allowedIpAddresses(array $rows): array
     {
-        $allowedIpAddresses = collect($rows)
+        return collect($rows)
             ->map(function (array $row): array {
                 $description = str($row['description'] ?? null)->trim()->value();
 
                 return [
-                    'address' => trim($row['address']),
+                    'address' => str($row['address'])->trim()->value(),
                     'description' => $description === '' ? null : $description,
                 ];
             })
             ->reject(fn (array $row): bool => $row['address'] === '')
             ->unique('address')
+            ->values()
             ->all();
-
-        return array_values($allowedIpAddresses);
     }
 }

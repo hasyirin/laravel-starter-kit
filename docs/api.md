@@ -105,7 +105,7 @@ Each error on a path under `/api/` uses the application/problem+json format of R
 }
 ```
 
-- `detail` comes from `lang/en/api/problems.php`. It is the same for each reason of a 401 or a 403, so the response does not tell a caller why the API rejected the call. The API log row has the reason.
+- `detail` comes from `lang/en/api/problems.php`, or from the same file of the language in `app.locale`, such as `lang/ms/api/problems.php`. The messages of a 422 use that language too. The `detail` is the same for each reason of a 401 or a 403, so the response does not tell a caller why the API rejected the call. The API log row has the reason.
 - `trace_id` is the trace ID of the request. The response also sends it in the header `X-Request-Id`.
 - A 422 adds `errors`, with the messages for each field.
 - A 500 shows the message of the exception only while debug mode is on.

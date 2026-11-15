@@ -17,6 +17,16 @@
                     @if($impersonator)
                         <flux:subheading>{{ __('user/users.impersonation.by', ['name' => $impersonator]) }}</flux:subheading>
                     @endif
+
+                    @foreach(['ip_address', 'user_agent'] as $property)
+                        @php($value = $entry->getProperty($property))
+
+                        @if(is_string($value))
+                            <flux:subheading class="break-all" wire:key="{{ $property }}">
+                                {{ __("common/audit.$property", ['value' => $value]) }}
+                            </flux:subheading>
+                        @endif
+                    @endforeach
                 </div>
 
                 @if($entry instanceof AuditEntry && $entry->event === 'printed-manual-letter')

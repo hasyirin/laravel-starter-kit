@@ -11,6 +11,8 @@ return [
     'subject' => 'Subjek',
     'impersonator' => 'Disamar oleh',
     'impersonated_only' => 'Perubahan semasa menyamar sahaja',
+    'ip_address' => 'Alamat IP: :value',
+    'user_agent' => 'User agent: :value',
     'changes' => 'Perubahan',
     'field' => 'Medan',
     'old' => 'Nilai lama',

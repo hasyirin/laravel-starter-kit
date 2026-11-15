@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Common\Enums\Feature;
+use App\Http\Middleware\AddIpAddressAndUserAgentToAuditLog;
 use App\Http\Middleware\AddTraceIdToContext;
 use App\Http\Middleware\AuthenticateApiClient;
 use App\Http\Middleware\EnsureEmailIsVerified;
@@ -48,6 +49,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     }))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AddTraceIdToContext::class);
+        $middleware->append(AddIpAddressAndUserAgentToAuditLog::class);
         $middleware->append(RecordInboundApiCall::class);
         $middleware->alias([
             'verified' => EnsureEmailIsVerified::class,

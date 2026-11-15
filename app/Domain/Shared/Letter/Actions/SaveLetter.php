@@ -6,6 +6,7 @@ namespace App\Domain\Shared\Letter\Actions;
 
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
+use App\Domain\Shared\Common\Support\ModelSnapshot;
 use App\Domain\Shared\Letter\Concerns\StoresLetterImages;
 use App\Domain\Shared\Letter\Enums\NumberingMode;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
@@ -22,7 +23,6 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Throwable;
 
 class SaveLetter
 {
@@ -49,13 +49,9 @@ class SaveLetter
 
         validator(['sequence_number' => $details->sequenceNumber], ['sequence_number' => ['nullable', 'integer', 'min:1']])->validate();
 
-        $original = $letter->getRawOriginal();
-        $relations = $letter->getRelations();
-        $exists = $letter->exists;
-        $recentlyCreated = $letter->wasRecentlyCreated;
-        $this->storedImages = [];
+        return $letter->getConnection()->transaction(function () use ($letter, $type, $key, $source, $user, $details, $validated): Letter {
+            ModelSnapshot::restoreOnRollBack($letter);
 
-        try {
             return $this->save(
                 letter: $letter,
                 type: $type,
@@ -65,15 +61,7 @@ class SaveLetter
                 details: $details,
                 validated: $validated,
             );
-        } catch (Throwable $throwable) {
-            $this->removeStoredImages();
-            $letter->setRawAttributes($original, sync: true);
-            $letter->setRelations($relations);
-            $letter->exists = $exists;
-            $letter->wasRecentlyCreated = $recentlyCreated;
-
-            throw $throwable;
-        }
+        });
     }
 
     /**
@@ -81,25 +69,23 @@ class SaveLetter
      */
     private function save(Letter $letter, LetterType $type, string $key, Model $source, User $user, PrintDetails $details, array $validated): Letter
     {
-        return $letter->getConnection()->transaction(function () use ($letter, $type, $key, $source, $user, $details, $validated): Letter {
-            $letter->type = $key;
-            $letter->source()->associate($source);
-            $letter->date = $details->date;
-            $letter->carbon_copies = $details->carbonCopies;
-            $letter->computer_signed = $details->computerSigned;
-            $letter->with_letterhead = $details->withLetterhead || $details->computerSigned;
-            $letter->save();
+        $letter->type = $key;
+        $letter->source()->associate($source);
+        $letter->date = $details->date;
+        $letter->carbon_copies = $details->carbonCopies;
+        $letter->computer_signed = $details->computerSigned;
+        $letter->with_letterhead = $details->withLetterhead || $details->computerSigned;
+        $letter->save();
 
-            $letter->extra = $this->storeImages($letter, MediaCollection::LetterImages, $type->extraFields(), $validated);
-            $letter->save();
-            $letter->getConnection()->afterCommit(fn () => rescue(fn () => $this->removeUnusedImages($letter)));
+        $letter->extra = $this->storeImages($letter, MediaCollection::LetterImages, $type->extraFields(), $validated);
+        $letter->save();
+        $letter->getConnection()->afterCommit(fn () => rescue(fn () => $this->removeUnusedImages($letter)));
 
-            $this->syncSigner($letter, $details->signer);
+        $this->syncSigner($letter, $details->signer);
 
-            $this->number($letter, $type, $user, $details);
+        $this->number($letter, $type, $user, $details);
 
-            return $letter;
-        });
+        return $letter;
     }
 
     private function sourceChanged(Letter $letter, Model $source): bool

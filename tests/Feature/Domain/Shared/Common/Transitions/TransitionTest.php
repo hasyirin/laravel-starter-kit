@@ -100,6 +100,50 @@ test('a failed step leaves the model as it was', function (): void {
         ->and($ticket->isDirty())->toBeFalse();
 });
 
+test('a step that an outer transaction rolls back leaves the model as it was', function (): void {
+    $ticket = Ticket::query()->create(['title' => 'Leak']);
+
+    expect(fn (): mixed => DB::transaction(function () use ($ticket): void {
+        $ticket->state->transitionTo(InReview::class);
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class);
+
+    expect($ticket->state)->toBeInstanceOf(Open::class)
+        ->and($ticket->isDirty())->toBeFalse()
+        ->and($ticket->fresh()?->state)->toBeInstanceOf(Open::class);
+});
+
+test('two steps that an outer transaction rolls back leave the model as it was', function (): void {
+    $ticket = Ticket::query()->create(['title' => 'Leak', 'approvable' => true]);
+
+    expect(fn (): mixed => DB::transaction(function () use ($ticket): void {
+        $ticket->state->transitionTo(InReview::class);
+        $ticket->state->transitionTo(Approved::class);
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class);
+
+    expect($ticket->state)->toBeInstanceOf(Open::class)
+        ->and($ticket->approved_at)->toBeNull()
+        ->and($ticket->isDirty())->toBeFalse()
+        ->and($ticket->fresh()?->state)->toBeInstanceOf(Open::class);
+});
+
+test('a first step on a new model that an outer transaction rolls back leaves the model new', function (): void {
+    $ticket = new Ticket(['title' => 'Leak']);
+
+    expect(fn (): mixed => DB::transaction(function () use ($ticket): void {
+        $ticket->state->transitionTo(InReview::class);
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class);
+
+    expect($ticket->exists)->toBeFalse()
+        ->and($ticket->id)->toBeNull()
+        ->and(Ticket::query()->count())->toBe(0);
+});
+
 test('a step passes its arguments to the transition class', function (): void {
     $ticket = Ticket::query()->create(['title' => 'Leak', 'approvable' => true]);
     $ticket->state->transitionTo(InReview::class);

@@ -15,9 +15,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 trait StoresLetterImages
 {
-    /** @var list<Media> */
-    private array $storedImages = [];
-
     /**
      * @param  list<Field>  $fields
      * @param  array<array-key, mixed>  $values
@@ -49,7 +46,7 @@ trait StoresLetterImages
         }
 
         $copy = $media->copy($owner, $collection->value);
-        $this->storedImages[] = $copy;
+        $this->removeOnRollBack($copy);
 
         return $copy->uuid;
     }
@@ -60,17 +57,13 @@ trait StoresLetterImages
             ->usingFileName($file->getClientOriginalName())
             ->toMediaCollection($collection->value);
 
-        $this->storedImages[] = $media;
+        $this->removeOnRollBack($media);
 
         return $media->uuid;
     }
 
-    protected function removeStoredImages(): void
+    private function removeOnRollBack(Media $media): void
     {
-        foreach ($this->storedImages as $media) {
-            rescue(fn () => resolve(Filesystem::class)->removeAllFiles($media));
-        }
-
-        $this->storedImages = [];
+        $media->getConnection()->afterRollBack(fn () => rescue(fn () => resolve(Filesystem::class)->removeAllFiles($media)));
     }
 }

@@ -18,6 +18,7 @@ use App\Livewire\Components\FileUpload;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Filesystem\Factory;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -414,6 +415,38 @@ test('a refused save restores the relations of the letter', function (): void {
 
     expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
     expect($letter->getRelations())->toBeEmpty();
+});
+
+test('a save that an outer transaction rolls back leaves no stored image and a new letter', function (): void {
+    $letter = new Letter;
+
+    expect(fn (): mixed => DB::transaction(function () use ($letter): void {
+        saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()], $letter);
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class);
+
+    expect(Storage::disk('media')->allFiles())->toBeEmpty()
+        ->and(Letter::query()->count())->toBe(0)
+        ->and($letter->exists)->toBeFalse()
+        ->and($letter->id)->toBeNull();
+});
+
+test('two saves by one action that an outer transaction rolls back leave no stored image and the letter as it was', function (): void {
+    $letter = saveLetter('extra', details(), ['remark' => 'First'])->fresh();
+    $action = SaveLetter::make();
+
+    expect(fn (): mixed => DB::transaction(function () use ($action, $letter): void {
+        $action->execute($letter, LetterTypes::find('extra'), test()->organization, test()->printer, details(), ['remark' => 'Second', 'stamp' => extraUpload()]);
+        $action->execute($letter, LetterTypes::find('extra'), test()->organization, test()->printer, details(), ['remark' => 'Third', 'stamp' => extraUpload()]);
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class);
+
+    expect(Storage::disk('media')->allFiles())->toBeEmpty()
+        ->and($letter->extra['remark'])->toBe('First')
+        ->and($letter->isDirty())->toBeFalse()
+        ->and($letter->fresh()?->extra['remark'])->toBe('First');
 });
 
 test('an override number below 1 is refused', function (): void {

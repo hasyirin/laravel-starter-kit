@@ -9,7 +9,7 @@ paths:
 Translate UI text with short keys from PHP files under `lang/en/`, such as `__('user/settings.user_information.updated')`, never JSON sentence keys. Put shared labels in `lang/en/common/` (`buttons.php`, `inputs.php`).
 
 ## Keep components thin
-A component authorizes the user and starts the work. Then it shows the result: a toast, a redirect, or state for the view. If the component has a form object, call the form's `save()`. If not, validate the input and call the Action class, for example `UpdateUserInformation::make()->execute($user, $this->name, $this->email)`. Do not write models or apply domain rules in a component. Reading data for the view is fine.
+A component authorizes the user and starts the work. Then it shows the result: a toast, a redirect, or state for the view. If the component has a form object, call the form's `save()`. If not, validate the input and call the Action class, for example `UpdateUserInformation::make()->execute($user, $this->name, $this->email)`. Do not write models or apply domain rules in a component. Reading data for the view is fine. If the component calls `save()` of more than one form, wrap the calls in `DB::transaction()`, as a form does with more than one Action class.
 
 ## Put render() last
 Put the `render()` method at the end of the class, after all other methods. This includes private and protected helpers.
@@ -20,7 +20,8 @@ Extend `App\Livewire\Form`. Put a form in `app/Livewire/Forms/<Area>/<Model>Form
 - A form for a child record takes the parent once, in `set()` or in `save()`. Pass it to `set()` when the parent exists before the form opens, as on an edit page: `set(Notebook $notebook, Note $note)`. Pass it to `save()` when the page creates the parent in the same request, as on a create page: `save(Organization $organization)`. A form can take the parent in either place, as `AddressForm` does. A page still passes it only once.
 - Livewire rebuilds an unsaved model as a fully empty one on the next request. A new record then loses every value from the earlier request, such as its parent key. So the Action class sets the parent again on every save. It also sets every other value that the user does not enter, such as a certificate type.
 - `save()` validates, then calls the Action class with `make()->execute()`, and returns the record. If the record is null, it creates one.
-- A form never writes models and never opens a transaction. The Action class does that.
+- A form never writes models itself. The Action classes do the writes. If `save()` calls one Action class, the form needs no transaction.
+- If `save()` calls more than one Action class, wrap the calls in `DB::transaction()`, so all writes commit or roll back together. An Action class that opens its own transaction nests in it. As the first step in the transaction, call `ModelSnapshot::restoreOnRollBack()` for each saved record that the form holds, because a rollback does not reset models in memory. Make a new record inside `save()`, and put it on a form property only after the transaction returns. Catch a `ValidationException` only outside the transaction, and map its keys to the form's keys. See the Transactions section of `docs/livewire.md`.
 - Mark each property that the user does not type with `#[Locked]`, such as the record and any flag that changes the rules. A browser can change any other public property.
 - Do not put a `disabled` flag on a form. Disable the component with `CanBeDisabled`, and check a part that the user can or cannot change with the policy in `save()`.
 

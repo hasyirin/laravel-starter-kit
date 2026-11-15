@@ -73,6 +73,17 @@ public function save(): void
 
 A component can still read data for its view without an Action class.
 
+## Transactions
+
+An Action class opens its own transaction when its writes must commit together, or when it locks a row with `lockForUpdate()`. It can also run inside the transaction of a caller: a form, a component, or another Action class. For example, `UpdateUser` calls `ChangeUserProfile` inside its own transaction. Laravel then makes a savepoint, and nothing commits until the outer transaction commits. See the Transactions section of [Livewire Components](livewire.md) for what this means for locks, exceptions, and models.
+
+So write each Action class to work inside an outer transaction:
+
+- Undo work outside the database in `afterRollBack()`, inside the transaction. A stored file is an example. A catch block around the own transaction does not run when a later step of the caller fails. `StoresLetterImages` registers one callback for each file it stores, so `SaveLetter` and `PrintManualLetter` delete their files on a rollback.
+- Put back a model that the caller keeps with `ModelSnapshot::restoreOnRollBack()`, as the first step in the transaction. `SaveLetter` and the `Transition` base class do this. Laravel runs rollback callbacks oldest first, so a plain snapshot in `afterRollBack()` is wrong when two operations change one model. The helper lets the earliest snapshot win.
+- Start mail, jobs, and other effects after the commit, with `afterCommit()` or `Illuminate\Contracts\Queue\ShouldQueueAfterCommit`. `SaveLetter` deletes the images that the letter no longer uses in `afterCommit()`.
+- Do not catch an exception inside a transaction to continue. Let it go out, so the whole operation rolls back.
+
 ## State Steps
 
 A state step needs no Action class, because its transition class holds the work: the checks in `reason()` and the changes in `apply()`. A component runs the step with its own `transitionTo()`, which only checks the permission and shows toasts. An Action class calls `$model->state->transitionTo()` only when the step is one part of a bigger operation. If a component calls such an Action class and the step fails, the component still shows the same toasts. Its `exception()` hook catches the failure. See [Workflows](workflows.md).

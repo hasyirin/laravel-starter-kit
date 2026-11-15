@@ -85,7 +85,7 @@ The mapping makes every decision. It compares dates with `$date`, never with tod
 
 An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. An uploaded image can be at most 10 MB. A table field cannot have an image column, and its group columns cannot hold an image field.
 
-An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images.
+An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images. A save that an outer transaction rolls back deletes the images that it stored.
 
 #### Other Settings
 
@@ -581,6 +581,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an upload ends on the audit entry and its uuid is logged
 - a preview keeps the upload out of the audit log
 - a failed audit entry leaves no stored image
+- an audit entry that an outer transaction rolls back leaves no stored image
 - an image of the source stays on the source and its uuid is logged
 - an image uuid of another owner is refused
 - a missing required value is refused with a key for the part
@@ -647,6 +648,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an override number that a letter has is refused
 - a refused new letter stays unsaved
 - a refused save restores the relations of the letter
+- a save that an outer transaction rolls back leaves no stored image and a new letter
+- two saves by one action that an outer transaction rolls back leave no stored image and the letter as it was
 - an override number below 1 is refused
 - clearing a typed reference number clears the sequence key
 

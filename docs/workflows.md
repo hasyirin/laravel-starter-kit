@@ -62,7 +62,7 @@ class Pay extends Transition
 
 - `reason()` returns why the step must not run, or null. The step runs only when it returns null.
 - `apply()` changes other attributes. They save together with the new state.
-- Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state or deleted the record after the app loaded the model. It throws `StateNotSaved` when a listener stopped the save. When a step fails, it puts the old attributes back on the model, so the model matches the database again.
+- Do not override `handle()`. It saves in a database transaction. It throws `StaleState` when another request changed the state or deleted the record after the app loaded the model. It throws `StateNotSaved` when a listener stopped the save. When a step fails, or an outer transaction rolls back after the step, it puts the old attributes back on the model, so the model matches the database again.
 
 To give a step input, such as a payment reference, add a constructor parameter. Put it after the model, the field, and the new state. Then pass the value after the target state, as in `$invoice->state->transitionTo(Paid::class, $reference)`. Give the parameter a default, and make `reason()` work without it, because `allowedFor()` builds each transition class without input:
 

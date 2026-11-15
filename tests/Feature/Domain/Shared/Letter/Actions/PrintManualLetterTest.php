@@ -193,6 +193,17 @@ test('a failed audit entry leaves no stored image', function (): void {
         ->and(Storage::disk('media')->allFiles())->toBeEmpty();
 });
 
+test('an audit entry that an outer transaction rolls back leaves no stored image', function (): void {
+    expect(fn (): mixed => DB::transaction(function (): void {
+        printManual('printed', noticeData(), ['remark' => 'Reminder', 'stamp' => stampUpload()]);
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class, 'A later step failed.');
+
+    expect(manualEntries()->count())->toBe(0)
+        ->and(Storage::disk('media')->allFiles())->toBeEmpty();
+});
+
 function manualCrestImage(): Media
 {
     $crest = Crest::query()->create(['name' => 'Crest']);

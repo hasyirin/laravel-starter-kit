@@ -18,7 +18,6 @@ use App\Livewire\Form;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 
 class LetterForm extends Form
@@ -294,20 +293,16 @@ class LetterForm extends Form
         return $this->copiesFromRows($this->carbon_copies);
     }
 
-    private function withFormKeys(ValidationException $exception, LetterType $type): ValidationException
+    protected function errorKey(string $key): string
     {
-        $referenceKey = $type->numbering() === NumberingMode::AutomaticWithOverride ? 'form.sequence_number' : 'form.reference_number';
+        $referenceKey = $this->letterType()?->numbering() === NumberingMode::AutomaticWithOverride ? 'sequence_number' : 'reference_number';
 
-        $messages = collect($exception->errors())->mapWithKeys(fn (mixed $errors, int|string $key): array => [
-            match ($key) {
-                'signer' => 'form.signer_id',
-                'reference_number' => $referenceKey,
-                'sequence_number' => 'form.sequence_number',
-                default => "form.extra.$key",
-            } => $errors,
-        ]);
-
-        return ValidationException::withMessages($messages->all());
+        return match ($key) {
+            'signer' => 'signer_id',
+            'reference_number' => $referenceKey,
+            'sequence_number' => 'sequence_number',
+            default => "extra.$key",
+        };
     }
 
     public function save(): Letter
@@ -329,17 +324,13 @@ class LetterForm extends Form
             $this->authorize('create', $this->newLetter($this->type));
         }
 
-        try {
-            return SaveLetter::make()->execute(
-                letter: $this->letter,
-                type: $type,
-                source: $this->source,
-                user: $this->printer(),
-                details: $this->details($type),
-                extra: $this->payload($type->extraFields(), $this->extra),
-            );
-        } catch (ValidationException $validationException) {
-            throw $this->withFormKeys($validationException, $type);
-        }
+        return $this->transaction(fn (): Letter => SaveLetter::make()->execute(
+            letter: $this->letter,
+            type: $type,
+            source: $this->source,
+            user: $this->printer(),
+            details: $this->details($type),
+            extra: $this->payload($type->extraFields(), $this->extra),
+        ));
     }
 }

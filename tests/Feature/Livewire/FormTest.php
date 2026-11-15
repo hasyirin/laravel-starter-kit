@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\Fixtures\Livewire\AbilityCheckFormHost;
 use Tests\Fixtures\Livewire\OrganizationDepartmentFormHost;
+use Tests\Fixtures\Livewire\RenamedFormHost;
 
 test('the ability helpers check the permissions of the current user', function (array $permissions, array $results): void {
     $this->seed(PermissionSeeder::class);
@@ -72,4 +73,18 @@ test('a failed second Action class rolls back the first and shows its error on t
         ->and($component->instance()->form->organization->isDirty())->toBeFalse()
         ->and($component->get('form.name'))->toBe('New name')
         ->and(Department::query()->whereBelongsTo($organization)->exists())->toBeFalse();
+});
+
+test('an Action error shows on the field of a form under any property name', function (): void {
+    $organization = Organization::factory()->create();
+    $this->mock(SaveDepartment::class)->expects('execute')->andThrow(ValidationException::withMessages(['code' => 'The code is taken.']));
+
+    Livewire::test(RenamedFormHost::class, ['organization' => $organization])
+        ->set('departmentForm.name', 'New name')
+        ->set('departmentForm.department_code', 'FIN')
+        ->set('departmentForm.department_name', 'Finance')
+        ->call('save')
+        ->assertHasErrors(['departmentForm.department_code' => 'The code is taken.'])
+        ->assertHasNoErrors(['form.department_code'])
+        ->assertSee('The code is taken.');
 });

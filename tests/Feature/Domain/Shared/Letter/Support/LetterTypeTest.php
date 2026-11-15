@@ -42,7 +42,8 @@ it('reads an optional field that the mapping leaves out as null', function (): v
 });
 
 it('refuses a value that fails its field rule', function (): void {
-    $organization = Organization::factory()->create(['name' => str_repeat('a', 256)]);
+    $organization = Organization::factory()->create();
+    $organization->name = str_repeat('a', 256);
 
     (new NoticeLetter)->letterData($organization, $this->date);
 })->throws(ValidationException::class);

@@ -73,6 +73,6 @@ class StateForm extends Form
 
         $this->validate();
 
-        return SaveState::make()->execute($this->country, $this->state ?? new State, $this->code, $this->name);
+        return $this->transaction(fn (): State => SaveState::make()->execute($this->country, $this->state ?? new State, $this->code, $this->name));
     }
 }

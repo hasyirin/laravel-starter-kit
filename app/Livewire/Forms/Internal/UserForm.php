@@ -193,33 +193,35 @@ class UserForm extends Form
         $permissions = $this->editable('permissions') ? $this->permissions : null;
         $phone = $this->phone === '' ? null : $this->phone;
 
-        if (! $this->user instanceof User) {
-            return CreateUser::make()->execute(
+        return $this->transaction(function () use ($roles, $permissions, $phone): User {
+            if (! $this->user instanceof User) {
+                return CreateUser::make()->execute(
+                    actor: $this->actor(),
+                    name: $this->name,
+                    email: $this->email,
+                    phone: $phone,
+                    password: $this->password,
+                    placement: $this->placement(),
+                    roles: $roles,
+                    permissions: $permissions,
+                );
+            }
+
+            $password = $this->password === '' ? null : $this->password;
+
+            UpdateUser::make()->execute(
                 actor: $this->actor(),
+                user: $this->user,
                 name: $this->name,
                 email: $this->email,
                 phone: $phone,
-                password: $this->password,
+                password: $password,
                 placement: $this->placement(),
                 roles: $roles,
                 permissions: $permissions,
             );
-        }
 
-        $password = $this->password === '' ? null : $this->password;
-
-        UpdateUser::make()->execute(
-            actor: $this->actor(),
-            user: $this->user,
-            name: $this->name,
-            email: $this->email,
-            phone: $phone,
-            password: $password,
-            placement: $this->placement(),
-            roles: $roles,
-            permissions: $permissions,
-        );
-
-        return $this->user;
+            return $this->user;
+        });
     }
 }

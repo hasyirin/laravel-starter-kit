@@ -6,7 +6,6 @@ namespace App\Domain\Shared\Letter\Actions;
 
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
-use App\Domain\Shared\Common\Support\ModelSnapshot;
 use App\Domain\Shared\Letter\Concerns\StoresLetterImages;
 use App\Domain\Shared\Letter\Enums\NumberingMode;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
@@ -49,19 +48,15 @@ class SaveLetter
 
         validator(['sequence_number' => $details->sequenceNumber], ['sequence_number' => ['nullable', 'integer', 'min:1']])->validate();
 
-        return $letter->getConnection()->transaction(function () use ($letter, $type, $key, $source, $user, $details, $validated): Letter {
-            ModelSnapshot::restoreOnRollBack($letter);
-
-            return $this->save(
-                letter: $letter,
-                type: $type,
-                key: $key,
-                source: $source,
-                user: $user,
-                details: $details,
-                validated: $validated,
-            );
-        });
+        return $letter->getConnection()->transaction(fn (): Letter => $this->save(
+            letter: $letter,
+            type: $type,
+            key: $key,
+            source: $source,
+            user: $user,
+            details: $details,
+            validated: $validated,
+        ));
     }
 
     /**
@@ -98,7 +93,7 @@ class SaveLetter
     {
         $letter->media()
             ->where('collection_name', MediaCollection::LetterImages->value)
-            ->whereNotIn('uuid', collect($letter->extra)->flatten()->filter(fn (mixed $value): bool => is_string($value)))
+            ->whereNotIn('uuid', collect($letter->extra)->flatten()->filter(fn (mixed $value): bool => is_string($value) && str($value)->isUuid()))
             ->get()
             ->each(fn (Media $media) => rescue(fn () => $media->delete()));
     }

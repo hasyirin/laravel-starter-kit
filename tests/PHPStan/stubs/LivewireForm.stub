@@ -1,0 +1,16 @@
+<?php
+
+namespace Livewire\Features\SupportFormObjects;
+
+use Illuminate\Contracts\Support\Arrayable;
+
+/**
+ * @implements Arrayable<string, mixed>
+ */
+class Form implements Arrayable
+{
+    /**
+     * @return string
+     */
+    public function getPropertyName() {}
+}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Shared\Actor\Enums\Act;
 use App\Domain\Shared\Common\Models\AuditEntry;
+use App\Domain\Shared\Letter\Actions\PrintManualLetter;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Organization\Models\Department;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -162,6 +164,15 @@ test('a print downloads the letter and writes one audit entry, no letter row, no
         ->and(data_get(manualEntry()->properties, 'extra.remark'))->toBe('Reminder')
         ->and(Letter::query()->withTrashed()->count())->toBe(0);
     Pdf::assertDontSee('Draft');
+});
+
+test('an unreadable letter is an error on the type', function (): void {
+    $this->mock(PrintManualLetter::class)->expects('execute')->andThrow(ValidationException::withMessages(['letter' => 'The letter cannot be read.']));
+
+    compose()->set('form.data.title', 'Permit title')
+        ->set('form.extra.remark', 'Reminder')
+        ->call('print')
+        ->assertHasErrors(['form.type' => 'The letter cannot be read.']);
 });
 
 test('a preview downloads a draft and writes no audit entry', function (): void {

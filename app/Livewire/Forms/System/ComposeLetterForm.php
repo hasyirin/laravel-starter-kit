@@ -7,7 +7,6 @@ namespace App\Livewire\Forms\System;
 use App\Domain\Shared\Letter\Actions\PrintManualLetter;
 use App\Domain\Shared\Letter\Enums\SignerRequirement;
 use App\Domain\Shared\Letter\Models\Letter;
-use App\Domain\Shared\Letter\Support\Field;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Domain\Shared\Letter\Support\LetterTypes;
 use App\Domain\Shared\Letter\Support\PdfFile;
@@ -18,7 +17,6 @@ use App\Livewire\Form;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 
 class ComposeLetterForm extends Form
@@ -131,23 +129,16 @@ class ComposeLetterForm extends Form
             $this->authorize('view', $this->source);
         }
 
-        $data = $this->payloadOf('data', $type->fields(), $this->data);
-        $extra = $this->payloadOf('extra', $type->extraFields(), $this->extra);
-
-        try {
-            return PrintManualLetter::make()->execute(
-                type: $type,
-                data: $data,
-                extra: $extra,
-                details: $this->details($type),
-                admin: $this->printer(),
-                source: $this->source,
-                preview: $preview,
-                letter: $this->letter,
-            );
-        } catch (ValidationException $validationException) {
-            throw $this->withFormKeys($validationException);
-        }
+        return $this->mapErrors(fn (): PdfFile => PrintManualLetter::make()->execute(
+            type: $type,
+            data: $this->payload($type->fields(), $this->data, 'data.'),
+            extra: $this->payload($type->extraFields(), $this->extra, 'extra.'),
+            details: $this->details($type),
+            admin: $this->printer(),
+            source: $this->source,
+            preview: $preview,
+            letter: $this->letter,
+        ));
     }
 
     protected function acrossOrganizations(): bool
@@ -201,37 +192,12 @@ class ComposeLetterForm extends Form
         return User::query()->findOrFail($this->signer_id);
     }
 
-    /**
-     * @param  list<Field>  $fields
-     * @param  array<string, mixed>  $values
-     * @return array<string, mixed>
-     */
-    private function payloadOf(string $part, array $fields, array $values): array
+    protected function errorKey(string $key): string
     {
-        try {
-            return $this->payload($fields, $values);
-        } catch (ValidationException $validationException) {
-            throw $this->withFormKeys($this->prefixErrors($validationException, $part));
-        }
-    }
-
-    private function prefixErrors(ValidationException $exception, string $part): ValidationException
-    {
-        $messages = collect($exception->errors())->mapWithKeys(fn (mixed $errors, int|string $key): array => ["$part.$key" => $errors]);
-
-        return ValidationException::withMessages($messages->all());
-    }
-
-    private function withFormKeys(ValidationException $exception): ValidationException
-    {
-        $messages = collect($exception->errors())->mapWithKeys(fn (mixed $errors, int|string $key): array => [
-            match (true) {
-                $key === 'signer' => 'form.signer_id',
-                $key === 'letter' => 'form.type',
-                default => "form.$key",
-            } => $errors,
-        ]);
-
-        return ValidationException::withMessages($messages->all());
+        return match ($key) {
+            'signer' => 'signer_id',
+            'letter' => 'type',
+            default => $key,
+        };
     }
 }

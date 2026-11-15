@@ -33,7 +33,7 @@ class ChecklistForm extends Form
     {
         $this->validate();
 
-        return SaveChecklist::make()->execute($this->notebook, $this->note, $this->title);
+        return $this->transaction(fn (): Note => SaveChecklist::make()->execute($this->notebook, $this->note, $this->title));
     }
 
     /**

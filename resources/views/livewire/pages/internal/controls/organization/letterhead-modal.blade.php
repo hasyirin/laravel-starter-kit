@@ -26,7 +26,7 @@
                     :$disabled
                 />
 
-                @error('placement')
+                @error('form.placement')
                     <flux:error :message="$message" />
                 @enderror
 

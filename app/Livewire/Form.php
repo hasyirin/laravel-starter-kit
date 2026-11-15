@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\MessageBag;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
-use LogicException;
 use WeakMap;
 
 abstract class Form extends \Livewire\Form
@@ -110,10 +109,9 @@ abstract class Form extends \Livewire\Form
         }
 
         $validator = $validationException->validator;
-        throw_unless($validator instanceof Validator, LogicException::class, 'A ValidationException needs an Illuminate validator.');
 
         $messages = collect($validator->errors()->messages())
-            ->mapToGroups(fn (array $errors, string $key): array => [$this->formKey($key) => $errors])
+            ->mapToGroups(fn (array $errors, int|string $key): array => [$this->formKey($key) => $errors])
             ->map(fn (Collection $errors): array => array_merge(...$errors->all()))
             ->all();
         $failedRules = collect($validator->failed())
@@ -121,15 +119,30 @@ abstract class Form extends \Livewire\Form
             ->map(fn (Collection $rules): array => $rules->collapse()->all())
             ->all();
 
+        $mappedValidator = $validator instanceof Validator ? $validator : validator([], []);
+
         // The validator has no setters. Livewire's own Form::validate() changes the same properties, so the test helpers still see the failed rules.
         (function () use ($messages, $failedRules): void {
             $this->messages = new MessageBag($messages);
             $this->failedRules = $failedRules;
-        })->call($validator);
+        })->call($mappedValidator);
+
+        if ($mappedValidator !== $validator) {
+            $validationException = $this->replaceValidator($validationException, $mappedValidator);
+        }
 
         $this->prefixed()[$validationException] = true;
 
         return $validationException;
+    }
+
+    private function replaceValidator(ValidationException $validationException, Validator $validator): ValidationException
+    {
+        $mapped = new ValidationException($validator, $validationException->response, $validationException->errorBag);
+        $mapped->redirectTo = $validationException->redirectTo;
+        $mapped->status = $validationException->status;
+
+        return $mapped;
     }
 
     private function formKey(int|string $key): string

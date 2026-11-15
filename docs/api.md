@@ -234,7 +234,7 @@ $response = new BillingConnector()->send(new CreateBill($invoice)->about($invoic
 
 A call made with `Http::get()` or another method of `Http` leaves no row. A call through a connector that extends Saloon's `Saloon\Http\Connector` directly leaves no row either.
 
-The app writes the API log row of a call in the database transaction of the caller. If the transaction rolls back, the row goes too. If the row must stay, call the service outside a transaction.
+The app writes the API log row of a call in the database transaction of the caller. If the transaction rolls back, the row goes too. A transaction also keeps its row locks until the service answers. So call a service outside a transaction. The `save()` of a form runs its Action classes in a transaction. A form that calls a service uses `$this->mapErrors()` instead. See the Transactions section of [Livewire Components](livewire.md#transactions).
 
 > [!WARNING]
 > An asynchronous call, in a Saloon pool or with `sendAsync()`, leaves a row only when it gets a status below 400. If it gets an error status or cannot connect, it leaves no row, because Saloon then runs no response middleware and no fatal exception middleware. Saloon also does not retry an asynchronous call. Use `send()` for calls that the API log must show.

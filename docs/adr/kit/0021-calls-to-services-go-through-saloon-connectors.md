@@ -6,7 +6,7 @@ Saloon gives each service a structure: one connector for the service, and one re
 
 ## Considered Options
 
-- **A macro on Laravel's HTTP client**: rejected. The kit had `Http::service()`, and it worked. But it gave a service no structure. The calls of a service were loose URLs and arrays across the app, and each app wrote its own classes for credentials and endpoints.
+- **A macro on Laravel's HTTP client**: rejected. The kit had an `Http` macro named service, and it worked. But it gave a service no structure. The calls of a service were loose URLs and arrays across the app, and each app wrote its own classes for credentials and endpoints.
 
 ## Consequences
 

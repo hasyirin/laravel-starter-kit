@@ -32,7 +32,7 @@ A system administrator issues API tokens on the API tokens tab of an API client.
 - **Scopes**: the system administrator selects the scopes of each API token when they issue it. The list comes from `system.api.scopes`. The kit ships an empty list.
 - **Expiry**: an API token expires after 365 days (`system.api.token_lifetime_days`). "Never expires" is a choice in the dialog. The tab marks an API token that expires within 30 days.
 - **Limit**: an API client can have at most 2 active API tokens (`system.api.max_active_tokens`). An active API token is not revoked and not expired.
-- **Rotate**: makes a new API token with the same scopes and the same "never expires" choice. The old API token then expires in 7 days (`system.api.rotation_overlap_days`), or at its own expiry if that is sooner. The new API token counts toward the limit. So an API client with 2 active API tokens must revoke one before a rotate.
+- **Rotate**: makes a new API token with the same "never expires" choice. The new API token gets the scopes of the old one that `system.api.scopes` still declares. The old API token then expires in 7 days (`system.api.rotation_overlap_days`), or at its own expiry if that is sooner. The new API token counts toward the limit. So an API client with 2 active API tokens must revoke one before a rotate.
 - **Revoke**: the API rejects the API token from that moment. The row stays, so the tab and the API log still show it.
 
 The API records the last use of an API token at most one time per minute.

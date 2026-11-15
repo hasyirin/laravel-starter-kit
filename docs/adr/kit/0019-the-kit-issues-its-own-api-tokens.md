@@ -10,7 +10,7 @@ The kit issues API tokens from its own table, `api_tokens`, and checks them with
 ## Consequences
 
 - The API log can show each reason for a rejected call, such as an expired token or a revoked token.
-- A revoked token keeps its row, so the API client's page shows it with the time it was revoked.
+- A revoked token keeps its row, so the API client's page still shows it as revoked.
 - The checksum lets the guard reject a mistyped token without a database query. The prefix lets secret scanners find a leaked token.
 - An API client is not a user. It has no roles and no permissions, and no policy runs for it. A scope on its token decides what it can call.
 - The kit owns this code, so the kit must keep it secure and tested.

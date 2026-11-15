@@ -16,6 +16,7 @@ use Tests\Fixtures\Livewire\NestedFormHost;
 use Tests\Fixtures\Livewire\OrganizationDepartmentFormHost;
 use Tests\Fixtures\Livewire\RenamedFormHost;
 use Tests\Fixtures\Livewire\TwoFormsHost;
+use Tests\Fixtures\Validation\ContractValidator;
 
 test('the ability helpers check the permissions of the current user', function (array $permissions, array $results): void {
     $this->seed(PermissionSeeder::class);
@@ -123,6 +124,19 @@ test('an Action error keeps its failed rule on the field of the form', function 
         ->set('form.department_name', 'Finance')
         ->call('save')
         ->assertHasErrors(['form.department_code' => 'integer']);
+});
+
+test('an Action error from a validator that only implements the contract shows on the field of the form', function (): void {
+    $organization = Organization::factory()->create();
+    $validator = new ContractValidator(['code' => ['The code is taken.']], ['code' => ['Unique' => []]]);
+    $this->mock(SaveDepartment::class)->expects('execute')->andThrow(new ValidationException($validator));
+
+    Livewire::test(OrganizationDepartmentFormHost::class, ['organization' => $organization])
+        ->set('form.name', 'New name')
+        ->set('form.department_code', 'FIN')
+        ->set('form.department_name', 'Finance')
+        ->call('save')
+        ->assertHasErrors(['form.department_code' => ['The code is taken.', 'unique']]);
 });
 
 test('an Action error key that starts with the property name of the form still gets the prefix', function (): void {

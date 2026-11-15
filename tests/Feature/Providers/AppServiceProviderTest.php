@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Models\ApiClient;
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\Shared\Sms\Gateways\LogGateway;
 use App\Domain\User\Models\User;
@@ -33,7 +35,9 @@ test('scheduled tasks run on the clock of the business, not in the time zone of 
     expect(resolve(Schedule::class)->command('inspire')->timezone)->toBe(config('system.timezone'));
 });
 
-test('an open page that needs a verified email sends the user to verify it once the email is unverified', function (bool $verified, int $status, ?string $location): void {
+test('an open page that needs a verified email sends the user to verify it once the email is unverified', function (bool $verified, int $status, ?string $route): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
     $page = $this->get(route('security.edit'));
@@ -46,13 +50,15 @@ test('an open page that needs a verified email sends the user to verify it once 
 
     $response->assertStatus($status);
 
-    expect($response->headers->get('Location'))->toBe($location);
+    expect($response->headers->get('Location'))->toBe($route === null ? null : route($route));
 })->with([
     'a verified email' => [true, 200, null],
-    'an unverified email' => [false, 302, fn (): string => route('verification.notice')],
+    'an unverified email' => [false, 302, 'verification.notice'],
 ]);
 
-test('an open page that needs a verified phone number sends the user to verify it once the number is unverified', function (bool $verified, int $status, ?string $location): void {
+test('an open page that needs a verified phone number sends the user to verify it once the number is unverified', function (bool $verified, int $status, ?string $route): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     $user = User::factory()->create();
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
     $page = $this->get(route('security.edit'));
@@ -65,11 +71,23 @@ test('an open page that needs a verified phone number sends the user to verify i
 
     $response->assertStatus($status);
 
-    expect($response->headers->get('Location'))->toBe($location);
+    expect($response->headers->get('Location'))->toBe($route === null ? null : route($route));
 })->with([
     'a verified phone number' => [true, 200, null],
-    'an unverified phone number' => [false, 302, fn (): string => route('phone-verification.notice')],
+    'an unverified phone number' => [false, 302, 'phone-verification.notice'],
 ]);
+
+test('booting with the sms password reset on and phone verification off throws', function (): void {
+    config(['system.features' => [Feature::SmsPasswordReset]]);
+
+    expect(new AppServiceProvider(app())->boot(...))->toThrow(LogicException::class, 'The SMS password reset needs phone verification. Add Feature::PhoneVerification to system.features.');
+});
+
+test('booting with the sms password reset on and the password reset off throws', function (): void {
+    config(['system.features' => [Feature::PhoneVerification, Feature::SmsPasswordReset]]);
+
+    expect(new AppServiceProvider(app())->boot(...))->toThrow(LogicException::class, 'The SMS password reset needs the password reset. Add Feature::PasswordReset to system.features.');
+});
 
 test('the kit sends sms through the log gateway by default', function (): void {
     expect(resolve(SmsGateway::class))->toBeInstanceOf(LogGateway::class);
@@ -91,4 +109,25 @@ test('a configured sms gateway that does not implement SmsGateway is refused', f
     config(['system.sms.gateways.log' => stdClass::class]);
 
     expect(fn () => resolve(SmsGateway::class))->toThrow(LogicException::class, 'system.sms.gateways.log must name a class that implements SmsGateway.');
+});
+
+test('an API client gets 429 once it makes more calls in a minute than its own rate limit', function (): void {
+    $token = createApiToken(ApiClient::factory()->anyIpAddress()->create(['rate_limit_per_minute' => 2]));
+    $this->withToken($token)->getJson('/api/v1/ping')->assertOk()->assertHeader('X-RateLimit-Limit', '2');
+    $this->withToken($token)->getJson('/api/v1/ping')->assertOk();
+
+    $response = $this->withToken($token)->getJson('/api/v1/ping');
+
+    $response->assertTooManyRequests()
+        ->assertHeader('Retry-After')
+        ->assertHeader('Content-Type', 'application/problem+json')
+        ->assertJsonPath('status', 429);
+});
+
+test('the rate limit counts the calls of each API client apart', function (): void {
+    $busy = createApiToken(ApiClient::factory()->anyIpAddress()->create(['rate_limit_per_minute' => 1]));
+    $other = createApiToken(ApiClient::factory()->anyIpAddress()->create(['rate_limit_per_minute' => 1]));
+    $this->withToken($busy)->getJson('/api/v1/ping')->assertOk();
+
+    $this->withToken($other)->getJson('/api/v1/ping')->assertOk();
 });

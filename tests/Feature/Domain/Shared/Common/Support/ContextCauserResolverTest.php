@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\User;
+use Illuminate\Support\Facades\Route;
 use Spatie\Activitylog\Models\Activity;
 
 test('the causer is the logged-in user', function (): void {
@@ -49,4 +51,16 @@ test('an explicit causer still wins', function (): void {
     activity()->causedBy($other)->log('Did something');
 
     expect(Activity::query()->where('description', 'Did something')->sole()->causer_id)->toBe($other->id);
+});
+
+test('the causer of a change in an API call is the API client', function (): void {
+    Route::middleware('api')->prefix('api/v1')->post('roles', fn (): array => ['id' => Role::query()->create(['name' => 'editor'])->id]);
+    $apiClient = ApiClient::factory()->anyIpAddress()->create();
+    $token = createApiToken($apiClient);
+
+    $this->withToken($token)->postJson('/api/v1/roles')->assertOk();
+
+    expect(Activity::query()->where('subject_type', 'role')->sole())
+        ->causer_type->toBe('api_client')
+        ->causer_id->toBe($apiClient->id);
 });

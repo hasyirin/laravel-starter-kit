@@ -57,17 +57,6 @@ class PostcodeForm extends Form
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function validationAttributes(): array
-    {
-        return [
-            'latitude' => (string) __('common/inputs.latitude'),
-            'longitude' => (string) __('common/inputs.longitude'),
-        ];
-    }
-
     private function coordinate(?float $value): ?float
     {
         if ($value === null) {

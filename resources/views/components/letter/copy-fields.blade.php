@@ -1,7 +1,7 @@
 @props(['prefix', 'rows' => [], 'organizations' => [], 'departments' => [], 'disabled' => false])
 
 <x-field :label="__('letters/letters.copies')" :name="$prefix">
-    <div class="space-y-2" x-data="letterRows(@js($prefix))">
+    <div class="space-y-2" x-data="repeatableRows(@js($prefix))">
         @foreach($rows as $index => $copy)
             <div class="flex items-start gap-2" wire:key="copy-{{ $index }}">
                 <div class="w-40 shrink-0">

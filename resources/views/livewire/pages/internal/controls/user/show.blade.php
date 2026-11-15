@@ -1,4 +1,6 @@
+@use(App\Domain\Shared\Common\Enums\Feature)
 @use(App\Domain\User\Support\Impersonation)
+@use(Illuminate\Support\Js)
 
 <flux:main container>
     <div class="space-y-8">
@@ -34,7 +36,7 @@
     @endif
 
     @can('update', $user)
-        @unless($user->hasVerifiedEmail())
+        @if(Feature::EmailVerification->enabled() && ! $user->hasVerifiedEmail())
             <flux:modal name="verify-email" class="max-w-md">
                 <div class="space-y-6">
                     <div>
@@ -48,13 +50,13 @@
                             <flux:button variant="filled">{{ __('common/buttons.cancel') }}</flux:button>
                         </flux:modal.close>
 
-                        <flux:button variant="primary" wire:click="verifyEmail">{{ __('common/buttons.confirm') }}</flux:button>
+                        <flux:button variant="primary" wire:click="verifyEmail({{ Js::from($user->email) }})">{{ __('common/buttons.confirm') }}</flux:button>
                     </div>
                 </div>
             </flux:modal>
-        @endunless
+        @endif
 
-        @if($user->phone !== null && ! $user->hasVerifiedPhone())
+        @if(Feature::PhoneVerification->enabled() && $user->phone !== null && ! $user->hasVerifiedPhone())
             <flux:modal name="verify-phone" class="max-w-md">
                 <div class="space-y-6">
                     <div>
@@ -68,7 +70,7 @@
                             <flux:button variant="filled">{{ __('common/buttons.cancel') }}</flux:button>
                         </flux:modal.close>
 
-                        <flux:button variant="primary" wire:click="verifyPhone">{{ __('common/buttons.confirm') }}</flux:button>
+                        <flux:button variant="primary" wire:click="verifyPhone({{ Js::from($user->phone) }})">{{ __('common/buttons.confirm') }}</flux:button>
                     </div>
                 </div>
             </flux:modal>

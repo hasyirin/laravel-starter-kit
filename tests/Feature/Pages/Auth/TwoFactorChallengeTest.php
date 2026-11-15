@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
-use Laravel\Fortify\Features;
 
 beforeEach(function (): void {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
 });
 
 test('two factor challenge redirects to login when not authenticated', function (): void {
@@ -17,7 +17,7 @@ test('two factor challenge redirects to login when not authenticated', function 
 });
 
 test('two factor challenge can be rendered', function (): void {
-    Features::twoFactorAuthentication([
+    $this->configureFeature(Feature::TwoFactorAuthentication, [
         'confirm' => true,
         'confirmPassword' => true,
     ]);
@@ -31,7 +31,7 @@ test('two factor challenge can be rendered', function (): void {
 });
 
 test('users who pass the two factor challenge go to the highest area they can open', function (): void {
-    Features::twoFactorAuthentication([
+    $this->configureFeature(Feature::TwoFactorAuthentication, [
         'confirm' => true,
         'confirmPassword' => true,
     ]);

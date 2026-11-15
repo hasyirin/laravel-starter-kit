@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\User\Actions\StopImpersonation;
+use App\Domain\User\Actions\Impersonation\StopImpersonation;
 use Illuminate\Http\RedirectResponse;
 
 class StopImpersonationController extends Controller

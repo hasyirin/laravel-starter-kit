@@ -1,4 +1,4 @@
-<section class="mt-10 space-y-6">
+<section class="mt-8 space-y-6">
     <div class="relative mb-5">
         <flux:heading>{{ __('user/settings.delete_account.heading') }}</flux:heading>
     </div>

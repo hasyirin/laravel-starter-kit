@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Organization\Models\Department;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Permission;
@@ -15,6 +16,7 @@ use App\Livewire\Pages\Internal\Controls\User\ImpersonateModal;
 use App\Livewire\Pages\Internal\Controls\User\Show;
 use App\Livewire\Pages\Internal\Controls\User\Tabs;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Js;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -120,6 +122,8 @@ test('the heading shows the email of a user without a placement', function (): v
 });
 
 test('the details show when the user was created and verified the email', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
     $user = User::factory()->create([
         'created_at' => CarbonImmutable::parse('2026-01-02 08:30', 'UTC'),
@@ -416,19 +420,50 @@ test('bypass-authorization is not sent to the browser without bypass', function 
 });
 
 test('an unverified email can be marked as verified', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
     Livewire::test(Show::class, ['user' => $this->subject])
         ->assertSee(__('user/users.unverified'))
-        ->call('verifyEmail')
+        ->assertSeeHtml('wire:click="verifyEmail('.Js::from($this->subject->email).')"')
+        ->call('verifyEmail', $this->subject->email)
+        ->assertNotDispatched('toast-show')
         ->assertDontSee(__('user/users.unverified'));
 
     expect($this->subject->fresh()->hasVerifiedEmail())->toBeTrue();
 });
 
+test('an email that changed after the page opened stays unverified', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+    $shown = $this->subject->email;
+
+    $page = Livewire::test(Show::class, ['user' => $this->subject])->assertSeeHtml('wire:click="verifyEmail('.Js::from($shown).')"');
+    $this->subject->forceFill(['email' => 'new@example.com'])->save();
+
+    $page->call('verifyEmail', $shown)
+        ->assertDispatched('modal-close', name: 'verify-email')
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('user/users.verify.changed'))
+        ->assertSee('new@example.com');
+
+    expect($this->subject->fresh()->hasVerifiedEmail())->toBeFalse();
+});
+
+test('marking an email as verified without the shown email changes nothing', function (array $arguments): void {
+    Livewire::test(Show::class, ['user' => $this->subject])
+        ->call('verifyEmail', ...$arguments)
+        ->assertOk()
+        ->assertDispatched('toast-show');
+
+    expect($this->subject->fresh()->hasVerifiedEmail())->toBeFalse();
+})->with([
+    'missing' => [[]],
+    'not a string' => [[['a@example.com']]],
+]);
+
 test('marking an email as verified needs update', function (): void {
     revokePermissions($this->actor, 'internal.controls.users.update');
 
     Livewire::test(Show::class, ['user' => $this->subject])
-        ->call('verifyEmail')
+        ->call('verifyEmail', $this->subject->email)
         ->assertForbidden();
 
     expect($this->subject->fresh()->hasVerifiedEmail())->toBeFalse();
@@ -451,7 +486,7 @@ test('a user without a profile opens', function (): void {
 });
 
 test('the show page opens without a tab bar when no tab is available', function (): void {
-    config()->set('fortify.features', []);
+    $this->disableFeature(Feature::Passkeys);
 
     $this->get(route('internal.controls.users.show', $this->subject))
         ->assertOk()
@@ -521,22 +556,54 @@ test('an unverified phone number can be marked as verified', function (): void {
     $subject = User::factory()->unverifiedPhone()->create();
 
     Livewire::test(Show::class, ['user' => $subject])
-        ->call('verifyPhone')
-        ->assertDispatched('modal-close', name: 'verify-phone');
+        ->call('verifyPhone', $subject->phone)
+        ->assertDispatched('modal-close', name: 'verify-phone')
+        ->assertNotDispatched('toast-show');
 
     expect($subject->fresh()->hasVerifiedPhone())->toBeTrue();
 });
+
+test('a phone number that changed after the page opened stays unverified', function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+    $subject = User::factory()->unverifiedPhone()->create(['phone' => '+60123456789']);
+
+    $page = Livewire::test(Show::class, ['user' => $subject])->assertSeeHtml('wire:click="verifyPhone('.Js::from('+60123456789').')"');
+    $subject->forceFill(['phone' => '+60198765432'])->save();
+
+    $page->call('verifyPhone', '+60123456789')
+        ->assertDispatched('modal-close', name: 'verify-phone')
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('user/users.verify_phone.changed'))
+        ->assertSee('+60198765432');
+
+    expect($subject->fresh()->hasVerifiedPhone())->toBeFalse();
+});
+
+test('marking a phone number as verified without the shown number changes nothing', function (array $arguments): void {
+    $subject = User::factory()->unverifiedPhone()->create();
+
+    Livewire::test(Show::class, ['user' => $subject])
+        ->call('verifyPhone', ...$arguments)
+        ->assertOk()
+        ->assertDispatched('toast-show');
+
+    expect($subject->fresh()->hasVerifiedPhone())->toBeFalse();
+})->with([
+    'missing' => [[]],
+    'not a string' => [[['+60123456789']]],
+]);
 
 test('marking a phone number as verified needs update', function (): void {
     revokePermissions($this->actor, 'internal.controls.users.update');
     $subject = User::factory()->unverifiedPhone()->create();
 
-    Livewire::test(Show::class, ['user' => $subject])->call('verifyPhone')->assertForbidden();
+    Livewire::test(Show::class, ['user' => $subject])->call('verifyPhone', $subject->phone)->assertForbidden();
 
     expect($subject->fresh()->hasVerifiedPhone())->toBeFalse();
 });
 
 test('the details show when the user verified the phone number', function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     context()->addHidden(['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-GB']);
     $subject = User::factory()->create(['phone_verified_at' => CarbonImmutable::parse('2026-01-03 09:45', 'UTC')]);
 
@@ -546,6 +613,24 @@ test('the details show when the user verified the phone number', function (): vo
 });
 
 test('the details say so when the user has no phone number', function (): void {
+    $this->skipUnlessFeature(Feature::PhoneVerification);
+
     Livewire::test(Show::class, ['user' => User::factory()->withoutPhone()->create()])
         ->assertSee(__('user/users.no_phone'));
+});
+
+test('the details leave out the phone verification when phone verification is off', function (): void {
+    $this->disableFeature(Feature::PhoneVerification, Feature::SmsPasswordReset);
+
+    Livewire::test(Show::class, ['user' => User::factory()->unverifiedPhone()->create()])
+        ->assertDontSee(__('user/users.phone_verified_at'))
+        ->assertDontSee(__('user/users.mark_as_verified'));
+});
+
+test('the details leave out the email verification when email verification is off', function (): void {
+    $this->disableFeature(Feature::EmailVerification);
+
+    Livewire::test(Show::class, ['user' => User::factory()->unverified()->create()])
+        ->assertDontSee(__('user/users.email_verified_at'))
+        ->assertDontSee(__('user/users.verify.heading'));
 });

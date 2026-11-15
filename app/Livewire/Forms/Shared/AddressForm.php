@@ -300,24 +300,6 @@ class AddressForm extends Form
         $this->subdistrict_id = null;
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function validationAttributes(): array
-    {
-        return [
-            'line_1' => (string) __('common/inputs.address'),
-            'line_2' => (string) __('common/inputs.address_line_2'),
-            'line_3' => (string) __('common/inputs.address_line_3'),
-            'postcode' => (string) __('common/inputs.postcode'),
-            'post_office_id' => (string) __('common/inputs.city'),
-            'district_id' => (string) __('common/inputs.district'),
-            'subdistrict_id' => (string) __('common/inputs.subdistrict'),
-            'latitude' => (string) __('common/inputs.latitude'),
-            'longitude' => (string) __('common/inputs.longitude'),
-        ];
-    }
-
     private function coreRequired(): bool
     {
         return $this->required || collect($this->values())->contains(fn (mixed $value): bool => filled($value));

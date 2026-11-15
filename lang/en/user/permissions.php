@@ -11,6 +11,8 @@ return [
         'logs' => 'Logs',
         'audits' => 'Audit log',
         'messages' => 'Message log',
+        'api' => 'API log',
+        'api-clients' => 'API clients',
         'internal' => 'Internal',
         'system' => 'System',
     ],

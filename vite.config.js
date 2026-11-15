@@ -47,6 +47,9 @@ export default defineConfig({
         }),
         tailwindcss(),
     ]),
+    build: {
+        assetsInlineLimit: (filePath) => filePath.includes('/resources/fonts/letter/'),
+    },
     server: {
         cors: true,
         watch: {

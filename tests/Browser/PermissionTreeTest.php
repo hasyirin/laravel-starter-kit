@@ -72,7 +72,7 @@ test('search shows only matching actions', function (): void {
         search.value = 'upd';
         search.dispatchEvent(new Event('input', { bubbles: true }));
 
-        await until(() => shownChips().length === 8);
+        await until(() => shownChips().length === 9);
 
         return shownChips().map((element) => [element.dataset.permission, element.querySelector('mark')?.textContent]);
         SCRIPT)))->toBe([
@@ -84,6 +84,7 @@ test('search shows only matching actions', function (): void {
         ['internal.controls.organizations.update', 'Upd'],
         ['internal.controls.geography.update', 'Upd'],
         ['internal.controls.letterheads.update', 'Upd'],
+        ['system.api-clients.update', 'Upd'],
     ]);
 
     $page->assertNoJavaScriptErrors();
@@ -134,7 +135,7 @@ test('the save button of the form saves the ticked permissions and keeps the sea
         const search = tree().querySelector('input');
         search.value = 'create';
         search.dispatchEvent(new Event('input', { bubbles: true }));
-        await until(() => shownChips().length === 5);
+        await until(() => shownChips().length === 6);
 
         chip('internal.controls.users.create').click();
         await until(() => ticked(chip('internal.controls.users.create')));
@@ -142,7 +143,7 @@ test('the save button of the form saves the ticked permissions and keeps the sea
         document.querySelector('form[data-card-group] button[type="submit"]').click();
 
         return await until(() => document.body.textContent.includes('User updated.'))
-            && shownChips().length === 5
+            && shownChips().length === 6
             && ticked(chip('internal.controls.users.create'));
         SCRIPT)))->toBeTrue();
 

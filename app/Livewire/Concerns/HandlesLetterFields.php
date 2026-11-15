@@ -262,4 +262,22 @@ trait HandlesLetterFields
             ...($editable ? $rules : []),
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function validationAttributes(): array
+    {
+        $copy = str((string) __('letters/letters.copy'))->lower()->value();
+
+        return collect($this->carbon_copies)
+            ->keys()
+            ->flatMap(fn (int|string $index): array => [
+                "carbon_copies.$index.kind" => $copy,
+                "carbon_copies.$index.target" => $copy,
+                "carbon_copies.$index.text" => $copy,
+            ])
+            ->put('type', str((string) __('letters/letters.type'))->lower()->value())
+            ->all();
+    }
 }

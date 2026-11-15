@@ -9,17 +9,19 @@ The app has four areas, and each area has its own route file. A fifth file, `rou
 | Internal | `routes/internal.php` | Users with `internal.access` | `/internal` | `internal.` | `auth`, `verified`, `phone.verified`, `can:internal.access` |
 | System   | `routes/system.php`   | Users with `system.access`   | `/system`   | `system.`   | `auth`, `verified`, `phone.verified`, `can:system.access`   |
 
+The API has its own file, `routes/api.php`, and it is not an area. `bootstrap/app.php` loads it with the `api` middleware group and the URL prefix `/api`. See API Routes, below.
+
 Fortify registers the routes for login, registration, password reset, email verification, two-factor authentication, and passkeys. Do not add them to `guest.php`.
 
 ### Registration
 
-Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Laravel\Fortify\Features::registration()` to `fortify.features` in `config/fortify.php`. The login page then shows a sign-up link.
+Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Feature::Registration` to `system.features` in `config/system.php`. The login page then shows a sign-up link.
 
 The `guest-forms` limiter lets each IP address send the registration form and the reset link form five times a minute. `config/fortify.php` adds it to every Fortify route, and it skips the other routes. If an app lets the public sign up, also add a captcha, such as Cloudflare Turnstile, to the registration form. The limit slows bots down, but it does not stop them.
 
 ## Choose the Area
 
-- **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to the group of this file. That middleware sends signed-in users away, so the other routes would stop working for them. A page only for signed-out users, such as `password.sms`, adds it to its own route, as Fortify's routes do.
+- **Guest**: pages and endpoints that everyone must reach, signed in or not. Examples are the home page and `/.well-known/passkey-endpoints`. Do not add the `guest` middleware to the group of this file. That middleware sends signed-in users away, so the other routes would stop working for them. A page only for signed-out users, such as `/forgot-password/sms`, adds it to its own route, as Fortify's routes do.
 - **App**: pages for every signed-in user, such as the dashboard, and the `media.show` route, which serves stored files (see [File Upload](components/file-upload.md#stored-files)). Add the `verified` and `phone.verified` middleware to a route that needs a verified email address and phone number.
 - **Internal**: the daily work of the staff, such as users, roles, orders, and reports.
 - **System**: the tools that run the app, such as Horizon.
@@ -53,7 +55,7 @@ Put page tests in `tests/Feature/Pages/`. The internal and system areas have the
 - A user gets their permissions from their active profile, and from roles and permissions given to the user directly. See **Profiles** in the README.
 - The two areas are separate. `system.access` does not open the internal area, so give both permissions to a user who needs both areas.
 - The `system-admin` role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
-- Other permissions control the parts of each area. The roles, users, organizations, and geography pages use `internal.controls.roles.*`, `internal.controls.users.*`, `internal.controls.organizations.*`, and `internal.controls.geography.*`. Horizon uses `system.horizon.view`.
+- Other permissions control the parts of each area. The roles, users, organizations, and geography pages use `internal.controls.roles.*`, `internal.controls.users.*`, `internal.controls.organizations.*`, and `internal.controls.geography.*`. Horizon uses `system.horizon.view`. The API client pages use `system.api-clients.*`, and the API log uses `system.logs.api.view`.
 
 ## After Login
 
@@ -142,6 +144,20 @@ Both styles show the same items, from the same `items()` method. In the top bar:
 The Horizon dashboard is at `/system/horizon`. Set `HORIZON_PATH` to move it. Horizon registers its own routes, so the middleware of the system area does not apply to them. Horizon checks `system.horizon.view` itself, except in the local environment, where everyone can open it.
 
 The system sidebar links to Horizon for users with `system.horizon.view`. The link loads the whole page, without `wire:navigate`, because Horizon is not a Livewire page.
+
+## API Routes
+
+API clients call the routes in `routes/api.php` with an API token. Write each route inside the `v1` group of the file. With the prefix from `bootstrap/app.php`, the route gets the URL prefix `/api/v1` and the name prefix `api.v1.`:
+
+```php
+// routes/api.php
+Route::get('orders', ListOrdersController::class)->name('orders.index')->middleware('scope:orders.read');
+
+// URL: /api/v1/orders
+// Name: api.v1.orders.index
+```
+
+These routes do not get the `web` group, so they have no session and no CSRF check. `auth()->user()` returns the `ApiClient` of the API token. Check a scope with the `scope` middleware, not with `can` or a policy. Put the test of a controller at its path under `tests/Feature/`, for example in `tests/Feature/Http/Controllers/Api/V1/`. See [API](api.md).
 
 ## Rules
 

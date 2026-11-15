@@ -18,6 +18,8 @@ The seeders create system roles. Nobody can rename or delete a system role.
 
 A user with `bypass-authorization` passes every check, because `AppServiceProvider` checks it in `Gate::before`. The `system-admin` role has this permission.
 
+An API client is not a `User`, so `Gate::before` gives no answer for it, and it has no roles and no permissions. Its API token has scopes instead. See [API](../api.md#scopes).
+
 ## Permission Matrix
 
 The roles that the seeders create, and the permissions of each role. `php artisan docs:generate` writes this table.
@@ -63,9 +65,16 @@ The roles that the seeders create, and the permissions of each role. `php artisa
 | `internal.controls.letterheads.delete`           | ✓                    |
 | `system.access`                                  | ✓                    |
 | `system.horizon.view`                            | ✓                    |
+| `system.api-clients.view-any`                    | ✓                    |
+| `system.api-clients.view`                        | ✓                    |
+| `system.api-clients.create`                      | ✓                    |
+| `system.api-clients.update`                      | ✓                    |
+| `system.api-clients.delete`                      | ✓                    |
+| `system.api-clients.view-audit-log`              | ✓                    |
 | `system.logs.audits.view`                        | ✓                    |
 | `system.logs.messages.view`                      | ✓                    |
 | `system.logs.messages.resend`                    | ✓                    |
+| `system.logs.api.view`                           | ✓                    |
 | `system.letters.compose`                         | ✓                    |
 
 A role with `bypass-authorization` passes every check.

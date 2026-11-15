@@ -16,10 +16,12 @@ class Navigation extends BaseNavigation
     {
         return [
             Item::make(label: (string) __('navigation.dashboard'), icon: 'home', route: 'system.dashboard'),
+            Item::make(label: (string) __('navigation.api_clients'), icon: 'key', route: 'system.api-clients.index', active: 'system.api-clients.*', accessible: config('system.permissions.system.api-clients.view-any')),
             Item::make(label: (string) __('navigation.horizon'), icon: 'queue-list', href: route('horizon.index'), accessible: config('system.permissions.system.horizon.view')),
             Item::make(label: (string) __('navigation.logs'), icon: 'document-text', children: [
                 Item::make(label: (string) __('navigation.audit_log'), icon: 'clipboard-document-list', route: 'system.logs.audits', accessible: config('system.permissions.system.logs.audits.view')),
                 Item::make(label: (string) __('navigation.message_log'), icon: 'envelope', route: 'system.logs.messages', accessible: config('system.permissions.system.logs.messages.view')),
+                Item::make(label: (string) __('navigation.api_log'), icon: 'arrows-right-left', route: 'system.logs.api', accessible: config('system.permissions.system.logs.api.view')),
             ]),
             Item::make(label: (string) __('navigation.manual_letter'), icon: 'pencil-square', route: 'system.letters.compose', accessible: config('system.permissions.system.letters.compose')),
             Spacer::make(),

@@ -33,7 +33,7 @@ The hint can also be a slot, for example a link:
 ```blade
 <x-input.password label="Password" wire:model="form.password" autocomplete="current-password">
     <x-slot:hint>
-        <flux:link :href="route('password.request')">Forgot your password?</flux:link>
+        <flux:link href="#">Forgot your password?</flux:link>
     </x-slot:hint>
 </x-input.password>
 ```

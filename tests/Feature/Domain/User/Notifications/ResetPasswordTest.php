@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Mail\Models\MailLink;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\User\Models\User;
@@ -9,6 +10,8 @@ use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Queue;
 
 test('the message log keeps no reset token and no tracking for a password reset email', function (): void {
+    $this->skipUnlessFeature(Feature::PasswordReset);
+
     config(['mail.tracking' => true, 'mail.intercept.enabled' => false]);
     $user = User::factory()->create();
 

@@ -141,7 +141,7 @@ class PagerChannel
 
 Give the channel a short name in a service provider, as `AppServiceProvider` does for `sms`. The row then keeps that name. Without a name, the row keeps the class name of the channel.
 
-Add the name to `channels` in `lang/en/message/messages.php`. The list then shows that label, and the channel filter offers the channel. Without a label, the list makes one from the name, and the filter does not offer the channel.
+Add the name to `channels` in `lang/en/message/messages.php`, and in the same file of each other language. The list then shows that label, and the channel filter offers the channel. Without a label, the list makes one from the name, and the filter does not offer the channel.
 
 ## Show the Messages of a Record
 

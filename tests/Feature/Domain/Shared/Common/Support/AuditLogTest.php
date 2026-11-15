@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\Shared\Common\Support\AuditLog;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\User;
@@ -56,3 +57,55 @@ test('a record that defines its own audit label is named by it', function (): vo
 
     expect(AuditLog::subjectLabel($entry))->toBe('Badge ACME-01');
 });
+
+test('a search finds the changes that an API client made by its name', function (): void {
+    activity()->causedBy(ApiClient::factory()->create(['name' => 'Billing']))->log('Synced');
+    $query = Activity::query();
+
+    AuditLog::search($query, 'billing');
+
+    expect($query->pluck('description'))->toContain('Synced');
+});
+
+test('an API client that made a change is named as its causer', function (): void {
+    activity()->causedBy(ApiClient::factory()->create(['name' => 'Billing']))->log('Synced');
+
+    expect(AuditLog::causerName(Activity::query()->where('description', 'Synced')->sole()))->toBe('Billing');
+});
+
+test('a changed list of rows shows one line per row with its values', function (): void {
+    $apiClient = ApiClient::factory()->create(['allowed_ip_addresses' => [['address' => '203.0.113.10', 'description' => 'HQ firewall']]]);
+    $apiClient->update(['allowed_ip_addresses' => [
+        ['address' => '203.0.113.10', 'description' => 'HQ firewall'],
+        ['address' => '198.51.100.0/24', 'description' => null],
+    ]]);
+
+    $change = AuditLog::changes(Activity::query()->whereMorphedTo('subject', $apiClient)->where('event', 'updated')->sole())->sole();
+
+    expect($change['old'])->toBe('203.0.113.10 (HQ firewall)')
+        ->and($change['new'])->toBe("203.0.113.10 (HQ firewall)\n198.51.100.0/24");
+});
+
+/**
+ * @param  array<array-key, mixed>  $rows
+ */
+function auditedNewAllowedIpAddresses(array $rows): string
+{
+    $apiClient = ApiClient::factory()->create(['allowed_ip_addresses' => []]);
+    $apiClient->update(['allowed_ip_addresses' => $rows]);
+
+    return AuditLog::changes(Activity::query()->whereMorphedTo('subject', $apiClient)->where('event', 'updated')->sole())->sole()['new'];
+}
+
+test('a yes or no value in a changed row shows as Yes or No', function (): void {
+    expect(auditedNewAllowedIpAddresses([['name' => 'x', 'active' => false], ['name' => 'y', 'active' => true]]))->toBe("x (No)\ny (Yes)");
+});
+
+test('a changed list of rows that are empty, plain lists, or start with no value shows as JSON', function (array $rows, string $json): void {
+    expect(auditedNewAllowedIpAddresses($rows))->toBe($json);
+})->with([
+    'an empty row' => [[[]], '[[]]'],
+    'two empty rows' => [[[], []], '[[],[]]'],
+    'plain lists' => [[[1, 2], [3, 4]], '[[1,2],[3,4]]'],
+    'a row that starts with no value' => [[['address' => null, 'description' => 'HQ']], '[{"address":null,"description":"HQ"}]'],
+]);

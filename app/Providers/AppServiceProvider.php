@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Shared\Api\Guards\ApiTokenGuard;
+use App\Domain\Shared\Api\Models\ApiClient;
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Sms\Channels\SmsChannel;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
@@ -11,6 +14,8 @@ use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsurePhoneIsVerified;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Date;
@@ -52,9 +57,13 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->preventDebugModeInProduction();
 
+        $this->checkFeatures();
+
         $this->configureDefaults();
 
         $this->configureRateLimits();
+
+        $this->configureApiGuard();
     }
 
     protected function preventDebugModeInProduction(): void
@@ -65,6 +74,21 @@ class AppServiceProvider extends ServiceProvider
 
             throw new RuntimeException('Debug mode must be off in production. Set APP_DEBUG=false.');
         }
+    }
+
+    protected function checkFeatures(): void
+    {
+        throw_if(
+            Feature::SmsPasswordReset->enabled() && ! Feature::PhoneVerification->enabled(),
+            LogicException::class,
+            'The SMS password reset needs phone verification. Add Feature::PhoneVerification to system.features.',
+        );
+
+        throw_if(
+            Feature::SmsPasswordReset->enabled() && ! Feature::PasswordReset->enabled(),
+            LogicException::class,
+            'The SMS password reset needs the password reset. Add Feature::PasswordReset to system.features.',
+        );
     }
 
     protected function configureDefaults(): void
@@ -82,7 +106,7 @@ class AppServiceProvider extends ServiceProvider
 
         Livewire::addPersistentMiddleware([EnsureEmailIsVerified::class, EnsurePhoneIsVerified::class]);
 
-        Gate::before(fn (?User $user): ?true => $user?->checkPermissionTo(config('system.permissions.bypass-authorization')) ? true : null);
+        Gate::before(fn (?Authenticatable $user): ?true => $user instanceof User && $user->checkPermissionTo(config('system.permissions.bypass-authorization')) ? true : null);
 
         Password::defaults(fn (): ?Password => app()->isProduction()
             ? Password::min(12)
@@ -99,5 +123,21 @@ class AppServiceProvider extends ServiceProvider
     {
         RateLimiter::for('mail-tracking', fn (Request $request): Limit => Limit::perMinute(30)->by($request->ip().'|'.$request->route('token')));
         RateLimiter::for('letter-preview', fn (Request $request): Limit => Limit::perMinute(30)->by((string) $request->user()?->getAuthIdentifier()));
+        RateLimiter::for('api-client', function (Request $request): Limit {
+            /** @var ApiClient $apiClient */
+            $apiClient = $request->user();
+
+            return Limit::perMinute($apiClient->rate_limit_per_minute)->by((string) $apiClient->id);
+        });
+    }
+
+    protected function configureApiGuard(): void
+    {
+        auth()->extend('api-token', function (Application $app): ApiTokenGuard {
+            $guard = new ApiTokenGuard(request());
+            $app->refresh('request', $guard, 'setRequest');
+
+            return $guard;
+        });
     }
 }

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Sms\Gateways\LogGateway;
 use App\Livewire\Components\Navigation\Style;
 
@@ -12,7 +13,33 @@ return [
 
     'locales' => ['en-MY', 'ms-MY', 'en-GB', 'en-US'],
 
+    'language' => env('APP_LOCALE', 'en'),
+
+    'languages' => ['en' => 'English', 'ms' => 'Bahasa Melayu'],
+
+    'language_abbreviations' => ['ms' => 'BM'],
+
     'country' => 'MY',
+
+    'features' => [
+        Feature::PasswordReset,
+        Feature::EmailVerification,
+        Feature::TwoFactorAuthentication,
+        Feature::Passkeys,
+        Feature::PhoneVerification,
+        Feature::SmsPasswordReset,
+    ],
+
+    'feature_options' => [
+        Feature::TwoFactorAuthentication->value => [
+            'confirm' => true,
+            'confirmPassword' => true,
+            // 'window' => 0
+        ],
+        Feature::Passkeys->value => [
+            'confirmPassword' => true,
+        ],
+    ],
 
     'sms' => [
         'gateway' => env('SMS_GATEWAY', 'log'),
@@ -50,6 +77,24 @@ return [
         'retention_days' => env('MESSAGE_RETENTION_DAYS'),
         'archive_disk' => env('MESSAGE_ARCHIVE_DISK', 'local'),
         'queue_connection' => env('MESSAGE_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
+    ],
+
+    'api' => [
+        'token_prefix' => env('API_TOKEN_PREFIX', 'app'),
+        'scopes' => [],
+        'token_lifetime_days' => 365,
+        'rotation_overlap_days' => 7,
+        'max_active_tokens' => 2,
+        'failed_authentication_per_minute' => 10,
+        'services' => [],
+    ],
+
+    'api_log' => [
+        'retention_days' => env('API_LOG_RETENTION_DAYS', 365),
+        'archive_disk' => env('API_LOG_ARCHIVE_DISK', 'local'),
+        'queue_connection' => env('API_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
+        'body_limit' => 16_384,
+        'masked_keys' => ['password', 'token', 'secret', 'authorization', 'apikey', 'privatekey'],
     ],
 
     'roles' => [
@@ -111,6 +156,14 @@ return [
             'horizon' => [
                 'view' => 'system.horizon.view',
             ],
+            'api-clients' => [
+                'view-any' => 'system.api-clients.view-any',
+                'view' => 'system.api-clients.view',
+                'create' => 'system.api-clients.create',
+                'update' => 'system.api-clients.update',
+                'delete' => 'system.api-clients.delete',
+                'view-audit-log' => 'system.api-clients.view-audit-log',
+            ],
             'logs' => [
                 'audits' => [
                     'view' => 'system.logs.audits.view',
@@ -118,6 +171,9 @@ return [
                 'messages' => [
                     'view' => 'system.logs.messages.view',
                     'resend' => 'system.logs.messages.resend',
+                ],
+                'api' => [
+                    'view' => 'system.logs.api.view',
                 ],
             ],
             'letters' => [

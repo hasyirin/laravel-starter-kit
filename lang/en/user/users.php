@@ -58,9 +58,11 @@ return [
     'verify' => [
         'heading' => 'Mark the email as verified?',
         'description' => 'The user will not need to confirm :email.',
+        'changed' => 'The email changed after you opened the page. Check the new email before you mark it as verified.',
     ],
     'verify_phone' => [
         'heading' => 'Mark the phone number as verified?',
         'description' => 'The user will not need to confirm :phone.',
+        'changed' => 'The phone number changed after you opened the page. Check the new number before you mark it as verified.',
     ],
 ];

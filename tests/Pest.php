@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Models\ApiClient;
+use App\Domain\Shared\Api\Models\ApiToken;
+use App\Domain\Shared\Api\Support\ApiTokenFormat;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\User;
@@ -18,6 +21,14 @@ pest()->extend(TestCase::class)
 pest()->beforeEach(function (): void {
     app()->detectEnvironment(fn (): string => 'local');
 })->in('Browser');
+
+pest()->tia()->watch([
+    'resources/css/letter.css' => 'tests/Feature/Views/Components/Letter',
+    'resources/fonts/letter/**' => 'tests/Feature/Views/Components/Letter',
+])->watch([
+    'resources/css/letter.css' => 'tests/Feature/Domain/Shared/Letter/Actions',
+    'resources/fonts/letter/**' => 'tests/Feature/Domain/Shared/Letter/Actions',
+]);
 
 /**
  * @param  string|array<int, string>  ...$permissions
@@ -139,4 +150,19 @@ function lockSmsPasswordReset(string $phone): void
     foreach (range(1, 10) as $try) {
         SmsPasswordResetLock::countWrongCode($phone);
     }
+}
+
+/**
+ * @param  array<string, mixed>  $state
+ */
+function createApiToken(?ApiClient $apiClient = null, array $state = []): string
+{
+    $token = ApiTokenFormat::generate();
+
+    ApiToken::factory()
+        ->for($apiClient ?? ApiClient::factory()->anyIpAddress())
+        ->withPlainToken($token)
+        ->create($state);
+
+    return $token;
 }

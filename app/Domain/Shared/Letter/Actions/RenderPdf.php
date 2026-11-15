@@ -35,6 +35,7 @@ final class RenderPdf
             ->format(Format::A4)
             ->withBrowsershot(fn (Browsershot $browsershot): Browsershot => $browsershot
                 ->blockUrls(['http://', 'https://'])
-                ->disableJavascript());
+                ->disableJavascript()
+                ->addChromiumArguments(['font-render-hinting' => 'none']));
     }
 }

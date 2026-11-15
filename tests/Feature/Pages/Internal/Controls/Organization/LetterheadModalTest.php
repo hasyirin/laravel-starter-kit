@@ -73,6 +73,18 @@ test('the header is required and the footer is not', function (): void {
         ->assertHasErrors(['form.header' => 'required']);
 });
 
+test('a letterhead message names the header image in the language of the page', function (): void {
+    app()->setLocale('ms');
+
+    $errors = Livewire::test(LetterheadModal::class, ['organization' => $this->organization])
+        ->call('show')
+        ->set('form.name', 'Main')
+        ->call('save')
+        ->errors();
+
+    expect($errors->first('form.header'))->toBe('Medan imej kepala diperlukan.');
+});
+
 test('an image narrower than 2480 pixels is refused', function (): void {
     Livewire::test(LetterheadModal::class, ['organization' => $this->organization])
         ->call('show')

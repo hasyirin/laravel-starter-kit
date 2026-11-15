@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Auth;
 
-use App\Domain\User\Actions\ConfirmPasswordResetCode;
-use App\Domain\User\Actions\SendPasswordResetCode;
+use App\Domain\User\Actions\Security\ConfirmPasswordResetCode;
+use App\Domain\User\Actions\Security\SendPasswordResetCode;
 use App\Domain\User\Exceptions\SmsCodeThrottled;
 use App\Domain\User\Exceptions\SmsPasswordResetLocked;
 use App\Domain\User\Rules\PhoneNumber;

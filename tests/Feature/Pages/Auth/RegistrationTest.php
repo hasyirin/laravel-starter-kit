@@ -2,21 +2,25 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\User;
-use Laravel\Fortify\Features;
 
 test('registration is off by default', function (): void {
+    $this->skipIfFeature(Feature::Registration);
+
     $this->get('/register')->assertNotFound();
     $this->post('/register')->assertNotFound();
 });
 
 test('the login page hides the sign-up link when registration is off', function (): void {
+    $this->skipIfFeature(Feature::Registration);
+
     $this->get(route('login'))->assertOk()->assertDontSee(__('auth/login.sign_up'));
 });
 
 describe('with registration on', function (): void {
     beforeEach(function (): void {
-        $this->enableFortifyFeature(Features::registration());
+        $this->enableFeature(Feature::Registration);
     });
 
     test('the login page shows the sign-up link', function (): void {
@@ -27,6 +31,18 @@ describe('with registration on', function (): void {
         $response = $this->get(route('register'));
 
         $response->assertOk();
+    });
+
+    test('a new user gets the language of the registration page', function (): void {
+        $this->withCookie('language', 'ms')->post(route('register.store'), [
+            'name' => 'John Doe',
+            'email' => 'test@example.com',
+            'phone' => '+60123456789',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        expect(User::query()->where('email', 'test@example.com')->sole()->language)->toBe('ms');
     });
 
     test('new users can register', function (): void {

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PasswordResetCodeSms;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
+
+beforeEach(function (): void {
+    $this->skipUnlessFeature(Feature::SmsPasswordReset);
+});
 
 test('the forgot password page links to the sms reset page', function (): void {
     $this->get(route('password.request'))->assertOk()->assertSee(route('password.sms'));

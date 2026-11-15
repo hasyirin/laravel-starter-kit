@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
-use App\Domain\User\Actions\StartImpersonation;
+use App\Domain\User\Actions\Impersonation\StartImpersonation;
 use App\Domain\User\Models\User;
 
 beforeEach(function (): void {

@@ -33,7 +33,7 @@ A form has two main methods:
 
 A form for a child record takes the parent once. An edit page passes it as the first argument of `set()`, as the Record Modal section of [Modal](components/modal.md) shows. A create page passes it to `save()`, because the page saves the parent first, in the same request. [Address](components/address.md) shows both. Livewire rebuilds a new record as a fully empty model on the next request. So the Action class sets the parent again on every save. It also sets every other value that the user does not enter, such as a type.
 
-The form does not write models. The Action class does the write and opens the transaction. So the component only authorizes the user, calls `save()`, and shows the result:
+The form does not write models itself. The Action classes do the writes. So the component only authorizes the user, calls `save()`, and shows the result:
 
 ```php
 public function mount(User $user): void
@@ -58,6 +58,66 @@ public function save(): void
 Mark the record and every other property that the user does not type with `#[Locked]`. A browser can change any public property that is not locked. A flag that changes the rules, such as `required`, must be locked too.
 
 When the user can change only some parts of a record, check each part with the policy in `save()`. For example, `UserForm` sends the roles to the Action class only when the user can `update` the `roles` of that user. A disabled input in the browser does not stop a request, so the check must be on the server.
+
+## Transactions
+
+A form that calls one Action class needs no transaction. The Action class opens its own transaction when it needs one.
+
+A form that calls more than one Action class in one save opens a transaction around the calls. Then all writes commit or roll back together. Without it, a failure in the second Action class leaves the writes of the first one in the database. A component that calls `save()` of more than one form does the same. `tests/Fixtures/Livewire/OrganizationDepartmentForm.php` is the full example:
+
+```php
+public function save(): Department
+{
+    $this->validate();
+
+    try {
+        return DB::transaction(function (): Department {
+            ModelSnapshot::restoreOnRollBack($this->organization);
+
+            SaveOrganization::make()->execute($this->organization, $this->organization->code, $this->name);
+
+            return SaveDepartment::make()->execute($this->organization, new Department, $this->department_code, $this->department_name);
+        });
+    } catch (ValidationException $validationException) {
+        $messages = collect($validationException->errors())->mapWithKeys(fn (mixed $errors, int|string $key): array => ["form.department_$key" => $errors]);
+
+        throw ValidationException::withMessages($messages->all());
+    }
+}
+```
+
+### Nested transactions
+
+Laravel counts the transaction levels of each connection. The first `transaction()` starts the database transaction. Each inner `transaction()`, such as one in an Action class, makes a savepoint. An inner commit writes nothing. The database commits only when the outer transaction commits.
+
+### Exceptions
+
+If an Action class throws, Laravel rolls back to its savepoint and throws the exception again. The exception leaves the closure of the outer transaction, so the outer transaction rolls back too. Do not catch an exception inside the transaction to continue. Catch it outside, after the rollback.
+
+Livewire turns a `Illuminate\Validation\ValidationException` into errors of the same request. An Action class gives the errors its own keys, such as code. The form shows errors under its own keys, such as form.department_code. So map the keys in the catch, as `LetterForm` does. Map only the keys of the Action classes that can throw one. In the example, only `SaveDepartment` can. Any other exception goes on as before. For example, the base component shows a toast for a failed workflow step.
+
+### Locks
+
+A row lock from `lockForUpdate()` stays until the outer transaction ends, also when an inner Action class took it. So keep the transaction short. Do not call an HTTP service or render a file in it. Lock rows in the same order in every operation, so two requests do not deadlock. Laravel retries nothing by default. It retries a deadlock only when you pass attempts to the outer `transaction()`. An inner transaction throws a `Illuminate\Database\DeadlockException` at once, without a retry. SQLite ignores the lock.
+
+### Work after the commit
+
+Laravel runs an `afterCommit()` callback only when the outer transaction commits. A rollback drops it. These also wait for the outer commit:
+
+- an event that implements `Illuminate\Contracts\Events\ShouldDispatchAfterCommit`, such as `StateChanged`
+- a job or a queued notification that implements `Illuminate\Contracts\Queue\ShouldQueueAfterCommit`, such as every notification that extends `App\Domain\Shared\Message\Notifications\Notification`
+
+So does a job that you dispatch with `afterCommit()`. Any other queued job goes to the queue at once, because `config/queue.php` does not wait for the commit. A worker can then run it before the commit, or after a rollback. Model events run at once, inside the transaction. So does an observer, unless it implements `Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit`.
+
+### Models after a rollback
+
+A rollback changes only the database. The models in memory keep the values that the Action classes set. A model that an Action class created keeps its id and `exists`, but its row is gone. Livewire loads each model property again from the database on the next request. But the view of the same request shows the unsaved values. And Livewire keeps a model that exists by its key, so a new model that rolled back fails to load on the next request. So in a form that opens a transaction:
+
+- Call `ModelSnapshot::restoreOnRollBack()` for each saved record that the form holds, as the first step in the transaction. On a rollback, it puts the record back as it was before the transaction. When several snapshots of one record roll back together, the earliest one wins. The helper restores only the model you pass. Pass each model that the form keeps after the save, such as a related model it shows. After a failed save, do not save a model that an Action class changed until you load it again.
+- Make a new record inside `save()`. Put it on a form property only after the transaction returns.
+- Keep the input properties as they are. The user sees the input and the errors, and can try again.
+
+Work outside the database, such as a stored file, does not roll back. An Action class undoes it in `afterRollBack()`. See the Transactions section of [Action Classes](actions.md).
 
 ## Disable
 

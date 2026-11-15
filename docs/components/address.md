@@ -30,15 +30,19 @@ public function save(): void
 }
 ```
 
-A create page has no model when it opens. It passes the new model to `save()` instead, after its main form saves it. Call `$this->validate()` before the saves. It validates all forms of the component together, so the user sees all errors at once. A bad address also stops the save before the new record exists:
+A create page has no model when it opens. It passes the new model to `save()` instead, after its main form saves it. Call `$this->validate()` before the saves. It validates all forms of the component together, so the user sees all errors at once. A bad address also stops the save before the new record exists. Wrap the two saves in a transaction. If the address save fails, the new record then rolls back too:
 
 ```php
 public function save(): void
 {
     $this->validate();
 
-    $organization = $this->form->save();
-    $this->address->save($organization);
+    $organization = DB::transaction(function (): Organization {
+        $organization = $this->form->save();
+        $this->address->save($organization);
+
+        return $organization;
+    });
 }
 ```
 
@@ -217,12 +221,14 @@ public function save(): void
 
     $this->validate();
 
-    $this->home->save();
-    $this->mailing->save();
+    DB::transaction(function (): void {
+        $this->home->save();
+        $this->mailing->save();
+    });
 }
 ```
 
-`$this->validate()` checks both addresses before either one saves. So a bad mailing address does not leave only the home address saved.
+`$this->validate()` checks both addresses before either one saves. The transaction rolls back the home address when the mailing address fails to save. So the page never keeps only the home address.
 
 The page ticks the box when the two saved addresses are the same, so it needs no extra column. A new record starts with the box ticked, because both addresses are empty.
 

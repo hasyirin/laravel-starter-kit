@@ -17,6 +17,9 @@ Give an Action class typed arguments. If a call has more than 4 arguments, name 
 ## Get an Action class from the container
 Call an Action class through `UpdateUserInformation::make()` in every caller: a component, a job, a command, or another Action class. `make()` resolves the Action class from the container, so a test can swap it. Never take an Action class as a parameter, and never create it with `new`.
 
+## Make an Action class safe inside an outer transaction
+An Action class can open its own transaction. It can also run inside the transaction of a caller: a form, a component, or another Action class. Laravel then makes a savepoint, and nothing commits until the outer transaction commits. So undo work outside the database in `afterRollBack()` inside the transaction, as `StoresLetterImages` does for each stored file. Put back a model that the caller keeps with `ModelSnapshot::restoreOnRollBack()`, as `SaveLetter` does. A catch block around the own transaction does not run when a later step of the caller fails. Start mail, jobs, and other effects with `afterCommit()` or `ShouldQueueAfterCommit`, so they wait for the outer commit. Do not catch an exception inside a transaction to continue.
+
 ## Keep the interface out of Action classes
 An Action class takes models and plain values, not the request. It never shows a toast, flashes the session, or redirects. Its caller validates the input and authorizes the user first, so components, jobs, and commands can share the Action class.
 

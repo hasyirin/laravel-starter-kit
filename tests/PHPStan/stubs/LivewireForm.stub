@@ -13,4 +13,22 @@ class Form implements Arrayable
      * @return string
      */
     public function getPropertyName() {}
+
+    /**
+     * @param  array<string, mixed>|null  $rules
+     * @param  array<string, string>  $messages
+     * @param  array<string, string>  $attributes
+     * @return array<string, mixed>
+     */
+    public function validate($rules = null, $messages = [], $attributes = []) {}
+
+    /**
+     * @param  string  $field
+     * @param  array<string, mixed>|null  $rules
+     * @param  array<string, string>  $messages
+     * @param  array<string, string>  $attributes
+     * @param  array<string, mixed>  $dataOverrides
+     * @return array<string, mixed>
+     */
+    public function validateOnly($field, $rules = null, $messages = [], $attributes = [], $dataOverrides = []) {}
 }

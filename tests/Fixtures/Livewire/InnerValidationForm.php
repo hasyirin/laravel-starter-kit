@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Livewire;
 
 use App\Livewire\Form;
+use Illuminate\Validation\ValidationException;
 
 class InnerValidationForm extends Form
 {
@@ -25,5 +26,17 @@ class InnerValidationForm extends Form
         $this->transaction(function (): void {
             $this->validate();
         });
+    }
+
+    public function saveName(): void
+    {
+        $this->transaction(function (): void {
+            $this->validateOnly('name');
+        });
+    }
+
+    public function refuse(): void
+    {
+        $this->transaction(fn (): never => throw ValidationException::withMessages(['name' => 'The name is taken.']));
     }
 }

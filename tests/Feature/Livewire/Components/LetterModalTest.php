@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Actor\Enums\Act;
+use App\Domain\Shared\Letter\Actions\SaveLetter;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Models\Letterhead;
 use App\Domain\Shared\Letter\Support\CarbonCopy;
@@ -22,6 +23,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Fixtures\Models\Permit;
@@ -611,6 +613,44 @@ test('a new letter refused for a taken override number saves after a fix', funct
         ->assertHasNoErrors();
 
     expect(Letter::query()->where('type', 'override')->pluck('reference_number')->sort()->values()->all())->toBe(['7', '8']);
+});
+
+test('a refused new letter stays new and keeps no relations from the save', function (): void {
+    savedLetter('override', ['sequence_key' => "override:{$this->organization->id}", 'reference_number' => '7']);
+
+    $letter = openModal()
+        ->set('form.type', 'override')
+        ->set('form.sequence_number', 7)
+        ->call('save')
+        ->assertHasErrors(['form.sequence_number'])
+        ->instance()->form->letter;
+
+    expect($letter->exists)->toBeFalse()
+        ->and($letter->id)->toBeNull()
+        ->and($letter->getRelations())->toBe([]);
+});
+
+test('two Action errors that belong to one field both show on it', function (): void {
+    $this->mock(SaveLetter::class)->expects('execute')->andThrow(ValidationException::withMessages(['reference_number' => 'The number is taken.', 'sequence_number' => 'The number is too high.']));
+
+    openModal()
+        ->set('form.type', 'override')
+        ->set('form.sequence_number', 7)
+        ->call('save')
+        ->assertHasErrors(['form.sequence_number' => ['The number is taken.', 'The number is too high.']]);
+});
+
+test('the failed rules of two Action keys that belong to one field both stay on it', function (): void {
+    $this->mock(SaveLetter::class)->expects('execute')->andReturnUsing(fn (): array => validator(
+        ['reference_number' => 'A', 'sequence_number' => 'B'],
+        ['reference_number' => 'integer', 'sequence_number' => 'boolean'],
+    )->validate());
+
+    openModal()
+        ->set('form.type', 'override')
+        ->set('form.sequence_number', 7)
+        ->call('save')
+        ->assertHasErrors(['form.sequence_number' => ['integer', 'boolean']]);
 });
 
 test('an override number without an organization is an error on the sequence number', function (): void {

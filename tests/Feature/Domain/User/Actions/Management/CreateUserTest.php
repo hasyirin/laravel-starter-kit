@@ -14,6 +14,9 @@ use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\VerifyEmail;
 use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Notifications\Events\NotificationSent;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
@@ -110,6 +113,31 @@ test('a new user gets a verification email', function (): void {
     );
 
     Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+test('a new user that an outer transaction rolls back gets no verification email', function (): void {
+    $this->skipUnlessFeature(Feature::EmailVerification);
+    $actor = User::factory()->create();
+    Event::fake([NotificationSent::class]);
+    $create = fn (string $email): User => CreateUser::make()->execute(
+        actor: $actor,
+        name: 'New Person',
+        email: $email,
+        phone: null,
+        password: 'password',
+        placement: new Placement,
+    );
+
+    expect(fn (): mixed => DB::transaction(function () use ($create): void {
+        $create('rolled.back@example.com');
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class);
+
+    $create('committed@example.com');
+
+    Event::assertDispatchedTimes(NotificationSent::class, 1);
+    Event::assertDispatched(fn (NotificationSent $event): bool => $event->notifiable instanceof User && $event->notifiable->email === 'committed@example.com');
 });
 
 test('a new user gets no verification email when email verification is off', function (): void {

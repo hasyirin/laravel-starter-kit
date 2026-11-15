@@ -44,7 +44,7 @@
                     :description="__('api/api-tokens.expiry_description', ['days' => config('system.api.token_lifetime_days')])"
                 />
 
-                <flux:error name="tokens" />
+                <flux:error name="form.tokens" />
 
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>

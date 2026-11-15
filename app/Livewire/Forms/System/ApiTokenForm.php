@@ -33,6 +33,6 @@ class ApiTokenForm extends Form
     {
         $this->validate();
 
-        return IssueApiToken::make()->execute($apiClient, $this->scopes, $this->never_expires);
+        return $this->transaction(fn (): IssuedApiToken => IssueApiToken::make()->execute($apiClient, $this->scopes, $this->never_expires));
     }
 }

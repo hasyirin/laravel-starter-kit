@@ -120,7 +120,7 @@ class ApiClientForm extends Form
 
         $this->validate();
 
-        return SaveApiClient::make()->execute(
+        return $this->transaction(fn (): ApiClient => SaveApiClient::make()->execute(
             apiClient: $this->apiClient ?? new ApiClient,
             name: $this->name,
             description: $this->description,
@@ -129,6 +129,6 @@ class ApiClientForm extends Form
             allowsAnyIpAddress: $this->allows_any_ip_address,
             rateLimitPerMinute: (int) $this->rate_limit_per_minute,
             service: $this->service,
-        );
+        ));
     }
 }

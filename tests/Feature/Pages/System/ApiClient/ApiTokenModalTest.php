@@ -134,7 +134,7 @@ test('issuing at the limit of active API tokens shows the limit message', functi
     apiTokenModal($this->apiClient)
         ->call('show')
         ->call('save')
-        ->assertHasErrors('tokens')
+        ->assertHasErrors(['form.tokens' => __('api/api-clients.token_limit', ['max' => 2])])
         ->assertSee(__('api/api-clients.token_limit', ['max' => 2]));
 
     expect($this->apiClient->tokens()->count())->toBe(2);

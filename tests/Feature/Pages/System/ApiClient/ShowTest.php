@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Actions\SaveApiClient;
 use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
@@ -9,6 +10,7 @@ use App\Livewire\Pages\System\ApiClient\Show;
 use App\Livewire\Pages\System\ApiClient\Tabs;
 use Dom\Element;
 use Dom\HTMLDocument;
+use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
@@ -76,6 +78,23 @@ test('saving changes the API client and keeps its own name', function (): void {
         'allowed_ip_addresses' => [['address' => '203.0.113.5', 'description' => 'Branch']],
         'rate_limit_per_minute' => 30,
     ]);
+});
+
+test('a save that the Action class refuses rolls back, shows the error on the form field, and keeps the API client as stored', function (): void {
+    $this->mock(SaveApiClient::class)->expects('execute')->andReturnUsing(function (ApiClient $apiClient): never {
+        $apiClient->forceFill(['name' => 'Changed'])->save();
+
+        throw ValidationException::withMessages(['name' => 'The name is taken.']);
+    });
+
+    $form = Livewire::test(Show::class, ['apiClient' => $this->apiClient])
+        ->set('form.name', 'Changed')
+        ->call('save')
+        ->assertHasErrors(['form.name' => 'The name is taken.'])
+        ->instance()->form;
+
+    expect($this->apiClient->fresh()?->name)->toBe('Billing')
+        ->and($form->apiClient?->name)->toBe('Billing');
 });
 
 test('saving keeps the service that the API client itself is linked to', function (): void {

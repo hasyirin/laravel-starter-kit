@@ -17,6 +17,7 @@ use App\Domain\User\Models\User;
 use App\Livewire\Components\FileUpload;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Filesystem\Factory;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
@@ -207,6 +208,16 @@ test('the source of a saved letter cannot change', function (): void {
 test('bad extra values are refused and nothing is saved', function (): void {
     expect(fn (): Letter => saveLetter('extra', details(), ['remark' => ['not text']]))->toThrow(ValidationException::class);
     expect(Letter::query()->count())->toBe(0);
+});
+
+test('the image cleanup compares the images only with uuid values', function (): void {
+    $bindings = collect();
+    DB::listen(fn (QueryExecuted $query) => str_contains($query->sql, '"collection_name" = ?') ? $bindings->push(...$query->bindings) : null);
+
+    saveLetter('extra', details(), ['remark' => 'Urgent']);
+
+    expect($bindings)->not->toBeEmpty()
+        ->and($bindings->all())->not->toContain('Urgent');
 });
 
 test('extra values are kept', function (): void {

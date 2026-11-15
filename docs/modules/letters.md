@@ -625,6 +625,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - the type of a saved letter cannot change
 - the source of a saved letter cannot change
 - bad extra values are refused and nothing is saved
+- the image cleanup compares the images only with uuid values
 - extra values are kept
 - an extra image is stored in the letter images collection and its uuid is kept
 - an extra image that is kept by uuid is not stored twice

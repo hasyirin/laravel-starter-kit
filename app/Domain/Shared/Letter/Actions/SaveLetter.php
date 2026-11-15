@@ -93,7 +93,7 @@ class SaveLetter
     {
         $letter->media()
             ->where('collection_name', MediaCollection::LetterImages->value)
-            ->whereNotIn('uuid', collect($letter->extra)->flatten()->filter(fn (mixed $value): bool => is_string($value)))
+            ->whereNotIn('uuid', collect($letter->extra)->flatten()->filter(fn (mixed $value): bool => is_string($value) && str($value)->isUuid()))
             ->get()
             ->each(fn (Media $media) => rescue(fn () => $media->delete()));
     }

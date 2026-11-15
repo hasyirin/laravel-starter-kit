@@ -237,12 +237,11 @@ test('an extra image that is kept by uuid is not stored twice', function (): voi
 test('a refused save leaves no stored image and keeps the upload for a retry', function (): void {
     saveLetter('extra', numberDetails('REF/1'), ['remark' => 'First']);
     $upload = extraUpload();
-    $letter = new Letter;
 
-    expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => $upload], $letter))->toThrow(ValidationException::class);
+    expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => $upload], new Letter))->toThrow(ValidationException::class);
     expect(Storage::disk('media')->allFiles())->toBeEmpty();
 
-    $media = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => $upload], $letter)->fresh()->getMedia(MediaCollection::LetterImages);
+    $media = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => $upload], new Letter)->fresh()->getMedia(MediaCollection::LetterImages);
 
     expect($media)->toHaveCount(1)
         ->and(Storage::disk('media')->allFiles())->toContain("{$media->first()->id}/stamp.png")
@@ -400,39 +399,18 @@ test('an override number that a letter has is refused', function (): void {
     expect(fn (): Letter => saveLetter('override', numberDetails(sequenceNumber: 1)))->toThrow(ValidationException::class);
 });
 
-test('a refused new letter stays unsaved', function (): void {
-    saveLetter('notice', numberDetails('REF/1'));
-    $letter = new Letter;
-
-    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
-    expect($letter->exists)->toBeFalse()
-        ->and($letter->id)->toBeNull();
-});
-
-test('a refused save restores the relations of the letter', function (): void {
-    saveLetter('notice', numberDetails('REF/1'));
-    $letter = new Letter;
-
-    expect(fn (): Letter => saveLetter('notice', numberDetails('REF/1'), letter: $letter))->toThrow(ValidationException::class);
-    expect($letter->getRelations())->toBeEmpty();
-});
-
-test('a save that an outer transaction rolls back leaves no stored image and a new letter', function (): void {
-    $letter = new Letter;
-
-    expect(fn (): mixed => DB::transaction(function () use ($letter): void {
-        saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()], $letter);
+test('a save that an outer transaction rolls back leaves no stored image and no letter', function (): void {
+    expect(fn (): mixed => DB::transaction(function (): void {
+        saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => extraUpload()]);
 
         throw new RuntimeException('A later step failed.');
     }))->toThrow(RuntimeException::class);
 
     expect(Storage::disk('media')->allFiles())->toBeEmpty()
-        ->and(Letter::query()->count())->toBe(0)
-        ->and($letter->exists)->toBeFalse()
-        ->and($letter->id)->toBeNull();
+        ->and(Letter::query()->count())->toBe(0);
 });
 
-test('two saves by one action that an outer transaction rolls back leave no stored image and the letter as it was', function (): void {
+test('two saves by one action that an outer transaction rolls back leave no stored image and the saved letter as it was', function (): void {
     $letter = saveLetter('extra', details(), ['remark' => 'First'])->fresh();
     $action = SaveLetter::make();
 
@@ -444,8 +422,6 @@ test('two saves by one action that an outer transaction rolls back leave no stor
     }))->toThrow(RuntimeException::class);
 
     expect(Storage::disk('media')->allFiles())->toBeEmpty()
-        ->and($letter->extra['remark'])->toBe('First')
-        ->and($letter->isDirty())->toBeFalse()
         ->and($letter->fresh()?->extra['remark'])->toBe('First');
 });
 

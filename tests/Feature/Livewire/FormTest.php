@@ -11,6 +11,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\Fixtures\Livewire\AbilityCheckFormHost;
+use Tests\Fixtures\Livewire\InnerValidationFormHost;
 use Tests\Fixtures\Livewire\OrganizationDepartmentFormHost;
 use Tests\Fixtures\Livewire\RenamedFormHost;
 
@@ -87,4 +88,11 @@ test('an Action error shows on the field of a form under any property name', fun
         ->assertHasErrors(['departmentForm.department_code' => 'The code is taken.'])
         ->assertHasNoErrors(['form.department_code'])
         ->assertSee('The code is taken.');
+});
+
+test('an error key that already has the property name of the form keeps it once', function (): void {
+    Livewire::test(InnerValidationFormHost::class)
+        ->call('save')
+        ->assertHasErrors(['innerForm.name'])
+        ->assertHasNoErrors(['innerForm.innerForm.name']);
 });

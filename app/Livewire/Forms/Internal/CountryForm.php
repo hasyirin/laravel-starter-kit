@@ -72,6 +72,6 @@ class CountryForm extends Form
 
         $this->validate();
 
-        return SaveCountry::make()->execute($this->country ?? new Country, $this->code, $this->name, blank($this->alpha_2) ? null : $this->alpha_2);
+        return $this->transaction(fn (): Country => SaveCountry::make()->execute($this->country ?? new Country, $this->code, $this->name, blank($this->alpha_2) ? null : $this->alpha_2));
     }
 }

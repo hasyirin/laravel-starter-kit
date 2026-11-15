@@ -598,6 +598,21 @@ test('a taken override number is an error on the sequence number', function (): 
     openModal()->set('form.type', 'override')->set('form.sequence_number', 7)->call('save')->assertHasErrors(['form.sequence_number']);
 });
 
+test('a new letter refused for a taken override number saves after a fix', function (): void {
+    savedLetter('override', ['sequence_key' => "override:{$this->organization->id}", 'reference_number' => '7']);
+
+    openModal()
+        ->set('form.type', 'override')
+        ->set('form.sequence_number', 7)
+        ->call('save')
+        ->assertHasErrors(['form.sequence_number'])
+        ->set('form.sequence_number', 8)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Letter::query()->where('type', 'override')->pluck('reference_number')->sort()->values()->all())->toBe(['7', '8']);
+});
+
 test('an override number without an organization is an error on the sequence number', function (): void {
     $this->actingAs(User::factory()->create());
 

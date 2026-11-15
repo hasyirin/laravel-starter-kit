@@ -646,10 +646,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an override number above the counter is skipped by the counter
 - an override number at or below the counter is accepted when no letter has it
 - an override number that a letter has is refused
-- a refused new letter stays unsaved
-- a refused save restores the relations of the letter
-- a save that an outer transaction rolls back leaves no stored image and a new letter
-- two saves by one action that an outer transaction rolls back leave no stored image and the letter as it was
+- a save that an outer transaction rolls back leaves no stored image and no letter
+- two saves by one action that an outer transaction rolls back leave no stored image and the saved letter as it was
 - an override number below 1 is refused
 - clearing a typed reference number clears the sequence key
 
@@ -853,6 +851,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a source id or a search that does not fit the key type is not sent as a key
 - a letter start fills the print details and the extra values of the letter
 - a print downloads the letter and writes one audit entry, no letter row, no mark
+- an unreadable letter is an error on the type
 - a preview downloads a draft and writes no audit entry
 - a ticked group prints its section and an unticked one does not
 - a group that is on with no filled child is refused

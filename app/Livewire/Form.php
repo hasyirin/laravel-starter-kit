@@ -46,7 +46,7 @@ abstract class Form extends \Livewire\Form
             return $callback();
         } catch (ValidationException $validationException) {
             $messages = collect($validationException->errors())->mapWithKeys(fn (mixed $errors, int|string $key): array => [
-                $this->getPropertyName().'.'.$this->errorKey((string) $key) => $errors,
+                $this->formKey((string) $key) => $errors,
             ]);
 
             throw ValidationException::withMessages($messages->all());
@@ -56,5 +56,16 @@ abstract class Form extends \Livewire\Form
     protected function errorKey(string $key): string
     {
         return $key;
+    }
+
+    private function formKey(string $key): string
+    {
+        $prefix = $this->getPropertyName().'.';
+
+        if (str_starts_with($key, $prefix)) {
+            return $key;
+        }
+
+        return $prefix.$this->errorKey($key);
     }
 }

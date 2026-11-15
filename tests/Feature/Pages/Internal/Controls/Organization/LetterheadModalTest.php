@@ -150,7 +150,8 @@ test('a second letterhead for the same placement is refused', function (): void 
         ->set('form.name', 'Second')
         ->set('form.header', [modalUpload('header.png', 2480)])
         ->call('save')
-        ->assertHasErrors('placement');
+        ->assertHasErrors('form.placement')
+        ->assertSee(__('letters/letterheads.placement_taken'));
 });
 
 test('editing a letterhead keeps its images when none are changed', function (): void {

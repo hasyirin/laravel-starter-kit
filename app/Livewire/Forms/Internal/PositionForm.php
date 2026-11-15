@@ -87,6 +87,6 @@ class PositionForm extends Form
 
         $department = $this->department_id === null ? null : Department::query()->findOrFail($this->department_id);
 
-        return SavePosition::make()->execute($this->organization, $this->position, $department, $this->name);
+        return $this->transaction(fn (): Position => SavePosition::make()->execute($this->organization, $this->position, $department, $this->name));
     }
 }

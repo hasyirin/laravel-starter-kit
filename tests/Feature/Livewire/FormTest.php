@@ -9,6 +9,7 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Validator;
 use Livewire\Livewire;
 use Tests\Fixtures\Livewire\AbilityCheckFormHost;
 use Tests\Fixtures\Livewire\InnerValidationFormHost;
@@ -129,7 +130,8 @@ test('an Action error keeps its failed rule on the field of the form', function 
 test('an Action error from a validator that only implements the contract shows on the field of the form', function (): void {
     $organization = Organization::factory()->create();
     $validator = new ContractValidator(['code' => ['The code is taken.']], ['code' => ['Unique' => []]]);
-    $this->mock(SaveDepartment::class)->expects('execute')->andThrow(new ValidationException($validator));
+    $exception = new ValidationException($validator);
+    $this->mock(SaveDepartment::class)->expects('execute')->andThrow($exception);
 
     Livewire::test(OrganizationDepartmentFormHost::class, ['organization' => $organization])
         ->set('form.name', 'New name')
@@ -137,6 +139,9 @@ test('an Action error from a validator that only implements the contract shows o
         ->set('form.department_name', 'Finance')
         ->call('save')
         ->assertHasErrors(['form.department_code' => ['The code is taken.', 'unique']]);
+
+    expect($exception->validator)->toBeInstanceOf(Validator::class)
+        ->and($exception->validator->errors()->keys())->toBe(['form.department_code']);
 });
 
 test('an Action error key that starts with the property name of the form still gets the prefix', function (): void {

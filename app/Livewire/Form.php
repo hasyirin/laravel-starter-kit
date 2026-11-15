@@ -127,22 +127,10 @@ abstract class Form extends \Livewire\Form
             $this->failedRules = $failedRules;
         })->call($mappedValidator);
 
-        if ($mappedValidator !== $validator) {
-            $validationException = $this->replaceValidator($validationException, $mappedValidator);
-        }
-
+        $validationException->validator = $mappedValidator;
         $this->prefixed()[$validationException] = true;
 
         return $validationException;
-    }
-
-    private function replaceValidator(ValidationException $validationException, Validator $validator): ValidationException
-    {
-        $mapped = new ValidationException($validator, $validationException->response, $validationException->errorBag);
-        $mapped->redirectTo = $validationException->redirectTo;
-        $mapped->status = $validationException->status;
-
-        return $mapped;
     }
 
     private function formKey(int|string $key): string

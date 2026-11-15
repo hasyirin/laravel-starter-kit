@@ -15,6 +15,11 @@ class InnerValidationFormHost extends Component
         $this->innerForm->save();
     }
 
+    public function saveName(): void
+    {
+        $this->innerForm->saveName();
+    }
+
     public function render(): string
     {
         return '<div></div>';

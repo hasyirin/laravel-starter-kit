@@ -87,6 +87,8 @@ An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that b
 
 An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images. A save that an outer transaction rolls back deletes the images that it stored.
 
+`SaveLetter` takes no snapshot of the letter, because `LetterForm` takes it. A caller outside a form that keeps the letter after a failure, such as a job that saves letters in a loop, calls `ModelSnapshot::restoreOnRollBack()` as the first step in its transaction, or loads the letter again. Otherwise the letter keeps the id of a row that rolled back.
+
 #### Other Settings
 
 Override these methods only when the letter type needs them.

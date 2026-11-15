@@ -154,6 +154,23 @@ test('a second letterhead for the same placement is refused', function (): void 
         ->assertSee(__('letters/letterheads.placement_taken'));
 });
 
+test('a letterhead refused for its placement saves after the placement changes', function (): void {
+    Letterhead::factory()->for($this->organization)->create();
+    $branch = Branch::factory()->for($this->organization)->create();
+
+    Livewire::test(LetterheadModal::class, ['organization' => $this->organization])
+        ->call('show')
+        ->set('form.name', 'Second')
+        ->set('form.header', [modalUpload('header.png', 2480)])
+        ->call('save')
+        ->assertHasErrors('form.placement')
+        ->set('form.branch_id', $branch->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->organization->letterheads()->where('branch_id', $branch->id)->pluck('name')->all())->toBe(['Second']);
+});
+
 test('editing a letterhead keeps its images when none are changed', function (): void {
     $letterhead = Letterhead::factory()->for($this->organization)->withImages()->create(['name' => 'Old']);
 

@@ -8,9 +8,9 @@ class AllowedIpAddress
 {
     public static function valid(string $value): bool
     {
-        $parts = explode('/', $value);
+        $parts = str($value)->explode('/');
 
-        if (count($parts) > 2) {
+        if ($parts->count() > 2) {
             return false;
         }
 

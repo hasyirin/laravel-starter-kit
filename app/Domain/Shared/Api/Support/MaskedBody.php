@@ -31,7 +31,11 @@ class MaskedBody
         try {
             $decoded = json_decode($body, false, flags: JSON_BIGINT_AS_STRING | JSON_THROW_ON_ERROR);
         } catch (JsonException) {
-            return str($body)->trim()->startsWith(['{', '[']) ? null : $body;
+            if (str($body)->trim()->startsWith(['{', '['])) {
+                return null;
+            }
+
+            return $body;
         }
 
         if (! is_array($decoded) && ! $decoded instanceof stdClass) {

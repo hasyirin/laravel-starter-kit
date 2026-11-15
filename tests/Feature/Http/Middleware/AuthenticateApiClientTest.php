@@ -26,7 +26,7 @@ test('a call with a valid token from an allowed IP address passes, and the API c
 });
 
 test('a call without a valid token returns 401 with a Bearer challenge and a generic problem', function (?string $authorization): void {
-    $response = $this->withHeaders(array_filter(['Authorization' => $authorization]))->getJson('/api/v1/ping');
+    $response = $this->withHeaders(collect(['Authorization' => $authorization])->filter()->all())->getJson('/api/v1/ping');
 
     $response->assertUnauthorized()
         ->assertHeader('WWW-Authenticate', 'Bearer')

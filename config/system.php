@@ -79,6 +79,24 @@ return [
         'queue_connection' => env('MESSAGE_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
     ],
 
+    'api' => [
+        'token_prefix' => env('API_TOKEN_PREFIX', 'app'),
+        'scopes' => [],
+        'token_lifetime_days' => 365,
+        'rotation_overlap_days' => 7,
+        'max_active_tokens' => 2,
+        'failed_authentication_per_minute' => 10,
+        'services' => [],
+    ],
+
+    'api_log' => [
+        'retention_days' => env('API_LOG_RETENTION_DAYS', 365),
+        'archive_disk' => env('API_LOG_ARCHIVE_DISK', 'local'),
+        'queue_connection' => env('API_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
+        'body_limit' => 16_384,
+        'masked_keys' => ['password', 'token', 'secret', 'authorization', 'apikey', 'privatekey'],
+    ],
+
     'roles' => [
         'system-admin' => 'system-admin',
     ],
@@ -138,6 +156,14 @@ return [
             'horizon' => [
                 'view' => 'system.horizon.view',
             ],
+            'api-clients' => [
+                'view-any' => 'system.api-clients.view-any',
+                'view' => 'system.api-clients.view',
+                'create' => 'system.api-clients.create',
+                'update' => 'system.api-clients.update',
+                'delete' => 'system.api-clients.delete',
+                'view-audit-log' => 'system.api-clients.view-audit-log',
+            ],
             'logs' => [
                 'audits' => [
                     'view' => 'system.logs.audits.view',
@@ -145,6 +171,9 @@ return [
                 'messages' => [
                     'view' => 'system.logs.messages.view',
                     'resend' => 'system.logs.messages.resend',
+                ],
+                'api' => [
+                    'view' => 'system.logs.api.view',
                 ],
             ],
             'letters' => [

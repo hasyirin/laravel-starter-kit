@@ -55,6 +55,59 @@ erDiagram
         datetime updated_at
         datetime deleted_at
     }
+    api_calls {
+        integer id PK
+        string direction
+        integer api_client_id FK
+        string api_client_name
+        integer api_token_id FK
+        string service
+        string resource_type
+        integer resource_id
+        string method
+        text url
+        string route_name
+        integer status
+        string outcome
+        integer duration_ms
+        string ip_address
+        text user_agent
+        string trace_id
+        integer request_size
+        integer response_size
+        text request_body
+        text response_body
+        text error
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+    api_clients {
+        integer id PK
+        string name
+        text description
+        boolean enabled
+        json allowed_ip_addresses
+        boolean allows_any_ip_address
+        integer rate_limit_per_minute
+        string service
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+    api_tokens {
+        integer id PK
+        integer api_client_id FK
+        string token_hash
+        string last_four
+        json scopes
+        datetime expires_at
+        datetime revoked_at
+        datetime last_used_at
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     branches {
         integer id PK
         integer organization_id FK
@@ -361,6 +414,9 @@ erDiagram
         string phone
         datetime phone_verified_at
     }
+    api_clients |o--o{ api_calls : "api_client_id"
+    api_clients ||--o{ api_tokens : "api_client_id"
+    api_tokens |o--o{ api_calls : "api_token_id"
     branches |o--o{ letterheads : "branch_id"
     branches |o--o{ profiles : "branch_id"
     countries |o--o{ addresses : "country_id"
@@ -402,6 +458,7 @@ These polymorphic column pairs can point to any table, so the diagram draws no l
 - `activity_log.subject_type` and `activity_log.subject_id`
 - `activity_log.causer_type` and `activity_log.causer_id`
 - `addresses.addressable_type` and `addresses.addressable_id`
+- `api_calls.resource_type` and `api_calls.resource_id`
 - `letters.source_type` and `letters.source_id`
 - `media.model_type` and `media.model_id`
 - `messages.notification_type` and `messages.notification_id`

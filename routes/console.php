@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Jobs\ApplyApiLogRetention;
 use App\Domain\Shared\Common\Jobs\ApplyAuditLogRetention;
 use App\Domain\Shared\Message\Jobs\ApplyMessageLogRetention;
 use Illuminate\Foundation\Inspiring;
@@ -16,6 +17,7 @@ Schedule::onOneServer()->group(function (): void {
     Schedule::command('horizon:snapshot')->everyFiveMinutes();
     Schedule::job(new ApplyAuditLogRetention)->daily();
     Schedule::job(new ApplyMessageLogRetention)->daily();
+    Schedule::job(new ApplyApiLogRetention)->daily();
     Schedule::command('queue:prune-failed --hours=168')->daily();
     Schedule::command('auth:clear-resets')->daily();
 });

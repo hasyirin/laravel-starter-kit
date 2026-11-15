@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Api\Models\ApiClient;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\Layouts\System\Navigation;
@@ -95,3 +96,32 @@ test('the system sidebar shows the message log link only to users who can view t
 
     Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.messages'), 'data-flux-sidebar-spacer'], false);
 });
+
+test('the system sidebar shows the API log link only to users who can view the API log', function (): void {
+    $this->seed(PermissionSeeder::class);
+    $user = User::factory()->create();
+    grantPermissions($user, 'system.access');
+    $this->actingAs($user);
+
+    Livewire::test(Navigation::class)->assertDontSee(route('system.logs.api'));
+
+    grantPermissions($user, 'system.logs.api.view');
+
+    Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.api'), 'data-flux-sidebar-spacer'], false);
+});
+
+test('the API clients link stays current on the create page and on the page and tabs of an API client', function (Closure $url): void {
+    $this->seed(PermissionSeeder::class);
+    $user = User::factory()->create();
+    grantPermissions($user, 'system.access', 'system.api-clients.view-any', 'system.api-clients.view', 'system.api-clients.create', 'system.api-clients.view-audit-log');
+    $this->actingAs($user);
+
+    $document = HTMLDocument::createFromString($this->get($url())->assertOk()->getContent(), LIBXML_NOERROR);
+
+    expect($document->querySelector('a[href="'.route('system.api-clients.index').'"]')?->hasAttribute('data-current'))->toBeTrue();
+})->with([
+    'the list' => [fn (): string => route('system.api-clients.index')],
+    'the create page' => [fn (): string => route('system.api-clients.create')],
+    'the page of an API client' => [fn (): string => route('system.api-clients.show', ApiClient::factory()->create())],
+    'a tab of an API client' => [fn (): string => route('system.api-clients.show', ['apiClient' => ApiClient::factory()->create(), 'tab' => 'audit'])],
+]);

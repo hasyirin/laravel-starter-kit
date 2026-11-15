@@ -13,6 +13,7 @@ A personal starting point for new Laravel projects. It starts from the official 
 - Spatie Model States for workflows
 - Spatie Permission for roles and permissions
 - Laravel Horizon for Redis queues
+- Saloon for calls to services
 - PostgreSQL in production, SQLite for local work and tests
 - Tailwind CSS 4, Vite (through Vite+)
 - Pest 5 with test impact analysis, and the Pest browser plugin with Playwright for browser tests
@@ -43,10 +44,11 @@ A personal starting point for new Laravel projects. It starts from the official 
 - **Redis** is the default driver for session, cache, and queue. They share one Redis instance, so set its `maxmemory-policy` to `noeviction` or a `volatile-*` policy. Otherwise Redis can evict queued jobs when memory is full.
 - **Horizon** runs the queues. The `supervisor-default` supervisor works the `default` queue with 1 to 10 processes in production, or 1 to 3 elsewhere, and a 60-second timeout. It tries each job 3 times, 10 and 60 seconds apart, so a job that must not run twice sets `public $tries = 1`. Media library conversions go to their own `redis-media` connection (`MEDIA_QUEUE_CONNECTION`), where the `supervisor-media` supervisor runs 2 processes in production, or 1 elsewhere. Each has a 600-second timeout, 512 MB, and a lower CPU priority (`nice` 10). The audit log retention job has its own `redis-audit` connection (`AUDIT_QUEUE_CONNECTION`), where the `supervisor-audit` supervisor runs 1 process with a 300-second timeout. One process means two retention runs never overlap. Workers restart every hour, and default workers also restart after 1,000 jobs. Environments without their own entry, such as staging, use the `*` entry. Keep each supervisor's `timeout` below its connection's `retry_after`, or a job can run twice. A test checks this. The dashboard at `/system/horizon` needs the `system.horizon.view` permission and keeps 24 hours of metrics. `composer dev` runs Horizon instead of `queue:listen`, so restart its tab after you change job code.
 - **Message log** has one row for each email and SMS that leaves the app. A row holds the recipient, the status, and the record that the message is about. System administrators read it at `/system/logs/messages`, and they can resend a message. An app's own notification channel gets rows too. See [Messages](docs/messages.md) and [kit ADR-0015](docs/adr/kit/0015-one-message-log-records-every-channel.md).
+- **API** lets API clients call `/api/v1` routes with an API token. A system administrator registers each API client at `/system/api-clients`, with allowed IP addresses, a rate limit, and API tokens with scopes. The app calls each service that it declares in `system.api.services` through a Saloon connector that extends `ServiceConnector`. The API log at `/system/logs/api` records each call in both directions. See [API](docs/api.md), [kit ADR-0019](docs/adr/kit/0019-the-kit-issues-its-own-api-tokens.md), [kit ADR-0020](docs/adr/kit/0020-one-api-log-records-both-directions.md), and [kit ADR-0021](docs/adr/kit/0021-calls-to-services-go-through-saloon-connectors.md).
 - **Intercept** sends every email and SMS to the signed-in user when `MAIL_INTERCEPT=true`. Use it on local or staging copies with real data, so no message reaches a real recipient. If no user is signed in, an email goes to `MAIL_INTERCEPT_ADDRESS` and an SMS goes to `SMS_INTERCEPT_PHONE`. An SMS also goes there if the signed-in user has no phone number. If that value is empty too, the app drops the message. A queued message goes to the user who was signed in when the app queued it. During impersonation, the message goes to the impersonator. `SMS_INTERCEPT` follows `MAIL_INTERCEPT` unless you set it. The intercept is always off in production. See [SMS](docs/sms.md#intercept).
 - **Context** carries `trace_id` and `user_id` into every log line and queued job, and the time zone and locale of the request as hidden values. Each request gets a trace ID, or reuses a valid incoming `X-Request-Id`, and the response returns it in `X-Request-Id`. Activity logged in queued jobs uses the `user_id` from Context as its causer.
 - **Daily log files** replace the single log file (`LOG_STACK=daily`).
-- **Secrets stay out of stack traces.** Parameters that hold a phone number, a password, a one-time code, a password reset token, or an SMS text have `#[\SensitiveParameter]`, so a stack trace does not show them.
+- **Secrets stay out of stack traces.** Some parameters hold a phone number, a password, a one-time code, a password reset token, an API token, or an SMS text. These parameters have `#[\SensitiveParameter]`, so a stack trace does not show them.
 - **`APP_DOMAIN`** is a new setting. It is available as `config('app.domain')`, and `APP_URL` is built from it.
 - **Livewire config** is published to `config/livewire.php`.
 - **HTTPS** is forced for all generated URLs, in every environment. Serve the app over HTTPS locally too.
@@ -177,7 +179,7 @@ After each deploy:
 Check these before the first deploy:
 
 - The app forces `https` URLs in every environment (`URL::forceHttps()` in `AppServiceProvider`). Serve the site over HTTPS, and set `APP_URL` to its `https://` address, because passkeys check the origin against it.
-- Behind a load balancer or a reverse proxy, trust it with `$middleware->trustProxies()` in `bootstrap/app.php`. Otherwise every request has the proxy's IP address. The login rate limit counts per email and IP address, so it then locks out a user for everyone.
+- Behind a load balancer or a reverse proxy, set `TRUSTED_PROXIES` in `.env` to its address ([API](docs/api.md#trusted-proxies)). Otherwise every request has the proxy's IP address. The login rate limit counts per email and IP address, so it then locks out a user for everyone.
 
 ## License
 

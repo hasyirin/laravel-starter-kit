@@ -8,14 +8,22 @@ use App\Domain\Shared\Common\Enums\Feature;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Route;
 use LogicException;
+use Saloon\Config;
 
 abstract class TestCase extends BaseTestCase
 {
+    private static bool $strayRequestsPrevented = false;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         view()->addNamespace('tests', base_path('tests/Fixtures/Views'));
+
+        if (! self::$strayRequestsPrevented) {
+            Config::preventStrayRequests();
+            self::$strayRequestsPrevented = true;
+        }
     }
 
     protected function skipUnlessFeature(Feature $feature): void

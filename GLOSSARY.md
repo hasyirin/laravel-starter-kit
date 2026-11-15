@@ -362,3 +362,35 @@ _Malay_: Hantar semula
 A setting for servers outside production that keeps messages away from real people. The app sends each email and SMS to the signed-in user in place of the recipient. During impersonation, it sends them to the impersonator.
 _Avoid_: Redirect, sandbox
 _Malay_: Intercept
+
+### API
+
+**API client**:
+A system that a system administrator registers, and that calls the app's API with an API token.
+_Avoid_: Integration, consumer
+_Malay_: Klien API
+
+**Service**:
+A system that the app calls. A developer adds it in code and config.
+_Avoid_: External system, provider, gateway
+_Malay_: Perkhidmatan
+
+**API token**:
+The secret that an API client sends with each call.
+_Avoid_: API key
+_Malay_: Token API
+
+**Scope**:
+One thing that an API token permits.
+_Avoid_: Ability, permission
+_Malay_: Skop
+
+**Allowed IP address**:
+An address or a range that an API client can call from.
+_Avoid_: Whitelist
+_Malay_: Alamat IP yang dibenarkan
+
+**API log**:
+The record of each call to the app's API and each call from the app to a service.
+_Avoid_: Access log, request log
+_Malay_: Log API

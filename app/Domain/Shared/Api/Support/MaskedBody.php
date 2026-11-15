@@ -17,6 +17,10 @@ class MaskedBody
             return null;
         }
 
+        if (strlen($body) > config()->integer('system.api_log.masked_body_limit')) {
+            return null;
+        }
+
         $masked = self::mask($body);
 
         if ($masked === null) {
@@ -42,17 +46,24 @@ class MaskedBody
             return $body;
         }
 
-        return (string) json_encode(self::maskValue($decoded), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+        try {
+            return json_encode(self::maskValue($decoded, self::maskedKeys()), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return null;
+        }
     }
 
-    private static function maskValue(#[SensitiveParameter] mixed $value): mixed
+    /**
+     * @param  Collection<int, string>  $maskedKeys
+     */
+    private static function maskValue(#[SensitiveParameter] mixed $value, Collection $maskedKeys): mixed
     {
         if ($value instanceof stdClass) {
-            return (object) self::maskValues(get_object_vars($value));
+            return (object) self::maskValues(get_object_vars($value), $maskedKeys);
         }
 
         if (is_array($value)) {
-            return self::maskValues($value);
+            return self::maskValues($value, $maskedKeys);
         }
 
         return $value;
@@ -60,26 +71,30 @@ class MaskedBody
 
     /**
      * @param  array<array-key, mixed>  $values
+     * @param  Collection<int, string>  $maskedKeys
      * @return array<array-key, mixed>
      */
-    private static function maskValues(#[SensitiveParameter] array $values): array
+    private static function maskValues(#[SensitiveParameter] array $values, Collection $maskedKeys): array
     {
         return collect($values)
-            ->map(function (mixed $value, int|string $key): mixed {
-                if (is_string($key) && self::masked($key)) {
+            ->map(function (mixed $value, int|string $key) use ($maskedKeys): mixed {
+                if (is_string($key) && self::masked($key, $maskedKeys)) {
                     return '[hidden]';
                 }
 
-                return self::maskValue($value);
+                return self::maskValue($value, $maskedKeys);
             })
             ->all();
     }
 
-    private static function masked(string $key): bool
+    /**
+     * @param  Collection<int, string>  $maskedKeys
+     */
+    private static function masked(string $key, Collection $maskedKeys): bool
     {
         $normalized = self::normalize($key);
 
-        return self::maskedKeys()->contains(fn (string $masked): bool => str_contains($normalized, $masked));
+        return $maskedKeys->contains(fn (string $masked): bool => str_contains($normalized, $masked));
     }
 
     /**

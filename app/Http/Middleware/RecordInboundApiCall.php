@@ -68,7 +68,7 @@ class RecordInboundApiCall
     {
         $contentLength = $request->header('Content-Length');
 
-        if (! is_string($contentLength) || ! ctype_digit($contentLength)) {
+        if (! is_string($contentLength) || ! ctype_digit($contentLength) || strlen($contentLength) > 18) {
             return null;
         }
 

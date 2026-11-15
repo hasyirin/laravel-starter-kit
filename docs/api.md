@@ -306,18 +306,18 @@ The API log rows do not go to the audit log.
 
 ### Bodies and Masking
 
-The API log stores the bodies only for a route with `log-bodies` or a service with `log_bodies` on. Before it stores a body, it does these steps:
+The API log stores the bodies only for a route with `log-bodies` or a service with `log_bodies` on. A body larger than 1,048,576 bytes (`system.api_log.masked_body_limit`) is not stored. The row still stores its size. Before it stores a smaller body, it does these steps:
 
 1. It replaces each byte that is not UTF-8 with a question mark, and it removes each NUL byte.
 2. It masks the listed keys of a JSON body. The value of each such key, at any depth, becomes `[hidden]`. `system.api_log.masked_keys` lists the keys. The default list is `password`, `token`, `secret`, `authorization`, `apikey`, and `privatekey`. A key matches when it contains a listed key, without case, `_`, or `-`. So `access_token` and `api-key` match too.
 3. It cuts the body to 16,384 bytes (`system.api_log.body_limit`).
 
-A masked JSON body keeps its empty objects and the zero fraction of each number, such as 1.0. An integer that is too large for PHP becomes a string in quotes. If a body starts with { or [ but the app cannot decode it as JSON, the API log stores no body. An example is JSON that is nested more than 512 levels deep.
+A masked JSON body keeps its empty objects and the zero fraction of each number, such as 1.0. An integer that is too large for PHP becomes a string in quotes. If a body starts with { or [ but the app cannot decode it as JSON, the API log stores no body. An example is JSON that is nested more than 512 levels deep. The API log also stores no body when the JSON has a number outside the float range, such as 1e400.
 
 An outbound form body goes to the log as JSON, so its keys are masked too. An outbound multipart body is never stored, because it can hold files. An outbound stream body is never stored either, because the app can read it only once. For the same reason, a streamed response body is not stored, and its size is stored only when the stream knows it.
 
 > [!WARNING]
-> The API log stores any other body without a mask. This includes an inbound form body, an inbound multipart body, XML, and plain text. Keep body logging off for a route or a service that sends such bodies with secrets.
+> The API log stores any other body without a mask. This includes an inbound form body, an inbound multipart body, XML, and plain text. The mask also does not look inside a string value. So a string value that holds JSON, such as the payload of a webhook envelope, is stored as it is, and its keys are not masked. Keep body logging off for a route or a service that sends such bodies with secrets.
 
 ### Retention
 

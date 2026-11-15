@@ -94,6 +94,7 @@ return [
         'archive_disk' => env('API_LOG_ARCHIVE_DISK', 'local'),
         'queue_connection' => env('API_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
         'body_limit' => 16_384,
+        'masked_body_limit' => 1024 * 1024,
         'masked_keys' => ['password', 'token', 'secret', 'authorization', 'apikey', 'privatekey'],
     ],
 

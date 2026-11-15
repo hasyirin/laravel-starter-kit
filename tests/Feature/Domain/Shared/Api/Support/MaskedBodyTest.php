@@ -8,6 +8,7 @@ beforeEach(function (): void {
     config([
         'system.api_log.masked_keys' => ['password', 'token', 'secret', 'authorization', 'apikey'],
         'system.api_log.body_limit' => 1_000,
+        'system.api_log.masked_body_limit' => 1_000,
     ]);
 });
 
@@ -56,6 +57,21 @@ test('a body longer than the limit is cut to the limit', function (): void {
     config(['system.api_log.body_limit' => 10]);
 
     expect(MaskedBody::of(str_repeat('a', 25)))->toBe(str_repeat('a', 10));
+});
+
+test('a body larger than the masked body limit stores nothing', function (string $body): void {
+    expect(MaskedBody::of($body))->toBeNull();
+})->with([
+    'JSON' => ['{"password":"'.str_repeat('s', 986).'"}'],
+    'not JSON' => [str_repeat('a', 1_001)],
+]);
+
+test('a JSON body at the masked body limit is still masked', function (): void {
+    expect(MaskedBody::of('{"password":"'.str_repeat('s', 985).'"}'))->toBe('{"password":"[hidden]"}');
+});
+
+test('a JSON number outside the float range stores nothing', function (): void {
+    expect(MaskedBody::of('{"a":1e400,"password":"x"}'))->toBeNull();
 });
 
 test('the cut never splits a character', function (): void {

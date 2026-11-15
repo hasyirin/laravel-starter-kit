@@ -160,6 +160,15 @@ test('a call without a numeric Content-Length header stores no request size', fu
     'not a number' => [['Content-Length' => 'abc']],
 ]);
 
+test('a call with a Content-Length header above the integer range stores no request size', function (string $contentLength): void {
+    $this->withHeader('Content-Length', $contentLength)->get('/api/v1/ping');
+
+    expect(ApiCall::query()->sole()->request_size)->toBeNull();
+})->with([
+    '19 digits' => [str_repeat('9', 19)],
+    '400 digits' => [str_repeat('9', 400)],
+]);
+
 test('a call to a web route writes no row', function (): void {
     $this->get('/')->assertOk();
 

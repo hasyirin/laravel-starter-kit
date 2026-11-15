@@ -56,6 +56,6 @@ class BranchForm extends Form
     {
         $this->validate();
 
-        return SaveBranch::make()->execute($this->organization, $this->branch ?? new Branch, $this->code, $this->name);
+        return $this->transaction(fn (): Branch => SaveBranch::make()->execute($this->organization, $this->branch ?? new Branch, $this->code, $this->name));
     }
 }

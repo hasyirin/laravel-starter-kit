@@ -72,12 +72,12 @@ class PostcodeForm extends Form
 
         $this->validate();
 
-        return SavePostcode::make()->execute(
+        return $this->transaction(fn (): Postcode => SavePostcode::make()->execute(
             postOffice: $this->postOffice,
             postcode: $this->postcode,
             code: $this->code,
             latitude: $this->coordinate($this->latitude),
             longitude: $this->coordinate($this->longitude),
-        );
+        ));
     }
 }

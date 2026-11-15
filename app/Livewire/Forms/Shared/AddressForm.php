@@ -427,6 +427,6 @@ class AddressForm extends Form
 
         throw_if(! $model instanceof Model, LogicException::class, 'Pass the model of the address to set() or save().');
 
-        return SaveAddress::make()->execute($model, $this->values(), $this->type);
+        return $this->transaction(fn (): ?Address => SaveAddress::make()->execute($model, $this->values(), $this->type));
     }
 }

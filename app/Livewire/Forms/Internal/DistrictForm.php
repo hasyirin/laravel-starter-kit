@@ -73,6 +73,6 @@ class DistrictForm extends Form
 
         $this->validate();
 
-        return SaveDistrict::make()->execute($this->state, $this->district ?? new District, $this->code, $this->name);
+        return $this->transaction(fn (): District => SaveDistrict::make()->execute($this->state, $this->district ?? new District, $this->code, $this->name));
     }
 }

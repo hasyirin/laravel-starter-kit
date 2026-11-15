@@ -73,6 +73,20 @@ public function save(): void
 
 A component can still read data for its view without an Action class.
 
+## Transactions
+
+An Action class opens its own transaction when its writes must commit together, or when it locks a row with `lockForUpdate()`. It can also run inside the transaction of a caller: a form, a component, or another Action class. For example, `UpdateUser` calls `ChangeUserProfile` inside its own transaction. Laravel then makes a savepoint, and nothing commits until the outer transaction commits. See the Transactions section of [Livewire Components](livewire.md) for what this means for locks, exceptions, and models.
+
+So write each Action class to work inside an outer transaction:
+
+- Undo work outside the database in `afterRollBack()`, inside the transaction. A stored file is an example. A catch block around the own transaction does not run when a later step of the caller fails. `StoresLetterImages` registers one callback for each file it stores, so `SaveLetter` and `PrintManualLetter` delete their files on a rollback.
+- Know that a rollback resets the database, not the models in memory. Most callers stop after a failure: the request shows an error, a failed job loads its models again, and Livewire loads a model property again on each request. So a changed model needs no care in most code.
+- Put a model back only when its caller keeps using it after a rollback. This happens when the caller catches the exception and stays on the page, goes on with the next record in a loop, or tries the transaction again. Then call `ModelSnapshot::restoreOnRollBack()` as the first step in the transaction, or load the model again with `fresh()`. Laravel runs rollback callbacks oldest first, so a plain snapshot in `afterRollBack()` is wrong when two operations change one model. The helper lets the earliest snapshot win.
+- The `Transition` base class takes a snapshot because a component stays on the page after a failed step. Without it, the page shows the new state of a step that did not happen. An Action class that a form calls needs none: `transaction()` of `App\Livewire\Form` takes a snapshot of each public or protected model property of the form. For example, `LetterForm` keeps the new letter on the page after a taken reference number. Without the snapshot, the letter keeps the id of a row that rolled back, and the next request cannot find it.
+- Start mail, jobs, and other effects after the commit, with `afterCommit()` or `Illuminate\Contracts\Queue\ShouldQueueAfterCommit`. `SaveLetter` deletes the images that the letter no longer uses in `afterCommit()`.
+- Do not catch an exception inside a transaction to continue. Let it go out, so the whole operation rolls back.
+- Keep `ACTIVITYLOG_BUFFER_ENABLED` off. With the buffer on, the audit log keeps its entries in memory and writes them when the request or the job ends. It does not watch rollbacks, so it also writes the entries of a transaction that rolled back. The audit log then shows changes that never happened.
+
 ## State Steps
 
 A state step needs no Action class, because its transition class holds the work: the checks in `reason()` and the changes in `apply()`. A component runs the step with its own `transitionTo()`, which only checks the permission and shows toasts. An Action class calls `$model->state->transitionTo()` only when the step is one part of a bigger operation. If a component calls such an Action class and the step fails, the component still shows the same toasts. Its `exception()` hook catches the failure. See [Workflows](workflows.md).

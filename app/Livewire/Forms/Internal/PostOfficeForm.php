@@ -55,6 +55,6 @@ class PostOfficeForm extends Form
 
         $this->validate();
 
-        return SavePostOffice::make()->execute($this->state, $this->postOffice ?? new PostOffice, $this->name);
+        return $this->transaction(fn (): PostOffice => SavePostOffice::make()->execute($this->state, $this->postOffice ?? new PostOffice, $this->name));
     }
 }

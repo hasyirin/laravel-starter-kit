@@ -10,6 +10,7 @@ use Hasyirin\Actor\Facades\Actor;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\Fixtures\Models\Permit;
 use Tests\Fixtures\Support\NoticeLetter;
@@ -94,7 +95,7 @@ test('a reference number is unique within its sequence key while the letter is n
     $attributes = ['type' => 'notice', 'sequence_key' => 'A', 'reference_number' => 'REF/1'];
     $first = $this->permit->letters()->create($attributes);
 
-    expect(fn () => $this->permit->letters()->create($attributes))->toThrow(QueryException::class);
+    expect(fn () => DB::transaction(fn () => $this->permit->letters()->create($attributes)))->toThrow(QueryException::class);
 
     $this->permit->letters()->create([...$attributes, 'sequence_key' => 'B']);
 

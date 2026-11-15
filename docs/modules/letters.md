@@ -85,7 +85,9 @@ The mapping makes every decision. It compares dates with `$date`, never with tod
 
 An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. An uploaded image can be at most 10 MB. A table field cannot have an image column, and its group columns cannot hold an image field.
 
-An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images.
+An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images. A save that an outer transaction rolls back deletes the images that it stored.
+
+`SaveLetter` takes no snapshot of the letter, because `LetterForm` takes it. A caller outside a form that keeps the letter after a failure, such as a job that saves letters in a loop, calls `ModelSnapshot::restoreOnRollBack()` as the first step in its transaction, or loads the letter again. Otherwise the letter keeps the id of a row that rolled back.
 
 #### Other Settings
 
@@ -581,6 +583,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an upload ends on the audit entry and its uuid is logged
 - a preview keeps the upload out of the audit log
 - a failed audit entry leaves no stored image
+- an audit entry that an outer transaction rolls back leaves no stored image
 - an image of the source stays on the source and its uuid is logged
 - an image uuid of another owner is refused
 - a missing required value is refused with a key for the part
@@ -624,6 +627,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - the type of a saved letter cannot change
 - the source of a saved letter cannot change
 - bad extra values are refused and nothing is saved
+- the image cleanup compares the images only with uuid values
 - extra values are kept
 - an extra image is stored in the letter images collection and its uuid is kept
 - an extra image that is kept by uuid is not stored twice
@@ -645,8 +649,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an override number above the counter is skipped by the counter
 - an override number at or below the counter is accepted when no letter has it
 - an override number that a letter has is refused
-- a refused new letter stays unsaved
-- a refused save restores the relations of the letter
+- a save that an outer transaction rolls back leaves no stored image and no letter
+- two saves by one action that an outer transaction rolls back leave no stored image and the saved letter as it was
 - an override number below 1 is refused
 - clearing a typed reference number clears the sequence key
 
@@ -850,6 +854,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a source id or a search that does not fit the key type is not sent as a key
 - a letter start fills the print details and the extra values of the letter
 - a print downloads the letter and writes one audit entry, no letter row, no mark
+- an unreadable letter is an error on the type
 - a preview downloads a draft and writes no audit entry
 - a ticked group prints its section and an unticked one does not
 - a group that is on with no filled child is refused

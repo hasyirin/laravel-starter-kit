@@ -43,6 +43,6 @@ class OrganizationForm extends Form
     {
         $this->validate();
 
-        return SaveOrganization::make()->execute($this->organization ?? new Organization, $this->code, $this->name);
+        return $this->transaction(fn (): Organization => SaveOrganization::make()->execute($this->organization ?? new Organization, $this->code, $this->name));
     }
 }

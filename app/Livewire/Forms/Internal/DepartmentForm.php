@@ -56,6 +56,6 @@ class DepartmentForm extends Form
     {
         $this->validate();
 
-        return SaveDepartment::make()->execute($this->organization, $this->department ?? new Department, $this->code, $this->name);
+        return $this->transaction(fn (): Department => SaveDepartment::make()->execute($this->organization, $this->department ?? new Department, $this->code, $this->name));
     }
 }

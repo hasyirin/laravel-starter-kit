@@ -106,7 +106,7 @@ class LetterheadForm extends Form
     {
         $this->validate();
 
-        return SaveLetterhead::make()->execute(
+        return $this->transaction(fn (): Letterhead => SaveLetterhead::make()->execute(
             letterhead: $this->letterhead,
             organization: $this->organization,
             branch: $this->branch(),
@@ -114,6 +114,6 @@ class LetterheadForm extends Form
             name: $this->name,
             headerItems: $this->header,
             footerItems: $this->footer,
-        );
+        ));
     }
 }

@@ -6,9 +6,9 @@ namespace App\Domain\Shared\Common\Transitions;
 
 use App\Domain\Shared\Common\Exceptions\StaleState;
 use App\Domain\Shared\Common\Exceptions\StateNotSaved;
+use App\Domain\Shared\Common\Support\ModelSnapshot;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\ModelStates\DefaultTransition;
-use Throwable;
 
 /**
  * @template TModel of Model
@@ -54,32 +54,26 @@ class Transition extends DefaultTransition
      */
     public function handle(): Model
     {
-        $attributes = $this->model->getAttributes();
+        return $this->model->getConnection()->transaction(function (): Model {
+            ModelSnapshot::restoreOnRollBack($this->model);
 
-        try {
-            return $this->model->getConnection()->transaction(function (): Model {
-                if ($this->model->exists) {
-                    $current = $this->model->newQueryWithoutScopes()->lockForUpdate()->whereKey($this->model->getKey())->first();
+            if ($this->model->exists) {
+                $current = $this->model->newQueryWithoutScopes()->lockForUpdate()->whereKey($this->model->getKey())->first();
 
-                    if ($current === null || $current->getRawOriginal($this->field) !== $this->model->getRawOriginal($this->field)) {
-                        throw StaleState::make($this->model, $this->field);
-                    }
+                if ($current === null || $current->getRawOriginal($this->field) !== $this->model->getRawOriginal($this->field)) {
+                    throw StaleState::make($this->model, $this->field);
                 }
+            }
 
-                $this->model->setAttribute($this->field, $this->newState);
-                $this->apply();
+            $this->model->setAttribute($this->field, $this->newState);
+            $this->apply();
 
-                if (! $this->model->save()) {
-                    throw StateNotSaved::make($this->model, $this->field);
-                }
+            if (! $this->model->save()) {
+                throw StateNotSaved::make($this->model, $this->field);
+            }
 
-                return $this->model;
-            });
-        } catch (Throwable $throwable) {
-            $this->model->setRawAttributes($attributes);
-
-            throw $throwable;
-        }
+            return $this->model;
+        });
     }
 
     protected function apply(): void {}

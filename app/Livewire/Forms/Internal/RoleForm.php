@@ -97,10 +97,12 @@ class RoleForm extends Form
 
         $permissions = $this->editable('permissions') ? $this->permissions : null;
 
-        if (! $this->role instanceof Role) {
-            return CreateRole::make()->execute($this->actor(), $this->name, $permissions);
-        }
+        return $this->transaction(function () use ($permissions): Role {
+            if (! $this->role instanceof Role) {
+                return CreateRole::make()->execute($this->actor(), $this->name, $permissions);
+            }
 
-        return UpdateRole::make()->execute($this->actor(), $this->role, $this->editable('name') ? $this->name : null, $permissions);
+            return UpdateRole::make()->execute($this->actor(), $this->role, $this->editable('name') ? $this->name : null, $permissions);
+        });
     }
 }

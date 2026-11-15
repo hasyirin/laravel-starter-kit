@@ -67,6 +67,7 @@ Make the parameter of `to()` nullable only when a create action shares the metho
 - An empty table shows `common/records.none`.
 - While a table with `#[Defer]` loads, the page shows a skeleton.
 - Dark mode follows Flux, and `resources/css/app.css` gives the cells the padding of Flux.
+- The buttons of Filament look like Flux buttons. `resources/css/app.css` does this. See [Button Look](#button-look).
 
 Search, sort, and filters are not kept in the URL or the session. Filament keeps only the page size in the session.
 
@@ -129,6 +130,51 @@ public function table(Table $table): Table
 }
 ```
 
+## Button Look
+
+`resources/css/app.css` gives the buttons of Filament the look of Flux buttons. This covers the buttons above a table and the buttons of Filament dialogs, such as the confirmation of the delete action.
+
+| Filament button                                 | Flux look                                |
+| ----------------------------------------------- | ---------------------------------------- |
+| Primary                                         | `variant="primary"`, in the accent color |
+| Danger                                          | `variant="danger"`                       |
+| Gray, which has no color                        | The default, `variant="outline"`         |
+| Gray, in the footer of a dialog, such as Cancel | `variant="filled"`                       |
+| Size md, sm, and xs                             | Size base, sm, and xs, with a 16px icon  |
+
+The icon of a gray button takes the color of its text, as in Flux.
+
+The rules leave these buttons as Filament draws them:
+
+- Sizes lg and xl, and a button with no size class.
+- Icon buttons, links, buttons in a button group, and toggle buttons.
+
+Buttons of other colors, such as success, and outlined buttons get the Flux size but keep the colors of Filament. The focus ring and the disabled look stay those of Filament.
+
+The rules do not handle a button in a table row while a table with `loadingSkeleton()` loads. Filament then draws each row button as a gray block. With the rules, a gray button keeps its look and shows its label. The kit puts row actions in a menu and does not turn on the skeleton, so the kit leaves this case.
+
+The rules copy class names and CSS variables of Filament, and the classes of the Flux button. An update of Filament or Flux can change them without notice.
+
+| Internal                                                                                                                           | Where the kit uses it                                                                     | What breaks when it changes                                     |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `fi-btn`, `fi-size-md`, `fi-size-sm`, and `fi-size-xs` of Filament                                                                 | `app.css`: find a button that takes the look, and its size                                | Buttons lose the whole Flux look, or other buttons get it.      |
+| `fi-color`, `fi-color-primary`, `fi-color-danger`, and `fi-outlined` of Filament                                                   | `app.css`: choose the look of a button                                                    | Buttons get the wrong colors.                                   |
+| `fi-btn-group` of Filament, and a `label` element or the `aria-pressed` attribute for a toggle button                              | `app.css`: skip grouped buttons and toggle buttons                                        | Grouped buttons or toggle buttons get the Flux look.            |
+| `fi-modal-footer` of Filament                                                                                                      | `app.css`: find Cancel in a dialog                                                        | Cancel gets the outline look.                                   |
+| `fi-icon` of Filament                                                                                                              | `app.css`: the icon size, the icon color of a gray button, and the space next to the icon | The icon gets bigger or gray, or the space next to it is wrong. |
+| `--bg`, `--hover-bg`, `--dark-bg`, `--dark-hover-bg`, `--text`, `--hover-text`, `--dark-text`, and `--dark-hover-text` of Filament | `app.css`: the colors of primary and danger buttons                                       | Primary and danger buttons get the colors of Filament.          |
+| `fi-disabled` and `fi-force-enabled` of Filament, and the `disabled` attribute                                                     | `app.css`: the hover of a gray button                                                     | A disabled or loading gray button shows a hover color.          |
+| The 1px ring of a gray Filament button                                                                                             | `app.css`: removed when the button has no keyboard focus                                  | A gray button shows a ring around its border.                   |
+| The size and variant classes of the Flux button                                                                                    | `app.css`: copied with `@apply`                                                           | Filament buttons stop matching Flux buttons.                    |
+
+Filament gives no class for the side of the icon, and the label is a text node. So the rules cannot reduce the padding on the icon side, as Flux does. Instead, each icon moves 4px into the padding on both sides, and the gap is 4px larger than in Flux.
+
+After you upgrade Filament or Flux, compare the rules with these files. Then check the buttons of a table and of the delete confirmation.
+
+- `vendor/livewire/flux/stubs/resources/views/flux/button/index.blade.php`
+- `vendor/filament/support/resources/css/components/button.css`
+- `vendor/filament/support/src/View/Concerns/CanGenerateButtonHtml.php`
+
 ## Test a Table
 
 Use the helpers of Filament: `assertCanSeeTableRecords()`, `searchTable()`, `sortTable()`, and `callAction()`. See `tests/Feature/Livewire/DataTables/DataTableTest.php`.
@@ -153,7 +199,7 @@ Use these in place of the actions and columns of Filament with the same job. Eac
 
 | Preset                              | Name     | Icon                       | Label                   | Color   | Notes                                                                 |
 | ----------------------------------- | -------- | -------------------------- | ----------------------- | ------- | --------------------------------------------------------------------- |
-| `App\Filament\Actions\CreateAction` | `create` | `heroicon-m-plus`          | Required                | Primary | For `headerActions()`. Throws when it has no label.                   |
+| `App\Filament\Actions\CreateAction` | `create` | `heroicon-c-plus`          | Required                | Primary | For `headerActions()`. Throws when it has no label.                   |
 | `App\Filament\Actions\ViewAction`   | `view`   | `heroicon-m-eye`           | `common/buttons.view`   | Primary | A row click runs it.                                                  |
 | `App\Filament\Actions\EditAction`   | `edit`   | `heroicon-m-pencil-square` | `common/buttons.edit`   | Gray    | A row click runs it when the table has no `view` action.              |
 | `App\Filament\Actions\DeleteAction` | `delete` | Trash                      | `common/buttons.delete` | Danger  | Asks for a confirmation and needs `through()`. See [Delete](#delete). |

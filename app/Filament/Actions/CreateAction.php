@@ -30,7 +30,7 @@ class CreateAction extends Action
     {
         parent::setUp();
 
-        $this->icon('heroicon-m-plus')
+        $this->icon('heroicon-c-plus')
             ->color('primary');
     }
 }

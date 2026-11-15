@@ -86,6 +86,81 @@
     .fi-ta-text:not(.fi-inline) {
         @apply py-3!;
     }
+
+    /* The button rules below use Filament and Flux internals that an update can change. docs/components/data-table.md lists them. */
+    .fi-btn:is(.fi-size-md, .fi-size-sm, .fi-size-xs):not(.fi-btn-group > *, label, [aria-pressed]) {
+        @apply whitespace-nowrap;
+
+        /* Filament gives no class for the side of the icon, and CSS cannot see the label text. So each icon moves 4px into the
+        padding on both sides, and the gap is 4px larger than the gap of Flux. */
+        & > .fi-icon {
+            @apply -mx-1;
+        }
+
+        &.fi-size-md {
+            @apply h-10 gap-3 rounded-lg px-4 py-0 text-sm;
+
+            & > .fi-icon.fi-size-md {
+                @apply size-4;
+            }
+        }
+
+        &.fi-size-sm {
+            @apply h-8 gap-3 rounded-md px-3 py-0 text-sm;
+        }
+
+        &.fi-size-xs {
+            @apply h-6 gap-2 rounded-md px-2 py-0 text-xs;
+        }
+
+        &:not(.fi-color, .fi-outlined) {
+            @apply border border-zinc-200 border-b-zinc-300/80 bg-white text-zinc-800 shadow-xs not-focus-visible:ring-0 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white;
+
+            & > .fi-icon {
+                @apply text-current;
+            }
+
+            &.fi-size-xs {
+                @apply shadow-none;
+            }
+
+            &:is(.fi-force-enabled, :not(.fi-disabled):not([disabled])) {
+                @apply hover:border-zinc-200 hover:bg-zinc-50 dark:hover:border-zinc-600 dark:hover:bg-zinc-600/75;
+            }
+
+            .fi-modal-footer & {
+                @apply border-0 bg-zinc-800/5 shadow-none dark:bg-white/10;
+
+                &:is(.fi-force-enabled, :not(.fi-disabled):not([disabled])) {
+                    @apply hover:bg-zinc-800/10 dark:hover:bg-white/20;
+                }
+            }
+        }
+
+        &.fi-color-primary:not(.fi-outlined) {
+            --bg: var(--color-accent);
+            --hover-bg: color-mix(in oklab, var(--color-accent), transparent 10%);
+            --dark-bg: var(--bg);
+            --dark-hover-bg: var(--hover-bg);
+            --text: var(--color-accent-foreground);
+            --hover-text: var(--text);
+            --dark-text: var(--text);
+            --dark-hover-text: var(--text);
+            @apply border border-black/10 shadow-[inset_0px_1px_--theme(--color-white/.2)] dark:border-0;
+        }
+
+        &.fi-color-danger:not(.fi-outlined) {
+            --bg: var(--color-red-500);
+            --hover-bg: var(--color-red-600);
+            --dark-bg: var(--color-red-600);
+            --dark-hover-bg: var(--color-red-500);
+            --text: var(--color-white);
+            --hover-text: var(--text);
+            --dark-text: var(--text);
+            --dark-hover-text: var(--text);
+            @apply shadow-[inset_0px_1px_var(--color-red-500),inset_0px_2px_--theme(--color-white/.15)] dark:shadow-none;
+        }
+    }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {

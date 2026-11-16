@@ -6,8 +6,6 @@ return [
     'heading' => 'Passkey',
     'description' => 'Urus passkey anda untuk log masuk tanpa kata laluan',
     'unsupported' => 'Passkey tidak disokong dalam browser ini.',
-    'added' => 'Ditambah :time',
-    'last_used' => 'Kali terakhir digunakan :time',
     'empty' => [
         'heading' => 'Belum ada passkey',
     ],

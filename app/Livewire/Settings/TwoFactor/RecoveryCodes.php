@@ -6,6 +6,7 @@ namespace App\Livewire\Settings\TwoFactor;
 
 use App\Domain\User\Models\User;
 use App\Livewire\Concerns\ConfirmsPassword;
+use App\Livewire\Concerns\RequiresVerification;
 use Exception;
 use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 use Livewire\Attributes\Locked;
@@ -14,6 +15,7 @@ use Livewire\Component;
 class RecoveryCodes extends Component
 {
     use ConfirmsPassword;
+    use RequiresVerification;
 
     /** @var list<string> */
     #[Locked]

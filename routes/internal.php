@@ -61,6 +61,4 @@ Route::prefix('controls')->name('controls.')->group(function (): void {
     Route::livewire('geography/countries/{country}/states/{state}/cities/{postOffice}', PostOfficeShow::class)->name('geography.countries.states.cities.show')->scopeBindings();
 });
 
-Route::redirect('settings', '/internal/settings/user-information')->name('settings');
-
 require __DIR__.'/settings.php';

@@ -83,6 +83,10 @@
         --tw-ring-shadow: 0 0 #000 !important;
     }
 
+    .fi-ta-header-heading {
+        @apply text-sm leading-6 font-medium text-zinc-800 dark:text-white;
+    }
+
     .fi-ta-text:not(.fi-inline) {
         @apply py-3!;
     }

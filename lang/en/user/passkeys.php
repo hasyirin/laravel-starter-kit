@@ -6,8 +6,6 @@ return [
     'heading' => 'Passkeys',
     'description' => 'Manage your passkeys for passwordless sign-in',
     'unsupported' => 'Passkeys are not supported in this browser.',
-    'added' => 'Added :time',
-    'last_used' => 'Last used :time',
 
     'empty' => [
         'heading' => 'No passkeys yet',

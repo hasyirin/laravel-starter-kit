@@ -7,10 +7,10 @@ namespace App\Livewire\Settings;
 use App\Livewire\Pages\Shared\Page;
 use Illuminate\Contracts\View\View;
 
-class Appearance extends Page
+class Index extends Page
 {
     public function render(): View
     {
-        return view('livewire.settings.appearance')->title(__('user/settings.appearance.title'));
+        return view('livewire.settings.index')->title(__('user/settings.heading'));
     }
 }

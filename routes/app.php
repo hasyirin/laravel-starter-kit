@@ -20,8 +20,6 @@ if (Feature::PhoneVerification->enabled()) {
     Route::livewire('phone/verify', VerifyPhone::class)->middleware('verified')->name('phone-verification.notice');
 }
 
-Route::redirect('settings', '/settings/user-information')->name('settings');
-
 require __DIR__.'/settings.php';
 
 Route::middleware(['verified', 'phone.verified'])->group(function (): void {

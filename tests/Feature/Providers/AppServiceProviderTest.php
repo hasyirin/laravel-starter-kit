@@ -39,14 +39,14 @@ test('an open page that needs a verified email sends the user to verify it once 
     $this->skipUnlessFeature(Feature::EmailVerification);
 
     $user = User::factory()->create();
-    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
-    $page = $this->get(route('security.edit'));
+    $this->actingAs($user);
+    $page = $this->get(route('dashboard'));
 
     if (! $verified) {
         $user->forceFill(['email_verified_at' => null])->save();
     }
 
-    $response = callLivewireAction($page, 'settings.security', 'closeModal');
+    $response = callLivewireAction($page, 'pages.app.dashboard', 'refresh');
 
     $response->assertStatus($status);
 
@@ -60,14 +60,14 @@ test('an open page that needs a verified phone number sends the user to verify i
     $this->skipUnlessFeature(Feature::PhoneVerification);
 
     $user = User::factory()->create();
-    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
-    $page = $this->get(route('security.edit'));
+    $this->actingAs($user);
+    $page = $this->get(route('dashboard'));
 
     if (! $verified) {
         $user->forceFill(['phone_verified_at' => null])->save();
     }
 
-    $response = callLivewireAction($page, 'settings.security', 'closeModal');
+    $response = callLivewireAction($page, 'pages.app.dashboard', 'refresh');
 
     $response->assertStatus($status);
 

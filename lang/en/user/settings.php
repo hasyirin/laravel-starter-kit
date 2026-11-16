@@ -9,11 +9,10 @@ return [
         'user_information' => 'User information',
         'preferences' => 'Preferences',
         'security' => 'Security',
-        'appearance' => 'Appearance',
+        'account' => 'Account',
     ],
 
     'user_information' => [
-        'title' => 'User information settings',
         'heading' => 'User information',
         'unverified' => 'Your email address is unverified.',
         'resend_verification' => 'Click here to re-send the verification email.',
@@ -25,14 +24,9 @@ return [
     ],
 
     'preferences' => [
-        'title' => 'Preferences',
         'heading' => 'Preferences',
         'updated' => 'Preferences updated.',
         'example' => 'Dates and times look like this: :example',
-    ],
-
-    'security' => [
-        'title' => 'Security settings',
     ],
 
     'password' => [
@@ -77,7 +71,6 @@ return [
     ],
 
     'appearance' => [
-        'title' => 'Appearance settings',
         'heading' => 'Appearance',
         'light' => 'Light',
         'dark' => 'Dark',
@@ -86,6 +79,7 @@ return [
 
     'delete_account' => [
         'heading' => 'Delete account',
+        'description' => 'Once your account is deleted, all of its resources and data will be permanently deleted.',
         'button' => 'Delete account',
         'confirm' => [
             'heading' => 'Are you sure you want to delete your account?',

@@ -66,14 +66,14 @@ test('users go to the page they asked for before login', function (): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();
     grantPermissions($user, 'system.access');
-    $this->get(route('user-information.edit'));
+    $this->get(route('settings'));
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
-    $response->assertRedirect(route('user-information.edit'));
+    $response->assertRedirect(route('settings'));
 });
 
 test('users can not authenticate with invalid password', function (): void {

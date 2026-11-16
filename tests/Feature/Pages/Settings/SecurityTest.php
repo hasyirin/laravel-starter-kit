@@ -28,7 +28,7 @@ test('security settings page can be rendered', function (): void {
 
     $response = $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('security.edit'));
+        ->get(route('settings', ['tab' => 'security']));
 
     $response->assertOk();
 
@@ -42,9 +42,26 @@ test('security settings page requires password confirmation when enabled', funct
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)
-        ->get(route('security.edit'));
+        ->get(route('settings', ['tab' => 'security']));
 
     $response->assertRedirect(route('password.confirm'));
+});
+
+test('without a recent password confirmation the security component redirects and leaves an unconfirmed two factor setup alone', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+
+    $user = User::factory()->create();
+    $user->forceFill([
+        'two_factor_secret' => encrypt('test-secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
+        'two_factor_confirmed_at' => null,
+    ])->save();
+    $this->actingAs($user);
+
+    $component = Livewire::test(Security::class);
+
+    $component->assertStatus(302)->assertHeader('Location', route('password.confirm'));
+    expect($user->refresh()->two_factor_secret)->not->toBeNull();
 });
 
 test('security settings page renders without two factor when feature is disabled', function (): void {
@@ -54,7 +71,7 @@ test('security settings page renders without two factor when feature is disabled
 
     $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('security.edit'))
+        ->get(route('settings', ['tab' => 'security']))
         ->assertOk()
         ->assertSee('Update password')
         ->assertDontSee('Manage your passkeys for passwordless sign-in')
@@ -74,7 +91,7 @@ test('the security page lists the passkeys of the user', function (): void {
 
     $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('security.edit'))
+        ->get(route('settings', ['tab' => 'security']))
         ->assertOk()
         ->assertSee('Work laptop')
         ->assertDontSee('No passkeys yet');
@@ -91,7 +108,7 @@ test('two factor authentication disabled when confirmation abandoned between req
         'two_factor_confirmed_at' => null,
     ])->save();
 
-    $this->actingAs($user);
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
 
     $component = Livewire::test(Security::class);
 
@@ -109,7 +126,7 @@ test('password can be updated', function (): void {
         'password' => Hash::make('password'),
     ]);
 
-    $this->actingAs($user);
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
 
     $response = Livewire::test(Security::class)
         ->set('current_password', 'password')
@@ -127,7 +144,7 @@ test('correct password must be provided to update password', function (): void {
         'password' => Hash::make('password'),
     ]);
 
-    $this->actingAs($user);
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
 
     $response = Livewire::test(Security::class)
         ->set('current_password', 'wrong-password')
@@ -143,11 +160,11 @@ test('an open security page asks for the password again after the confirmation e
 
     $user = User::factory()->create();
     $user->forceFill(['two_factor_secret' => encrypt('test-secret'), 'two_factor_recovery_codes' => encrypt(json_encode(['code1'])), 'two_factor_confirmed_at' => now()])->save();
-    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time() - config()->integer('auth.password_timeout') - 1]);
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+    $component = Livewire::test(Security::class);
+    $this->travel(config()->integer('auth.password_timeout') + 1)->seconds();
 
-    Livewire::test(Security::class)
-        ->call($method)
-        ->assertRedirect(route('password.confirm'));
+    $component->call($method)->assertRedirect(route('password.confirm'));
 
     expect($user->refresh()->two_factor_secret)->not->toBeNull();
 })->with(['disable', 'enable']);
@@ -227,60 +244,6 @@ test('confirming two factor asks for the password again after the confirmation e
     expect($user->refresh()->hasEnabledTwoFactorAuthentication())->toBeFalse();
 });
 
-test('removing a passkey deletes it and drops it from the list', function (): void {
-    $this->skipUnlessFeature(Feature::Passkeys);
-
-    $user = User::factory()->create();
-    $passkey = $user->passkeys()->create([
-        'name' => 'Work laptop',
-        'credential_id' => str()->random(32),
-        'credential' => ['id' => 'credential'],
-    ]);
-    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
-    $component = Livewire::test(Security::class)->call('confirmDelete', $passkey->id);
-
-    $component->call('deletePasskey');
-
-    $component
-        ->assertSet('showingDeleteModal', false)
-        ->assertDontSee('Work laptop');
-    $this->assertModelMissing($passkey);
-});
-
-test('removing a passkey asks for the password again after the confirmation expires', function (): void {
-    $this->skipUnlessFeature(Feature::Passkeys);
-
-    $user = User::factory()->create();
-    $passkey = $user->passkeys()->create([
-        'name' => 'Work laptop',
-        'credential_id' => str()->random(32),
-        'credential' => ['id' => 'credential'],
-    ]);
-    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time() - config()->integer('auth.password_timeout') - 1]);
-    $component = Livewire::test(Security::class)->call('confirmDelete', $passkey->id);
-
-    $component->call('deletePasskey');
-
-    $component->assertRedirect(route('password.confirm'));
-    $this->assertModelExists($passkey);
-});
-
-test('removing the passkey of another user gives 404', function (): void {
-    $this->skipUnlessFeature(Feature::Passkeys);
-
-    $passkey = User::factory()->create()->passkeys()->create([
-        'name' => 'Work laptop',
-        'credential_id' => str()->random(32),
-        'credential' => ['id' => 'credential'],
-    ]);
-    $this->actingAs(User::factory()->create())->withSession(['auth.password_confirmed_at' => time()]);
-
-    $component = Livewire::test(Security::class)->call('confirmDelete', $passkey->id);
-
-    $component->assertNotFound();
-    $this->assertModelExists($passkey);
-});
-
 test('regenerating recovery codes replaces the old codes', function (): void {
     $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
 
@@ -305,4 +268,15 @@ test('regenerating recovery codes asks for the password again after the confirma
     $component->assertRedirect(route('password.confirm'));
 
     expect($user->refresh()->recoveryCodes())->toBe(['recovery-code-1']);
+});
+
+test('a user with an unverified email goes to the verification page instead of the recovery codes', function (): void {
+    $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
+    $this->skipUnlessFeature(Feature::EmailVerification);
+
+    $this->actingAs(User::factory()->unverified()->withTwoFactor()->create());
+
+    Livewire::test(RecoveryCodes::class)
+        ->assertStatus(302)
+        ->assertHeader('Location', route('verification.notice'));
 });

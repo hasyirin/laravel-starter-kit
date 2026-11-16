@@ -13,56 +13,56 @@ beforeEach(function (): void {
     $this->actingAs($this->actor);
 });
 
-test('users with the internal access permission are sent to the user information page of the internal area', function (): void {
-    $response = $this->get(route('internal.settings'));
-
-    $response->assertRedirect()->assertHeader('Location', route('internal.user-information.edit', absolute: false));
-});
-
-test('each settings page of the internal area opens in the internal layout', function (string $route): void {
+test('the settings page and each of its tabs open in the internal layout', function (string $tab): void {
     $this->withSession(['auth.password_confirmed_at' => time()]);
 
-    $response = $this->get(route($route));
+    $response = $this->get(route('internal.settings', ['tab' => $tab]));
 
     $response->assertOk()->assertSeeLivewire(Navigation::class);
+})->with(['user-information', 'preferences', 'security', 'account']);
+
+test('each old settings url of the internal area redirects to its tab in the internal area', function (string $route, string $target): void {
+    $response = $this->get(route($route));
+
+    $response->assertRedirect($target);
 })->with([
-    'user information' => 'internal.user-information.edit',
-    'preferences' => 'internal.preferences.edit',
-    'security' => 'internal.security.edit',
-    'appearance' => 'internal.appearance.edit',
+    'user information' => ['internal.user-information.edit', '/internal/settings'],
+    'preferences' => ['internal.preferences.edit', '/internal/settings?tab=preferences'],
+    'security' => ['internal.security.edit', '/internal/settings?tab=security'],
+    'appearance' => ['internal.appearance.edit', '/internal/settings?tab=preferences'],
 ]);
 
-test('the settings menu of the internal area links to the internal settings pages', function (): void {
-    $response = $this->get(route('internal.user-information.edit'));
+test('the tabs of the internal area link to the internal settings page', function (): void {
+    $response = $this->get(route('internal.settings'));
 
     $response->assertSeeInOrder([
-        'href="'.route('internal.user-information.edit').'"',
-        'href="'.route('internal.preferences.edit').'"',
-        'href="'.route('internal.security.edit').'"',
-        'href="'.route('internal.appearance.edit').'"',
+        'href="'.route('internal.settings').'"',
+        'href="'.route('internal.settings', ['tab' => 'preferences']).'"',
+        'href="'.route('internal.settings', ['tab' => 'security']).'"',
+        'href="'.route('internal.settings', ['tab' => 'account']).'"',
     ], false);
 });
 
-test('the settings menu still links to the internal settings pages after a save', function (): void {
-    $page = $this->get(route('internal.user-information.edit'));
+test('the tabs still link to the internal settings page after a tab switch', function (): void {
+    $page = $this->get(route('internal.settings'));
 
-    $response = callLivewireAction($page, 'settings.user-information', 'save');
+    $response = callLivewireAction($page, 'settings.tabs', 'switchTab', ['preferences']);
 
-    expect($response->json('components.0.effects.html'))->toContain('href="'.route('internal.preferences.edit').'"');
+    expect($response->json('components.0.effects.html'))->toContain('href="'.route('internal.settings', ['tab' => 'account']).'"');
 });
 
-test('an expired password confirmation on the internal security page leads back to that page', function (): void {
+test('an expired password confirmation on the internal security tab leads back to that tab', function (): void {
     $this->withSession(['auth.password_confirmed_at' => time()]);
-    $page = $this->get(route('internal.security.edit'));
+    $page = $this->get(route('internal.settings', ['tab' => 'security']));
     $this->withSession(['auth.password_confirmed_at' => time() - config()->integer('auth.password_timeout') - 1]);
 
     $response = callLivewireAction($page, 'settings.security', 'enable');
 
-    $response->assertSessionHas('url.intended', route('internal.security.edit'));
+    $response->assertSessionHas('url.intended', route('internal.settings', ['tab' => 'security']));
 });
 
 test('a verified user who asks for a new verification email in the internal area goes to the internal dashboard', function (): void {
-    $page = $this->get(route('internal.user-information.edit'));
+    $page = $this->get(route('internal.settings'));
 
     $response = callLivewireAction($page, 'settings.user-information', 'resendVerificationNotification');
 

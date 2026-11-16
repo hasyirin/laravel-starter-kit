@@ -20,7 +20,7 @@ A user without a language gets one on their first signed-in request, from step 2
 ## Where a User Changes the Language
 
 - **The language switch**: `App\Livewire\Components\LanguageSwitch`. The auth pages show it under the form, with each language in its own name. The headers of the app, internal, and system areas show the short form before the notifications icon, for example EN and BM. `system.language_abbreviations` sets the short names, and a language without one shows its code in capitals.
-- **The preferences page**: the Language field, next to the time zone and the date and time format.
+- **The Preferences tab of the settings page**: the Language field, next to the time zone and the date and time format.
 
 Both save the language of a signed-in user with an audit entry, and both keep it in the `language` cookie. So the login page shows the same language after the user logs out. Then the page loads again in the new language.
 

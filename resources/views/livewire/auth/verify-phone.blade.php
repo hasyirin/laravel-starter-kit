@@ -28,7 +28,7 @@
             <flux:button variant="ghost" class="cursor-pointer text-sm" wire:click="send">{{ __('auth/verify-phone.resend') }}</flux:button>
         @endif
 
-        <flux:link :href="route('user-information.edit')" class="text-sm" wire:navigate>{{ __('auth/verify-phone.change') }}</flux:link>
+        <flux:link :href="route('settings')" class="text-sm" wire:navigate>{{ __('auth/verify-phone.change') }}</flux:link>
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf

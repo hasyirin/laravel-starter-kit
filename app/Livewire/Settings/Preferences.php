@@ -9,7 +9,7 @@ use App\Domain\User\Models\User;
 use App\Domain\User\Support\Languages;
 use App\Domain\User\Support\Preferences as UserPreferences;
 use App\Http\Enums\Area;
-use App\Livewire\Pages\Shared\Page;
+use App\Livewire\Component;
 use DateTimeZone;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
@@ -18,7 +18,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Locale;
 
-class Preferences extends Page
+class Preferences extends Component
 {
     public string $timezone = '';
 
@@ -54,7 +54,7 @@ class Preferences extends Page
         cookie()->queue(cookie()->forever('language', $this->language));
 
         if ($this->language !== app()->getLocale()) {
-            $this->redirectRoute(Area::current()->route('preferences.edit'));
+            $this->redirect(route(Area::current()->route('settings'), ['tab' => 'preferences']));
 
             return;
         }
@@ -109,6 +109,6 @@ class Preferences extends Page
 
     public function render(): View
     {
-        return view('livewire.settings.preferences')->title(__('user/settings.preferences.title'));
+        return view('livewire.settings.preferences');
     }
 }

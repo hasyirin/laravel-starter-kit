@@ -16,10 +16,20 @@ trait ConfirmsPassword
             return true;
         }
 
-        session()->put('url.intended', route(Area::current()->route('security.edit')));
+        session()->put('url.intended', route(Area::current()->route('settings'), ['tab' => 'security']));
 
         $this->redirectRoute('password.confirm');
 
         return false;
+    }
+
+    protected function ensurePasswordConfirmed(): void
+    {
+        if ($this->passwordConfirmed()) {
+            return;
+        }
+
+        // Livewire runs no redirect of a component that mounts inside an update, so throw the redirect.
+        abort(to_route('password.confirm'));
     }
 }

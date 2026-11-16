@@ -67,6 +67,7 @@ Make the parameter of `to()` nullable only when a create action shares the metho
 - An empty table shows `common/records.none`.
 - While a table with `#[Defer]` loads, the page shows a skeleton.
 - Dark mode follows Flux, and `resources/css/app.css` gives the cells the padding of Flux.
+- A table heading, from `heading()` in `table()`, looks like the heading of a card. It is 14px with a line height of 24px, medium weight, zinc-800, and white in dark mode. `resources/css/app.css` does this with the `fi-ta-header-heading` class of Filament. After you upgrade Filament, make sure that the class is still in `vendor/filament/tables/resources/css/container.css`.
 - The buttons of Filament look like Flux buttons. `resources/css/app.css` does this. See [Button Look](#button-look).
 
 Search, sort, and filters are not kept in the URL or the session. Filament keeps only the page size in the session.

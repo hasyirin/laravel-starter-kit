@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -91,4 +92,20 @@ test('the audit log records a change that the database makes to a column that th
     expect($ticket->getChanges())->not->toHaveKey('code')
         ->and($changes?->get('attributes'))->toBe(['title' => 'Flood', 'code' => 'FLOOD'])
         ->and($changes?->get('old'))->toBe(['title' => 'Leak', 'code' => 'LEAK']);
+});
+
+test('the audit log records a change that an observer makes to a column that the model did not hold, with no old value', function (): void {
+    $this->travelTo(CarbonImmutable::parse('2026-11-17 10:00', 'UTC'));
+    $ticket = Ticket::query()->create(['title' => 'Leak']);
+    // Listen after the model boots, so this listener runs after the trait listeners, as an #[ObservedBy] observer does.
+    Ticket::updating(function (Ticket $ticket): void {
+        $ticket->approved_at = now();
+    });
+
+    $ticket->update(['title' => 'Flood']);
+
+    $changes = Activity::query()->where('event', 'updated')->sole()->attribute_changes;
+
+    expect($changes?->get('attributes'))->toBe(['title' => 'Flood', 'approved_at' => '2026-11-17T10:00:00.000000Z'])
+        ->and($changes?->get('old'))->toBe(['title' => 'Leak', 'approved_at' => null]);
 });

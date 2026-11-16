@@ -7,6 +7,7 @@ namespace App\Domain\Shared\Common\Concerns\Models;
 use App\Domain\Shared\Common\Support\AuditLog;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Spatie\ModelStates\State;
 
 trait InteractsWithAuditLog
 {
@@ -18,7 +19,13 @@ trait InteractsWithAuditLog
             ->dontLogEmptyChanges()
             ->logOnlyDirty()
             ->logAll()
-            ->logExcept(array_filter([...$this->getHidden(), $this->getKeyName(), $this->getCreatedAtColumn(), $this->getUpdatedAtColumn(), 'deleted_at']));
+            ->logExcept(array_filter([...$this->getHidden(), $this->getKeyName(), $this->getCreatedAtColumn(), $this->getUpdatedAtColumn(), 'deleted_at']))
+            ->useAttributeRawValues(
+                collect($this->getCasts())
+                    ->filter(fn (string $cast): bool => is_subclass_of($cast, State::class))
+                    ->keys()
+                    ->all()
+            );
     }
 
     public function auditNameColumn(): ?string

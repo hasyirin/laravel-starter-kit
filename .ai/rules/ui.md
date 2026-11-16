@@ -41,7 +41,7 @@ Space every screen with these values. Most come from the defaults of Flux and th
 Use another value only when a screen has a reason that you can name. Then give that reason when you hand in the change.
 
 ## Put the behavior of a component in resources/js/components
-Write the Alpine behavior of a component as a function in `resources/js/components/`, at the path of the component, for example `input/number.js` for `<x-input.number>`. Register it with `Alpine.data()` in `resources/js/app.js`, before `Livewire.start()`.
+Write the Alpine behavior of a component as a function in `resources/js/components/`. Name the file by the path of the component, for example `input/number.js` for `<x-input.number>`. If more than one component or view uses the function, name the file by its job, such as `repeatable-rows.js`. Register it with `Alpine.data()` in `resources/js/app.js`, before `Livewire.start()`.
 
 Keep `wire:model` on an input element, never on a wrapper, so that all of its modifiers work. If the control shows a different value than the property holds, put `wire:model` on a hidden element after the control. Then repeat the events of the control on that element. `<x-input.number>` uses a hidden input for a string. `<x-input.datetime>` uses a hidden `div`, because a range is an object.
 

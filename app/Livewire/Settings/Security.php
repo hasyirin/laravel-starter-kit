@@ -8,8 +8,9 @@ use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Actions\Security\UpdatePassword;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
+use App\Livewire\Component;
 use App\Livewire\Concerns\ConfirmsPassword;
-use App\Livewire\Pages\Shared\Page;
+use App\Livewire\Concerns\RequiresVerification;
 use Exception;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
@@ -18,16 +19,16 @@ use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
 use Laravel\Fortify\Fortify;
-use Laravel\Passkeys\Actions\DeletePasskey;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
 use UnexpectedValueException;
 
-class Security extends Page
+class Security extends Component
 {
     use ConfirmsPassword;
     use PasswordValidationRules;
+    use RequiresVerification;
 
     public string $current_password = '';
 
@@ -55,24 +56,12 @@ class Security extends Page
     public string $code = '';
 
     /**
-     * @var array<int, array{id: int, name: string, authenticator: string|null, created_at_diff: string|null, last_used_at_diff: string|null}>
-     */
-    #[Locked]
-    public array $passkeys = [];
-
-    public bool $showingDeleteModal = false;
-
-    #[Locked]
-    public ?int $deletingPasskeyId = null;
-
-    #[Locked]
-    public string $deletingPasskeyName = '';
-
-    /**
      * Mount the component.
      */
     public function mount(): void
     {
+        $this->ensurePasswordConfirmed();
+
         if (Feature::TwoFactorAuthentication->enabled()) {
             /** @var User $user */
             $user = auth()->user();
@@ -83,10 +72,6 @@ class Security extends Page
 
             $this->twoFactorEnabled = $user->hasEnabledTwoFactorAuthentication();
             $this->requiresConfirmation = Feature::TwoFactorAuthentication->optionEnabled('confirm');
-        }
-
-        if (Feature::Passkeys->enabled()) {
-            $this->loadPasskeys();
         }
     }
 
@@ -114,76 +99,6 @@ class Security extends Page
         $this->reset('current_password', 'password', 'password_confirmation');
 
         Flux::toast(variant: 'success', text: __('user/settings.password.updated'));
-    }
-
-    /**
-     * Load the user's passkeys.
-     */
-    public function loadPasskeys(): void
-    {
-        /** @var User $user */
-        $user = auth()->user();
-
-        $this->passkeys = $user->passkeys()
-            ->select(['id', 'name', 'credential', 'created_at', 'last_used_at'])
-            ->latest()
-            ->get()
-            ->map(fn ($passkey): array => [
-                'id' => $passkey->id,
-                'name' => $passkey->name,
-                'authenticator' => $passkey->authenticator,
-                'created_at_diff' => $passkey->created_at?->diffForHumans(),
-                'last_used_at_diff' => $passkey->last_used_at?->diffForHumans(),
-            ])
-            ->all();
-    }
-
-    /**
-     * Show the delete confirmation modal.
-     */
-    public function confirmDelete(int $passkeyId): void
-    {
-        /** @var User $user */
-        $user = auth()->user();
-
-        $passkey = $user->passkeys()->findOrFail($passkeyId);
-
-        $this->deletingPasskeyId = $passkey->id;
-        $this->deletingPasskeyName = $passkey->name;
-        $this->showingDeleteModal = true;
-    }
-
-    /**
-     * Delete the passkey.
-     */
-    public function deletePasskey(): void
-    {
-        if (! $this->passwordConfirmed()) {
-            return;
-        }
-
-        if (! $this->deletingPasskeyId) {
-            return;
-        }
-
-        /** @var User $user */
-        $user = auth()->user();
-        $passkey = $user->passkeys()->findOrFail($this->deletingPasskeyId);
-
-        resolve(DeletePasskey::class)($user, $passkey);
-
-        $this->closeDeleteModal();
-        $this->loadPasskeys();
-    }
-
-    /**
-     * Close the delete confirmation modal.
-     */
-    public function closeDeleteModal(): void
-    {
-        $this->showingDeleteModal = false;
-        $this->deletingPasskeyId = null;
-        $this->deletingPasskeyName = '';
     }
 
     /**
@@ -345,6 +260,6 @@ class Security extends Page
 
     public function render(): View
     {
-        return view('livewire.settings.security')->title(__('user/settings.security.title'));
+        return view('livewire.settings.security');
     }
 }

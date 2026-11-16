@@ -24,7 +24,7 @@ test('email verification screen can be rendered', function (): void {
 test('unverified users are redirected to the email verification prompt', function (): void {
     $user = User::factory()->unverified()->create();
 
-    $response = $this->actingAs($user)->get(route('appearance.edit'));
+    $response = $this->actingAs($user)->get(route('dashboard'));
 
     $response->assertRedirect(route('verification.notice'));
 });

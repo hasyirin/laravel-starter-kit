@@ -16,8 +16,8 @@ if (Feature::SmsPasswordReset->enabled()) {
 
 if (Feature::Passkeys->enabled()) {
     Route::get('.well-known/passkey-endpoints', fn () => response()->json([
-        'enroll' => route('security.edit'),
-        'manage' => route('security.edit'),
+        'enroll' => route('settings', ['tab' => 'security']),
+        'manage' => route('settings', ['tab' => 'security']),
     ]))->name('well-known.passkeys');
 }
 

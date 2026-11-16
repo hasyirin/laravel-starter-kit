@@ -6,12 +6,9 @@ namespace App\Livewire\DataTables\Internal\User;
 
 use App\Domain\User\Actions\Management\RevokeUserPasskey;
 use App\Domain\User\Models\User;
-use App\Filament\Tables\Columns\TimestampColumn;
-use App\Livewire\DataTables\DataTable;
+use App\Livewire\DataTables\PasskeyDataTable as DataTable;
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\Column;
-use Filament\Tables\Columns\TextColumn;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -36,19 +33,6 @@ class PasskeyDataTable extends DataTable
     protected function relationship(): HasMany
     {
         return $this->user->passkeys()->latest();
-    }
-
-    /**
-     * @return array<int, Column>
-     */
-    protected function columns(): array
-    {
-        return [
-            TextColumn::make('name')->label((string) __('user/users.passkeys_tab.name')),
-            TextColumn::make('authenticator')->label((string) __('user/users.passkeys_tab.authenticator')),
-            TimestampColumn::make('created_at')->label((string) __('user/users.passkeys_tab.created_at')),
-            TimestampColumn::make('last_used_at')->label((string) __('user/users.passkeys_tab.last_used_at')),
-        ];
     }
 
     /**

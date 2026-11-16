@@ -10,14 +10,14 @@ use App\Domain\User\Concerns\UserInformationValidationRules;
 use App\Domain\User\Contracts\Models\MustVerifyPhone;
 use App\Domain\User\Models\User;
 use App\Http\Enums\Area;
-use App\Livewire\Pages\Shared\Page;
+use App\Livewire\Component;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 
-class UserInformation extends Page
+class UserInformation extends Component
 {
     use UserInformationValidationRules;
 
@@ -113,6 +113,6 @@ class UserInformation extends Page
 
     public function render(): View
     {
-        return view('livewire.settings.user-information')->title(__('user/settings.user_information.title'));
+        return view('livewire.settings.user-information');
     }
 }

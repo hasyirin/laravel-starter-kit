@@ -153,7 +153,7 @@ test('a user without a phone number is told to add one', function (): void {
 
     Livewire::test(VerifyPhone::class)
         ->assertSee(__('auth/verify-phone.no_phone'))
-        ->assertSee(route('user-information.edit'));
+        ->assertSeeHtml('href="'.route('settings').'"');
 
     Notification::assertNothingSent();
 });

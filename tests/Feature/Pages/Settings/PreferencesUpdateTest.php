@@ -6,18 +6,33 @@ use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use App\Livewire\Settings\Preferences;
 use Carbon\CarbonImmutable;
+use Dom\HTMLDocument;
 use Livewire\Livewire;
 
 test('the preferences page is displayed', function (): void {
     $this->actingAs(User::factory()->create());
 
-    $this->get('/settings/preferences')->assertOk();
+    $this->get('/settings?tab=preferences')->assertOk();
 });
 
 test('a user with an unverified email can open the preferences page', function (): void {
     $this->actingAs(User::factory()->unverified()->create());
 
-    $this->get(route('preferences.edit'))->assertOk();
+    $this->get(route('settings', ['tab' => 'preferences']))->assertOk();
+});
+
+test('the appearance card sits outside the preferences form, so no submit sends the theme', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    $document = HTMLDocument::createFromString(Livewire::test(Preferences::class)->html(), LIBXML_NOERROR);
+    $theme = $document->querySelector('[x-model="$flux.appearance"]');
+    $wireModels = collect($theme?->getAttributeNames())->filter(fn (string $name): bool => str_starts_with($name, 'wire:model'));
+
+    expect($theme)->not->toBeNull()
+        ->and($document->querySelector('form[wire\:submit="save"]'))->not->toBeNull()
+        ->and($theme?->hasAttribute('name'))->toBeFalse()
+        ->and($wireModels)->toBeEmpty()
+        ->and($theme?->closest('form[wire\:submit="save"]'))->toBeNull();
 });
 
 test('the time zone and locale start at the ones of the user, or else at the config', function (?string $timezone, string $expected): void {
@@ -124,7 +139,7 @@ test('the language can be updated, and the page loads again in that language', f
         ->set('language', 'ms')
         ->call('save')
         ->assertHasNoErrors()
-        ->assertRedirect(route('preferences.edit'));
+        ->assertRedirect(route('settings', ['tab' => 'preferences']));
 
     expect($user->refresh()->language)->toBe('ms')
         ->and(cookie()->queued('language')?->getValue())->toBe('ms');
@@ -164,14 +179,3 @@ test('the language select is hidden when the app lists one language', function (
 
     Livewire::test(Preferences::class)->assertDontSeeHtml('wire:model="language"');
 });
-
-test('each settings page has its title in the language of the user', function (string $route, string $title): void {
-    $this->actingAs(User::factory()->create(['language' => 'ms']))
-        ->get(route($route))
-        ->assertOk()
-        ->assertSee("<title>{$title} - ", false);
-})->with([
-    'user information' => ['user-information.edit', 'Tetapan maklumat pengguna'],
-    'preferences' => ['preferences.edit', 'Pilihan'],
-    'appearance' => ['appearance.edit', 'Tetapan paparan'],
-]);

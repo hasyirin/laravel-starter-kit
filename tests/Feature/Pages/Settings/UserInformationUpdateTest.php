@@ -14,7 +14,7 @@ use Livewire\Livewire;
 test('the user information page is displayed', function (): void {
     $this->actingAs($user = User::factory()->create());
 
-    $this->get('/settings/user-information')->assertOk();
+    $this->get('/settings')->assertOk();
 });
 
 test('user information can be updated', function (): void {
@@ -49,51 +49,6 @@ test('email verification status is unchanged when email address is unchanged', f
     $response->assertHasNoErrors();
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
-});
-
-test('user can delete their account', function (): void {
-    $user = User::factory()->create();
-
-    $this->actingAs($user);
-
-    $response = Livewire::test('settings.delete-user-form')
-        ->set('password', 'password')
-        ->call('delete');
-
-    $response
-        ->assertHasNoErrors()
-        ->assertRedirect('/');
-
-    expect($user->fresh()?->trashed())->toBeTrue();
-    expect(auth()->check())->toBeFalse();
-});
-
-test('correct password must be provided to delete account', function (): void {
-    $user = User::factory()->create();
-
-    $this->actingAs($user);
-
-    $response = Livewire::test('settings.delete-user-form')
-        ->set('password', 'wrong-password')
-        ->call('delete');
-
-    $response->assertHasErrors(['password']);
-
-    expect($user->fresh())->not->toBeNull();
-});
-
-test('the delete account form shows only once the email is verified', function (): void {
-    $this->skipUnlessFeature(Feature::EmailVerification);
-
-    $user = User::factory()->unverified()->create();
-
-    $this->actingAs($user);
-
-    Livewire::test(UserInformation::class)->assertDontSeeLivewire('settings.delete-user-form');
-
-    $user->markEmailAsVerified();
-
-    Livewire::test(UserInformation::class)->assertSeeLivewire('settings.delete-user-form');
 });
 
 test('the email is stored in lowercase', function (): void {
@@ -198,13 +153,11 @@ test('an unverified phone number shows no notice when phone verification is off'
     Livewire::test(UserInformation::class)->assertDontSee(__('user/settings.user_information.phone_unverified'));
 });
 
-test('an unverified email shows no notice and keeps the delete account form when email verification is off', function (): void {
+test('an unverified email shows no notice when email verification is off', function (): void {
     $this->disableFeature(Feature::EmailVerification);
     $this->actingAs(User::factory()->unverified()->create());
 
-    Livewire::test(UserInformation::class)
-        ->assertDontSee(__('user/settings.user_information.unverified'))
-        ->assertSeeLivewire('settings.delete-user-form');
+    Livewire::test(UserInformation::class)->assertDontSee(__('user/settings.user_information.unverified'));
 });
 
 test('resending the verification email sends nothing when email verification is off', function (): void {

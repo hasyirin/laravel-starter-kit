@@ -6,6 +6,7 @@ import inputField from './components/input';
 import datetimeField from './components/input/datetime';
 import numberField from './components/input/number';
 import map from './components/map';
+import passkeyModal from './components/passkey-modal';
 import permissionTree from './components/permission-tree';
 import repeatableRows from './components/repeatable-rows';
 import sliderField from './components/slider';
@@ -30,6 +31,7 @@ if (window.livewireStarted) {
     Alpine.data('datetimeField', datetimeField);
     Alpine.data('numberField', numberField);
     Alpine.data('map', map);
+    Alpine.data('passkeyModal', passkeyModal);
     Alpine.data('permissionTree', permissionTree);
     Alpine.data('repeatableRows', repeatableRows);
     Alpine.data('sliderField', sliderField);

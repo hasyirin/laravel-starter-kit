@@ -15,16 +15,16 @@ test('a user with an unverified phone number goes to the phone verification page
 
     $user = User::factory()->unverifiedPhone()->create();
     grantPermissions($user, 'internal.access', 'system.access');
-    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+    $this->actingAs($user);
 
     $this->get(route($route))->assertRedirect(route('phone-verification.notice'));
-})->with(['dashboard', 'appearance.edit', 'security.edit', 'internal.dashboard', 'system.dashboard']);
+})->with(['dashboard', 'internal.dashboard', 'system.dashboard']);
 
-test('user information and preferences stay open to a user with an unverified phone number', function (string $route): void {
+test('user information and preferences stay open to a user with an unverified phone number', function (string $tab): void {
     $this->actingAs(User::factory()->unverifiedPhone()->create());
 
-    $this->get(route($route))->assertOk();
-})->with(['user-information.edit', 'preferences.edit']);
+    $this->get(route('settings', ['tab' => $tab]))->assertOk();
+})->with(['user-information', 'preferences']);
 
 test('a user with a verified phone number passes', function (): void {
     $this->actingAs(User::factory()->create());

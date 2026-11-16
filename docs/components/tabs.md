@@ -173,6 +173,8 @@ Only a Livewire component can stay alive. A view renders inside the component th
 Tab::make('reports')->content(Reports::class)->lazy(),
 ```
 
+Do not use `lazy()` for content that only `mount()` protects. The browser gets a snapshot of the placeholder before `mount()` runs, and a request with that snapshot can render the content.
+
 ## Hidden and Disabled
 
 `hidden()` takes a tab out of the bar. `visible()` does the same with the opposite value. They share one state, so the last call wins. `disabled()` keeps a tab in the bar, greyed out, without a link. A hidden or a disabled tab never opens. Each takes a bool or a Closure:
@@ -187,6 +189,8 @@ The Closure runs on every request. So when the current tab becomes hidden or dis
 Without an argument, `hidden()`, `visible()`, and `disabled()` take `true`.
 
 Hiding or disabling a tab only decides what the tab set shows. It does not protect the content. The content component must authorize the user in its own `mount()` and in its actions.
+
+Content that must send the user away when it opens throws a redirect response in `mount()`, for example with `abort(to_route('password.confirm'))`. `ConfirmsPassword::ensurePasswordConfirmed()` does this for the Security tab of the settings page. Do not use `$this->redirect()` there. After a tab click, the content mounts inside an update, and Livewire does not run the redirect of such a component. A thrown response works on the page load and after a tab click, and it also stops the render.
 
 ## Label, Icon, Badge, and Tooltip
 

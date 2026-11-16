@@ -90,19 +90,56 @@ A guest page keeps the guest layout for signed-in users too. A page that more th
 
 The pages of Fortify, such as login, do not extend `Page`. They use `resources/views/layouts/auth.blade.php`.
 
-## Settings Pages
+## Settings Page
 
-The app, internal, and system areas each have the four settings pages: user information, preferences, security, and appearance. `routes/settings.php` lists the pages once, and `routes/app.php`, `routes/internal.php`, and `routes/system.php` each load it. So each area gives the pages its own URLs and route names, and each page opens in the layout of its area:
+The app, internal, and system areas each have one settings page, `App\Livewire\Settings\Index`. `routes/settings.php` defines the page once, and `routes/app.php`, `routes/internal.php`, and `routes/system.php` each load it. So each area gives the page its own URL and route name, and the page opens in the layout of its area:
 
-| Area     | Security page URL             | Route name               |
-|----------|-------------------------------|--------------------------|
-| App      | `/settings/security`          | `security.edit`          |
-| Internal | `/internal/settings/security` | `internal.security.edit` |
-| System   | `/system/settings/security`   | `system.security.edit`   |
+| Area     | URL                  | Route name          |
+|----------|----------------------|---------------------|
+| App      | `/settings`          | `settings`          |
+| Internal | `/internal/settings` | `internal.settings` |
+| System   | `/system/settings`   | `system.settings`   |
 
-The three areas use the same components, in `app/Livewire/Settings`. Their links stay in the area of the page. This includes the settings menu and the return to the security page after the user confirms their password. `/.well-known/passkey-endpoints` gives the app security page, because it is not in an area.
+The page title is "Settings" on every tab. The page shows the tab set `App\Livewire\Settings\Tabs`, and the URL keeps the tab in `?tab=`:
 
-Add a new settings page to `routes/settings.php`, so that all three areas get it.
+| Tab              | Slug               | Content                                 | Who can open it                                                                  |
+|------------------|--------------------|-----------------------------------------|----------------------------------------------------------------------------------|
+| User information | `user-information` | `App\Livewire\Settings\UserInformation` | A signed-in user of the area                                                     |
+| Preferences      | `preferences`      | `App\Livewire\Settings\Preferences`     | A signed-in user of the area                                                     |
+| Security         | `security`         | `App\Livewire\Settings\Security`        | A user with a verified email address and phone number, after the password step   |
+| Account          | `account`          | `App\Livewire\Settings\DeleteUserForm`  | A signed-in user of the area                                                     |
+
+The Preferences tab also holds the Appearance card, under the Preferences card. The card stores the theme in the browser only, so it has no Save button and no rule.
+
+User information is the default tab, so its URL has no `?tab=`. The Security tab of the internal area is `/internal/settings?tab=security`. In code, link to a tab with `route(Area::current()->route('settings'), ['tab' => 'security'])`. `/.well-known/passkey-endpoints` gives the Security tab of the app area, because the guest area has no settings page.
+
+The old settings URLs and their route names stay as redirects to the page with the matching tab: `user-information.edit`, `preferences.edit`, `security.edit`, and `appearance.edit`, also with the prefix of each area. `appearance.edit` leads to the Preferences tab, because the Appearance card is there. A redirect drops the query string of the old URL. Do not link to them in new code.
+
+### How a Tab Protects Its Content
+
+One route cannot carry a rule for each tab. So the route of the page has no rule of its own, and the content of a tab with a rule checks the user:
+
+- `App\Livewire\Concerns\RequiresVerification` gives a component the checks of the `verified` and `phone.verified` middleware. `Security` uses it.
+- `Security::mount()` calls `ConfirmsPassword::ensurePasswordConfirmed()` first. This is the password step.
+
+The Account tab has no rule, so a user with an unverified email address can also delete the account. The dialog of `DeleteUserForm` asks for the current password first.
+
+`RequiresVerification` runs at the start of every request of the component. It runs after the `boot()` method of the component, and before `mount()`, the hydrate hooks, each action, and the render. For the snapshot of a lazy or deferred placeholder, `boot()` does not run. The check then runs before each property update, action, event listener, and the render. It sends the request through `EnsureEmailIsVerified` and `EnsurePhoneIsVerified`, and it passes only when both call the next step. Otherwise it throws the response of the middleware, such as the redirect to the email or phone verification page. Know these limits:
+
+- A component with the trait must not declare `$verified`, `ensureVerified()`, or `skipHydrate()`. The trait uses these names.
+- The `boot()` method of the component runs before the check. So do not put work that needs a verified user in `boot()`.
+- A lazy or deferred component still renders its placeholder for an unverified user. The check runs on the first request of the component.
+- Each component that renders inside a protected tab needs the trait itself. `Security`, `App\Livewire\Settings\TwoFactor\RecoveryCodes`, `App\Livewire\DataTables\Settings\PasskeyDataTable`, and `App\Livewire\Settings\PasskeyModal` use it.
+
+`ConfirmsPassword::ensurePasswordConfirmed()` throws a redirect to the confirm-password page of Fortify, the `password.confirm` route. After the password, the user returns to the Security tab of the same area. A redirect with `$this->redirect()` does not work here. Livewire does not run it for a component that mounts inside an update, such as the content after a tab click. A thrown redirect response works there, and it also stops the render. The password step runs only in `mount()`. A lazy or deferred placeholder gives the browser a snapshot before `mount()` runs. A request with that snapshot can render the tab without the password step. So never make the Security tab lazy or deferred. A test in `tests/Feature/Pages/SettingsTest.php` checks this. The step can time out while the page stays open, so each sensitive action still calls `ConfirmsPassword::passwordConfirmed()` first.
+
+When the passkeys feature is on, the Security tab also lists the passkeys of the user. `App\Livewire\DataTables\Settings\PasskeyDataTable` shows them. Its header has the Passkey button, and each row has the Remove passkey action. `App\Livewire\Settings\PasskeyModal` asks for the name of a new passkey, with the Alpine component `passkeyModal` in `resources/js/components/passkey-modal.js`. The internal user page has its own passkey table. Both tables extend `App\Livewire\DataTables\PasskeyDataTable`.
+
+### Add a Tab
+
+Add a tab to `Tabs::tabs()`, so that all three areas get it. Give it a slug, a label, and its content. If the tab has a rule, its content must check the user itself, as above. See [Tabs](components/tabs.md).
+
+An app that pulls the kit can have its own settings page in the old settings layout, x-settings.layout, with the heading partial partials.settings-heading. The kit removed both. Make such a page a tab in `Tabs::tabs()`.
 
 ## Navigation
 
@@ -114,7 +151,7 @@ Add a new settings page to `routes/settings.php`, so that all three areas get it
 - In the local environment, each area navigation also shows a Docs link to `/docs/components`.
 - The local pages have their own navigation, `app/Livewire/Layouts/Local/Navigation.php`. It lists the component docs pages. Below the spacer, it links to App, Internal, and System, each only for users who can open that area. A guest sees no area links.
 - The logo opens the dashboard of its own area. On the local pages, it opens `/docs/components`.
-- Each area has a settings route: `settings`, `internal.settings`, and `system.settings`. Each one opens the user information page of its own area. The user menu links to the settings route of the current area.
+- Each area has a settings route: `settings`, `internal.settings`, and `system.settings`. Each one opens the settings page of its own area, on the User information tab. The user menu links to the settings route of the current area.
 
 ### Sidebar or Top Bar
 
@@ -162,5 +199,5 @@ These routes do not get the `web` group, so they have no session and no CSRF che
 ## Rules
 
 - **Give each URL one route.** Without the route cache, the last route for a URL wins. With the route cache, the first one wins, and `php artisan optimize` turns the cache on. So a second route for the same URL can work in development and fail in production.
-- **In the internal and system areas, write the full path of a redirect target.** The group adds its URL prefix to the route, but not to the target. So in `routes/internal.php`, write `Route::redirect('settings', '/internal/settings/user-information')`. Start the target with `/`, because the browser reads a target without `/` relative to the current URL.
-- **Get the current area from `Area::current()`.** Do not use `request()->routeIs()` to find the area. A Livewire update request has the route of Livewire, not the route of the page. So during the update that a Save button sends, `request()->routeIs('internal.*')` is false. `Area::current()` finds the route of the page in both cases. Use `$area->route('security.edit')` to get the name of a route in that area.
+- **In the internal and system areas, write the full path of a redirect target.** The group adds its URL prefix to the route, but not to the target. So in `routes/internal.php`, write a redirect to the settings page as `Route::redirect('options', '/internal/settings')`. Start the target with `/`, because the browser reads a target without `/` relative to the current URL.
+- **Get the current area from `Area::current()`.** Do not use `request()->routeIs()` to find the area. A Livewire update request has the route of Livewire, not the route of the page. So during the update that a Save button sends, `request()->routeIs('internal.*')` is false. `Area::current()` finds the route of the page in both cases. Use `$area->route('settings')` to get the name of a route in that area.

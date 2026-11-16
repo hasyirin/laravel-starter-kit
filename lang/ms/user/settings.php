@@ -8,10 +8,9 @@ return [
         'user_information' => 'Maklumat pengguna',
         'preferences' => 'Pilihan',
         'security' => 'Keselamatan',
-        'appearance' => 'Paparan',
+        'account' => 'Akaun',
     ],
     'user_information' => [
-        'title' => 'Tetapan maklumat pengguna',
         'heading' => 'Maklumat pengguna',
         'unverified' => 'Alamat e-mel anda belum disahkan.',
         'resend_verification' => 'Klik di sini untuk menghantar semula e-mel pengesahan.',
@@ -22,13 +21,9 @@ return [
         'updated' => 'Maklumat pengguna dikemas kini.',
     ],
     'preferences' => [
-        'title' => 'Pilihan',
         'heading' => 'Pilihan',
         'updated' => 'Pilihan dikemas kini.',
         'example' => 'Tarikh dan masa dipaparkan seperti ini: :example',
-    ],
-    'security' => [
-        'title' => 'Tetapan keselamatan',
     ],
     'password' => [
         'heading' => 'Kemas kini kata laluan',
@@ -69,7 +64,6 @@ return [
         'help' => 'Setiap kod pemulihan boleh digunakan sekali untuk masuk ke akaun anda dan akan dibuang selepas digunakan. Jika anda memerlukan lebih banyak kod, klik Jana semula kod di atas.',
     ],
     'appearance' => [
-        'title' => 'Tetapan paparan',
         'heading' => 'Paparan',
         'light' => 'Cerah',
         'dark' => 'Gelap',
@@ -77,6 +71,7 @@ return [
     ],
     'delete_account' => [
         'heading' => 'Padam akaun',
+        'description' => 'Setelah akaun anda dipadam, semua sumber dan datanya akan dipadam secara kekal.',
         'button' => 'Padam akaun',
         'confirm' => [
             'heading' => 'Adakah anda pasti mahu memadam akaun anda?',

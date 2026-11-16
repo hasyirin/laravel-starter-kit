@@ -1,13 +1,21 @@
-<section class="mt-8 space-y-6">
-    <div class="relative mb-5">
-        <flux:heading>{{ __('user/settings.delete_account.heading') }}</flux:heading>
-    </div>
+<div>
+    <x-card body="divided">
+        <x-slot:heading level="2">
+            {{ __('user/settings.delete_account.heading') }}
+        </x-slot:heading>
 
-    <flux:modal.trigger name="confirm-user-deletion">
-        <flux:button variant="danger" x-data="" x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')">
-            {{ __('user/settings.delete_account.button') }}
-        </flux:button>
-    </flux:modal.trigger>
+        <flux:text>{{ __('user/settings.delete_account.description') }}</flux:text>
+
+        <x-slot:footer>
+            <flux:card.actions>
+                <flux:modal.trigger name="confirm-user-deletion">
+                    <flux:button variant="danger" x-data="" x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')">
+                        {{ __('user/settings.delete_account.button') }}
+                    </flux:button>
+                </flux:modal.trigger>
+            </flux:card.actions>
+        </x-slot:footer>
+    </x-card>
 
     <flux:modal name="confirm-user-deletion" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
         <form method="POST" wire:submit="delete" class="space-y-6">
@@ -28,4 +36,4 @@
             </div>
         </form>
     </flux:modal>
-</section>
+</div>

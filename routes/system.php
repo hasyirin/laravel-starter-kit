@@ -23,6 +23,4 @@ Route::livewire('api-clients', ApiClientIndex::class)->name('api-clients.index')
 Route::livewire('api-clients/create', ApiClientCreate::class)->name('api-clients.create');
 Route::livewire('api-clients/{apiClient}', ApiClientShow::class)->name('api-clients.show');
 
-Route::redirect('settings', '/system/settings/user-information')->name('settings');
-
 require __DIR__.'/settings.php';

@@ -34,10 +34,10 @@ test('a Livewire update from a page without a route is in the guest area', funct
 });
 
 test('an area gives the name that a route has in that area', function (Area $area, string $name): void {
-    expect($area->route('security.edit'))->toBe($name);
+    expect($area->route('settings'))->toBe($name);
 })->with([
-    'the guest area' => [Area::Guest, 'security.edit'],
-    'the app area' => [Area::App, 'security.edit'],
-    'the internal area' => [Area::Internal, 'internal.security.edit'],
-    'the system area' => [Area::System, 'system.security.edit'],
+    'the guest area' => [Area::Guest, 'settings'],
+    'the app area' => [Area::App, 'settings'],
+    'the internal area' => [Area::Internal, 'internal.settings'],
+    'the system area' => [Area::System, 'system.settings'],
 ]);

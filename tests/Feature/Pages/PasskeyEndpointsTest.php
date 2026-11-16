@@ -13,8 +13,8 @@ test('guests can read the passkey endpoints', function (): void {
     $response = $this->get(route('well-known.passkeys'));
 
     $response->assertOk()->assertExactJson([
-        'enroll' => route('security.edit'),
-        'manage' => route('security.edit'),
+        'enroll' => route('settings', ['tab' => 'security']),
+        'manage' => route('settings', ['tab' => 'security']),
     ]);
 });
 
@@ -24,7 +24,7 @@ test('signed-in users can read the passkey endpoints', function (): void {
     $response = $this->get(route('well-known.passkeys'));
 
     $response->assertOk()->assertExactJson([
-        'enroll' => route('security.edit'),
-        'manage' => route('security.edit'),
+        'enroll' => route('settings', ['tab' => 'security']),
+        'manage' => route('settings', ['tab' => 'security']),
     ]);
 });

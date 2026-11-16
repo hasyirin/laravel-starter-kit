@@ -58,10 +58,19 @@ class RecordApiCall
             'trace_id' => $traceId ?? context()->get('trace_id'),
             'request_size' => $requestSize,
             'response_size' => $responseSize,
-            'request_body' => MaskedBody::of($this->text($requestBody)),
-            'response_body' => MaskedBody::of($this->text($responseBody)),
+            'request_body' => $this->body($requestBody),
+            'response_body' => $this->body($responseBody),
             'error' => $this->text($error),
         ]);
+    }
+
+    private function body(#[SensitiveParameter] ?string $body): ?string
+    {
+        if ($body === null || strlen($body) > config()->integer('system.api_log.masked_body_limit')) {
+            return null;
+        }
+
+        return MaskedBody::of($this->text($body));
     }
 
     /**

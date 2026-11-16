@@ -109,7 +109,7 @@ abstract class ServiceConnector extends Connector
             requestSize: $psrRequest->getBody()->getSize(),
             responseSize: $responseStream?->getSize(),
             requestBody: $logsBodies ? $this->requestBody($pendingRequest, $psrRequest) : null,
-            responseBody: $logsBodies && $responseStream?->isSeekable() ? $response->body() : null,
+            responseBody: $logsBodies ? $this->responseBody($response) : null,
             error: $error === null ? null : str($error)->replace((string) $psrRequest->getUri(), $url)->value(),
         );
     }
@@ -130,5 +130,21 @@ abstract class ServiceConnector extends Connector
         }
 
         return (string) $psrRequest->getBody();
+    }
+
+    private function responseBody(?Response $response): ?string
+    {
+        if (! $response instanceof Response) {
+            return null;
+        }
+
+        $stream = $response->getPsrResponse()->getBody();
+        $size = $stream->getSize();
+
+        if (! $stream->isSeekable() || $size === null || $size > config()->integer('system.api_log.masked_body_limit')) {
+            return null;
+        }
+
+        return $response->body();
     }
 }

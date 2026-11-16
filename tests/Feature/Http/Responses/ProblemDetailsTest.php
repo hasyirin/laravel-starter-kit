@@ -36,6 +36,20 @@ test('an unknown API path returns 404 as a problem', function (): void {
         ->assertJsonPath('detail', 'The resource does not exist.');
 });
 
+test('an API path that is not valid UTF-8 returns 400 as a problem', function (): void {
+    $response = $this->get('/api/v1/%ff');
+
+    $response->assertBadRequest()
+        ->assertHeader('Content-Type', 'application/problem+json')
+        ->assertJsonPath('status', 400);
+});
+
+test('an API path with percent-encoded letters returns 404 as a problem', function (): void {
+    $response = $this->get('/%61pi/v1/missing');
+
+    $response->assertNotFound()->assertHeader('Content-Type', 'application/problem+json');
+});
+
 test('a wrong method returns 405 as a problem with the allowed methods', function (): void {
     $response = $this->deleteJson('/api/v1/ping');
 

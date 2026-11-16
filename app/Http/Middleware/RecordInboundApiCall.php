@@ -24,13 +24,13 @@ class RecordInboundApiCall
 
     public function terminate(Request $request, Response $response): void
     {
-        if (! $request->is('api/*')) {
+        if (! str_starts_with($request->decodedPath(), 'api/')) {
             return;
         }
 
         /** @var ApiTokenGuard $guard */
         $guard = auth()->guard('api');
-        $apiToken = $guard->apiToken();
+        $apiToken = $guard->token();
         $responseBody = $response->getContent();
         $logsBodies = $request->attributes->getBoolean(LogApiCallBodies::class);
 

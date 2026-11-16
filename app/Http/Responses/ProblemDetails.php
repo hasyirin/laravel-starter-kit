@@ -17,7 +17,7 @@ class ProblemDetails
 {
     public static function render(Throwable $exception, Request $request): ?JsonResponse
     {
-        if (! $request->is('api/*') || $exception instanceof HttpResponseException) {
+        if (! str_starts_with($request->decodedPath(), 'api/') || $exception instanceof HttpResponseException) {
             return null;
         }
 

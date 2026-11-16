@@ -19,7 +19,9 @@ use Illuminate\Foundation\Bootstrap\LoadConfiguration;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Foundation\Console\Kernel;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\LazyCollection;
 
 $domainFolders = function (string $name): Generator {
@@ -48,7 +50,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         yield from $domainFolders('Listeners');
     }))
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(AddTraceIdToContext::class);
+        // TrustProxies runs before ValidatePathEncoding, so the API log row of a path that is not valid UTF-8 has the caller's IP address.
+        $middleware->prepend([AddTraceIdToContext::class, TrustProxies::class]);
         $middleware->append(AddIpAddressAndUserAgentToAuditLog::class);
         $middleware->append(RecordInboundApiCall::class);
         $middleware->alias([
@@ -58,13 +61,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'log-bodies' => LogApiCallBodies::class,
         ]);
         $middleware->api(prepend: [AuthenticateApiClient::class, 'throttle:api-client']);
+        $middleware->prependToPriorityList(SubstituteBindings::class, EnsureTokenHasScope::class);
         $middleware->web(append: [ResolveUserPreferences::class]);
         // app.js writes these from the browser, so the app does not encrypt them.
         $middleware->encryptCookies(except: ['timezone', 'locale']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request): bool => $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request): bool => str_starts_with($request->decodedPath(), 'api/') || $request->expectsJson(),
         );
         $exceptions->render(ProblemDetails::render(...));
     })->create();

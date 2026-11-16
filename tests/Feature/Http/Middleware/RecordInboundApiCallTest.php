@@ -64,6 +64,7 @@ test('each rejected call writes a row with the reason as its outcome', function 
     'IP address not allowed' => [fn () => $this->withToken(createApiToken(ApiClient::factory()->create()))->getJson('/api/v1/ping'), ApiCallOutcome::IpNotAllowed, 403],
     'validation failed' => [fn () => $this->withToken(createApiToken())->postJson('/api/v1/notes'), ApiCallOutcome::ValidationFailed, 422],
     'unknown path' => [fn () => $this->withToken(createApiToken())->getJson('/api/v1/missing'), ApiCallOutcome::ClientError, 404],
+    'path that is not valid UTF-8' => [fn () => $this->getJson('/api/v1/%ff'), ApiCallOutcome::ClientError, 400],
     'wrong method' => [fn () => $this->deleteJson('/api/v1/ping'), ApiCallOutcome::ClientError, 405],
     'unhandled exception' => [fn () => $this->withToken(createApiToken())->getJson('/api/v1/failure'), ApiCallOutcome::ServerError, 500],
 ]);
@@ -103,6 +104,26 @@ test('a call with a token of a deleted API client is rejected and keeps the API 
         ->api_client_id->toBe($apiClient->id)
         ->api_client_name->toBe('Billing')
         ->api_token_id->toBe(ApiToken::query()->sole()->id);
+});
+
+test('a call to an API path with percent-encoded letters writes a row with the route and the path as sent', function (): void {
+    $this->withToken(createApiToken())->getJson('/%61pi/v1/ping')->assertOk();
+
+    expect(ApiCall::query()->sole())
+        ->route_name->toBe('api.v1.ping')
+        ->url->toBe('/%61pi/v1/ping');
+});
+
+test('behind a trusted proxy, a call to an API path that is not valid UTF-8 stores the IP address from X-Forwarded-For', function (): void {
+    config(['trustedproxy.proxies' => '10.0.0.0/8']);
+
+    $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.5'])
+        ->withHeader('X-Forwarded-For', '192.0.2.10')
+        ->getJson('/api/v1/%ff');
+
+    expect(ApiCall::query()->sole())
+        ->status->toBe(400)
+        ->ip_address->toBe('192.0.2.10');
 });
 
 test('a call with an unknown token writes a row without an API client', function (): void {

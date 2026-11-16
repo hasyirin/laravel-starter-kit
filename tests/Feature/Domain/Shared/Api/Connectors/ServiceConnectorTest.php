@@ -9,6 +9,7 @@ use App\Domain\Shared\Api\Models\ApiCall;
 use App\Domain\Shared\Api\Models\ApiClient;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\FnStream;
 use GuzzleHttp\Psr7\NoSeekStream;
 use GuzzleHttp\Psr7\Response as PsrResponse;
 use GuzzleHttp\Psr7\Utils;
@@ -305,6 +306,45 @@ test('a streamed response reaches the caller in full and still makes a row witho
             'response_body' => null,
         ]);
 });
+
+test('a service that logs bodies keeps a response body whose size equals the limit', function (): void {
+    $responseBody = '{"id":7}';
+    config(['system.api.services.billing.log_bodies' => true, 'system.api_log.masked_body_limit' => strlen($responseBody)]);
+    Saloon::fake([MockResponse::make($responseBody)]);
+
+    new BillingConnector()->send(new GetStatus);
+
+    expect(ApiCall::query()->sole()->only('response_size', 'response_body'))->toBe(['response_size' => strlen($responseBody), 'response_body' => $responseBody]);
+});
+
+test('a service that logs bodies neither reads nor keeps a response body above the limit or of an unknown size', function (?int $size): void {
+    config(['system.api.services.billing.log_bodies' => true, 'system.api_log.masked_body_limit' => 4]);
+    $failingRead = fn (): never => throw new RuntimeException('The connector read the response body.');
+    $connector = new BillingConnector;
+    $sender = $connector->sender();
+    assert($sender instanceof GuzzleSender);
+    $sender->getHandlerStack()->setHandler(new MockHandler([
+        new PsrResponse(200, [], FnStream::decorate(Utils::streamFor('{"id":7}'), [
+            'getSize' => fn (): ?int => $size,
+            'getContents' => $failingRead,
+            'read' => $failingRead,
+            '__toString' => $failingRead,
+        ])),
+    ]));
+
+    Config::allowStrayRequests();
+
+    try {
+        $connector->send(new GetStatus);
+    } finally {
+        Config::preventStrayRequests();
+    }
+
+    expect(ApiCall::query()->sole()->only('response_size', 'response_body'))->toBe(['response_size' => $size, 'response_body' => null]);
+})->with([
+    'a size above the limit' => [8],
+    'an unknown size' => [null],
+]);
 
 test('a response middleware of the connector that throws still leaves a row', function (): void {
     Saloon::fake([MockResponse::make('', 500)]);

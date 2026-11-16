@@ -165,7 +165,20 @@ test('an allowed IP address that is not text is refused', function (): void {
     apiClientCreate()
         ->set('form.allowed_ip_addresses', [['address' => ['192.0.2.10'], 'description' => '']])
         ->call('save')
-        ->assertHasErrors(['form.allowed_ip_addresses.0.address' => 'string']);
+        ->assertHasErrors(['form.allowed_ip_addresses.0.address' => 'required']);
+
+    expect(ApiClient::query()->exists())->toBeFalse();
+});
+
+test('an allowed IP address that is not text does not break the duplicate check of the other rows', function (): void {
+    apiClientCreate()
+        ->set('form.allowed_ip_addresses', [
+            ['address' => '192.0.2.10', 'description' => null],
+            ['address' => [], 'description' => null],
+        ])
+        ->call('save')
+        ->assertHasErrors(['form.allowed_ip_addresses.1.address' => 'required'])
+        ->assertHasNoErrors('form.allowed_ip_addresses.0.address');
 
     expect(ApiClient::query()->exists())->toBeFalse();
 });

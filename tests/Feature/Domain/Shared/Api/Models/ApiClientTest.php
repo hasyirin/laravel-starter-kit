@@ -20,6 +20,15 @@ test('an API client allows an IP address that its list holds as an address or a 
     'not an IP address' => ['localhost', false],
 ]);
 
+test('an API client allows the IPv4-mapped IPv6 form of an IPv4 address in its list, but not the reverse', function (string $allowedIpAddress, string $ipAddress, bool $allowed): void {
+    $apiClient = ApiClient::factory()->allowedIpAddresses($allowedIpAddress)->make();
+
+    expect($apiClient->allowsIpAddress($ipAddress))->toBe($allowed);
+})->with([
+    'an IPv4-mapped caller and an IPv4 address in the list' => ['192.0.2.10', '::ffff:192.0.2.10', true],
+    'an IPv4 caller and an IPv4-mapped address in the list' => ['::ffff:192.0.2.10', '192.0.2.10', false],
+]);
+
 test('an API client with an empty list allows no IP address, also not localhost', function (): void {
     $apiClient = ApiClient::factory()->allowedIpAddresses()->make();
 

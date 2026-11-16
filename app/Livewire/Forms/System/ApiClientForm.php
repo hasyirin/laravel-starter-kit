@@ -107,10 +107,15 @@ class ApiClientForm extends Form
     {
         $this->allowed_ip_addresses = collect($this->allowed_ip_addresses)
             ->map(function (mixed $row): mixed {
+                // @phpstan-ignore function.alreadyNarrowedType (the browser can send a row that is not an array)
+                if (! is_array($row)) {
+                    return $row;
+                }
+
                 $address = data_get($row, 'address');
 
                 if (! is_string($address)) {
-                    return $row;
+                    return [...$row, 'address' => ''];
                 }
 
                 return [...$row, 'address' => str($address)->trim()->value()];

@@ -73,7 +73,7 @@ Do not protect a route in another file with `auth:api` alone. The `api` guard ch
     'scopes' => ['orders.read', 'orders.write'],
     ```
 
-2. Check a scope on the route with the `scope` middleware, for example `scope:orders.read`. With more than one name, such as `scope:orders.read,orders.write`, the API token must have each scope.
+2. Check a scope on the route with the `scope` middleware, for example `scope:orders.read`. With more than one name, such as `scope:orders.read,orders.write`, the API token must have each scope. The `scope` middleware runs after the `api-client` rate limiter and before route model binding. So an API token without the scope gets 403, also for a record that does not exist.
 3. Or check a scope in the code with `ApiClient::tokenCan()`:
 
     ```php
@@ -105,7 +105,7 @@ Each error on a path under `/api/` uses the application/problem+json format of R
 }
 ```
 
-- `detail` comes from `lang/en/api/problems.php`, or from the same file of the language in `app.locale`, such as `lang/ms/api/problems.php`. The messages of a 422 use that language too. The `detail` is the same for each reason of a 401 or a 403. So the response does not tell a caller why the API rejected the call. The API log row has the reason.
+- `detail` comes from `lang/en/api/problems.php`, or from the same file of the language in `app.locale`, such as `lang/ms/api/problems.php`. The messages of a 422 use that language too. The `detail` is the same for each reason of a 401 or a 403. A 403 for a missing scope also has the headers `X-RateLimit-Limit` and `X-RateLimit-Remaining`. A 403 for a disabled API client or an IP address that is not allowed does not have them. So a caller can tell a missing scope from the other two reasons. The API log row has the reason.
 - `trace_id` is the trace ID of the request. The response also sends it in the header `X-Request-Id`.
 - A 422 adds `errors`, with the messages for each field.
 - A 500 shows the message of the exception only while debug mode is on.
@@ -314,10 +314,10 @@ The API log stores the bodies only for a route with `log-bodies` or a service wi
 
 A masked JSON body keeps its empty objects and the zero fraction of each number, such as 1.0. An integer that is too large for PHP becomes a string in quotes. If a body starts with { or [ but the app cannot decode it as JSON, the API log stores no body. An example is JSON that is nested more than 512 levels deep. The API log also stores no body when the JSON has a number outside the float range, such as 1e400.
 
-An outbound form body goes to the log as JSON, so its keys are masked too. An outbound multipart body is never stored, because it can hold files. An outbound stream body is never stored either, because the app can read it only once. For the same reason, a streamed response body is not stored, and its size is stored only when the stream knows it.
+An outbound form body goes to the log as JSON, so its keys are masked too. An outbound multipart body is never stored, because it can hold files. An outbound stream body is never stored either, because the app can read it only once. For the same reason, a streamed response body is not stored, and its size is stored only when the stream knows it. Also, the API log stores no response body of unknown size, even when the app can read the stream again.
 
 > [!WARNING]
-> The API log stores any other body without a mask. This includes an inbound form body, an inbound multipart body, XML, and plain text. The mask also does not look inside a string value. So a string value that holds JSON, such as the payload of a webhook envelope, is stored as it is, and its keys are not masked. Keep body logging off for a route or a service that sends such bodies with secrets.
+> The API log stores any other body without a mask. This includes an inbound form body, an inbound multipart body, XML, and plain text. The mask also does not look inside a string value. So the API log stores a string value that holds JSON, such as the payload of a webhook envelope, as it is. The API log does not mask the keys in that value. Keep body logging off for a route or a service that sends such bodies with secrets.
 
 ### Retention
 

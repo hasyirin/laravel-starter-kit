@@ -23,7 +23,7 @@ test('a valid token authenticates its API client with that token as the current 
     $guard = apiTokenGuard("Bearer $token");
 
     expect($guard->user()?->is($apiClient))->toBeTrue()
-        ->and($guard->user()?->currentToken()?->is($guard->apiToken()))->toBeTrue()
+        ->and($guard->user()?->currentToken()?->is($guard->token()))->toBeTrue()
         ->and($guard->failure())->toBeNull();
 });
 
@@ -52,7 +52,7 @@ test('a malformed or unknown token is rejected as an invalid token', function (s
 
     expect($guard->user())->toBeNull()
         ->and($guard->failure())->toBe(ApiCallOutcome::InvalidToken)
-        ->and($guard->apiToken())->toBeNull();
+        ->and($guard->token())->toBeNull();
 })->with([
     'malformed' => ['not-a-token'],
     'unknown' => [fn (): string => ApiTokenFormat::generate()],
@@ -76,7 +76,7 @@ test('an expired or revoked token is rejected with its reason, and the guard kee
 
     expect($guard->user())->toBeNull()
         ->and($guard->failure())->toBe($outcome)
-        ->and($guard->apiToken())->toBeInstanceOf(ApiToken::class);
+        ->and($guard->token())->toBeInstanceOf(ApiToken::class);
 })->with([
     'expired' => [fn (): array => ['expires_at' => now()->subMinute()], ApiCallOutcome::ExpiredToken],
     'revoked' => [fn (): array => ['revoked_at' => now()], ApiCallOutcome::RevokedToken],
@@ -106,6 +106,6 @@ test('a new request clears the result of the last request', function (): void {
     $guard->setRequest(Request::create('/api/v1/ping'));
 
     expect($guard->user())->toBeNull()
-        ->and($guard->apiToken())->toBeNull()
+        ->and($guard->token())->toBeNull()
         ->and($guard->failure())->toBe(ApiCallOutcome::MissingToken);
 });

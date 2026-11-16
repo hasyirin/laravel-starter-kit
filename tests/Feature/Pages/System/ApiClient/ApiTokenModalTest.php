@@ -128,6 +128,19 @@ test('a scope that the app does not declare is refused', function (): void {
     expect($this->apiClient->tokens()->exists())->toBeFalse();
 });
 
+test('an empty scope is refused', function (string $scope): void {
+    apiTokenModal($this->apiClient)
+        ->call('show')
+        ->set('form.scopes', [$scope])
+        ->call('save')
+        ->assertHasErrors(['form.scopes.0' => 'required']);
+
+    expect($this->apiClient->tokens()->exists())->toBeFalse();
+})->with([
+    'no text' => [''],
+    'a space' => [' '],
+]);
+
 test('issuing at the limit of active API tokens shows the limit message', function (): void {
     ApiToken::factory()->for($this->apiClient)->count(2)->create();
 

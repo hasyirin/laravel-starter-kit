@@ -66,6 +66,19 @@ test('a disabled API client or a call from an IP address that is not allowed ret
     'no allowed IP address' => [fn (): ApiClient => ApiClient::factory()->allowedIpAddresses()->create()],
 ]);
 
+test('a disabled API client or a call from an IP address that is not allowed returns 403 without the rate limit headers', function (ApiClient $apiClient): void {
+    $token = createApiToken($apiClient);
+
+    $response = $this->withToken($token)->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])->getJson('/api/v1/ping');
+
+    $response->assertForbidden()
+        ->assertHeaderMissing('X-RateLimit-Limit')
+        ->assertHeaderMissing('X-RateLimit-Remaining');
+})->with([
+    'disabled' => [fn (): ApiClient => ApiClient::factory()->anyIpAddress()->disabled()->create()],
+    'IP address not allowed' => [fn (): ApiClient => ApiClient::factory()->allowedIpAddresses('192.0.2.10')->create()],
+]);
+
 test('an IP address with too many failed authentications in a minute gets 429, even with a valid token', function (): void {
     config(['system.api.failed_authentication_per_minute' => 2]);
     $token = createApiToken();

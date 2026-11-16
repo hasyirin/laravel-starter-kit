@@ -104,6 +104,25 @@ test('recorded bodies are masked and capped', function (): void {
         ->response_body->toBe(str_repeat('x', 100));
 });
 
+test('a body above the masked body limit is not stored, even when it fits without its NUL bytes', function (): void {
+    config(['system.api_log.masked_body_limit' => 10]);
+
+    $apiCall = RecordApiCall::make()->execute(
+        direction: ApiCallDirection::Inbound,
+        method: 'POST',
+        url: '/api/v1/users',
+        outcome: ApiCallOutcome::Ok,
+        durationMs: 10,
+        status: 200,
+        requestBody: "aaaaaaaaaa\0",
+        responseBody: 'aaaaaaaaaa',
+    );
+
+    expect($apiCall->fresh())
+        ->request_body->toBeNull()
+        ->response_body->toBe('aaaaaaaaaa');
+});
+
 test('a JSON body with a byte that is not UTF-8 is stored masked', function (): void {
     config(['system.api_log.masked_keys' => ['password']]);
 

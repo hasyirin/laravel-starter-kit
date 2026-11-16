@@ -45,7 +45,7 @@ class ApiTokenGuard implements Guard
         return false;
     }
 
-    public function apiToken(): ?ApiToken
+    public function token(): ?ApiToken
     {
         return $this->apiToken;
     }

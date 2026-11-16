@@ -24,7 +24,7 @@ class ApiTokenForm extends Form
     {
         return [
             'scopes' => ['array'],
-            'scopes.*' => ['string', Rule::in(config()->array('system.api.scopes'))],
+            'scopes.*' => ['required', 'string', Rule::in(config()->array('system.api.scopes'))],
             'never_expires' => ['boolean'],
         ];
     }

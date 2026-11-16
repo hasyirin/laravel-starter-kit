@@ -209,11 +209,20 @@ test('a call that does not go through a service connector makes no row', functio
 
 test('Http::fake() does not catch a call through a service connector', function (): void {
     Http::fake(['*' => Http::response('faked by Http::fake')]);
-    Saloon::fake([MockResponse::make('mocked by Saloon')]);
+    $connector = new BillingConnector;
+    $sender = $connector->sender();
+    assert($sender instanceof GuzzleSender);
+    $sender->getHandlerStack()->setHandler(new MockHandler([new PsrResponse(200, [], 'sent by Guzzle')]));
 
-    $response = new BillingConnector()->send(new GetStatus);
+    Config::allowStrayRequests();
 
-    expect($response->body())->toBe('mocked by Saloon');
+    try {
+        $response = $connector->send(new GetStatus);
+    } finally {
+        Config::preventStrayRequests();
+    }
+
+    expect($response->body())->toBe('sent by Guzzle');
     Http::assertNothingSent();
 });
 

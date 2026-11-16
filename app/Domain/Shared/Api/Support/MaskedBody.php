@@ -77,7 +77,7 @@ class MaskedBody
     private static function maskValues(#[SensitiveParameter] array $values, Collection $maskedKeys): array
     {
         return collect($values)
-            ->map(function (mixed $value, int|string $key) use ($maskedKeys): mixed {
+            ->map(function (#[SensitiveParameter] mixed $value, int|string $key) use ($maskedKeys): mixed {
                 if (is_string($key) && self::masked($key, $maskedKeys)) {
                     return '[hidden]';
                 }

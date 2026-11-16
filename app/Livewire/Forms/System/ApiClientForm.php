@@ -123,6 +123,10 @@ class ApiClientForm extends Form
             ->values()
             ->all();
 
+        if (blank($this->service)) {
+            $this->service = null;
+        }
+
         $this->validate();
 
         return $this->transaction(fn (): ApiClient => SaveApiClient::make()->execute(

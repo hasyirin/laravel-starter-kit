@@ -296,6 +296,24 @@ test('the service must not be linked to another API client that is not deleted',
         ->assertHasNoErrors();
 });
 
+test('a blank service is saved as no service', function (string $service): void {
+    apiClientCreate()
+        ->set('form.service', $service)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    apiClientCreate()
+        ->set('form.name', 'Payroll')
+        ->set('form.service', $service)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(ApiClient::query()->pluck('service')->all())->toBe([null, null]);
+})->with([
+    'empty' => [''],
+    'a space' => [' '],
+]);
+
 test('the service field shows only when the app declares a service', function (): void {
     Livewire::test(Create::class)->assertDontSeeHtml('wire:model="form.service"');
 

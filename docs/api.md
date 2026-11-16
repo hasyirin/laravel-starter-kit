@@ -63,6 +63,8 @@ Each route in the file gets these middleware from the `api` group, in this order
 
 In these routes, `auth()->user()` returns the `ApiClient`. The `api` guard sets it. `ApiClient::currentToken()` returns the API token of the call.
 
+When Laravel logs an exception in these routes, `userId` holds the id of the API client, not of a `User`. The API log row with the same trace ID names the API client. When a queue worker runs a job that a route starts, its audit entries have no causer, because Context has no `user_id`.
+
 Do not protect a route in another file with `auth:api` alone. The `api` guard checks only the API token. So the route skips the enabled switch, the allowed IP address check, the limit of failed authentications, and the rate limit.
 
 ### Scopes

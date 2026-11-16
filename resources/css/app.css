@@ -113,8 +113,8 @@
             @apply h-6 gap-2 rounded-md px-2 py-0 text-xs;
         }
 
-        &:not(.fi-color, .fi-outlined) {
-            @apply border border-zinc-200 border-b-zinc-300/80 bg-white text-zinc-800 shadow-xs not-focus-visible:ring-0 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white;
+        &:is(:not(.fi-color), .fi-outlined) {
+            @apply border bg-white shadow-xs not-focus-visible:ring-0 dark:bg-zinc-700;
 
             & > .fi-icon {
                 @apply text-current;
@@ -123,12 +123,16 @@
             &.fi-size-xs {
                 @apply shadow-none;
             }
+        }
+
+        &:not(.fi-color) {
+            @apply border-zinc-200 border-b-zinc-300/80 text-zinc-800 dark:border-zinc-600 dark:text-white;
 
             &:is(.fi-force-enabled, :not(.fi-disabled):not([disabled])) {
                 @apply hover:border-zinc-200 hover:bg-zinc-50 dark:hover:border-zinc-600 dark:hover:bg-zinc-600/75;
             }
 
-            .fi-modal-footer & {
+            .fi-modal-footer &:not(.fi-outlined) {
                 @apply border-0 bg-zinc-800/5 shadow-none dark:bg-white/10;
 
                 &:is(.fi-force-enabled, :not(.fi-disabled):not([disabled])) {
@@ -137,16 +141,46 @@
             }
         }
 
-        &.fi-color-primary:not(.fi-outlined) {
-            --bg: var(--color-accent);
-            --hover-bg: color-mix(in oklab, var(--color-accent), transparent 10%);
+        /* Flux takes these shades from the color family. The kit cannot know the family, so dark mode uses shade 400 for every color. */
+        &.fi-outlined.fi-color {
+            @apply border-[color-mix(in_oklab,var(--color-500)_18%,var(--color-zinc-200))] border-b-[color-mix(in_oklab,color-mix(in_oklab,var(--color-500)_26%,var(--color-zinc-300))_80%,transparent)] text-(--color-700) dark:border-[color-mix(in_oklab,var(--color-400)_22%,var(--color-zinc-600))] dark:border-b-[color-mix(in_oklab,var(--color-400)_30%,var(--color-zinc-600))] dark:text-(--color-400);
+
+            &:is(.fi-force-enabled, :not(.fi-disabled):not([disabled])) {
+                @apply hover:border-[color-mix(in_oklab,var(--color-500)_28%,var(--color-zinc-200))] hover:border-b-[color-mix(in_oklab,var(--color-500)_36%,var(--color-zinc-200))] hover:bg-[color-mix(in_oklab,var(--color-400)_6%,white)] dark:hover:border-[color-mix(in_oklab,var(--color-400)_32%,var(--color-zinc-600))] dark:hover:border-b-[color-mix(in_oklab,var(--color-400)_40%,var(--color-zinc-600))] dark:hover:bg-[color-mix(in_oklab,var(--color-400)_10%,var(--color-zinc-700))];
+            }
+        }
+
+        &.fi-color:not(.fi-outlined, .fi-color-danger) {
+            @apply border border-black/10 shadow-[inset_0px_1px_--theme(--color-white/.2)] dark:border-0;
+        }
+
+        &:is(.fi-color-primary, .fi-color-success, .fi-color-warning, .fi-color-info):not(.fi-outlined) {
+            --hover-bg: color-mix(in oklab, var(--bg), transparent 10%);
             --dark-bg: var(--bg);
             --dark-hover-bg: var(--hover-bg);
-            --text: var(--color-accent-foreground);
             --hover-text: var(--text);
             --dark-text: var(--text);
             --dark-hover-text: var(--text);
-            @apply border border-black/10 shadow-[inset_0px_1px_--theme(--color-white/.2)] dark:border-0;
+        }
+
+        &.fi-color-primary:not(.fi-outlined) {
+            --bg: var(--color-accent);
+            --text: var(--color-accent-foreground);
+        }
+
+        &.fi-color-success:not(.fi-outlined) {
+            --bg: var(--color-600);
+            --text: var(--color-white);
+        }
+
+        &.fi-color-warning:not(.fi-outlined) {
+            --bg: var(--color-400);
+            --text: var(--color-950);
+        }
+
+        &.fi-color-info:not(.fi-outlined) {
+            --bg: var(--color-500);
+            --text: var(--color-white);
         }
 
         &.fi-color-danger:not(.fi-outlined) {

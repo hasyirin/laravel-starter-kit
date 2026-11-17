@@ -17,6 +17,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
@@ -26,6 +27,19 @@ use SensitiveParameter;
 
 class FortifyServiceProvider extends ServiceProvider
 {
+    private const array OWN_SIGN_IN_METHOD_ROUTES = [
+        'two-factor.enable',
+        'two-factor.confirm',
+        'two-factor.disable',
+        'two-factor.qr-code',
+        'two-factor.secret-key',
+        'two-factor.recovery-codes',
+        'two-factor.regenerate-recovery-codes',
+        'passkey.registration-options',
+        'passkey.store',
+        'passkey.destroy',
+    ];
+
     /**
      * Register any application services.
      */
@@ -44,6 +58,26 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        self::requireVerificationForOwnSignInMethods();
+    }
+
+    public static function requireVerificationForOwnSignInMethods(): void
+    {
+        $verification = ['verified', 'phone.verified'];
+
+        // getByName() cannot find these routes until the app has booted. middleware() only appends.
+        foreach (Route::getRoutes()->getRoutes() as $route) {
+            if (! in_array($route->getName(), self::OWN_SIGN_IN_METHOD_ROUTES, true)) {
+                continue;
+            }
+
+            $middleware = collect($route->middleware())->diff($verification);
+
+            $route->action['middleware'] = $middleware->takeUntil('password.confirm')
+                ->merge($verification)
+                ->merge($middleware->skipUntil('password.confirm'))
+                ->all();
+        }
     }
 
     /**

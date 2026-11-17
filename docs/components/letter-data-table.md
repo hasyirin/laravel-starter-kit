@@ -30,7 +30,7 @@ The create action sits above the table. Each other action sits in the menu of a 
 | Edit               | `update` or `print` | Opens the letter modal with the letter. A row click runs it.                                                                            |
 | Preview            | `print`             | Opens the `letters.preview` route in a new tab. A preview has no reference number and keeps nothing.                                    |
 | Print              | `print`             | Downloads the PDF with `PrintLetter`. A letter that cannot print shows a toast with the reason.                                         |
-| Upload signed scan | `print`             | Opens a dialog to upload one PDF or image as the signed scan. It needs `print` because scans return after the source is locked.        |
+| Upload signed scan | `print`             | Opens a dialog to upload one PDF or image as the signed scan. It needs `print` because signed scans return after the source is locked.  |
 | Kept prints        | `view`              | Lists the kept prints with the printer and the time, each linked to the `media.show` route. Shown only when the letter has kept prints. |
 | Delete             | `delete`            | Asks for a confirmation, then runs `DeleteLetter`. The letter is soft deleted.                                                          |
 

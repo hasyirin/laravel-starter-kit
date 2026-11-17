@@ -29,13 +29,13 @@ public function mount(): void
     $this->documents = FileUpload::items(auth()->user(), 'documents');
 }
 
-public function save(SyncMedia $syncMedia): void
+public function save(): void
 {
     $this->validate([
         'documents' => ['required', 'max:5', new Uploads(['mimes:pdf', 'max:10240'])],
     ]);
 
-    $syncMedia->execute(auth()->user(), $this->documents, 'documents');
+    SyncMedia::make()->execute(auth()->user(), $this->documents, 'documents');
 }
 ```
 

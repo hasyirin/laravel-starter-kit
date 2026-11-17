@@ -363,7 +363,7 @@ In the letter form:
 - The print choices (signer, carbon copies, letterhead, computer signed) need the `print` ability.
 - A user without `print` cannot choose a signer. So for a new letter, the type list hides each letter type that `create` refuses.
 - The reference number, the sequence number, the date, and the extra fields need the `update` ability.
-- The signed scan upload needs `print`, not `update`. Scans come back after the source is locked.
+- The signed scan upload needs `print`, not `update`. Signed scans come back after the source is locked.
 - The preview route `letters.preview` needs `print`. If the letter cannot be printed, the preview shows the messages with the status 422. It does not redirect.
 
 Letterheads use `LetterheadPolicy` and the `internal.controls.letterheads.*` permissions.

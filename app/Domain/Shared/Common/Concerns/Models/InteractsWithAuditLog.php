@@ -48,20 +48,20 @@ trait InteractsWithAuditLog
     /**
      * Activitylog fills each old value that the model did not hold with null. An update then logs a change that did not happen.
      *
-     * @return array<string, array<string, mixed>>
+     * @return array<array-key, mixed>
      */
     protected function buildChanges(string $processingEvent): array
     {
+        if ($processingEvent !== ActivityEvent::Updated->value) {
+            return $this->buildActivitylogChanges($processingEvent);
+        }
+
         $columns = collect($this->oldAttributes)
             ->merge($this->getChanges())
             ->keys();
 
         /** @var array<string, array<string, mixed>> $changes */
         $changes = $this->buildActivitylogChanges($processingEvent);
-
-        if ($processingEvent !== ActivityEvent::Updated->value) {
-            return $changes;
-        }
 
         return collect($changes)
             ->map(fn (array $values): array => collect($values)->only($columns)->all())

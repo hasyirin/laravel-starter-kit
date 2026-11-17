@@ -254,6 +254,11 @@ A print that the app stores, with the user who made it and the time. Only some l
 _Avoid_: History, which the audit log means
 _Malay_: Cetakan tersimpan
 
+**Signed scan**:
+The scan of a printed letter that a person signed by hand. A letter has one signed scan at most.
+_Avoid_: Signed copy, scan, Imbasan bertandatangan
+_Malay_: Surat bertandatangan
+
 ### Addresses
 
 **Address**:

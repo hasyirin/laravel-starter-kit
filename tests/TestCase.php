@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use App\Domain\Shared\Common\Enums\Feature;
+use App\Providers\FortifyServiceProvider;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Route;
 use LogicException;
@@ -51,6 +52,8 @@ abstract class TestCase extends BaseTestCase
             'domain' => config('fortify.domain'),
             'prefix' => config('fortify.prefix'),
         ], base_path('vendor/laravel/fortify/routes/routes.php'));
+
+        FortifyServiceProvider::requireVerificationForOwnSignInMethods();
 
         Route::getRoutes()->refreshNameLookups();
     }

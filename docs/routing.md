@@ -13,6 +13,8 @@ The API has its own file, `routes/api.php`, and it is not an area. `bootstrap/ap
 
 Fortify registers the routes for login, registration, password reset, email verification, two-factor authentication, and passkeys. Do not add them to `guest.php`.
 
+The Fortify routes that set up, show, and remove two-factor authentication and passkeys need a verified email address and phone number, like the Security tab. `FortifyServiceProvider::requireVerificationForOwnSignInMethods()` adds the `verified` and `phone.verified` middleware to them. If a route has `password.confirm`, the two middleware go before it. Otherwise, they go at the end.
+
 ### Registration
 
 Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Feature::Registration` to `system.features` in `config/system.php`. The login page then shows a sign-up link.
@@ -121,6 +123,8 @@ One route cannot carry a rule for each tab. So the route of the page has no rule
 
 - `App\Livewire\Concerns\RequiresVerification` gives a component the checks of the `verified` and `phone.verified` middleware. `Security` uses it.
 - `Security::mount()` calls `ConfirmsPassword::ensurePasswordConfirmed()` first. This is the password step.
+
+The Fortify routes that do the same work as the Security tab also need a verified email address and phone number. See [Routes and Access Areas](#routes-and-access-areas).
 
 The Account tab has no rule, so a user with an unverified email address can also delete the account. The dialog of `DeleteUserForm` asks for the current password first.
 

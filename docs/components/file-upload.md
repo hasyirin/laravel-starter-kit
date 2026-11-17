@@ -41,6 +41,8 @@ public function save(SyncMedia $syncMedia): void
 
 `SyncMedia` keeps only the media of the model and the collection that it gets, and it adds only uploads that Livewire signed. So a changed request cannot move or delete other files.
 
+If a transaction around the save rolls back, the new files leave the disk, and the removed files stay. `SyncMedia` deletes each upload only after the commit, so the user can save again without a new upload.
+
 ## Rules and Limits
 
 `rules` checks each file when it arrives. It takes an array, or a string with the rules between pipes. A file that fails stays out of the list, and the field says why. Without `multiple`, the field takes one file. With `multiple`, `max` sets the largest number of files. When the field is full, the dropzone disappears until the user removes a file.

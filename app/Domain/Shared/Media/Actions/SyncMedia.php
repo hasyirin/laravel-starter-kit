@@ -49,7 +49,7 @@ class SyncMedia
                 ->usingFileName($entry->getClientOriginalName())
                 ->toMediaCollection($collection instanceof BackedEnum ? (string) $collection->value : $collection);
 
-            $entry->delete();
+            $media->getConnection()->afterCommit(fn () => rescue(fn () => $entry->delete()));
 
             return $media->id;
         });

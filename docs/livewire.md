@@ -119,7 +119,7 @@ A rollback changes only the database. The models in memory keep the values that 
 - In a component that wraps more than one form in `DB::transaction()`, put each new record on a property only after that outer transaction returns. A snapshot sees only the models that are on the properties when the transaction of the form starts. A record put on a property before the outer transaction ends keeps the id of a row that rolled back, and the next request fails to load it. `tests/Fixtures/Livewire/TwoFormsHost.php` is the example.
 - Keep the input properties as they are. The user sees the input and the errors, and can try again.
 
-Work outside the database, such as a stored file, does not roll back. An Action class undoes it in `afterRollBack()`. See the Transactions section of [Action Classes](actions.md).
+Work outside the database, such as a file that an Action class writes to a disk itself, does not roll back. The Action class undoes it in `afterRollBack()`. Media files need no such code: the kit's `MediaObserver` handles them (kit ADR-0023). See the Transactions section of [Action Classes](actions.md).
 
 ## Disable
 

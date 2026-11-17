@@ -10,7 +10,6 @@ use App\Domain\Shared\Letter\Support\Field;
 use App\Domain\Shared\Media\Enums\MediaCollection;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Spatie\MediaLibrary\MediaCollections\Filesystem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 trait StoresLetterImages
@@ -46,7 +45,6 @@ trait StoresLetterImages
         }
 
         $copy = $media->copy($owner, $collection->value);
-        $this->removeOnRollBack($copy);
 
         return $copy->uuid;
     }
@@ -57,13 +55,6 @@ trait StoresLetterImages
             ->usingFileName($file->getClientOriginalName())
             ->toMediaCollection($collection->value);
 
-        $this->removeOnRollBack($media);
-
         return $media->uuid;
-    }
-
-    private function removeOnRollBack(Media $media): void
-    {
-        $media->getConnection()->afterRollBack(fn () => rescue(fn () => resolve(Filesystem::class)->removeAllFiles($media)));
     }
 }

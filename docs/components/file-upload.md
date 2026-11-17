@@ -18,6 +18,7 @@ The property holds one item for each file. The item of a stored file names its m
 
 ```php
 use App\Domain\Shared\Media\Actions\SyncMedia;
+use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Media\Rules\Uploads;
 use App\Livewire\Components\FileUpload;
 
@@ -26,20 +27,22 @@ public array $documents = [];
 
 public function mount(): void
 {
-    $this->documents = FileUpload::items(auth()->user(), 'documents');
+    $this->documents = FileUpload::items(auth()->user(), MediaCollection::Documents);
 }
 
-public function save(SyncMedia $syncMedia): void
+public function save(): void
 {
     $this->validate([
         'documents' => ['required', 'max:5', new Uploads(['mimes:pdf', 'max:10240'])],
     ]);
 
-    $syncMedia->execute(auth()->user(), $this->documents, 'documents');
+    SyncMedia::make()->execute(auth()->user(), $this->documents, MediaCollection::Documents);
 }
 ```
 
 `SyncMedia` keeps only the media of the model and the collection that it gets, and it adds only uploads that Livewire signed. So a changed request cannot move or delete other files.
+
+If a transaction around the save rolls back, the new files leave the disk, and the removed files stay. `SyncMedia` deletes each upload only after the commit, so the user can save again without a new upload.
 
 ## Rules and Limits
 
@@ -84,7 +87,7 @@ Give the model media with the kit's `HasMedia` contract and `InteractsWithMedia`
 
 - The trait makes a `preview` of each image on the media queue. A preview is a WebP image of at most 300 by 300 pixels, about 10 KB for a phone photo. A smaller image keeps its size, and transparent parts stay transparent.
 - The list shows the image itself until its preview exists. An SVG image gets no preview, because ImageMagick can fetch the files that an SVG links to while it draws it.
-- `getMedia()` and `hasMedia()` take the name of a collection or an enum case, and so do `FileUpload::items()` and `SyncMedia`.
+- Name each collection with a case of `MediaCollection`, not with a string. Add a case for a new collection, such as the Documents case of the example above. `getMedia()`, `hasMedia()`, `FileUpload::items()`, and `SyncMedia` take the case.
 - To change the conversions of a model, write its own `registerMediaConversions()`. Add the `preview` again, so that the list keeps its small images.
 
 ## Reference

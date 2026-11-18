@@ -10,7 +10,7 @@ use App\Livewire\Auth\VerifyPhone;
 use App\Livewire\Pages\App\Dashboard;
 use Illuminate\Support\Facades\Route;
 
-Route::get('media/{media:uuid}/{conversion?}', MediaController::class)->name('media.show');
+Route::get('media/{media:uuid}/{conversion?}', MediaController::class)->whereUuid('media')->name('media.show');
 
 Route::get('letters/{letter}/preview', LetterPreviewController::class)->middleware(['throttle:letter-preview', 'can:print,letter'])->name('letters.preview');
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pages\System\Letters;
 
+use App\Domain\Shared\Common\Support\ModelKey;
 use App\Domain\Shared\Letter\Models\Letter;
 use App\Domain\Shared\Letter\Support\LetterType;
 use App\Livewire\Concerns\ListsCarbonCopyTargets;
@@ -84,10 +85,11 @@ class Compose extends Page
         $query = $type->source()::query();
 
         if ($search !== '') {
-            $key = $this->sourceKey($query->getModel(), $search);
+            $model = $query->getModel();
+            $searchesKey = $model->getKeyType() === 'int' && ModelKey::valid($model, $search);
 
             $query->where(fn (Builder $match): Builder => $match
-                ->whereKey(is_int($key) ? [$key] : [])
+                ->whereKey($searchesKey ? [$search] : [])
                 ->when($this->searchesName, fn (Builder $named): Builder => $named->orWhereLike('name', "%$search%")));
         }
 
@@ -160,25 +162,13 @@ class Compose extends Page
         }
 
         $query = $type->source()::query();
-        $key = $this->sourceKey($query->getModel(), $this->sourceId);
 
-        abort_if($key === null, 404);
+        abort_unless(ModelKey::valid($query->getModel(), $this->sourceId), 404);
 
-        $source = $query->findOrFail($key);
+        $source = $query->findOrFail($this->sourceId);
         $this->authorize('view', $source);
 
         return $source;
-    }
-
-    private function sourceKey(Model $model, string $value): int|string|null
-    {
-        if ($model->getKeyType() !== 'int') {
-            return $value;
-        }
-
-        $key = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-
-        return $key === false ? null : $key;
     }
 
     public function updatedFormType(): void

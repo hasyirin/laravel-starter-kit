@@ -6,6 +6,7 @@ namespace App\Domain\Shared\Geography\Models;
 
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
+use App\Domain\Shared\Common\Concerns\Models\RejectsMalformedRouteKey;
 use App\Domain\Shared\Geography\Concerns\Models\HoldsLocality;
 use App\Domain\Shared\Geography\Concerns\Models\SortsLocalFirst;
 use App\Domain\Shared\Geography\Observers\StateObserver;
@@ -23,6 +24,7 @@ class State extends \Hasyirin\Address\Models\State
     use HoldsLocality;
     use InteractsWithAuditLog;
     use InteractsWithTimestamps;
+    use RejectsMalformedRouteKey;
     use SortsLocalFirst;
 
     /**

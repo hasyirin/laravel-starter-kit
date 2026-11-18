@@ -8,6 +8,7 @@ use App\Domain\Shared\Actor\Contracts\Models\HasActorName;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithMedia;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
+use App\Domain\Shared\Common\Concerns\Models\RejectsMalformedRouteKey;
 use App\Domain\Shared\Common\Contracts\Models\HasMedia;
 use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Message\Concerns\RoutesResentMessages;
@@ -65,6 +66,7 @@ class User extends Authenticatable implements HasActorName, HasLocalePreference,
     use InteractsWithMedia;
     use InteractsWithPhoneVerification;
     use InteractsWithTimestamps;
+    use RejectsMalformedRouteKey;
     use RoutesResentMessages;
     use SoftDeletes;
 

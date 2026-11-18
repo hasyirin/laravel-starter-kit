@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Domain\Shared\Common\Support\ModelKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -43,10 +45,19 @@ abstract class RecordModal extends Modal
     #[Computed]
     public function record(): Model
     {
+        $query = $this->query();
+
+        if ($this->recordId === null) {
+            // @phpstan-ignore return.type (Relation loses TRecord through its Builder mixin)
+            return $query->make();
+        }
+
+        if (! ModelKey::valid($query->getModel(), $this->recordId)) {
+            throw (new ModelNotFoundException)->setModel($query->getModel()::class, $this->recordId);
+        }
+
         // @phpstan-ignore return.type (Relation loses TRecord through its Builder mixin)
-        return $this->recordId === null
-            ? $this->query()->make()
-            : $this->query()->findOrFail($this->recordId);
+        return $query->findOrFail($this->recordId);
     }
 
     #[On('show')]

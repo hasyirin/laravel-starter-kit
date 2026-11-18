@@ -6,6 +6,7 @@ namespace App\Domain\Shared\Common\Models;
 
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
+use App\Domain\Shared\Common\Concerns\Models\RejectsMalformedRouteKey;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
@@ -18,6 +19,7 @@ abstract class Model extends \Illuminate\Database\Eloquent\Model
 {
     use InteractsWithAuditLog;
     use InteractsWithTimestamps;
+    use RejectsMalformedRouteKey;
     use SoftDeletes;
 
     /**

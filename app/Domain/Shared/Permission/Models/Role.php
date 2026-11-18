@@ -6,6 +6,7 @@ namespace App\Domain\Shared\Permission\Models;
 
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
+use App\Domain\Shared\Common\Concerns\Models\RejectsMalformedRouteKey;
 use App\Domain\Shared\Permission\Observers\RoleObserver;
 use App\Domain\User\Models\Profile;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -25,6 +26,7 @@ class Role extends \Spatie\Permission\Models\Role
 {
     use InteractsWithAuditLog;
     use InteractsWithTimestamps;
+    use RejectsMalformedRouteKey;
 
     protected $fillable = [
         'name',

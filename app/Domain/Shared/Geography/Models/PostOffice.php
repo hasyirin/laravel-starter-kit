@@ -6,6 +6,7 @@ namespace App\Domain\Shared\Geography\Models;
 
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithAuditLog;
 use App\Domain\Shared\Common\Concerns\Models\InteractsWithTimestamps;
+use App\Domain\Shared\Common\Concerns\Models\RejectsMalformedRouteKey;
 use App\Domain\Shared\Geography\Concerns\Models\SortsLocalFirst;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,6 +19,7 @@ class PostOffice extends \Hasyirin\Address\Models\PostOffice
 {
     use InteractsWithAuditLog;
     use InteractsWithTimestamps;
+    use RejectsMalformedRouteKey;
     use SortsLocalFirst;
 
     /**

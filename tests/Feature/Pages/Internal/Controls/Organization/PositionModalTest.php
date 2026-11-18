@@ -8,6 +8,8 @@ use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\Pages\Internal\Controls\Organization\PositionModal;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -115,6 +117,16 @@ test('a position of another organization is not found', function (): void {
     Livewire::test(PositionModal::class, ['organization' => $this->organization])
         ->call('show', $position->id)
         ->assertNotFound();
+});
+
+test("a malformed id gives 404 without a query on the record's table", function (): void {
+    $modal = Livewire::test(PositionModal::class, ['organization' => $this->organization]);
+    $queries = collect();
+    DB::listen(fn (QueryExecuted $query) => $queries->push($query->sql));
+
+    $modal->call('show', '99999999999999999999')->assertNotFound();
+
+    expect($queries)->each->not->toContain('"positions"');
 });
 
 test('a position name is unique within its department', function (): void {

@@ -6,7 +6,9 @@ use App\Domain\Shared\Media\Enums\MediaCollection;
 use App\Domain\Shared\Message\Models\Message;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
@@ -79,6 +81,18 @@ test('media whose owner is gone is not found', function (): void {
     $response = $this->actingAs(User::factory()->create())->get(route('media.show', $media));
 
     $response->assertNotFound();
+});
+
+test('a malformed uuid gives 404 and is not sent to the database', function (): void {
+    $user = User::factory()->create();
+    $bindings = collect();
+    DB::listen(fn (QueryExecuted $query) => $bindings->push(...$query->bindings));
+
+    $response = $this->actingAs($user)->get(route('media.show', 'abc'));
+
+    $response->assertNotFound();
+
+    expect($bindings)->not->toContain('abc');
 });
 
 test('a user with system.logs.messages.view gets an attachment of an email', function (): void {

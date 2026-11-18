@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
@@ -80,6 +82,19 @@ test('a record outside the query gives 404', function (): void {
         ->call('show', $other->id)
         ->assertNotFound();
 });
+
+test("a malformed id gives 404 without a query on the record's table", function (string $id): void {
+    $modal = Livewire::test(NoteModal::class, ['notebook' => Notebook::query()->create()]);
+    $queries = collect();
+    DB::listen(fn (QueryExecuted $query) => $queries->push($query->sql));
+
+    $modal->call('show', $id)->assertNotFound();
+
+    expect($queries)->each->not->toContain('"notes"');
+})->with([
+    'letters' => ['abc'],
+    'more digits than a bigint holds' => ['99999999999999999999'],
+]);
 
 test('showing a record without the view ability gives 403', function (): void {
     $notebook = Notebook::query()->create();

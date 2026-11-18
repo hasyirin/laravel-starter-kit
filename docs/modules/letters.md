@@ -305,7 +305,7 @@ Follow these limits:
 A report or a bill is not a letter. It has no letter row, no reference number, and no signer. Render it with `RenderPdf` and print the letterhead with `<x-letterhead :placement>`.
 
 ```php
-$pdf = RenderPdf::make()->execute('reports.sales', ['sales' => $sales], Preferences::current());
+$pdf = RenderPdf::make()->execute('pdf.sales', ['sales' => $sales], Preferences::current());
 
 return $pdf->download('sales.pdf');
 ```
@@ -317,6 +317,8 @@ return $pdf->download('sales.pdf');
 ```
 
 `$placement` is a `Placement`, for example `Placement::of($user->profile)`. The component finds the best letterhead for it. `RenderPdf` takes the view, the view data, the preferences (timezone and locale), and an optional draft flag.
+
+Put the view in the folder resources/views/pdf, for example resources/views/pdf/sales.blade.php. The letter stylesheet `resources/css/letter.css` scans this folder for Tailwind classes. A view in another folder gets only the classes that the letter views and components already use. Run `bun run build` after you add a view or a class.
 
 ## Access
 

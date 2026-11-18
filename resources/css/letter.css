@@ -1,6 +1,7 @@
 @import 'tailwindcss' source(none);
 
 @source '../views/letters';
+@source '../views/pdf';
 @source '../views/components/letter';
 @source '../views/components/letter.blade.php';
 @source '../views/components/letterhead.blade.php';

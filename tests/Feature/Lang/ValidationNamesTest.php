@@ -11,6 +11,7 @@ test('a validation message names its field in the language of the page', functio
 })->with([
     'English, a plain field' => ['en', 'email', 'The email field is required.'],
     'English, a record field' => ['en', 'department_id', 'The department field is required.'],
+    'English, the country of an address' => ['en', 'country_id', 'The country field is required.'],
     'Malay, a plain field' => ['ms', 'email', 'Medan e-mel diperlukan.'],
     'Malay, a record field' => ['ms', 'department_id', 'Medan jabatan diperlukan.'],
     'Malay, the signer' => ['ms', 'signer_id', 'Medan penandatangan diperlukan.'],
@@ -25,5 +26,8 @@ test('the audit log labels a field with its validation name, with a capital', fu
     'English' => ['en', 'permissions', 'Permissions'],
     'Malay' => ['ms', 'permissions', 'Akses'],
     'Malay, a record field' => ['ms', 'department_id', 'Jabatan'],
+    'Malay, the country of an address' => ['ms', 'country_id', 'Negara'],
+    'Malay, the state of an address' => ['ms', 'state_id', 'Negeri'],
+    'Malay, the type of an address' => ['ms', 'type', 'Jenis'],
     'a field without a name' => ['ms', 'is_owner', 'Is Owner'],
 ]);

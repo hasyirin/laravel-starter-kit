@@ -16,4 +16,12 @@ class Address extends \Hasyirin\Address\Models\Address
 {
     use InteractsWithAuditLog;
     use InteractsWithTimestamps;
+
+    /**
+     * @return list<string>
+     */
+    protected function auditExcludedColumns(): array
+    {
+        return ['addressable_type', 'addressable_id', 'properties'];
+    }
 }

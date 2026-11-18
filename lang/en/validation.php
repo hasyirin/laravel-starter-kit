@@ -211,6 +211,7 @@ return [
         'branch_id' => 'branch',
         'code' => 'code',
         'computer_signed' => 'computer signed',
+        'country_id' => 'country',
         'current_password' => 'current password',
         'date' => 'date',
         'department_id' => 'department',
@@ -243,8 +244,10 @@ return [
         'sequence_number' => 'sequence number',
         'service' => 'service',
         'signer_id' => 'signer',
+        'state_id' => 'state',
         'subdistrict_id' => 'subdistrict',
         'timezone' => 'time zone',
+        'type' => 'type',
         'with_letterhead' => 'letterhead',
     ],
 

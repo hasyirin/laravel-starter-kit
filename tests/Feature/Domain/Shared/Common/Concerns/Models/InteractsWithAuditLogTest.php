@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Fixtures\Models\Survey;
 use Tests\Fixtures\Models\Ticket;
 use Tests\Fixtures\States\Ticket\InReview;
 
@@ -21,7 +22,15 @@ beforeEach(function (): void {
         $table->softDeletes();
     });
 
-    Relation::morphMap(['ticket' => Ticket::class]);
+    Schema::create('surveys', function (Blueprint $table): void {
+        $table->id();
+        $table->uuid()->unique();
+        $table->string('title');
+        $table->timestamps();
+        $table->softDeletes();
+    });
+
+    Relation::morphMap(['ticket' => Ticket::class, 'survey' => Survey::class]);
 });
 
 test('the audit log leaves out an unchanged state when another column changes', function (): void {
@@ -44,6 +53,14 @@ test('the audit log records a state change with the old and the new state names'
 
     expect($changes?->get('attributes'))->toBe(['state' => 'in_review'])
         ->and($changes?->get('old'))->toBe(['state' => 'open']);
+});
+
+test('the audit log leaves out a unique id column beside the integer key', function (): void {
+    Survey::query()->create(['title' => 'Customer feedback']);
+
+    $changes = Activity::query()->where('event', 'created')->sole()->attribute_changes;
+
+    expect($changes?->get('attributes'))->toBe(['title' => 'Customer feedback']);
 });
 
 test('a touch writes no audit entry', function (): void {

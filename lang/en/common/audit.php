@@ -36,6 +36,7 @@ return [
     ],
     'subjects' => [
         'action' => 'Action',
+        'address' => 'Address',
         'api_client' => 'API client',
         'api_token' => 'API token',
         'branch' => 'Branch',

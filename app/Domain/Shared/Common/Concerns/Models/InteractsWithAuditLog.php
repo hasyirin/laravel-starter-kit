@@ -22,7 +22,20 @@ trait InteractsWithAuditLog
             ->dontLogEmptyChanges()
             ->logOnlyDirty()
             ->logAll()
-            ->logExcept(array_filter([...$this->getHidden(), $this->getKeyName(), $this->getCreatedAtColumn(), $this->getUpdatedAtColumn(), 'deleted_at']))
+            ->logExcept(
+                collect([
+                    ...$this->getHidden(),
+                    $this->getKeyName(),
+                    $this->getCreatedAtColumn(),
+                    $this->getUpdatedAtColumn(),
+                    'deleted_at',
+                    ...$this->uniqueIds(),
+                    ...$this->auditExcludedColumns(),
+                ])
+                    ->filter(fn (mixed $column): bool => is_string($column))
+                    ->values()
+                    ->all()
+            )
             ->useAttributeRawValues(
                 collect($this->getCasts())
                     ->filter(fn (string $cast): bool => is_subclass_of($cast, State::class))
@@ -43,6 +56,14 @@ trait InteractsWithAuditLog
     public function auditLabel(): ?string
     {
         return AuditLog::attributeLabel($this);
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function auditExcludedColumns(): array
+    {
+        return [];
     }
 
     /**

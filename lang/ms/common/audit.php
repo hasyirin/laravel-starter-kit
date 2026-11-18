@@ -36,6 +36,7 @@ return [
     ],
     'subjects' => [
         'action' => 'Tindakan',
+        'address' => 'Alamat',
         'api_client' => 'Klien API',
         'api_token' => 'Token API',
         'branch' => 'Cawangan',

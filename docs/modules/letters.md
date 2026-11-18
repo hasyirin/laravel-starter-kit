@@ -803,6 +803,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 ### CopyFields
 
 - the add and remove buttons change the rows in the browser
+- the error of a carbon copy row shows one time, on its row
+- the error of the carbon copy list shows one time, under the rows
 
 ### DataFields
 

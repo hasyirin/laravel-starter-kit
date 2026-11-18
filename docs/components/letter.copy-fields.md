@@ -13,6 +13,8 @@
 
 The component binds each row to prefix.0.kind, prefix.0.target, and prefix.0.text. The add and remove buttons run in the browser and change the property with `$wire.$set()`. The form needs no method for them. The buttons use the `repeatableRows` Alpine component in `resources/js/components/repeatable-rows.js`.
 
+A row shows its own errors. An error on the prefix itself shows under the rows.
+
 ## Disabled
 
 `disabled` disables every input and hides the add and remove buttons.

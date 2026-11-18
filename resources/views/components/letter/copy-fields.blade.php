@@ -1,6 +1,6 @@
 @props(['prefix', 'rows' => [], 'organizations' => [], 'departments' => [], 'disabled' => false])
 
-<x-field :label="__('letters/letters.copies')" :name="$prefix">
+<x-field :label="__('letters/letters.copies')" :name="$prefix" no-error-message>
     <div class="space-y-2" x-data="repeatableRows(@js($prefix))">
         @foreach($rows as $index => $copy)
             <div class="flex items-start gap-2" wire:key="copy-{{ $index }}">
@@ -24,6 +24,7 @@
                     <flux:button
                         icon="trash"
                         variant="ghost"
+                        class="shrink-0"
                         data-row-remove
                         :aria-label="__('common/buttons.delete')"
                         x-on:click="removeRow({{ Js::from($index) }})"
@@ -37,4 +38,6 @@
             </flux:button>
         @endif
     </div>
+
+    <flux:error :name="$prefix" :deep="false" />
 </x-field>

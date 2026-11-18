@@ -11,6 +11,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Database\Query\Expression;
@@ -471,6 +472,10 @@ class AuditLog
 
         if (! $relation instanceof BelongsTo) {
             return null;
+        }
+
+        if ($relation instanceof MorphTo) {
+            return [];
         }
 
         $keys = collect($ids)

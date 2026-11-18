@@ -63,6 +63,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [AuthenticateApiClient::class, 'throttle:api-client']);
         $middleware->prependToPriorityList(SubstituteBindings::class, EnsureTokenHasScope::class);
         $middleware->web(append: [ResolveUserPreferences::class]);
+        $middleware->authenticateSessions();
         // app.js writes these from the browser, so the app does not encrypt them.
         $middleware->encryptCookies(except: ['timezone', 'locale']);
     })

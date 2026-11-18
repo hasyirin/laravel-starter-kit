@@ -59,5 +59,10 @@ class UpdateUser
                 permissions: $permissions,
             );
         });
+
+        // The actor can be the signed-in user. After the response, AuthenticateSession stores the password hash of that instance.
+        if ($actor->is($user) && $actor !== $user) {
+            $user->getConnection()->afterCommit(fn () => $actor->refresh());
+        }
     }
 }

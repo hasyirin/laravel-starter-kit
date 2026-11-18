@@ -16,6 +16,7 @@ use App\Livewire\Pages\Internal\Controls\User\ImpersonateModal;
 use App\Livewire\Pages\Internal\Controls\User\Show;
 use App\Livewire\Pages\Internal\Controls\User\Tabs;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Js;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
@@ -193,6 +194,18 @@ test('a blank password keeps the old one', function (): void {
         ->assertHasNoErrors();
 
     expect($this->subject->fresh()->password)->toBe($hash);
+});
+
+test('a user who changes their own password on the user page stays signed in', function (): void {
+    $page = $this->get(route('internal.controls.users.show', $this->actor));
+
+    callLivewireAction($page, 'pages.internal.controls.user.show', 'save', updates: [
+        'form.password' => 'Str0ng-Passw0rd!',
+        'form.password_confirmation' => 'Str0ng-Passw0rd!',
+    ]);
+
+    expect(Hash::check('Str0ng-Passw0rd!', $this->actor->fresh()->password))->toBeTrue();
+    $this->actingAs($this->actor->fresh())->get(route('dashboard'))->assertOk();
 });
 
 test('the form is read-only without update', function (): void {

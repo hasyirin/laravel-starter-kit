@@ -155,6 +155,24 @@ test('correct password must be provided to update password', function (): void {
     $response->assertHasErrors(['current_password']);
 });
 
+test('the session that changes the password stays signed in', function (): void {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+    ]);
+    $page = $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('settings', ['tab' => 'security']));
+
+    callLivewireAction($page, 'settings.security', 'updatePassword', updates: [
+        'current_password' => 'password',
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ]);
+
+    expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue();
+    $this->actingAs($user->fresh())->get(route('dashboard'))->assertOk();
+});
+
 test('an open security page asks for the password again after the confirmation expires', function (string $method): void {
     $this->skipUnlessFeature(Feature::TwoFactorAuthentication);
 

@@ -91,8 +91,9 @@ function giveProfile(User $user, Collection $roles, Collection $permissions): vo
 
 /**
  * @param  array<int, mixed>  $params
+ * @param  array<string, mixed>  $updates
  */
-function callLivewireAction(TestResponse $page, string $component, string $method, array $params = []): TestResponse
+function callLivewireAction(TestResponse $page, string $component, string $method, array $params = [], array $updates = []): TestResponse
 {
     preg_match_all('/wire:snapshot="([^"]+)"/', (string) $page->getContent(), $matches);
 
@@ -100,7 +101,7 @@ function callLivewireAction(TestResponse $page, string $component, string $metho
         ->map(fn (string $snapshot): string => html_entity_decode($snapshot))
         ->first(fn (string $snapshot): bool => data_get(json_decode($snapshot, true), 'memo.name') === $component);
 
-    $payload = json_encode(['components' => [['snapshot' => $snapshot, 'updates' => [], 'calls' => [['method' => $method, 'params' => $params, 'metadata' => []]]]]]);
+    $payload = json_encode(['components' => [['snapshot' => $snapshot, 'updates' => $updates, 'calls' => [['method' => $method, 'params' => $params, 'metadata' => []]]]]]);
 
     return test()->call('POST', resolve('livewire')->getUpdateUri(), server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => '*/*', 'HTTP_X_LIVEWIRE' => '1'], content: $payload);
 }

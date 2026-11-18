@@ -15,6 +15,10 @@ Fortify registers the routes for login, registration, password reset, email veri
 
 The Fortify routes that set up, show, and remove two-factor authentication and passkeys need a verified email address and phone number, like the Security tab. `FortifyServiceProvider::requireVerificationForOwnSignInMethods()` adds the `verified` and `phone.verified` middleware to them. If a route has `password.confirm`, the two middleware go before it. Otherwise, they go at the end.
 
+`bootstrap/app.php` adds the `auth.session` middleware to the `web` group with Laravel's `authenticateSessions()`. At sign-in, the session gets a hash of the user's password. On each request, the middleware compares that hash with the user's current password. If the two differ, the middleware signs the session out and sends the user to the login page. So when a user's password changes or is reset, the user's other sessions end at their next request.
+
+The session that changed the password stays signed in, because the middleware stores the hash of `auth()->user()` again after each response. So code that changes the password of the signed-in user must change `auth()->user()` itself, or refresh it after the commit. `UpdateUser` refreshes `$actor` after the commit when a staff member changes their own record.
+
 ### Registration
 
 Registration is off by default, because most apps are for staff, and staff create their users. To let people sign up, add `Feature::Registration` to `system.features` in `config/system.php`. The login page then shows a sign-up link.

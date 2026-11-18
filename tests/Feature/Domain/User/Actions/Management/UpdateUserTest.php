@@ -13,6 +13,7 @@ use App\Domain\User\Models\User;
 use App\Domain\User\Support\Placement;
 use App\Domain\User\Support\SmsCode;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 beforeEach(function (): void {
@@ -82,6 +83,43 @@ test('a blank password keeps the old one', function (): void {
     );
 
     expect(Hash::check('new-password', $this->user->fresh()->password))->toBeTrue();
+});
+
+test('an actor who changes their own password through a separate instance holds the new password hash', function (): void {
+    $sameUser = User::query()->findOrFail($this->actor->id);
+
+    UpdateUser::make()->execute(
+        actor: $this->actor,
+        user: $sameUser,
+        name: $sameUser->name,
+        email: $sameUser->email,
+        phone: $sameUser->phone,
+        password: 'new-password',
+        placement: $this->placement,
+    );
+
+    expect(Hash::check('new-password', $this->actor->password))->toBeTrue();
+});
+
+test('an actor who changes their own password through a separate instance keeps the old hash when an outer transaction rolls back', function (): void {
+    $oldHash = $this->actor->password;
+    $sameUser = User::query()->findOrFail($this->actor->id);
+
+    expect(fn (): mixed => DB::transaction(function () use ($sameUser): void {
+        UpdateUser::make()->execute(
+            actor: $this->actor,
+            user: $sameUser,
+            name: $sameUser->name,
+            email: $sameUser->email,
+            phone: $sameUser->phone,
+            password: 'new-password',
+            placement: $this->placement,
+        );
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class, 'A later step failed.');
+
+    expect($this->actor->password)->toBe($oldHash);
 });
 
 test('changing the placement makes a new profile and keeps the roles', function (): void {

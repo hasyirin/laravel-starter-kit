@@ -175,6 +175,7 @@ return [
         'branch_id' => 'cawangan',
         'code' => 'kod',
         'computer_signed' => 'cetakan komputer',
+        'country_id' => 'negara',
         'current_password' => 'kata laluan semasa',
         'date' => 'tarikh',
         'department_id' => 'jabatan',
@@ -207,8 +208,10 @@ return [
         'sequence_number' => 'nombor turutan',
         'service' => 'perkhidmatan',
         'signer_id' => 'penandatangan',
+        'state_id' => 'negeri',
         'subdistrict_id' => 'mukim',
         'timezone' => 'zon waktu',
+        'type' => 'jenis',
         'with_letterhead' => 'kepala surat',
     ],
 ];

@@ -16,5 +16,5 @@ The package spatie/laravel-activitylog takes the old values of an update from th
 - A column that the database changes without a write, such as a generated column, can drop out. This happens when the model did not hold the column, for example right after a create. When the model held the column, the entry keeps its change.
 - A model that reloads a column after each save, with Laravel's `$refreshes`, can log that column with no old value although it did not change.
 - The trait overrides the protected `buildChanges()` method of the package and reads its `oldAttributes` property. An update of the package can break this. The tests in `tests/Feature/Domain/Shared/Common/Concerns/Models/InteractsWithAuditLogTest.php` then fail.
-- This refines kit ADR-0006. The audit log still covers every column except the hidden ones, the key, and the timestamps. But the audit entry of an update leaves out a column when the kit cannot know that it changed.
+- This refines kit ADR-0006. The audit log still covers every column except those that kit ADR-0006 leaves out. But the audit entry of an update leaves out a column when the kit cannot know that it changed.
 - Audit entries that were written before this decision keep their false changes.

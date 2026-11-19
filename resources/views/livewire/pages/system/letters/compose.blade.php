@@ -16,7 +16,6 @@
             @if($this->letterType)
                 <x-radio
                     wire:model.live="start"
-                    variant="segmented"
                     :label="__('letters/manual.start')"
                     :options="['blank' => __('letters/manual.start_blank'), 'source' => __('letters/manual.start_source'), 'letter' => __('letters/manual.start_letter')]"
                 />

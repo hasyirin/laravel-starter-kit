@@ -73,6 +73,8 @@ A group shows a switch with the label of the group. The switch is bound to prefi
 
 The fields of the group are bound to prefix.name.child. A group inside a group keeps its switch at prefix.outer._groups.inner.
 
+A group shows its own error at the end of the group.
+
 The `_groups` key is not letter data. The form must remove it before it validates and saves the data. The data rules treat a group with no filled field as absent. So the form must also refuse a group whose switch is on and whose fields are all empty.
 
 ## Lists and Tables
@@ -80,6 +82,8 @@ The `_groups` key is not letter data. The form must remove it before it validate
 A list is bound to prefix.name.0, prefix.name.1, and so on. A table is bound to prefix.name.0.column. Each table row shows the columns of the table, and a column can be any field type.
 
 Every row has a remove button, and the field has an add button. The buttons run in the browser and change the property with `$wire.$set()`. The form needs no method for them. The buttons use the `repeatableRows` Alpine component in `resources/js/components/repeatable-rows.js`. A new table row has `null` in every column. A table cannot have an image column: `Field::table()` throws a `LogicException`, because an upload inside rows that change their index could show the wrong file.
+
+A row shows its own errors. An error on the field itself shows under the rows.
 
 ```blade
 @php

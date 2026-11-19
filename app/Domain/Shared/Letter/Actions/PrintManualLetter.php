@@ -41,11 +41,11 @@ class PrintManualLetter
      * @param  array<string, mixed>  $data
      * @param  array<string, mixed>  $extra
      */
-    public function execute(LetterType $type, array $data, array $extra, PrintDetails $details, User $admin, ?Model $source = null, bool $preview = false, ?Letter $letter = null): PdfFile
+    public function execute(LetterType $type, array $data, array $extra, PrintDetails $details, User $actor, ?Model $source = null, bool $preview = false, ?Letter $letter = null): PdfFile
     {
         $key = LetterTypes::keyOf($type);
 
-        throw_unless($type->allowedFor($admin), LogicException::class, "The letter type [{$key}] is not allowed for this user.");
+        throw_unless($type->allowedFor($actor), LogicException::class, "The letter type [{$key}] is not allowed for this user.");
         throw_if($source instanceof Model && ! $source instanceof ($type->source()), LogicException::class, "The source is not a source of the letter type [{$key}].");
 
         throw_if($letter instanceof Letter && (! $source instanceof Model || $letter->type !== $key || ! $letter->source?->is($source)), LogicException::class, "The letter does not belong to the source and the letter type [{$key}].");
@@ -76,7 +76,7 @@ class PrintManualLetter
             carbonCopies: $details->carbonCopies,
             withLetterhead: $details->withLetterhead || $details->computerSigned,
             computerSigned: $details->computerSigned,
-            printer: $admin,
+            printer: $actor,
         );
 
         $content = RenderPdf::make()
@@ -90,7 +90,7 @@ class PrintManualLetter
                 data: $validatedData,
                 extra: $validatedExtra,
                 details: $this->loggedDetails($details, $signerProfile, $view),
-                admin: $admin,
+                actor: $actor,
                 source: $source,
                 letter: $letter,
             );
@@ -160,14 +160,14 @@ class PrintManualLetter
      * @param  array<string, mixed>  $extra
      * @param  array<string, mixed>  $details
      */
-    private function log(LetterType $type, string $key, array $data, array $extra, array $details, User $admin, ?Model $source, ?Letter $letter): void
+    private function log(LetterType $type, string $key, array $data, array $extra, array $details, User $actor, ?Model $source, ?Letter $letter): void
     {
-        DB::transaction(function () use ($type, $key, $data, $extra, $details, $admin, $source, $letter): void {
+        DB::transaction(function () use ($type, $key, $data, $extra, $details, $actor, $source, $letter): void {
             $entry = new AuditEntry;
             $entry->log_name = config()->string('activitylog.default_log_name');
             $entry->event = self::EVENT;
             $entry->description = self::EVENT;
-            $entry->causer()->associate($admin);
+            $entry->causer()->associate($actor);
             $entry->save();
 
             $entry->properties = AuditLog::context()->merge([

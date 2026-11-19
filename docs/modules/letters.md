@@ -374,13 +374,13 @@ Letterheads use `LetterheadPolicy` and the `internal.controls.letterheads.*` per
 
 A system administrator makes a manual letter on the `system.letters.compose` route. It needs the `system.letters.compose` permission. The letter has no letter row and takes no number from a sequence.
 
-The administrator chooses a letter type and a start point:
+The system administrator chooses a letter type and a start point:
 
 - A blank letter.
 - A letter source. The page loads the letter data from the source.
 - An existing letter of the source. The page also loads its saved values.
 
-The administrator can change any value. For a start from a source, the administrator must have the `view` ability on the source. `PrintManualLetter` checks that the source belongs to the letter type, and that the letter belongs to the source and the type.
+The system administrator can change any value. For a start from a source, the system administrator must have the `view` ability on the source. `PrintManualLetter` checks that the source belongs to the letter type, and that the letter belongs to the source and the type.
 
 Each print writes an audit entry with the event `printed-manual-letter`. The entry holds the letter type, the letter data, the extra data, the source, and the letter. It also holds the print details: the reference number, the date, the signer, and the carbon copies. The print details also hold the signer profile, the signer position, and the letterhead that the page showed. The entry is written even when activity logging is off. An upload becomes media on the audit entry. An image of the letter is copied onto the audit entry, so a later change to the letter does not remove it. An image of the source stays on the source, and the entry logs its uuid. A preview writes nothing.
 
@@ -825,6 +825,10 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a table renders the columns of each row bound to the row index
 - the add and remove buttons change the property in the browser
 - a locked list or table has no add or remove buttons
+- the error of a list row or a table cell shows one time, on its row
+- the error of a list or a table itself shows one time, under the rows
+- the delete button of a list row or a table row does not shrink
+- the error of a group shows one time, at its group
 
 ### Page
 
@@ -854,7 +858,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a blank start gives empty fields
 - a source start fills the mapping
 - a source start without the view ability of the source is refused
-- the source picker lists only sources the admin can view, found by id or name
+- the source picker lists only sources the system administrator can view, found by id or name
 - a source id or a search that does not fit the key type is not sent as a key
 - a letter start fills the print details and the extra values of the letter
 - a print downloads the letter and writes one audit entry, no letter row, no mark
@@ -867,8 +871,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - the same upload prints again after a fix
 - a signer must have a position and be in the list
 - a required signer is checked
-- an admin without an organization can pick a signer and print a type that needs one
-- an admin can pick staff and departments of another organization
+- a system administrator without an organization can pick a signer and print a type that needs one
+- a system administrator can pick staff and departments of another organization
 - a letter start keeps a saved signer from another organization
 - a source that stops being viewable after the start cannot be printed
 - a letter id of another source is not found

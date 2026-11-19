@@ -54,10 +54,10 @@ beforeEach(function (): void {
     config(['system.letters.types' => ['manual' => PermitManualLetter::class, 'plain' => PermitLetter::class, 'signed' => PermitSignedLetter::class, 'manual_signed' => PermitManualSignedLetter::class]]);
 
     $this->organization = Organization::factory()->create();
-    $this->admin = User::factory()->create();
-    Profile::factory()->for($this->organization)->for($this->admin)->create();
-    grantPermissions($this->admin, 'system.access', 'system.letters.compose');
-    $this->actingAs($this->admin);
+    $this->actor = User::factory()->create();
+    Profile::factory()->for($this->organization)->for($this->actor)->create();
+    grantPermissions($this->actor, 'system.access', 'system.letters.compose');
+    $this->actingAs($this->actor);
     $this->permit = Permit::query()->create(['name' => 'Open']);
 });
 
@@ -116,7 +116,7 @@ test('a source start without the view ability of the source is refused', functio
     compose()->set('start', 'source')->set('sourceId', (string) $hidden->id)->assertForbidden();
 });
 
-test('the source picker lists only sources the admin can view, found by id or name', function (): void {
+test('the source picker lists only sources the system administrator can view, found by id or name', function (): void {
     Permit::query()->create(['name' => 'Secret', 'hidden' => true]);
     $other = Permit::query()->create(['name' => 'Harbour']);
 
@@ -257,17 +257,17 @@ function otherOrganizationStaff(string $name = 'Outsider'): User
     return $user;
 }
 
-test('an admin without an organization can pick a signer and print a type that needs one', function (): void {
-    $admin = User::factory()->create();
-    Profile::factory()->for($admin)->create(['organization_id' => null]);
-    grantPermissions($admin, 'system.access', 'system.letters.compose');
+test('a system administrator without an organization can pick a signer and print a type that needs one', function (): void {
+    $actor = User::factory()->create();
+    Profile::factory()->for($actor)->create(['organization_id' => null]);
+    grantPermissions($actor, 'system.access', 'system.letters.compose');
     $signer = otherOrganizationStaff();
-    $this->actingAs($admin);
+    $this->actingAs($actor);
 
     compose('manual_signed')->set('form.data.title', 'T')->set('form.extra.remark', 'R')->set('form.signer_id', $signer->id)->call('print')->assertHasNoErrors()->assertFileDownloaded();
 });
 
-test('an admin can pick staff and departments of another organization', function (): void {
+test('a system administrator can pick staff and departments of another organization', function (): void {
     $signer = otherOrganizationStaff('Outsider');
     $department = Department::factory()->for(Organization::factory()->create(['name' => 'Beta']))->create(['name' => 'Ops']);
 

@@ -48,12 +48,15 @@
                 @if($groupOn)
                     <x-letter.data-fields :fields="$field->children" :prefix="$key" :values="$current ?? []" :disabled="$fieldDisabled" />
                 @endif
+                @error($key)
+                    <flux:error :name="$key" :deep="false" />
+                @enderror
             </div>
         @elseif($type === 'list')
             @php
                 $rows = is_array($current) ? array_keys($current) : [];
             @endphp
-            <x-field :$label :$required :name="$key">
+            <x-field :$label :$required :name="$key" no-error-message>
                 <div class="space-y-2" x-data="repeatableRows(@js($key))">
                     @foreach($rows as $index)
                         <div class="flex items-start gap-2" wire:key="{{ $key }}.{{ $index }}">
@@ -64,6 +67,7 @@
                                 <flux:button
                                     icon="trash"
                                     variant="ghost"
+                                    class="shrink-0"
                                     :aria-label="__('common/buttons.delete')"
                                     data-list-remove
                                     x-on:click="removeRow({{ Js::from($index) }})"
@@ -75,13 +79,15 @@
                         <flux:button icon="plus" size="sm" data-list-add x-on:click="addRow(null)">{{ __('letters/letters.row') }}</flux:button>
                     @endunless
                 </div>
+
+                <flux:error :name="$key" :deep="false" />
             </x-field>
         @elseif($type === 'table')
             @php
                 $rows = is_array($current) ? array_keys($current) : [];
                 $blankRow = collect($field->children)->mapWithKeys(fn ($column): array => [$column->name => null])->all();
             @endphp
-            <x-field :$label :$required :name="$key">
+            <x-field :$label :$required :name="$key" no-error-message>
                 <div class="space-y-4" x-data="repeatableRows(@js($key))">
                     @foreach($rows as $index)
                         <div class="flex items-start gap-2 rounded-lg border border-zinc-200 p-4 dark:border-white/10" wire:key="{{ $key }}.{{ $index }}">
@@ -96,6 +102,7 @@
                                 <flux:button
                                     icon="trash"
                                     variant="ghost"
+                                    class="shrink-0"
                                     :aria-label="__('common/buttons.delete')"
                                     data-row-remove
                                     x-on:click="removeRow({{ Js::from($index) }})"
@@ -109,6 +116,8 @@
                         </flux:button>
                     @endunless
                 </div>
+
+                <flux:error :name="$key" :deep="false" />
             </x-field>
         @endif
     @endforeach

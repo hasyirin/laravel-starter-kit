@@ -76,10 +76,10 @@ class ComposeLetterForm extends Form
      */
     public function types(): array
     {
-        $admin = $this->printer();
+        $actor = $this->printer();
 
         return collect(LetterTypes::all())
-            ->filter(fn (LetterType $type): bool => $type->allowedFor($admin))
+            ->filter(fn (LetterType $type): bool => $type->allowedFor($actor))
             ->all();
     }
 
@@ -134,7 +134,7 @@ class ComposeLetterForm extends Form
             data: $this->payload($type->fields(), $this->data, 'data.'),
             extra: $this->payload($type->extraFields(), $this->extra, 'extra.'),
             details: $this->details($type),
-            admin: $this->printer(),
+            actor: $this->printer(),
             source: $this->source,
             preview: $preview,
             letter: $this->letter,

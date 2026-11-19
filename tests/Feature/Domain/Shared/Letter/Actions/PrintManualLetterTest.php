@@ -55,8 +55,8 @@ beforeEach(function (): void {
         'crest' => CrestLetter::class,
     ]]);
     $this->organization = Organization::factory()->create(['name' => 'Acme Sdn Bhd']);
-    $this->admin = User::factory()->create();
-    Profile::factory()->for($this->organization)->for($this->admin)->create();
+    $this->actor = User::factory()->create();
+    Profile::factory()->for($this->organization)->for($this->actor)->create();
 });
 
 function manualDetails(?User $signer = null, array $copies = [], ?string $reference = 'REF-9'): PrintDetails
@@ -76,7 +76,7 @@ function printManual(string $type, array $data, array $extra = [], ?PrintDetails
         data: $data,
         extra: $extra,
         details: $details ?? manualDetails(),
-        admin: test()->admin,
+        actor: test()->actor,
         source: $source,
         preview: $preview,
         letter: $letter,
@@ -104,7 +104,7 @@ test('a print writes one audit entry with the values', function (): void {
     $entry = manualEntries()->sole();
     expect($file->name)->toBe('ref-9.pdf')
         ->and($entry->event)->toBe('printed-manual-letter')
-        ->and($entry->causer?->is($this->admin))->toBeTrue()
+        ->and($entry->causer?->is($this->actor))->toBeTrue()
         ->and(data_get($entry->properties, 'type'))->toBe('printed')
         ->and(data_get($entry->properties, 'data.organizationName'))->toBe('Acme')
         ->and(data_get($entry->properties, 'extra.remark'))->toBe('Reminder')
@@ -215,7 +215,7 @@ test('an image of the source stays on the source and its uuid is logged', functi
     $media = manualCrestImage();
     $crest = Crest::query()->sole();
 
-    PrintManualLetter::make()->execute(LetterTypes::find('crest'), ['logo' => $media->uuid], [], manualDetails(), $this->admin, $crest);
+    PrintManualLetter::make()->execute(LetterTypes::find('crest'), ['logo' => $media->uuid], [], manualDetails(), $this->actor, $crest);
 
     $entry = manualEntries()->sole();
     expect($entry->getMedia(MediaCollection::LetterImages))->toBeEmpty()
@@ -281,7 +281,7 @@ test('an image of the letter is copied onto the audit entry and stays when the l
     $letter = letterWithStamp($this->organization);
 
     printManual('printed', noticeData(), $letter->extra, source: $this->organization, letter: $letter);
-    SaveLetter::make()->execute($letter, LetterTypes::find('printed'), $this->organization, $this->admin, manualDetails(), ['remark' => 'x', 'stamp' => stampUpload()]);
+    SaveLetter::make()->execute($letter, LetterTypes::find('printed'), $this->organization, $this->actor, manualDetails(), ['remark' => 'x', 'stamp' => stampUpload()]);
 
     $entry = manualEntries()->sole();
     $copy = $entry->getMedia(MediaCollection::LetterImages)->sole();

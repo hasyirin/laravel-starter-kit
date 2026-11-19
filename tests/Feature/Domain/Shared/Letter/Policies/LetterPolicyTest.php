@@ -71,14 +71,14 @@ test('print passes when the source allows view but not update', function (): voi
 test('the policy checks the given user, not the logged-in user', function (): void {
     $this->seed(PermissionSeeder::class);
 
-    $admin = User::factory()->create();
-    grantPermissions($admin, config()->string('system.permissions.bypass-authorization'));
-    $this->actingAs($admin);
+    $actor = User::factory()->create();
+    grantPermissions($actor, config()->string('system.permissions.bypass-authorization'));
+    $this->actingAs($actor);
 
     $letter = letterFor(Permit::query()->create(['name' => 'Locked', 'locked' => true]));
 
     expect($this->user->can('update', $letter))->toBeFalse()
-        ->and($admin->can('update', $letter))->toBeTrue();
+        ->and($actor->can('update', $letter))->toBeTrue();
 });
 
 test('a letter without a source passes no ability', function (string $ability): void {

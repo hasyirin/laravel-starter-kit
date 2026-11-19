@@ -164,3 +164,46 @@ test('a locked list or table has no add or remove buttons', function (): void {
 
     expect($document->querySelector('[data-list-add], [data-list-remove], [data-row-add], [data-row-remove]'))->toBeNull();
 });
+
+test('the error of a list row or a table cell shows one time, on its row', function (Field $field, array $values, string $errorKey, string $selector): void {
+    $message = 'The row is invalid.';
+    $view = test()->withViewErrors([$errorKey => $message])->blade('<x-letter.data-fields :$fields prefix="form.data" :$values />', ['fields' => [$field], 'values' => $values]);
+    $rowField = HTMLDocument::createFromString((string) $view, LIBXML_NOERROR)->querySelector($selector)?->closest('[data-flux-field]');
+
+    expect(substr_count((string) $view, $message))->toBe(1)
+        ->and($rowField?->textContent)->toContain($message);
+})->with([
+    'list' => [Field::list('items'), ['items' => ['', 'Pen']], 'form.data.items.0', 'input[wire\:model="form.data.items.0"]'],
+    'table' => [Field::table('lines', [Field::text('item'), Field::text('note')]), ['lines' => [['item' => 'Pen', 'note' => ''], ['item' => 'Ink', 'note' => 'Blue']]], 'form.data.lines.0.note', 'input[wire\:model="form.data.lines.0.note"]'],
+]);
+
+test('the error of a list or a table itself shows one time, under the rows', function (Field $field, array $values, string $errorKey, string $addButton): void {
+    $message = 'The field must be an array.';
+    $view = test()->withViewErrors([$errorKey => $message])->blade('<x-letter.data-fields :$fields prefix="form.data" :$values />', ['fields' => [$field], 'values' => $values]);
+
+    expect(substr_count((string) $view, $message))->toBe(1);
+    $view->assertSeeInOrder([$addButton, $message], false);
+})->with([
+    'list' => [Field::list('items'), ['items' => ['Pen']], 'form.data.items', 'data-list-add'],
+    'table' => [Field::table('lines', [Field::text('item')]), ['lines' => [['item' => 'Pen']]], 'form.data.lines', 'data-row-add'],
+]);
+
+test('the delete button of a list row or a table row does not shrink', function (Field $field, array $values, string $selector): void {
+    $document = renderDataFields([$field], $values);
+
+    expect($document->querySelector($selector)?->classList->contains('shrink-0'))->toBeTrue();
+})->with([
+    'list' => [Field::list('items'), ['items' => ['Pen']], '[data-list-remove]'],
+    'table' => [Field::table('lines', [Field::text('item')]), ['lines' => [['item' => 'Pen']]], '[data-row-remove]'],
+]);
+
+test('the error of a group shows one time, at its group', function (Field $field, array $values, string $errorKey, string $switchKey): void {
+    $message = 'The group is empty.';
+    $view = test()->withViewErrors([$errorKey => $message])->blade('<x-letter.data-fields :$fields prefix="form.data" :$values />', ['fields' => [$field], 'values' => $values]);
+
+    expect(substr_count((string) $view, $message))->toBe(1);
+    $view->assertSeeInOrder([$switchKey, $message], false);
+})->with([
+    'top level' => [Field::group('extra', 'Extra', [Field::text('reason')]), ['_groups' => ['extra' => true]], 'form.data.extra', 'form.data._groups.extra'],
+    'table row' => [Field::table('lines', [Field::text('item'), Field::group('extra', 'Extra', [Field::text('reason')])]), ['lines' => [['item' => 'Pen']]], 'form.data.lines.0.extra', 'form.data.lines.0._groups.extra'],
+]);

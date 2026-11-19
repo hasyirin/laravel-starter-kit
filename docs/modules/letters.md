@@ -825,6 +825,10 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a table renders the columns of each row bound to the row index
 - the add and remove buttons change the property in the browser
 - a locked list or table has no add or remove buttons
+- the error of a list row or a table cell shows one time, on its row
+- the error of a list or a table itself shows one time, under the rows
+- the delete button of a list row or a table row does not shrink
+- the error of a group shows one time, at its group
 
 ### Page
 

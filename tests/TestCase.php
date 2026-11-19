@@ -8,6 +8,7 @@ use App\Domain\Shared\Common\Enums\Feature;
 use App\Providers\FortifyServiceProvider;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use LogicException;
 use Saloon\Config;
 
@@ -18,6 +19,8 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Livewire::flushState();
 
         view()->addNamespace('tests', base_path('tests/Fixtures/Views'));
 

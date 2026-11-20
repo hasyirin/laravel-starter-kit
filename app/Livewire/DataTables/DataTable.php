@@ -18,10 +18,13 @@ use Filament\Support\Components\Attributes\Unexposed;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Enums\PaginationMode;
 use Filament\Tables\Filters\BaseFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -36,7 +39,11 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
     use InteractsWithSchemas;
     use InteractsWithTable {
         callTableColumnAction as protected callFilamentTableColumnAction;
+        paginateTableQuery as protected paginateFilamentTableQuery;
+        resetLivewirePage as protected;
         resolveTableRecord as resolveFilamentTableRecord;
+        setLivewirePage as protected;
+        setPage as protected setFilamentPage;
         updatedTableFilters as protected updatedFilamentTableFilters;
         updatedTableSearch as protected updatedFilamentTableSearch;
     }
@@ -46,6 +53,8 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
     private const string ABSENT_OPTION = '__absent';
 
     private const array TERNARY_VALUES = [true, false, 0, 1, '0', '1', ''];
+
+    private const int MAX_PAGE = 2147483647;
 
     /**
      * @return array<int, Column>
@@ -113,6 +122,33 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
         $this->updatedFilamentTableSearch();
     }
 
+    #[Exposed]
+    public function setPage(mixed $page, ?string $pageName = null): void
+    {
+        if ($this->cursorPaginated() && (is_int($page) || is_string($page))) {
+            $this->setFilamentPage($page, $pageName);
+
+            return;
+        }
+
+        $this->setFilamentPage($this->pageNumber($page), $pageName);
+    }
+
+    /**
+     * @return void
+     */
+    #[Unexposed]
+    public function updatedPaginators(mixed $page, mixed $pageName)
+    {
+        if ($this->cursorPaginated()) {
+            return;
+        }
+
+        $this->paginators = collect($this->pages())
+            ->map(fn (mixed $value): int => $this->pageNumber($value))
+            ->all();
+    }
+
     /**
      * @return Builder<covariant Model>|null
      */
@@ -175,6 +211,24 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
     }
 
     /**
+     * @param  Builder<covariant Model>  $query
+     * @return Paginator<int, Model>|CursorPaginator<int, Model>
+     */
+    protected function paginateTableQuery(Builder $query): Paginator|CursorPaginator
+    {
+        if ($this->cursorPaginated()) {
+            return $this->paginateFilamentTableQuery($query);
+        }
+
+        $pageName = $this->getTablePaginationPageName();
+        $this->paginators = $this->pages();
+        $page = $this->pageNumber($this->getPage($pageName));
+        $this->paginators[$pageName] = $page;
+
+        return $this->paginateFilamentTableQuery($query);
+    }
+
+    /**
      * @return Model|array<array-key, mixed>|null
      */
     protected function resolveTableRecord(?string $key): Model|array|null
@@ -197,6 +251,34 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
         throw_if(filled($key) && ! is_int($key) && ! is_string($key), ActionNotResolvableException::class, 'The record key is not text.');
 
         return $this->resolveFilamentTableAction($action, $parentActions);
+    }
+
+    private function cursorPaginated(): bool
+    {
+        return $this->getTable()->getPaginationMode() === PaginationMode::Cursor;
+    }
+
+    private function pageNumber(mixed $page): int
+    {
+        $number = filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => self::MAX_PAGE]]);
+
+        if ($number === false) {
+            return 1;
+        }
+
+        return $number;
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private function pages(): array
+    {
+        if (! is_array($this->paginators)) {
+            return [];
+        }
+
+        return $this->paginators;
     }
 
     private function recordModel(): Model

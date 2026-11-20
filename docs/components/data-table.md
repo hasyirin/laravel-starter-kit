@@ -70,6 +70,7 @@ Make the parameter of `to()` nullable only when a create action shares the metho
 - A yes or no filter with a value that is not yes, no, or empty goes back to its default.
 - Any other filter with a state of the wrong shape counts as empty.
 - The table ignores a search that is not text.
+- The table opens page 1 for a page number that is not a whole number from 1 to 2147483647.
 - The date filters of the audit log and API log tables ignore a date that is not in the Y-m-d form.
 - An empty table shows `common/records.none`.
 - While a table with `#[Defer]` loads, the page shows a skeleton.
@@ -85,8 +86,12 @@ The checks above do not cover some cases yet. The kit does not use them, so chec
 - A relation filter through a HasManyThrough relation. The table does not check its values.
 - A relation filter that compares on a key that is not the primary key of the related model. The table does not check its values.
 - Bulk actions and reordering. The table does not check their record keys.
+- Cursor pagination. The table does not check the page of a table with cursor pagination.
+- A `records()` callback that uses its `$page` argument. The table does not check the page from the URL that reaches the callback.
 
 The table cleans the filter state after the code of the app sees it. An `updated()` hook and an `afterStateUpdated()` callback get the state before the table cleans it.
+
+An app table that overrides `setPage()` must keep the `mixed` page type of the base class. An app table that overrides `updatedPaginators()` must call `parent::updatedPaginators()`. Without the call, the page buttons fail on a page of the wrong shape.
 
 ## Scope to a Parent
 

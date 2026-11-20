@@ -17,7 +17,7 @@ Order model members like this:
 8. Attribute accessors and mutators (methods that return `Attribute`)
 
 ## Extend the shared base Model
-Extend `App\Domain\Shared\Common\Models\Model`, give its table `softDeletesTz()`, and add a morph alias for it in `EloquentServiceProvider`. If the model must extend another class, such as `Authenticatable` or a Spatie model, use the traits in `Shared/Common/Concerns/Models` instead. If a route binds such a model by its integer key, also use `RejectsMalformedRouteKey`. Do not use it together with `HasUuids` or `HasUlids`: the traits collide.
+Extend `App\Domain\Shared\Common\Models\Model`, give its table `softDeletesTz()`, and add a morph alias for it in `EloquentServiceProvider`. If the model must extend another class, such as `Authenticatable` or a Spatie model, use the traits in `Shared/Common/Concerns/Models` instead. If a route binds such a model by its integer key, also use `RejectsMalformedRouteKey`. Do not use `RejectsMalformedRouteKey` together with `HasUuids` or `HasUlids`: the traits collide. A model that extends this base class needs an integer key, because the audit log stores its id in the bigint column `activity_log.subject_id`. A model in a kit morph relation also needs an integer key, because the polymorphic id columns of the kit tables are bigints.
 
 ## Use model properties, not Laravel 13 attributes
 Declare `$fillable`, `$hidden`, `$guarded`, `$visible`, and `$appends` as properties, not as class attributes such as `#[Fillable]` or `#[Hidden]`.

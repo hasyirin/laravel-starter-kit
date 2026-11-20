@@ -123,7 +123,7 @@ class SaveNote
 }
 ```
 
-- `query()` scopes every lookup, so an id from another parent gives 404. If the key is an integer, an id that is not a positive integer in the bigint range gives 404 without a query. A new record comes from `make()` on the same query. A has-one or has-many relation sets the foreign key on the new record, so the policy can read the parent from it. A belongs-to-many or through relation does not. If the policy needs the parent there, override `isDisabled()`.
+- `query()` scopes every lookup, so an id from another parent gives 404. If the key is an integer, an id that is not a positive integer in the bigint range gives 404 without a query. If the key comes from the Laravel uuid or ulid trait of the model, an invalid id gives 404 without a query. A new record comes from `make()` on the same query. A has-one or has-many relation sets the foreign key on the new record, so the policy can read the parent from it. A belongs-to-many or through relation does not. If the policy needs the parent there, override `isDisabled()`.
 - `show($id)` checks the `view` ability, or `create` for a new record.
 - `save()` needs an open modal and the `update` or `create` ability. It validates, calls `persist()`, shows a toast, dispatches the saved event, and closes the modal. A second save after the modal closes gives 403.
 - To go to another page after a save, call `redirect()` with `navigate: true` in `persist()`, so that the toast stays.

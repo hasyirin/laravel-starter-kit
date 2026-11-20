@@ -29,8 +29,10 @@ use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyExceptio
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Spatie\LaravelPdf\Facades\Pdf;
+use Tests\Fixtures\Models\Parcel;
 use Tests\Fixtures\Models\Permit;
 use Tests\Fixtures\Policies\PermitPolicy;
+use Tests\Fixtures\Support\ParcelLetter;
 use Tests\Fixtures\Support\PermitLabelledLetter;
 use Tests\Fixtures\Support\PermitLetter;
 use Tests\Fixtures\Support\PermitManualLetter;
@@ -49,7 +51,12 @@ beforeEach(function (): void {
         $table->timestampsTz();
         $table->softDeletesTz();
     });
-    Relation::morphMap(['permit' => Permit::class]);
+    Schema::create('parcels', function (Blueprint $table): void {
+        $table->uuid('id')->primary();
+        $table->string('label');
+        $table->timestamps();
+    });
+    Relation::morphMap(['permit' => Permit::class, 'parcel' => Parcel::class]);
     Gate::policy(Permit::class, PermitPolicy::class);
     config(['system.letters.types' => ['manual' => PermitManualLetter::class, 'plain' => PermitLetter::class, 'signed' => PermitSignedLetter::class, 'manual_signed' => PermitManualSignedLetter::class]]);
 
@@ -138,6 +145,22 @@ test('a source id or a search that does not fit the key type is not sent as a ke
 
     expect($queries->join("\n"))->not->toContain((string) PHP_INT_MAX)
         ->not->toContain("'abc'");
+});
+
+test('a search that is a valid uuid is not sent as a key, because a letter source has an integer key', function (): void {
+    Gate::before(fn (): bool => true);
+    config(['system.letters.types' => ['parcel' => ParcelLetter::class]]);
+    $uuid = '0198a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b';
+    $component = compose('parcel')->set('start', 'source');
+    $queries = collect();
+    DB::listen(fn (QueryExecuted $query) => $queries->push($query->toRawSql()));
+
+    $component->set('sourceSearch', $uuid)->instance()->sources();
+
+    $sql = $queries->join("\n");
+
+    expect($sql)->toContain('"parcels"')
+        ->and($sql)->not->toContain($uuid);
 });
 
 test('a letter start fills the print details and the extra values of the letter', function (): void {

@@ -13,8 +13,10 @@ use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyExceptio
 use Livewire\Livewire;
 use Tests\Fixtures\Livewire\ChecklistModal;
 use Tests\Fixtures\Livewire\NoteModal;
+use Tests\Fixtures\Livewire\ParcelModal;
 use Tests\Fixtures\Models\Note;
 use Tests\Fixtures\Models\Notebook;
+use Tests\Fixtures\Models\Parcel;
 use Tests\Fixtures\Policies\NotePolicy;
 
 beforeEach(function (): void {
@@ -36,7 +38,13 @@ beforeEach(function (): void {
         $table->softDeletes();
     });
 
-    Relation::morphMap(['notebook' => Notebook::class, 'note' => Note::class]);
+    Schema::create('parcels', function (Blueprint $table): void {
+        $table->uuid('id')->primary();
+        $table->string('label');
+        $table->timestamps();
+    });
+
+    Relation::morphMap(['notebook' => Notebook::class, 'note' => Note::class, 'parcel' => Parcel::class]);
     Gate::policy(Note::class, NotePolicy::class);
 
     $this->actingAs(User::factory()->create());
@@ -95,6 +103,27 @@ test("a malformed id gives 404 without a query on the record's table", function 
     'letters' => ['abc'],
     'more digits than a bigint holds' => ['99999999999999999999'],
 ]);
+
+test("a malformed uuid gives 404 without a query on the record's table", function (): void {
+    Gate::before(fn (): bool => true);
+    $modal = Livewire::test(ParcelModal::class);
+    $queries = collect();
+    DB::listen(fn (QueryExecuted $query) => $queries->push($query->sql));
+
+    $modal->call('show', 'abc')->assertNotFound();
+
+    expect($queries)->each->not->toContain('"parcels"');
+});
+
+test('a valid uuid of an existing record opens the modal', function (): void {
+    Gate::before(fn (): bool => true);
+    $parcel = Parcel::query()->create(['label' => 'Harbour']);
+
+    Livewire::test(ParcelModal::class)
+        ->call('show', $parcel->id)
+        ->assertSet('showing', true)
+        ->assertSet('text', 'Harbour');
+});
 
 test('showing a record without the view ability gives 403', function (): void {
     $notebook = Notebook::query()->create();

@@ -6,7 +6,7 @@
 <livewire:data-tables.letter-data-table :source="$approval" />
 ```
 
-`source` is the model that owns the letters, such as an approval. The component locks it, so the browser cannot change it. The user must have the `view` ability on the source, or the table answers 403.
+`source` is the model that owns the letters, such as an approval. It needs an integer key, because the letter table stores the source id in a bigint column. The component locks it, so the browser cannot change it. The user must have the `view` ability on the source, or the table answers 403.
 
 ## Columns
 

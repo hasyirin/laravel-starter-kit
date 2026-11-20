@@ -10,6 +10,8 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\System\ApiLogDataTable;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -127,6 +129,70 @@ test('the list filters the calls by date', function (): void {
         ->assertCanSeeTableRecords([$inside])
         ->assertCanNotSeeTableRecords([$old, $new]);
 });
+
+test('a date bound that is not a Y-m-d date is ignored and shows no indicator', function (mixed $value): void {
+    $call = ApiCall::factory()->create();
+
+    Livewire::test(ApiLogDataTable::class)
+        ->filterTable('created_at', ['from' => $value, 'until' => $value])
+        ->assertOk()
+        ->assertCanSeeTableRecords([$call])
+        ->assertDontSee(['From: ', 'Until: ']);
+})->with([
+    'a word that Carbon reads' => ['tomorrow'],
+    'a day that the month does not have' => ['2026-02-31'],
+    'a line break after the date' => ["2026-02-01\n"],
+    'an array' => [['2026-02-01']],
+]);
+
+test('a date filter shows its dates', function (): void {
+    Livewire::test(ApiLogDataTable::class)
+        ->filterTable('created_at', ['from' => '2026-02-01'])
+        ->assertSee('From: ');
+});
+
+test('the API client filter with a malformed key keeps no calls and sends the key to no query', function (): void {
+    ApiCall::factory()->byClient(ApiClient::factory()->create())->create();
+    $table = Livewire::test(ApiLogDataTable::class);
+    $bindings = collect();
+    DB::listen(fn (QueryExecuted $query) => $bindings->push(...$query->bindings));
+
+    $table->filterTable('api_client', ['abc'])
+        ->assertOk()
+        ->assertCountTableRecords(0);
+
+    expect($bindings)->not->toContain('abc');
+});
+
+test('the status filter with no known status class keeps no calls', function (string $property, mixed $value): void {
+    ApiCall::factory()->create(['status' => 204]);
+
+    Livewire::test(ApiLogDataTable::class)
+        ->set($property, $value)
+        ->assertOk()
+        ->assertCountTableRecords(0);
+})->with([
+    'an unknown class' => ['tableFilters.status.values', ['9xx']],
+    'text for the state' => ['tableFilters.status', 'x'],
+    'text for the list' => ['tableFilters.status.values', 'x'],
+    'a nested list' => ['tableFilters.status.values', [[1]]],
+]);
+
+test('the status filter drops an empty value', function (string $property, array $values, int $count): void {
+    ApiCall::factory()->create(['status' => 204]);
+    ApiCall::factory()->create(['status' => 404, 'outcome' => ApiCallOutcome::ClientError]);
+
+    Livewire::test(ApiLogDataTable::class)
+        ->set($property, $values)
+        ->call('applyTableFilters')
+        ->assertOk()
+        ->assertCountTableRecords($count);
+})->with([
+    'only null' => ['tableFilters.status.values', [null], 2],
+    'a class and null' => ['tableFilters.status.values', ['2xx', null], 1],
+    'a class and null in the filter form' => ['tableDeferredFilters.status.values', ['2xx', null], 1],
+    'an empty string' => ['tableFilters.status.values', [''], 2],
+]);
 
 test('the search finds a call by its URL', function (): void {
     $orders = ApiCall::factory()->create(['url' => '/api/v1/orders']);

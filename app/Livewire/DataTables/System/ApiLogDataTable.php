@@ -155,8 +155,12 @@ class ApiLogDataTable extends DataTable
     {
         $selected = collect(self::STATUS_CLASSES)->filter(fn (string $class): bool => is_array($classes) && in_array($class, $classes, true));
 
-        if ($selected->isEmpty()) {
+        if (blank($classes)) {
             return $query;
+        }
+
+        if ($selected->isEmpty()) {
+            return $query->whereIn('status', []);
         }
 
         return $query->where(function (Builder $query) use ($selected): void {
@@ -180,8 +184,9 @@ class ApiLogDataTable extends DataTable
     private function timeIndicators(array $data): array
     {
         return collect(['from', 'until'])
-            ->filter(fn (string $field): bool => is_string($data[$field] ?? null) && $data[$field] !== '')
-            ->mapWithKeys(fn (string $field): array => [$field => __("api/api-calls.$field").': '.Preferences::current()->calendarDate(CarbonImmutable::parse((string) $data[$field]))])
+            ->mapWithKeys(fn (string $field): array => [$field => AuditLog::date($data[$field] ?? null)])
+            ->filter()
+            ->map(fn (CarbonImmutable $date, string $field): string => __("api/api-calls.$field").': '.Preferences::current()->calendarDate($date))
             ->all();
     }
 }

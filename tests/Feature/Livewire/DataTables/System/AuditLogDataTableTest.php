@@ -11,8 +11,11 @@ use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Internal\User\AuditLogDataTable as UserAuditLogDataTable;
 use App\Livewire\DataTables\System\AuditLogDataTable;
 use App\Livewire\Pages\System\AuditEntryModal;
+use Carbon\CarbonImmutable;
 use Filament\Actions\Testing\TestAction;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -106,6 +109,86 @@ test('each active filter shows what it keeps', function (string $filter, array $
     'only impersonated changes' => ['impersonator', ['only' => true], 'Only impersonated changes'],
     'a time range' => ['created_at', ['from' => '2026-01-02'], 'From: '],
 ]);
+
+test('a causer, subject or impersonator filter with only malformed ids keeps no changes and sends no id to a query', function (string $filter, array $data): void {
+    changeAs($this->ada, fn () => $this->sam->update(['name' => 'Sam Renamed']));
+    $this->actingAs($this->viewer);
+    $table = Livewire::test(AuditLogDataTable::class);
+    $bindings = collect();
+    DB::listen(fn (QueryExecuted $query) => $bindings->push(...$query->bindings));
+
+    $table->filterTable($filter, $data)
+        ->assertOk()
+        ->assertCountTableRecords(0);
+
+    expect($bindings)->not->toContain('abc');
+})->with([
+    'causer' => ['causer', ['type' => 'user', 'ids' => ['abc']]],
+    'subject' => ['subject', ['type' => 'user', 'ids' => ['abc']]],
+    'impersonator' => ['impersonator', ['ids' => ['abc']]],
+    'impersonator with only impersonated changes' => ['impersonator', ['only' => true, 'ids' => ['abc']]],
+]);
+
+test('a causer filter keeps the changes by its valid ids and drops the malformed ones', function (): void {
+    $byAda = changeAs($this->ada, fn () => $this->sam->update(['name' => 'Sam Renamed']));
+    $bySam = changeAs($this->sam, fn () => $this->ada->update(['name' => 'Ada Renamed']));
+    $this->actingAs($this->viewer);
+
+    Livewire::test(AuditLogDataTable::class)
+        ->filterTable('causer', ['type' => 'user', 'ids' => [(string) $this->ada->id, 'abc']])
+        ->assertCanSeeTableRecords([$byAda])
+        ->assertCanNotSeeTableRecords([$bySam])
+        ->assertSee('By: Ada Renamed');
+});
+
+test('a date bound that is not a Y-m-d date is ignored and shows no indicator', function (mixed $value): void {
+    $entry = changeAs($this->ada, fn () => $this->sam->update(['name' => 'Sam Renamed']));
+    $this->actingAs($this->viewer);
+
+    Livewire::test(AuditLogDataTable::class)
+        ->filterTable('created_at', ['from' => $value, 'until' => $value])
+        ->assertOk()
+        ->assertCanSeeTableRecords([$entry])
+        ->assertDontSee(['From: ', 'Until: ']);
+})->with([
+    'a word that Carbon reads' => ['tomorrow'],
+    'letters' => ['abc'],
+    'a five digit year' => ['99999-01-01'],
+    'a day that the month does not have' => ['2026-02-31'],
+    'a line break after the date' => ["2026-02-01\n"],
+    'no leading zeros' => ['2026-2-1'],
+    'the year zero' => ['0000-01-01'],
+    'an array' => [['2026-02-01']],
+]);
+
+test('a time filter of the wrong shape is ignored', function (): void {
+    $entry = changeAs($this->ada, fn () => $this->sam->update(['name' => 'Sam Renamed']));
+    $this->actingAs($this->viewer);
+
+    Livewire::test(AuditLogDataTable::class)
+        ->set('tableFilters.created_at', 'x')
+        ->assertOk()
+        ->assertCanSeeTableRecords([$entry]);
+});
+
+test('the event filter drops an empty value', function (): void {
+    $entry = changeAs($this->ada, fn () => $this->sam->update(['name' => 'Sam Renamed']));
+    $this->actingAs($this->viewer);
+
+    Livewire::test(AuditLogDataTable::class)
+        ->set('tableFilters.event.values', [null])
+        ->assertOk()
+        ->assertCanSeeTableRecords([$entry]);
+});
+
+test('the date pickers of the time filter keep a Y-m-d date', function (): void {
+    $this->actingAs($this->viewer);
+    $table = Livewire::test(AuditLogDataTable::class)->instance();
+
+    $table->getTableFiltersForm()->fill(['created_at' => ['from' => CarbonImmutable::parse('2026-02-01 13:45')]]);
+
+    expect($table->tableDeferredFilters['created_at']['from'] ?? null)->toBe('2026-02-01');
+});
 
 test('the causer filter with none keeps the changes that no user made', function (): void {
     $byAda = changeAs($this->ada, fn () => $this->sam->update(['name' => 'Sam Renamed']));

@@ -9,6 +9,7 @@ use App\Filament\Actions\EditAction;
 use App\Livewire\DataTables\DataTable;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Tests\Fixtures\Models\Note;
@@ -35,6 +36,19 @@ class PlainNoteDataTable extends DataTable
     protected function columns(): array
     {
         return [TextColumn::make('title')];
+    }
+
+    /**
+     * @return SelectFilter[]
+     */
+    protected function filters(): array
+    {
+        return [
+            SelectFilter::make('notebook')->relationship('notebook', 'id'),
+            SelectFilter::make('notebooks')->relationship('notebook', 'id', hasEmptyOption: true)->multiple(),
+            SelectFilter::make('parcel')->relationship('parcel', 'label'),
+            SelectFilter::make('title')->options(['Apple' => 'Apple', 'Pear' => 'Pear'])->multiple(),
+        ];
     }
 
     /**

@@ -10,16 +10,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property int $notebook_id
+ * @property string|null $parcel_id
  * @property string $title
  * @property string|null $type
  * @property bool $hidden
  * @property bool $locked
  * @property Notebook $notebook
+ * @property Parcel|null $parcel
  */
 class Note extends Model
 {
     protected $fillable = [
         'notebook_id',
+        'parcel_id',
         'title',
         'hidden',
         'locked',
@@ -31,6 +34,14 @@ class Note extends Model
     public function notebook(): BelongsTo
     {
         return $this->belongsTo(Notebook::class);
+    }
+
+    /**
+     * @return BelongsTo<Parcel, $this>
+     */
+    public function parcel(): BelongsTo
+    {
+        return $this->belongsTo(Parcel::class);
     }
 
     protected function casts(): array

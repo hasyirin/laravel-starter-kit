@@ -49,3 +49,6 @@ Give each method and function the shortest name that is clear in its class. Leav
 
 ## Mark secret parameters with #[SensitiveParameter]
 A phone number, a password, a one-time code, and a password reset token are secrets. An API token, an SMS text, and an identity document number are secrets too. Add `#[SensitiveParameter]` to each parameter whose value can be a real secret at run time. An identity document number is, for example, a MyKad, passport, army, or police number. A stack trace then shows `SensitiveParameterValue` instead of the value, so the logs do not get it. Mark an interface parameter in the interface and in each class that implements it. Also mark promoted constructor parameters and closure parameters. Import the attribute with `use SensitiveParameter;`.
+
+## Declare the return type in the signature
+Declare the return type of each method in its signature. If the kit adds a method to a class that apps extend, an app can already have one of that name with no return type. Then write the type in a `@return` tag. PHP stops with a fatal error if a parent method declares a return type and the child method has none.

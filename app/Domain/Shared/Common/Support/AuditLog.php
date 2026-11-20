@@ -75,16 +75,31 @@ class AuditLog
     public static function between(Builder $query, array $dates): void
     {
         $timezone = Preferences::current()->timezone;
-        $from = $dates['from'] ?? null;
-        $until = $dates['until'] ?? null;
+        $from = self::date($dates['from'] ?? null, $timezone);
+        $until = self::date($dates['until'] ?? null, $timezone);
 
-        if (is_string($from) && $from !== '') {
-            $query->where('created_at', '>=', CarbonImmutable::parse($from, $timezone)->startOfDay()->setTimezone(config()->string('app.timezone')));
+        if ($from instanceof CarbonImmutable) {
+            $query->where('created_at', '>=', $from->startOfDay()->setTimezone(config()->string('app.timezone')));
         }
 
-        if (is_string($until) && $until !== '') {
-            $query->where('created_at', '<=', CarbonImmutable::parse($until, $timezone)->endOfDay()->setTimezone(config()->string('app.timezone')));
+        if ($until instanceof CarbonImmutable) {
+            $query->where('created_at', '<=', $until->endOfDay()->setTimezone(config()->string('app.timezone')));
         }
+    }
+
+    public static function date(mixed $value, ?string $timezone = null): ?CarbonImmutable
+    {
+        if (! is_string($value) || preg_match('/^[1-9]\d{3}-\d{2}-\d{2}\z/', $value) !== 1) {
+            return null;
+        }
+
+        $date = CarbonImmutable::createFromFormat('!Y-m-d', $value, $timezone);
+
+        if (! $date instanceof CarbonImmutable || $date->format('Y-m-d') !== $value) {
+            return null;
+        }
+
+        return $date;
     }
 
     /**
@@ -105,12 +120,10 @@ class AuditLog
             return;
         }
 
-        $ids = self::ids($data);
-
         $query->where('causer_type', $type);
 
-        if ($ids !== []) {
-            $query->whereIn('causer_id', $ids);
+        if (filled($data['ids'] ?? null)) {
+            $query->whereIn('causer_id', self::ids($data));
         }
     }
 
@@ -126,12 +139,10 @@ class AuditLog
             return;
         }
 
-        $ids = self::ids($data);
-
         $query->where('subject_type', $type);
 
-        if ($ids !== []) {
-            $query->whereIn('subject_id', $ids);
+        if (filled($data['ids'] ?? null)) {
+            $query->whereIn('subject_id', self::ids($data));
         }
     }
 
@@ -141,11 +152,17 @@ class AuditLog
      */
     public static function impersonatedBy(Builder $query, array $data): void
     {
-        $ids = self::ids($data);
+        if (filled($data['ids'] ?? null)) {
+            $ids = self::ids($data);
 
-        if ($ids !== []) {
+            if ($ids === []) {
+                $query->whereIn('properties->impersonator_id', []);
+
+                return;
+            }
+
             $query->where(function (Builder $query) use ($ids): void {
-                collect($ids)->each(fn (int|string $id): Builder => $query->orWhereJsonContains('properties->impersonator_id', is_numeric($id) ? (int) $id : $id));
+                collect($ids)->each(fn (int $id): Builder => $query->orWhereJsonContains('properties->impersonator_id', $id));
             });
 
             return;
@@ -215,8 +232,19 @@ class AuditLog
             return [];
         }
 
+        /** @var Model $model */
+        $model = self::modelOf($type);
+
+        $keys = collect($ids)
+            ->filter(fn (mixed $id): bool => ModelKey::valid($model, $id))
+            ->values();
+
+        if ($keys->isEmpty()) {
+            return [];
+        }
+
         return self::recordQuery($type)
-            ->whereKey($ids)
+            ->whereKey($keys)
             ->get()
             ->mapWithKeys(fn (Model $record): array => self::nameEntry($record))
             ->all();
@@ -410,12 +438,13 @@ class AuditLog
 
     /**
      * @param  array<array-key, mixed>  $data
-     * @return array<int, int|string>
+     * @return array<int, int>
      */
     private static function ids(array $data): array
     {
         return collect(is_array($data['ids'] ?? null) ? $data['ids'] : [])
-            ->filter(fn (mixed $id): bool => is_int($id) || is_string($id))
+            ->filter(fn (mixed $id): bool => ModelKey::isInteger($id))
+            ->map(fn (int|string $id): int => (int) $id)
             ->values()
             ->all();
     }

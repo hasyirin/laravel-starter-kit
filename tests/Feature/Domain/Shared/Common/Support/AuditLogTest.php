@@ -7,6 +7,7 @@ use App\Domain\Shared\Common\Support\AuditLog;
 use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -57,6 +58,39 @@ test('the record lookup names the picked records, deleted ones too', function ()
 
     expect($names)->toBe([$organization->id => 'Acme Holdings', $closed->id => 'Closed Ltd']);
 });
+
+test('the record lookup names only the well formed picked ids, and runs no query when none is', function (): void {
+    $organization = Organization::factory()->create(['name' => 'Acme Holdings']);
+    $queries = collect();
+    DB::listen(fn (QueryExecuted $query) => $queries->push($query->sql));
+
+    $none = AuditLog::recordNames('organization', ['abc', '99999999999999999999', [1]]);
+
+    expect($none)->toBeEmpty()
+        ->and($queries)->toBeEmpty()
+        ->and(AuditLog::recordNames('organization', ['abc', (string) $organization->id]))->toBe([$organization->id => 'Acme Holdings']);
+});
+
+test('a Y-m-d date is read as the start of that day in the given time zone', function (): void {
+    $date = AuditLog::date('2026-02-01', 'Asia/Kuala_Lumpur');
+
+    expect($date?->toIso8601String())->toBe('2026-02-01T00:00:00+08:00');
+});
+
+test('any value that is not a real Y-m-d date is no date', function (mixed $value): void {
+    expect(AuditLog::date($value))->toBeNull();
+})->with([
+    'a word that Carbon reads' => ['tomorrow'],
+    'letters' => ['abc'],
+    'a five digit year' => ['99999-01-01'],
+    'a day that the month does not have' => ['2026-02-31'],
+    'no leading zeros' => ['2026-2-1'],
+    'the year zero' => ['0000-01-01'],
+    'a time after the date' => ['2026-02-01 10:00'],
+    'a line break after the date' => ["2026-02-01\n"],
+    'an array' => [['2026-02-01']],
+    'an empty string' => [''],
+]);
 
 test('records that a name does not pick out cannot be looked up', function (string $type): void {
     expect(AuditLog::nameColumn($type))->toBeNull()

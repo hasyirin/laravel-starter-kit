@@ -29,7 +29,7 @@ A letter type extends `App\Domain\Shared\Letter\Support\LetterType`. Four method
 | ---------- | -------------------------------------------------------------------------- |
 | `view()`   | The name of the Blade view.                                                |
 | `fields()` | The list of `Field` objects. They declare all the letter data.             |
-| `source()` | The class of the letter source.                                            |
+| `source()` | The class of the letter source. It needs an integer key.                   |
 | `data()`   | The values of the letter data, made from the source and the letter date.   |
 
 ```php
@@ -860,6 +860,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a source start without the view ability of the source is refused
 - the source picker lists only sources the system administrator can view, found by id or name
 - a source id or a search that does not fit the key type is not sent as a key
+- a search that is a valid uuid is not sent as a key, because a letter source has an integer key
 - a letter start fills the print details and the extra values of the letter
 - a print downloads the letter and writes one audit entry, no letter row, no mark
 - an unreadable letter is an error on the type

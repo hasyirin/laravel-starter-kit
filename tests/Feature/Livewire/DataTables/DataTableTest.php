@@ -4,19 +4,29 @@ declare(strict_types=1);
 
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Preferences;
+use App\Livewire\Pages\Local\Examples\DataTable as ExampleDataTable;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Exceptions\MethodNotFoundException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Symfony\Component\Finder\Finder;
+use Tests\Fixtures\Livewire\DataTables\HookedNoteDataTable;
+use Tests\Fixtures\Livewire\DataTables\NotebookParcelDataTable;
 use Tests\Fixtures\Livewire\DataTables\NoteDataTable;
 use Tests\Fixtures\Livewire\DataTables\PlainNoteDataTable;
+use Tests\Fixtures\Livewire\DataTables\TernaryNoteDataTable;
 use Tests\Fixtures\Livewire\NoteModal;
 use Tests\Fixtures\Models\Note;
 use Tests\Fixtures\Models\Notebook;
+use Tests\Fixtures\Models\Parcel;
 use Tests\Fixtures\Policies\NotePolicy;
 
 beforeEach(function (): void {
@@ -30,11 +40,24 @@ beforeEach(function (): void {
     Schema::create('notes', function (Blueprint $table): void {
         $table->id();
         $table->foreignId('notebook_id');
+        $table->foreignUuid('parcel_id')->nullable();
         $table->string('title');
         $table->boolean('hidden')->default(false);
         $table->boolean('locked')->default(false);
         $table->timestamps();
         $table->softDeletes();
+    });
+
+    Schema::create('parcels', function (Blueprint $table): void {
+        $table->uuid('id')->primary();
+        $table->string('label')->nullable();
+        $table->timestamps();
+    });
+
+    Schema::create('notebook_parcel', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('notebook_id');
+        $table->foreignUuid('parcel_id');
     });
 
     Relation::morphMap(['notebook' => Notebook::class, 'note' => Note::class]);
@@ -211,4 +234,259 @@ test('no class imports the delete action of Filament, because it skips the Actio
         ->keys();
 
     expect($offenders)->toBeEmpty();
+});
+
+/**
+ * @return Collection<int, array{sql: string, bindings: array<int, mixed>}>
+ */
+function listenToQueries(): Collection
+{
+    $queries = collect();
+    DB::listen(fn (QueryExecuted $query) => $queries->push(['sql' => $query->sql, 'bindings' => $query->bindings]));
+
+    return $queries;
+}
+
+/**
+ * @param  Collection<int, array{sql: string, bindings: array<int, mixed>}>  $queries
+ */
+function expectNoQueryWith(Collection $queries, mixed $value): void
+{
+    $bindings = $queries->pluck('bindings')->flatten(1);
+
+    expect($bindings)->not->toContain($value)
+        ->and($bindings->filter(fn (mixed $binding): bool => is_array($binding)))->toBeEmpty();
+
+    if (is_string($value) && strlen($value) > 2) {
+        expect($queries->pluck('sql')->filter(fn (string $sql): bool => str_contains($sql, $value)))->toBeEmpty();
+    }
+}
+
+test('a row or column action with a malformed record key mounts nothing and sends the key to no query', function (string $key): void {
+    $notebook = Notebook::query()->create();
+    $notebook->notes()->create(['title' => 'Leak']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook]);
+    $queries = listenToQueries();
+
+    $table->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => $key])
+        ->assertOk()
+        ->assertSet('mountedActions', [])
+        ->call('callTableColumnAction', 'title', $key)
+        ->assertOk();
+
+    expectNoQueryWith($queries, $key);
+})->with([
+    'letters' => ['abc'],
+    'more digits than a bigint holds' => ['99999999999999999999'],
+]);
+
+test('a row or column action with a record key that is not text mounts nothing', function (): void {
+    $notebook = Notebook::query()->create();
+    $notebook->notes()->create(['title' => 'Leak']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook]);
+    $queries = listenToQueries();
+
+    $table->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => [1]])
+        ->assertOk()
+        ->assertSet('mountedActions', [])
+        ->call('callTableColumnAction', 'title', [1])
+        ->assertOk();
+
+    expectNoQueryWith($queries, [1]);
+});
+
+test('a row action on a missing record mounts nothing', function (): void {
+    Livewire::test(NoteDataTable::class, ['notebook' => Notebook::query()->create()])
+        ->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => '999'])
+        ->assertOk()
+        ->assertSet('mountedActions', []);
+});
+
+test('a table of array records runs its row actions', function (): void {
+    Livewire::withoutLazyLoading();
+
+    Livewire::test(ExampleDataTable::class)
+        ->call('mountAction', 'view', [], ['table' => true, 'recordKey' => '1'])
+        ->assertDispatched('toast-show');
+});
+
+test('a table of pivot rows checks the record key against the pivot key', function (): void {
+    $notebook = Notebook::query()->create();
+    $parcel = Parcel::query()->create(['label' => 'Box']);
+    $notebook->belongsToMany(Parcel::class, 'notebook_parcel')->attach($parcel);
+    $pivotKey = (string) DB::table('notebook_parcel')->value('id');
+    $table = Livewire::test(NotebookParcelDataTable::class, ['notebook' => $notebook]);
+    $queries = listenToQueries();
+
+    $table->call('mountAction', 'view', [], ['table' => true, 'recordKey' => 'abc'])
+        ->assertSet('mountedActions', [])
+        ->assertNotDispatched('opened')
+        ->call('mountAction', 'view', [], ['table' => true, 'recordKey' => $pivotKey])
+        ->assertDispatched('opened', id: $parcel->id);
+
+    expectNoQueryWith($queries, 'abc');
+});
+
+test('a relation filter with a malformed key keeps no rows and sends the key to no query', function (Closure $filter, string $key): void {
+    Notebook::query()->create()->notes()->create(['title' => 'Leak']);
+    $table = Livewire::test(PlainNoteDataTable::class);
+    $queries = listenToQueries();
+
+    $filter($table, $key);
+
+    $table->assertOk()->assertCountTableRecords(0);
+    expectNoQueryWith($queries, $key);
+})->with([
+    'one value' => [fn (Testable $table, string $key) => $table->set('tableFilters.notebook.value', $key)],
+    'one value applied from the filter form' => [fn (Testable $table, string $key) => $table->set('tableDeferredFilters.notebook.value', $key)->call('applyTableFilters')],
+    'only malformed values' => [fn (Testable $table, string $key) => $table->set('tableFilters.notebooks.values', [$key, '1.5'])],
+    'a uuid relation' => [fn (Testable $table, string $key) => $table->set('tableFilters.parcel.value', $key)],
+])->with([
+    'letters' => ['abc'],
+    'more digits than a bigint holds' => ['99999999999999999999'],
+]);
+
+test('a relation filter keeps the rows of its valid keys and drops the malformed ones', function (): void {
+    $notebook = Notebook::query()->create();
+    $kept = $notebook->notes()->create(['title' => 'Kept']);
+    $other = Notebook::query()->create()->notes()->create(['title' => 'Other']);
+    $table = Livewire::test(PlainNoteDataTable::class);
+    $queries = listenToQueries();
+
+    $table->set('tableFilters.notebooks.values', [(string) $notebook->id, 'abc'])
+        ->assertCanSeeTableRecords([$kept])
+        ->assertCanNotSeeTableRecords([$other])
+        ->set('tableFilters.notebooks.values', [null, (string) $notebook->id])
+        ->assertCanSeeTableRecords([$kept])
+        ->assertCanNotSeeTableRecords([$other])
+        ->set('tableFilters.notebooks.values', [])
+        ->set('tableFilters.notebook.value', (string) $notebook->id)
+        ->assertCanSeeTableRecords([$kept])
+        ->assertCanNotSeeTableRecords([$other]);
+
+    expectNoQueryWith($queries, 'abc');
+});
+
+test('a relation filter on a uuid model keeps the rows of a valid uuid', function (): void {
+    $parcel = Parcel::query()->create(['label' => 'Box']);
+    $notebook = Notebook::query()->create();
+    $kept = $notebook->notes()->create(['title' => 'Kept', 'parcel_id' => $parcel->id]);
+    $other = $notebook->notes()->create(['title' => 'Other']);
+
+    Livewire::test(PlainNoteDataTable::class)
+        ->set('tableFilters.parcel.value', $parcel->id)
+        ->assertCanSeeTableRecords([$kept])
+        ->assertCanNotSeeTableRecords([$other]);
+});
+
+test('the empty option of a relation filter keeps the rows without a related record', function (): void {
+    $deleted = Notebook::query()->create();
+    $orphan = $deleted->notes()->create(['title' => 'Orphan']);
+    $deleted->delete();
+    $note = Notebook::query()->create()->notes()->create(['title' => 'Note']);
+
+    Livewire::test(PlainNoteDataTable::class)
+        ->set('tableFilters.notebooks.values', ['__empty', 'abc'])
+        ->assertCanSeeTableRecords([$orphan])
+        ->assertCanNotSeeTableRecords([$note]);
+});
+
+test('a select filter value of the wrong shape keeps no rows and reaches no query', function (string $property, mixed $value): void {
+    Notebook::query()->create()->notes()->create(['title' => 'Apple']);
+    $table = Livewire::test(PlainNoteDataTable::class);
+    $queries = listenToQueries();
+
+    $table->set($property, $value)
+        ->call('applyTableFilters')
+        ->assertOk()
+        ->assertCountTableRecords(0);
+
+    expectNoQueryWith($queries, $value);
+})->with([
+    'a nested list in an options filter' => ['tableFilters.title.values', [[1]]],
+    'text for the list of an options filter' => ['tableFilters.title.values', 'x'],
+    'text for the state of an options filter' => ['tableFilters.title', 'x'],
+    'a nested list for one relation key' => ['tableFilters.notebook.value', [[1]]],
+    'text for the list of a relation filter' => ['tableFilters.notebooks.values', 'x'],
+    'text for the state of a relation filter' => ['tableFilters.notebook', 'x'],
+    'a nested list in the filter form' => ['tableDeferredFilters.title.values', [[1]]],
+    'text for the state in the filter form' => ['tableDeferredFilters.notebook', 'x'],
+]);
+
+test('a yes or no filter of the wrong shape goes back to its default', function (string $property, mixed $value): void {
+    $kept = Notebook::query()->create()->notes()->create(['title' => 'Kept']);
+    $deleted = Notebook::query()->create()->notes()->create(['title' => 'Deleted']);
+    $deleted->delete();
+
+    Livewire::test(TernaryNoteDataTable::class)
+        ->set($property, $value)
+        ->assertOk()
+        ->assertCanSeeTableRecords([$kept])
+        ->assertCanNotSeeTableRecords([$deleted]);
+})->with([
+    'a nested list for the value' => ['tableFilters.trashed.value', [[1]]],
+    'text for the state' => ['tableFilters.trashed', 'x'],
+    'text that is not yes or no' => ['tableFilters.trashed.value', 'abc'],
+    'a number that is not yes or no' => ['tableFilters.trashed.value', 2],
+    'a decimal' => ['tableFilters.trashed.value', 1.5],
+]);
+
+test('an options filter drops an empty value', function (string $property, array $values, int $count): void {
+    $notebook = Notebook::query()->create();
+    $notebook->notes()->create(['title' => 'Apple']);
+    $notebook->notes()->create(['title' => 'Pear']);
+
+    Livewire::test(PlainNoteDataTable::class)
+        ->set($property, $values)
+        ->call('applyTableFilters')
+        ->assertOk()
+        ->assertCountTableRecords($count);
+})->with([
+    'only null' => ['tableFilters.title.values', [null], 2],
+    'null and an option' => ['tableFilters.title.values', [null, 'Apple'], 1],
+    'null in the filter form' => ['tableDeferredFilters.title.values', [null, 'Apple'], 1],
+]);
+
+test('the browser cannot call the column action of Filament behind the guard', function (): void {
+    Livewire::test(PlainNoteDataTable::class)->call('callFilamentTableColumnAction', 'title', [1]);
+})->throws(MethodNotFoundException::class);
+
+test('the browser cannot call the filter update of Filament behind the cleaning', function (): void {
+    Livewire::test(PlainNoteDataTable::class)
+        ->call('updatedFilamentTableFilters')
+        ->assertForbidden();
+});
+
+test('a yes or no filter on a uuid relation keeps its no value', function (): void {
+    $notebook = Notebook::query()->create();
+    $labelled = $notebook->notes()->create(['title' => 'Labelled', 'parcel_id' => Parcel::query()->create(['label' => 'Box'])->id]);
+    $unlabelled = $notebook->notes()->create(['title' => 'Unlabelled', 'parcel_id' => Parcel::query()->create()->id]);
+
+    Livewire::test(TernaryNoteDataTable::class)
+        ->set('tableFilters.labelled.value', '0')
+        ->assertCanSeeTableRecords([$unlabelled])
+        ->assertCanNotSeeTableRecords([$labelled]);
+});
+
+test('a table that defines its own updated hook still cleans its filters', function (): void {
+    Notebook::query()->create()->notes()->create(['title' => 'Apple']);
+
+    Livewire::test(HookedNoteDataTable::class)
+        ->set('tableFilters.title.values', [[1]])
+        ->assertOk()
+        ->assertCountTableRecords(0)
+        ->assertSet('updatedProperties', ['tableFilters.title.values']);
+});
+
+test('a search that is not text is ignored and reaches no query', function (): void {
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Apple']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook]);
+    $queries = listenToQueries();
+
+    $table->set('tableSearch', [1])
+        ->assertOk()
+        ->assertCanSeeTableRecords([$note]);
+
+    expectNoQueryWith($queries, [1]);
 });

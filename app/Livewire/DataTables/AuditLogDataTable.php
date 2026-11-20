@@ -236,8 +236,9 @@ abstract class AuditLogDataTable extends DataTable
     private function timeIndicators(array $data): array
     {
         return collect(['from', 'until'])
-            ->filter(fn (string $field): bool => is_string($data[$field] ?? null) && $data[$field] !== '')
-            ->mapWithKeys(fn (string $field): array => [$field => __("common/audit.$field").': '.Preferences::current()->calendarDate(CarbonImmutable::parse((string) $data[$field]))])
+            ->mapWithKeys(fn (string $field): array => [$field => AuditLog::date($data[$field] ?? null)])
+            ->filter()
+            ->map(fn (CarbonImmutable $date, string $field): string => __("common/audit.$field").': '.Preferences::current()->calendarDate($date))
             ->all();
     }
 

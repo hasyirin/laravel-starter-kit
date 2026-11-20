@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Common\Support\ModelKey;
+use Illuminate\Database\Eloquent\Model;
 use Tests\Fixtures\Models\Crate;
 use Tests\Fixtures\Models\Item;
 use Tests\Fixtures\Models\Parcel;
@@ -71,3 +72,30 @@ test('a unique id column beside an integer key keeps the integer rule', function
     expect(ModelKey::valid(new Survey, 5))->toBeTrue()
         ->and(ModelKey::valid(new Survey, '0198a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b'))->toBeFalse();
 });
+
+test('an integer check accepts only a positive integer that a bigint holds', function (mixed $value, bool $integer): void {
+    expect(ModelKey::isInteger($value))->toBe($integer);
+})->with([
+    'an integer' => [5, true],
+    'digits' => ['5', true],
+    'letters' => ['abc', false],
+    'more digits than a bigint holds' => ['99999999999999999999', false],
+    'zero' => [0, false],
+    'an array' => [[5], false],
+]);
+
+test('the absent key is a well formed key of the key type', function (Model $model, int|string $absent): void {
+    expect(ModelKey::absentKey($model))->toBe($absent);
+})->with([
+    'an integer key' => [fn (): Model => new Item, 0],
+    'a uuid key' => [fn (): Model => new Parcel, '00000000-0000-0000-0000-000000000000'],
+    'a ulid key' => [fn (): Model => new Crate, '00000000000000000000000000'],
+    'a unique id column beside an integer key' => [fn (): Model => new Survey, 0],
+]);
+
+test('the absent key of a uuid or ulid model passes the key check', function (Model $model): void {
+    expect(ModelKey::valid($model, ModelKey::absentKey($model)))->toBeTrue();
+})->with([
+    'a uuid key' => [fn (): Model => new Parcel],
+    'a ulid key' => [fn (): Model => new Crate],
+]);

@@ -337,6 +337,8 @@ A letter type can override `sourceAbility()`. For example, it can return `archiv
 > - Read a draft letter on `letters.preview`, before staff issue it.
 > - Open the kept prints, the signed scan, and the extra images through `media.show`.
 > - Print the letter. A print gives the letter its reference number.
+>
+> A letter of an unknown type needs the `view` and the `update` ability of the source for `view`. This protects the letter only when users who are not staff cannot `update` the source. For example, an applicant who can `view` and `update` the own draft application can still open the kept prints, the signed scan, and the extra images of such a letter.
 
 ```php
 public function sourceAbility(string $letterAbility): string
@@ -354,7 +356,7 @@ public function sourceAbility(string $letterAbility): string
 
 `create` also refuses a letter type that the user cannot save. This is a type with a required signer when the user cannot `print`, or a type that locks a required extra field. `create` without a type passes when one letter type of the source passes. So the letters table shows its create button only when the type list of the form has a type.
 
-A letter of an unknown type has a key that is not in `system.letters.types` any more, for example after a letter type was removed. Such a letter passes only `view`, and `delete` with the `update` ability of the source. The letters table shows its raw key as the type. `DeleteLetter` does not release its number.
+A letter of an unknown type has a key that is not in `system.letters.types` any more, for example after a letter type was removed. Such a letter passes only `view` and `delete`. `view` needs the `view` and the `update` ability of the source. `delete` needs only the `update` ability. An unknown type has no `sourceAbility()` mapping, so the policy cannot map `view` to an ability that only staff have. So the policy also asks for `update`, because in many apps only staff can `update` a source. It keeps `view`, because a user who can `update` the source cannot always `view` it. The letters table shows its raw key as the type. `DeleteLetter` does not release its number.
 
 `LetterPolicy` is a stated exception to the rule that a policy extends `Policy` and checks permissions with `hasPermission()`. It has no permissions. The source decides, so each app controls its letters through the policy of its source.
 
@@ -705,7 +707,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a letter type that is not allowed for the user passes only view and delete
 - create without a type skips letter types that are not allowed for the user
 - create fails for a letter type the user cannot save, with or without the type
-- a letter of an unknown type passes only view, and delete with the update ability of the source
+- a letter of an unknown type passes only view, with view and update on the source, and delete, with update
 
 ### LetterheadPolicy
 

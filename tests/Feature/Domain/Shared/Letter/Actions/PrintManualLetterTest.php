@@ -179,6 +179,14 @@ test('an upload ends on the audit entry and its uuid is logged', function (): vo
         ->and($media->file_name)->toBe('stamp.png');
 });
 
+test('a print keeps the upload for the next print', function (): void {
+    $upload = stampUpload();
+
+    printManual('printed', noticeData(), ['remark' => 'Reminder', 'stamp' => $upload]);
+
+    expect($upload->exists())->toBeTrue();
+});
+
 test('a preview keeps the upload out of the audit log', function (): void {
     printManual('printed', noticeData(), ['remark' => 'Reminder', 'stamp' => stampUpload()], preview: true);
 

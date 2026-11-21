@@ -250,13 +250,34 @@ test('a refused save leaves no stored image and keeps the upload for a retry', f
     $upload = extraUpload();
 
     expect(fn (): Letter => saveLetter('extra', numberDetails('REF/1'), ['remark' => 'Urgent', 'stamp' => $upload], new Letter))->toThrow(ValidationException::class);
-    expect(Storage::disk('media')->allFiles())->toBeEmpty();
+    expect(Storage::disk('media')->allFiles())->toBeEmpty()
+        ->and($upload->exists())->toBeTrue();
 
     $media = saveLetter('extra', numberDetails('REF/2'), ['remark' => 'Urgent', 'stamp' => $upload], new Letter)->fresh()->getMedia(MediaCollection::LetterImages);
 
     expect($media)->toHaveCount(1)
         ->and(Storage::disk('media')->allFiles())->toContain("{$media->first()->id}/stamp.png")
         ->each->toStartWith("{$media->first()->id}/");
+});
+
+test('a saved letter deletes the upload of its extra image after the commit', function (): void {
+    $upload = extraUpload();
+
+    saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => $upload]);
+
+    expect($upload->exists())->toBeFalse();
+});
+
+test('a save that an outer transaction rolls back keeps the upload', function (): void {
+    $upload = extraUpload();
+
+    expect(fn (): mixed => DB::transaction(function () use ($upload): void {
+        saveLetter('extra', details(), ['remark' => 'Urgent', 'stamp' => $upload]);
+
+        throw new RuntimeException('A later step failed.');
+    }))->toThrow(RuntimeException::class);
+
+    expect($upload->exists())->toBeTrue();
 });
 
 test('a replaced extra image is deleted with its file', function (): void {

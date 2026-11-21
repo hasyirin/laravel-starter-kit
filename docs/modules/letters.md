@@ -85,7 +85,7 @@ The mapping makes every decision. It compares dates with `$date`, never with tod
 
 An image field holds the uuid of a raster image (PNG, JPEG, WebP, or GIF) that belongs to the letter source. An uploaded image can be at most 10 MB. A table field cannot have an image column, and its group columns cannot hold an image field.
 
-An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images. A save that an outer transaction rolls back deletes the images that it stored.
+An uploaded extra image belongs to the letter. After a save commits, `SaveLetter` deletes each extra image that the letter no longer uses. A refused save keeps the old images. A save that an outer transaction rolls back deletes the images that it stored. `SaveLetter` also deletes the Livewire upload of each extra image after the commit. A manual print keeps its uploads, so the compose page can print again with the same upload.
 
 `SaveLetter` takes no snapshot of the letter, because `LetterForm` takes it. A caller outside a form that keeps the letter after a failure, such as a job that saves letters in a loop, calls `ModelSnapshot::restoreOnRollBack()` as the first step in its transaction, or loads the letter again. Otherwise the letter keeps the id of a row that rolled back.
 
@@ -585,6 +585,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a ticked group prints its section
 - an unticked group prints no section
 - an upload ends on the audit entry and its uuid is logged
+- a print keeps the upload for the next print
 - a preview keeps the upload out of the audit log
 - a failed audit entry leaves no stored image
 - an audit entry that an outer transaction rolls back leaves no stored image
@@ -636,6 +637,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - an extra image is stored in the letter images collection and its uuid is kept
 - an extra image that is kept by uuid is not stored twice
 - a refused save leaves no stored image and keeps the upload for a retry
+- a saved letter deletes the upload of its extra image after the commit
+- a save that an outer transaction rolls back keeps the upload
 - a replaced extra image is deleted with its file
 - a removed extra image is deleted with its file
 - a failed cleanup query after the commit is reported and keeps the save

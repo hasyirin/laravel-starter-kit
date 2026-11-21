@@ -20,6 +20,7 @@ use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Validation\ValidationException;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use LogicException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -75,6 +76,10 @@ class SaveLetter
         $letter->extra = $this->storeImages($letter, MediaCollection::LetterImages, $type->extraFields(), $validated);
         $letter->save();
         $letter->getConnection()->afterCommit(fn () => rescue(fn () => $this->removeUnusedImages($letter)));
+
+        $letter->getConnection()->afterCommit(fn () => collect($validated)->flatten()
+            ->filter(fn (mixed $value): bool => $value instanceof TemporaryUploadedFile)
+            ->each(fn (TemporaryUploadedFile $upload) => rescue(fn () => $upload->delete())));
 
         $this->syncSigner($letter, $details->signer);
 

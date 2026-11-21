@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Common\Contracts\Models;
 
 use BackedEnum;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -29,4 +30,6 @@ interface HasMedia extends \Spatie\MediaLibrary\HasMedia
     public function getFirstMediaUrl(BackedEnum|string $collectionName = 'default', string $conversionName = ''): string;
 
     public function clearMediaCollection(BackedEnum|string $collectionName = 'default'): static;
+
+    public function addMediaFromUpload(TemporaryUploadedFile $upload, BackedEnum|string $collectionName = 'default'): Media;
 }

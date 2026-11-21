@@ -3,11 +3,23 @@
 declare(strict_types=1);
 
 use App\Domain\User\Models\User;
+use App\Livewire\Components\FileUpload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\Livewire;
 use Spatie\MediaLibrary\Conversions\Jobs\PerformConversionsJob;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\Fixtures\Enums\Folder;
+
+function notesUpload(): TemporaryUploadedFile
+{
+    $item = Livewire::test(FileUpload::class, ['fileRules' => ['file']])->set('uploads', UploadedFile::fake()->createWithContent('notes.txt', 'notes'))->get('items')[0];
+
+    return TemporaryUploadedFile::unserializeFromLivewireRequest($item['upload']);
+}
 
 test('the preview of an image is made on the media queue, not while the image is stored', function (): void {
     Storage::fake('media');
@@ -80,4 +92,47 @@ test('an enum case can name the collection that is cleared', function (): void {
     $user->clearMediaCollection(Folder::Documents);
 
     expect([$user->hasMedia(Folder::Documents), $user->hasMedia(Folder::Photos)])->toBe([false, true]);
+});
+
+test('an upload becomes media with the file name of the client and a name without the extension', function (): void {
+    Storage::fake('media');
+    $user = User::factory()->create();
+    $upload = notesUpload();
+
+    $media = $user->addMediaFromUpload($upload, Folder::Documents);
+
+    expect([$media->file_name, $media->name, $media->collection_name])->toBe(['notes.txt', 'notes', 'documents'])
+        ->and(Storage::disk('media')->get($media->getPathRelativeToRoot()))->toBe('notes')
+        ->and($upload->exists())->toBeTrue();
+});
+
+test('an upload that Media Library refuses leaves no temp file', function (): void {
+    Storage::fake('media');
+    config(['media-library.max_file_size' => 1]);
+    $upload = notesUpload();
+
+    $user = User::factory()->create();
+
+    expect(fn (): Media => $user->addMediaFromUpload($upload, 'documents'))->toThrow(function (FileIsTooBig $exception): void {
+        $path = str($exception->getMessage())->between('`', '`')->value();
+
+        expect($path)->toStartWith(sys_get_temp_dir())
+            ->and(file_exists($path))->toBeFalse();
+    });
+});
+
+test('an upload cannot join a model that is not saved', function (): void {
+    $upload = notesUpload();
+
+    expect(fn (): Media => User::factory()->make()->addMediaFromUpload($upload))->toThrow(LogicException::class, 'Save the model before you add an upload to its media.');
+});
+
+test('an upload whose file cannot be read stores no media', function (): void {
+    Storage::fake('media');
+    $user = User::factory()->create();
+    $upload = notesUpload();
+    $upload->delete();
+
+    expect(fn (): Media => $user->addMediaFromUpload($upload, Folder::Documents))->toThrow(RuntimeException::class, 'The upload cannot be read, so it cannot become media.')
+        ->and(Media::query()->count())->toBe(0);
 });

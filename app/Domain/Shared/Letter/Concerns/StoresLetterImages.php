@@ -51,10 +51,6 @@ trait StoresLetterImages
 
     private function storeUpload(HasMedia $owner, MediaCollection $collection, TemporaryUploadedFile $file): string
     {
-        $media = $owner->addMediaFromStream($file->readStream())
-            ->usingFileName($file->getClientOriginalName())
-            ->toMediaCollection($collection->value);
-
-        return $media->uuid;
+        return $owner->addMediaFromUpload($file, $collection)->uuid;
     }
 }

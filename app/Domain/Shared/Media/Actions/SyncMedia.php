@@ -44,10 +44,7 @@ class SyncMedia
                 return $entry->id;
             }
 
-            $media = $model->addMediaFromStream($entry->readStream())
-                ->usingName(pathinfo($entry->getClientOriginalName(), PATHINFO_FILENAME))
-                ->usingFileName($entry->getClientOriginalName())
-                ->toMediaCollection($collection instanceof BackedEnum ? (string) $collection->value : $collection);
+            $media = $model->addMediaFromUpload($entry, $collection);
 
             $media->getConnection()->afterCommit(fn () => rescue(fn () => $entry->delete()));
 

@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Common\Concerns\Models;
 
 use BackedEnum;
+use Illuminate\Support\Facades\File;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use LogicException;
+use RuntimeException;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\InteractsWithMedia as InteractsWithSpatieMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
@@ -67,6 +71,30 @@ trait InteractsWithMedia
         $this->clearMediaCollectionNamed($this->collectionName($collectionName));
 
         return $this;
+    }
+
+    public function addMediaFromUpload(TemporaryUploadedFile $upload, BackedEnum|string $collectionName = 'default'): Media
+    {
+        throw_unless($this->exists, LogicException::class, 'Save the model before you add an upload to its media.');
+
+        $path = tempnam(sys_get_temp_dir(), 'media-library');
+
+        throw_if($path === false, RuntimeException::class, 'The temp folder cannot take a copy of the upload.');
+
+        try {
+            $stream = $upload->readStream();
+
+            throw_unless(is_resource($stream), RuntimeException::class, 'The upload cannot be read, so it cannot become media.');
+
+            file_put_contents($path, $stream);
+
+            return $this->addMedia($path)
+                ->usingName(pathinfo($upload->getClientOriginalName(), PATHINFO_FILENAME))
+                ->usingFileName($upload->getClientOriginalName())
+                ->toMediaCollection($this->collectionName($collectionName));
+        } finally {
+            File::delete($path);
+        }
     }
 
     private function collectionName(BackedEnum|string $collectionName): string

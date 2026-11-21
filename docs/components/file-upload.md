@@ -87,8 +87,9 @@ Give the model media with the kit's `HasMedia` contract and `InteractsWithMedia`
 
 - The trait makes a `preview` of each image on the media queue. A preview is a WebP image of at most 300 by 300 pixels, about 10 KB for a phone photo. A smaller image keeps its size, and transparent parts stay transparent.
 - The list shows the image itself until its preview exists. An SVG image gets no preview, because ImageMagick can fetch the files that an SVG links to while it draws it.
-- Name each collection with a case of `MediaCollection`, not with a string. Add a case for a new collection, such as the Documents case of the example above. `getMedia()`, `hasMedia()`, `FileUpload::items()`, and `SyncMedia` take the case.
+- Name each collection with a case of `MediaCollection`, not with a string. Add a case for a new collection, such as the Documents case of the example above. `getMedia()`, `hasMedia()`, `addMediaFromUpload()`, `FileUpload::items()`, and `SyncMedia` take the case.
 - To change the conversions of a model, write its own `registerMediaConversions()`. Add the `preview` again, so that the list keeps its small images.
+- Add a Livewire upload to a saved model with `addMediaFromUpload()`, not `addMediaFromStream()`. If Media Library refuses the file, no temp file stays. The method keeps the Livewire upload.
 
 ## Reference
 

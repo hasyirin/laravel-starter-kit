@@ -81,7 +81,7 @@ class LetterPolicy
 
         if (! $type instanceof LetterType) {
             return match ($ability) {
-                'view' => $user->can('view', $source),
+                'view' => $user->can('view', $source) && $user->can('update', $source),
                 'delete' => $user->can('update', $source),
                 default => false,
             };

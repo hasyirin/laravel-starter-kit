@@ -18,6 +18,19 @@ test('a validation message names its field in the language of the page', functio
     'Malay, an uploaded file' => ['ms', 'file', 'Medan fail diperlukan.'],
 ]);
 
+test('an item rule failure names the role or permission item in the language of the page', function (string $language, string $field, string $message): void {
+    app()->setLocale($language);
+
+    $errors = validator([$field => ['x']], ["{$field}.*" => 'in:a'])->errors();
+
+    expect($errors->first("{$field}.0"))->toBe($message);
+})->with([
+    'English, a role' => ['en', 'roles', 'The selected role is invalid.'],
+    'English, a permission' => ['en', 'permissions', 'The selected permission is invalid.'],
+    'Malay, a role' => ['ms', 'roles', 'Medan peranan yang dipilih tidak sah.'],
+    'Malay, a permission' => ['ms', 'permissions', 'Medan akses yang dipilih tidak sah.'],
+]);
+
 test('the audit log labels a field with its validation name, with a capital', function (string $language, string $field, string $label): void {
     app()->setLocale($language);
 

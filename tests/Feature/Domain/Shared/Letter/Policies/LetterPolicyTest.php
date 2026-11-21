@@ -139,15 +139,18 @@ test('create fails for a letter type the user cannot save, with or without the t
     'a locked required extra field' => [PermitLockedLetter::class, []],
 ]);
 
-test('a letter of an unknown type passes only view, and delete with the update ability of the source', function (string $ability, array $permit, bool $allowed): void {
+test('a letter of an unknown type passes only view, with view and update on the source, and delete, with update', function (string $ability, array $permit, bool $allowed): void {
     $letter = Permit::query()->create(['name' => 'Open', ...$permit])->letters()->create(['type' => 'removed']);
 
     expect($this->user->can($ability, $letter))->toBe($allowed);
 })->with([
     'view' => ['view', [], true],
+    'view on a locked source' => ['view', ['locked' => true], false],
+    'view on a hidden source' => ['view', ['hidden' => true], false],
     'print' => ['print', [], false],
     'create' => ['create', [], false],
     'update' => ['update', [], false],
     'delete' => ['delete', [], true],
     'delete on a locked source' => ['delete', ['locked' => true], false],
+    'delete on a hidden source' => ['delete', ['hidden' => true], true],
 ]);

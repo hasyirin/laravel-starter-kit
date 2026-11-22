@@ -26,6 +26,10 @@ A `refresh` event without `to()` renders every component on the page again. Do n
 
 A browser can send any value for an enum property. `App\Livewire\Synthesizers\EnumSynth` answers an unknown value or a value of the wrong type with 419 in production, and does not report it. Debug mode shows the error. A deploy can remove an enum case that an open page still holds. That page then gets 419, and the app logs nothing.
 
+## Date Properties
+
+A browser can also send any value for a date property. `App\Livewire\Synthesizers\CarbonSynth` answers a value that is not a date with 419 in the same way. It also refuses a year above 9999, because Livewire cannot load that date again on the next request. If a server bug stores a year above 9999, the page also gets 419, and the app logs nothing.
+
 ## Forms
 
 A form object holds the input of one record. It extends `App\Livewire\Form` and lives in a folder under `app/Livewire/Forms`, such as `app/Livewire/Forms/Internal`. One form serves both the create page and the edit page. `App\Livewire\Forms\Internal\UserForm` is the example.

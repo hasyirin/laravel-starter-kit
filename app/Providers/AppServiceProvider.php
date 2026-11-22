@@ -12,6 +12,7 @@ use App\Domain\Shared\Sms\Contracts\SmsGateway;
 use App\Domain\User\Models\User;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsurePhoneIsVerified;
+use App\Livewire\Synthesizers\CarbonSynth;
 use App\Livewire\Synthesizers\EnumSynth;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -107,7 +108,7 @@ class AppServiceProvider extends ServiceProvider
 
         Livewire::addPersistentMiddleware([EnsureEmailIsVerified::class, EnsurePhoneIsVerified::class]);
 
-        Livewire::propertySynthesizer(EnumSynth::class);
+        Livewire::propertySynthesizer([CarbonSynth::class, EnumSynth::class]);
 
         Gate::before(fn (?Authenticatable $user): ?true => $user instanceof User && $user->checkPermissionTo(config('system.permissions.bypass-authorization')) ? true : null);
 

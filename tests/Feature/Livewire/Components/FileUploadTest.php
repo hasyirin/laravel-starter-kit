@@ -69,6 +69,27 @@ test('sort moves an item to its new position', function (): void {
     expect(array_column($component->get('items'), 'uuid'))->toBe(['c', 'a', 'b']);
 });
 
+test('a multiple upload lets the user drag its files unless sortable is off', function (): void {
+    $items = [['uuid' => 'a', 'name' => 'a.pdf', 'size' => 1, 'mime_type' => 'application/pdf']];
+
+    Livewire::test(FileUpload::class, ['fileRules' => ['file'], 'multiple' => true])
+        ->set('items', $items)
+        ->assertSeeHtml('wire:sort="sort"')
+        ->assertSeeHtml('wire:sort:item="a"');
+    Livewire::test(FileUpload::class, ['fileRules' => ['file'], 'multiple' => true, 'sortable' => false])
+        ->set('items', $items)
+        ->assertDontSeeHtml('wire:sort');
+});
+
+test('a multiple upload with sortable off does not change the order', function (): void {
+    $items = array_map(fn (string $uuid): array => ['uuid' => $uuid, 'name' => "{$uuid}.pdf", 'size' => 1, 'mime_type' => 'application/pdf'], ['a', 'b', 'c']);
+    $component = Livewire::test(FileUpload::class, ['fileRules' => ['file'], 'multiple' => true, 'sortable' => false])->set('items', $items);
+
+    $component->call('sort', 'c', 0);
+
+    expect($component->get('items'))->toBe($items);
+});
+
 test('a disabled field takes no uploads and keeps its items in place', function (): void {
     $items = [
         ['uuid' => 'a', 'name' => 'a.pdf', 'size' => 1, 'mime_type' => 'application/pdf'],

@@ -12,6 +12,7 @@ use App\Domain\User\Support\SmsPasswordResetLock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Testing\TestResponse;
+use Livewire\Features\SupportTesting\Testable;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -102,6 +103,16 @@ function callLivewireAction(TestResponse $page, string $component, string $metho
         ->first(fn (string $snapshot): bool => data_get(json_decode($snapshot, true), 'memo.name') === $component);
 
     $payload = json_encode(['components' => [['snapshot' => $snapshot, 'updates' => $updates, 'calls' => [['method' => $method, 'params' => $params, 'metadata' => []]]]]]);
+
+    return test()->call('POST', resolve('livewire')->getUpdateUri(), server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => '*/*', 'HTTP_X_LIVEWIRE' => '1'], content: $payload);
+}
+
+/**
+ * @param  array<string, mixed>  $updates
+ */
+function sendLivewireUpdate(Testable $component, array $updates): TestResponse
+{
+    $payload = json_encode(['components' => [['snapshot' => json_encode($component->snapshot), 'updates' => $updates, 'calls' => []]]]);
 
     return test()->call('POST', resolve('livewire')->getUpdateUri(), server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => '*/*', 'HTTP_X_LIVEWIRE' => '1'], content: $payload);
 }

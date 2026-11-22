@@ -26,6 +26,13 @@ test('the upload component starts with the items of the property it is bound to'
         ->assertSeeHtml('aria-label="Download contract.pdf"');
 });
 
+test('a file upload passes sortable to the upload component', function (): void {
+    $component = Livewire::test(DocumentsHost::class, ['sortable' => false]);
+
+    $component->assertSeeHtml('contract.pdf')
+        ->assertDontSeeHtml('wire:sort');
+});
+
 test('a file upload needs wire:model', function (): void {
     expect(fn () => $this->blade('<x-file-upload label="Documents" :rules="[\'mimes:pdf\']" />'))->toThrow(ViewException::class, 'x-file-upload needs wire:model.');
 });

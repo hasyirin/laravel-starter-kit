@@ -25,7 +25,7 @@ A personal starting point for new Laravel projects. It starts from the official 
 
 - **PHP 8.5** is the minimum version, instead of 8.3. The app needs the `bcmath` and `intl` extensions.
 - **Flux Pro** comes from `composer.fluxui.dev`. You need a Flux Pro license.
-- **Filament 5 components** are installed. `resources/css/app.css` imports their styles, and `php artisan filament:upgrade` runs after each Composer autoload dump.
+- **Filament 5 components** are installed. `resources/css/app.css` imports their styles, and `php artisan filament:upgrade` runs after each Composer autoload dump. The kit replaces the Filament notifications and bell components, so they print no broadcast channel while broadcasting is off.
 - **Fonts** are Figtree and JetBrains Mono. Vite downloads them from Bunny Fonts at build time. The accent color is blue.
 - **Debugbar** and **Laravel Boost** are installed as dev dependencies. The Boost guidelines, skills, and MCP config are committed, and `composer update` keeps the guidelines and skills current with `php artisan boost:update`. The project rules for agents live in `.ai/rules/`, and `.ai/rules/index.md` maps file paths to them.
 - **Ray** is installed as a production dependency, so a `ray()` call left in the code does not break production. Ray is off in production.

@@ -191,6 +191,8 @@ A model can have one address of each type. The default type is primary. For anot
 $this->mailing->type('mailing')->set($this->organization);
 ```
 
+The audit log leaves out `type`, because the pages of the kit save only the primary type. If an app uses more than one type, remove `type` from `auditExcludedColumns()` in `App\Domain\Shared\Geography\Models\Address`.
+
 ## Copy an Address
 
 `copy()` fills the form from a saved address of another model, such as the owner's. The form still saves to its own model:

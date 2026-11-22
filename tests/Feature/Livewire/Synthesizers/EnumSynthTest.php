@@ -7,22 +7,10 @@ use App\Domain\User\Enums\AuditDirection;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Internal\User\AuditLogDataTable;
 use Illuminate\Support\Facades\Exceptions;
-use Illuminate\Testing\TestResponse;
-use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Fixtures\Enums\Priority;
 use Tests\Fixtures\Enums\Status;
 use Tests\Fixtures\Livewire\EnumProperties;
-
-/**
- * @param  array<string, mixed>  $updates
- */
-function sendLivewireUpdate(Testable $component, array $updates): TestResponse
-{
-    $payload = json_encode(['components' => [['snapshot' => json_encode($component->snapshot), 'updates' => $updates, 'calls' => []]]]);
-
-    return test()->call('POST', resolve('livewire')->getUpdateUri(), server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => '*/*', 'HTTP_X_LIVEWIRE' => '1'], content: $payload);
-}
 
 test('a known value updates an enum property', function (): void {
     Livewire::test(EnumProperties::class)

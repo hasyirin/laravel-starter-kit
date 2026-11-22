@@ -20,14 +20,14 @@
     <flux:error name="uploads" />
 
     @if($items !== [])
-        <div class="grid gap-2" @if($multiple && ! $disabled) wire:sort="sort" @endif>
+        <div class="grid gap-2" @if($sorting) wire:sort="sort" @endif>
             @foreach($items as $item)
                 @php
                     $stored = ! isset($item['upload']);
                     $preview = $previews[$item['uuid']] ?? null;
                 @endphp
 
-                <div wire:key="{{ $item['uuid'] }}" wire:sort:item="{{ $item['uuid'] }}">
+                <div wire:key="{{ $item['uuid'] }}" @if($sorting) wire:sort:item="{{ $item['uuid'] }}" @endif>
                     <flux:file-item :heading="$item['name']" :size="$item['size']" :image="$preview">
                         @if($stored || ! $disabled)
                             <x-slot name="actions">

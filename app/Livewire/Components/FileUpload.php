@@ -42,6 +42,9 @@ class FileUpload extends Component
     public bool $multiple = false;
 
     #[Locked]
+    public bool $sortable = true;
+
+    #[Locked]
     public ?int $max = null;
 
     #[Locked]
@@ -136,7 +139,7 @@ class FileUpload extends Component
     {
         $index = array_search($uuid, array_column($this->items, 'uuid'), true);
 
-        if ($this->isDisabled() || ! is_int($index)) {
+        if ($this->isDisabled() || ! $this->sortable || ! is_int($index)) {
             return;
         }
 
@@ -229,6 +232,7 @@ class FileUpload extends Component
     {
         return view('livewire.components.file-upload', [
             'full' => $this->full(),
+            'sorting' => $this->multiple && $this->sortable && ! $this->isDisabled(),
             'acceptedTypes' => $this->acceptedTypes(),
             'limits' => $this->limits(),
             'previews' => collect($this->items)->mapWithKeys(fn (array $item): array => [$item['uuid'] => $this->preview($item)])->all(),

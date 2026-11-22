@@ -65,7 +65,7 @@ The file picker offers the types of the `mimes`, `extensions`, `mimetypes`, and 
 
 ## Order
 
-With `multiple`, the user can drag the files into a new order. `SyncMedia` stores the order, and `FileUpload::items()` gives the files in it.
+With `multiple`, the user can drag the files into a new order. `SyncMedia` stores the order, and `FileUpload::items()` gives the files in it. `:sortable="false"` stops the drag, for a model that stores no order.
 
 ## Disabled
 
@@ -99,7 +99,8 @@ Give the model media with the kit's `HasMedia` contract and `InteractsWithMedia`
 |---------------|---------|-----------------------------------------------------------------------------------------------------------------------------|
 | Field props   |         | `label`, `required`, `badge`, `hint`, `description`, `description:trailing`, and `no-error-message`. See [Field](field.md). |
 | `rules`       |         | Required. The validation rules for each file, as an array or as a string with the rules between pipes.                     |
-| `multiple`    | `false` | Takes more than one file, and lets the user change their order.                                                             |
+| `multiple`    | `false` | Takes more than one file, and lets the user change their order, unless `sortable` is off.                                   |
+| `sortable`    | `true`  | Lets the user drag the files into a new order with `multiple`. Turn it off for a model that stores no order.                |
 | `max`         |         | The largest number of files with `multiple`.                                                                                |
 | `accept`      |         | The file types that the picker offers. By default, they come from the rules.                                                |
 | `heading`     |         | The heading of the dropzone. By default, it asks the user to drop a file or click.                                          |

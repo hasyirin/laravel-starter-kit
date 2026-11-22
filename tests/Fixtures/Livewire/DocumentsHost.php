@@ -13,11 +13,13 @@ class DocumentsHost extends Component
         ['uuid' => 'contract', 'name' => 'contract.pdf', 'size' => 2048, 'mime_type' => 'application/pdf'],
     ];
 
+    public bool $sortable = true;
+
     public function render(): string
     {
         return <<<'BLADE'
             <div>
-                <x-file-upload label="Documents" wire:model="documents" :rules="['mimes:pdf']" multiple />
+                <x-file-upload label="Documents" wire:model="documents" :rules="['mimes:pdf']" multiple :$sortable />
             </div>
             BLADE;
     }

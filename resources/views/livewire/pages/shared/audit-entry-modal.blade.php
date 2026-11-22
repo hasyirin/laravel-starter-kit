@@ -76,7 +76,7 @@
                 @endif
 
                 @if($changes->isEmpty())
-                    <flux:text>{{ __('common/audit.no_changes') }}</flux:text>
+                    <flux:text>{{ $description ?? __('common/audit.no_changes') }}</flux:text>
                 @else
                     <flux:table>
                         <flux:table.columns>

@@ -19,6 +19,16 @@ abstract class AuditEntryModal extends Modal
 
     abstract protected function find(int $id): Activity;
 
+    /**
+     * An app overrides this to describe an entry without changed fields, such as an event that keeps its details in the properties.
+     *
+     * @return string|null
+     */
+    protected function descriptionWithoutChanges(Activity $entry)
+    {
+        return null;
+    }
+
     public function mount(): void
     {
         $this->authorizeLog();
@@ -38,6 +48,8 @@ abstract class AuditEntryModal extends Modal
 
     public function render(): View
     {
-        return view('livewire.pages.shared.audit-entry-modal');
+        return view('livewire.pages.shared.audit-entry-modal', [
+            'description' => $this->entry instanceof Activity ? $this->descriptionWithoutChanges($this->entry) : null,
+        ]);
     }
 }

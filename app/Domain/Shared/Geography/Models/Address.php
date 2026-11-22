@@ -22,6 +22,6 @@ class Address extends \Hasyirin\Address\Models\Address
      */
     protected function auditExcludedColumns(): array
     {
-        return ['addressable_type', 'addressable_id', 'properties'];
+        return ['addressable_type', 'addressable_id', 'type', 'properties'];
     }
 }

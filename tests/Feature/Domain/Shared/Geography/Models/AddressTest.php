@@ -46,8 +46,7 @@ test('the audit entry of a new address leaves out the record that it belongs to 
 
     $changes = Activity::query()->whereMorphedTo('subject', $address)->where('event', 'created')->sole()->attribute_changes;
 
-    expect($changes?->get('attributes'))->toHaveKey('type', 'primary')
-        ->toHaveKey('line_1')
+    expect($changes?->get('attributes'))->toHaveKey('line_1')
         ->not->toHaveKeys(['addressable_type', 'addressable_id', 'properties', 'id', 'created_at', 'updated_at']);
 });
 
@@ -60,5 +59,24 @@ test('the audit entry of an address names the address and its fields in the lang
     $entry = Activity::query()->whereMorphedTo('subject', $address)->sole();
 
     expect(AuditLog::subjectLabel($entry))->toBe("Alamat #{$address->id}")
-        ->and(AuditLog::fieldLabels($entry))->toContain('Jenis');
+        ->and(AuditLog::fieldLabels($entry))->toContain('Alamat');
+});
+
+test('an address leaves its type out of the audit log', function (): void {
+    $venue = Venue::query()->create(['name' => 'Dewan Besar']);
+
+    $address = $venue->address()->create(['line_1' => '1 Jalan Satu']);
+    $address->update(['type' => 'mailing', 'line_1' => '2 Jalan Dua']);
+
+    expect($address->refresh()->type)->toBe('mailing');
+
+    $entries = Activity::query()->whereMorphedTo('subject', $address)->get();
+    $updated = $entries->firstWhere('event', 'updated')->attribute_changes;
+
+    expect($entries)->toHaveCount(2)
+        ->and($updated?->get('attributes'))->toHaveKey('line_1', '2 Jalan Dua')
+        ->not->toHaveKey('type')
+        ->and($updated?->get('old'))->not->toHaveKey('type');
+
+    $entries->each(fn (Activity $entry) => expect($entry->attribute_changes?->get('attributes'))->not->toHaveKey('type'));
 });

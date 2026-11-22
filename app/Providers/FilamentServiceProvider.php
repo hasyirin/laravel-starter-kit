@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Livewire\Components\DatabaseNotifications;
+use App\Livewire\Components\Notifications;
 use Filament\Actions\Exports\Http\Controllers\DownloadExport;
 use Filament\Actions\Imports\Http\Controllers\DownloadImportFailureCsv;
-use Filament\Notifications\Livewire\DatabaseNotifications;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class FilamentServiceProvider extends ServiceProvider
 {
@@ -21,6 +23,8 @@ class FilamentServiceProvider extends ServiceProvider
         FilamentView::spa();
 
         DatabaseNotifications::trigger('layouts.partials.notification-bell');
+        Livewire::component('database-notifications', DatabaseNotifications::class);
+        Livewire::component('notifications', Notifications::class);
 
         $this->configureColors();
         $this->removeExportAndImportRoutes();

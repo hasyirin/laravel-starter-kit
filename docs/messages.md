@@ -168,3 +168,16 @@ expect(Message::query()->where('channel', 'sms')->sole()->status)->toBe(MessageS
 ```
 
 A fake of the notifications stops the notification events, so a test with it makes no row. For an SMS, bind `Tests\Fixtures\Gateways\FakeGateway`. See [SMS](sms.md#test-sms).
+
+## Broadcast to the Bell
+
+The bell and the Filament toasts listen on a private channel of the user. The default name of this channel holds the sequential id of the user.
+
+The kit replaces both components with `App\Livewire\Components\DatabaseNotifications` and `App\Livewire\Components\Notifications`. They print no channel when the default broadcast connection has no driver, or uses the log or null driver.
+
+If an app turns broadcasting on, do these steps:
+
+1. Install broadcasting as the Laravel docs describe. Add Laravel Echo to the JavaScript, because the Filament script needs it.
+2. Add a key to users that is not sequential, such as a UUID column.
+3. Give `User` a `receivesBroadcastNotificationsOn()` method that returns a channel name with that key.
+4. Authorize that channel in routes/channels.php.

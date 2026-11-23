@@ -139,3 +139,47 @@ test('a page shows its text in the chosen language', function (string $language,
     'English' => ['en', 'Log in to your account'],
     'Malay' => ['ms', 'Log masuk ke akaun anda'],
 ]);
+
+test('a page gets the browser preferences mark when the user and the browser gave no value', function (array $preferences, array $cookies, array $languageCookie): void {
+    $user = User::factory()->create($preferences);
+
+    $this->actingAs($user)
+        ->withCookies($languageCookie)
+        ->withUnencryptedCookies($cookies)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('<meta name="browser-preferences" content="missing" />', false);
+})->with([
+    'no time zone and no timezone cookie' => [['locale' => 'en-MY', 'language' => 'en'], ['locale' => 'en-MY'], []],
+    'no locale and no locale cookie' => [['timezone' => 'Asia/Kuala_Lumpur', 'language' => 'en'], ['timezone' => 'Asia/Kuala_Lumpur'], ['language' => 'en']],
+    'no language, no locale cookie and no language cookie' => [['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-MY'], ['timezone' => 'Asia/Kuala_Lumpur'], []],
+    'no language, no locale cookie and a language cookie that is not listed' => [['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-MY'], ['timezone' => 'Asia/Kuala_Lumpur'], ['language' => 'xx']],
+]);
+
+test('a page gets no browser preferences mark when nothing is missing', function (array $preferences, array $cookies, array $languageCookie): void {
+    $user = User::factory()->create($preferences);
+
+    $this->actingAs($user)
+        ->withCookies($languageCookie)
+        ->withUnencryptedCookies($cookies)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertDontSee('<meta name="browser-preferences"', false);
+})->with([
+    'the user has all three and the browser sent no cookies' => [['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-MY', 'language' => 'en'], [], []],
+    'the user has none and the browser sent both cookies' => [[], ['timezone' => 'Asia/Tokyo', 'locale' => 'en-GB,en'], []],
+    'the user has none and the browser sent unknown values' => [[], ['timezone' => 'Mars/Olympus', 'locale' => 'xx'], []],
+    'the user has no language and the switch sent one' => [['timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en-MY'], [], ['language' => 'ms']],
+    'the user has no time zone and the browser sent only that cookie' => [['locale' => 'en-MY', 'language' => 'en'], ['timezone' => 'Asia/Tokyo'], []],
+]);
+
+test('a guest page gets no browser preferences mark', function (): void {
+    $this->get(route('login'))->assertOk()->assertDontSee('<meta name="browser-preferences"', false);
+});
+
+test('an impersonated user without preferences gets the mark when the browser sent no cookies', function (): void {
+    $this->actingAs(User::factory()->create());
+    Impersonation::begin(User::factory()->create(), route('dashboard'));
+
+    $this->get(route('dashboard'))->assertOk()->assertSee('<meta name="browser-preferences" content="missing" />', false);
+});

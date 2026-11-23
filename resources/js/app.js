@@ -16,14 +16,37 @@ const remember = (name, value) => {
     document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; samesite=lax${location.protocol === 'https:' ? '; secure' : ''}`;
 };
 
-// After a deploy, wire:navigate runs the new build of this file: reload instead of starting a second Livewire.
-if (window.livewireStarted) {
+const reloadForBrowserPreferences = () => {
+    if (!document.querySelector('meta[name="browser-preferences"]')) {
+        return false;
+    }
+
+    // If the browser blocks cookies, the page has the mark again: this key stops a second reload.
+    try {
+        if (sessionStorage.getItem('browser-preferences-reloaded')) {
+            return false;
+        }
+
+        sessionStorage.setItem('browser-preferences-reloaded', '1');
+    } catch {
+        return false;
+    }
+
     window.location.reload();
-} else {
+
+    return true;
+};
+
+const start = () => {
     window.livewireStarted = true;
     // The server fills an empty time zone, language, and locale of the user from these.
     remember('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
     remember('locale', navigator.languages.join(','));
+
+    if (reloadForBrowserPreferences()) {
+        return;
+    }
+
     blurOnLeave();
     nameEditors();
     Alpine.data('card', card);
@@ -37,4 +60,11 @@ if (window.livewireStarted) {
     Alpine.data('sliderField', sliderField);
     Alpine.data('tabs', tabs);
     Livewire.start();
+};
+
+// After a deploy, wire:navigate runs the new build of this file: reload instead of starting a second Livewire.
+if (window.livewireStarted) {
+    window.location.reload();
+} else {
+    start();
 }

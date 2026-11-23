@@ -2,6 +2,9 @@
 <meta name="csrf-token" content="{{ csrf_token() }}" />
 <meta name="application-name" content="{{ config('app.name') }}" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@if(context()->getHidden('browser_preferences_missing'))
+    <meta name="browser-preferences" content="missing" />
+@endif
 
 <title>{{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}</title>
 

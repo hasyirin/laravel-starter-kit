@@ -64,7 +64,8 @@ Make the parameter of `to()` nullable only when a create action shares the metho
 - A click on a row runs the action named `view`, or `edit` when the table has no `view` action. A row has no click when the table has neither, or when that action is hidden for the row. Override `recordAction()` to run another action, or `recordUrl()` to link each row to a page. A link wins over an action.
 - `recordUrl()` does not check access. Return null when the user cannot open the record, for example `$this->can('view', $record) ? route('notes.show', $record) : null`.
 - The browser cannot ask for a page size outside the options of the table, so it cannot load every row.
-- The table handles a record key that is not valid for the model like a deleted row. The row action does not open, and no query gets the key.
+- A row can change, or someone can delete it, after the page loads. If the row then does not allow the clicked row action, the table shows `common/workflows.changed` and reloads the page. An action that `disabled()` turns off for the row gets the same toast and reload. The table also checks the row again when the user confirms the modal of a row action.
+- If a row action gets a record key that is not valid for the model, the action does not open. No query gets the key, and the table shows no message.
 - A relation filter drops each value that is not a valid key. If no value stays, the filter matches no record.
 - A select filter with a value of the wrong shape, such as a list for a single select, matches no record.
 - A yes or no filter with a value that is not yes, no, or empty goes back to its default.

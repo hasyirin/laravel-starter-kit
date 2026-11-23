@@ -277,6 +277,8 @@ test('a row or column action with a malformed record key mounts nothing and send
     $table->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => $key])
         ->assertOk()
         ->assertSet('mountedActions', [])
+        ->assertNotDispatched('toast-show')
+        ->assertNoRedirect()
         ->call('callTableColumnAction', 'title', $key)
         ->assertOk();
 
@@ -295,16 +297,158 @@ test('a row or column action with a record key that is not text mounts nothing',
     $table->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => [1]])
         ->assertOk()
         ->assertSet('mountedActions', [])
+        ->assertNotDispatched('toast-show')
+        ->assertNoRedirect()
         ->call('callTableColumnAction', 'title', [1])
         ->assertOk();
 
     expectNoQueryWith($queries, [1]);
 });
 
-test('a row action on a missing record mounts nothing', function (): void {
+test('a row action that the changed row no longer allows shows the changed toast and reloads the page', function (): void {
+    $page = url('/notebooks/1?tab=notes');
+    session()->setPreviousUrl($page);
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Leak']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook]);
+    $note->update(['locked' => true]);
+
+    $table->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => (string) $note->id])
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('common/workflows.changed'))
+        ->assertRedirect($page)
+        ->assertSet('mountedActions', []);
+});
+
+test('a row action on a deleted row shows the changed toast and reloads the page', function (): void {
+    $page = url('/notebooks/1?tab=notes');
+    session()->setPreviousUrl($page);
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Leak']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook]);
+    $note->delete();
+
+    $table->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => (string) $note->id])
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('common/workflows.changed'))
+        ->assertRedirect($page)
+        ->assertSet('mountedActions', []);
+});
+
+test('a row action that the row turns off shows the changed toast and reloads the page', function (): void {
+    $page = url('/notebooks/1?tab=notes');
+    session()->setPreviousUrl($page);
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Protected']);
+
+    Livewire::test(NoteDataTable::class, ['notebook' => $notebook])
+        ->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => (string) $note->id])
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('common/workflows.changed'))
+        ->assertRedirect($page)
+        ->assertSet('mountedActions', []);
+});
+
+test('a row action with an unknown name opens nothing and shows no toast', function (): void {
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Leak']);
+
+    Livewire::test(NoteDataTable::class, ['notebook' => $notebook])
+        ->call('mountAction', 'missing', [], ['table' => true, 'recordKey' => (string) $note->id])
+        ->assertSet('mountedActions', [])
+        ->assertNotDispatched('toast-show')
+        ->assertNoRedirect();
+});
+
+test('a row action in a schema component context goes to Filament without a toast', function (): void {
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Leak']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook]);
+    $note->delete();
+
+    $table->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => (string) $note->id, 'schemaComponent' => 'form.title'])
+        ->assertNotDispatched('toast-show')
+        ->assertNoRedirect();
+});
+
+test('a row action that the row allows opens without a toast or a reload', function (): void {
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Leak']);
+
+    Livewire::test(NoteDataTable::class, ['notebook' => $notebook])
+        ->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => $note->id])
+        ->assertSet('mountedActions.0.name', 'delete')
+        ->assertNotDispatched('toast-show')
+        ->assertNoRedirect();
+});
+
+test('a header action runs without a toast or a reload', function (): void {
     Livewire::test(NoteDataTable::class, ['notebook' => Notebook::query()->create()])
-        ->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => '999'])
-        ->assertOk()
+        ->call('mountAction', 'create', [], ['table' => true])
+        ->assertDispatchedTo(NoteModal::class, 'show')
+        ->assertNotDispatched('toast-show')
+        ->assertNoRedirect();
+});
+
+test('a confirm click on a row action that the changed row no longer allows shows the changed toast and reloads the page', function (): void {
+    $page = url('/notebooks/1?tab=notes');
+    session()->setPreviousUrl($page);
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Leak']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook])
+        ->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => (string) $note->id])
+        ->assertSet('mountedActions.0.name', 'delete');
+    $note->update(['locked' => true]);
+
+    $table->call('callMountedAction')
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('common/workflows.changed'))
+        ->assertRedirect($page)
+        ->assertSet('mountedActions', []);
+
+    expect($note->fresh()->trashed())->toBeFalse();
+});
+
+test('a confirm click on a row action of a deleted row shows the changed toast and reloads the page', function (): void {
+    $page = url('/notebooks/1?tab=notes');
+    session()->setPreviousUrl($page);
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Leak']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook])
+        ->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => (string) $note->id])
+        ->assertSet('mountedActions.0.name', 'delete');
+    $note->delete();
+
+    $table->call('callMountedAction')
+        ->assertDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('common/workflows.changed'))
+        ->assertRedirect($page)
+        ->assertSet('mountedActions', []);
+});
+
+test('a confirm click on a row action that still applies runs the action', function (): void {
+    $notebook = Notebook::query()->create();
+    $note = $notebook->notes()->create(['title' => 'Leak']);
+
+    Livewire::test(NoteDataTable::class, ['notebook' => $notebook])
+        ->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => (string) $note->id])
+        ->assertSet('mountedActions.0.name', 'delete')
+        ->call('callMountedAction')
+        ->assertNotDispatched('toast-show', fn (string $name, array $params): bool => $params['slots']['text'] === __('common/workflows.changed'))
+        ->assertNoRedirect()
+        ->assertSet('mountedActions', []);
+
+    expect($note->fresh()->trashed())->toBeTrue();
+});
+
+test('an action without a modal on another row runs after the row of the open modal was deleted', function (): void {
+    $notebook = Notebook::query()->create();
+    $deleted = $notebook->notes()->create(['title' => 'Deleted']);
+    $kept = $notebook->notes()->create(['title' => 'Kept']);
+    $table = Livewire::test(NoteDataTable::class, ['notebook' => $notebook])
+        ->call('mountAction', 'delete', [], ['table' => true, 'recordKey' => (string) $deleted->id])
+        ->assertSet('mountedActions.0.name', 'delete');
+    $deleted->delete();
+
+    $table->call('mountAction', 'view', [], ['table' => true, 'recordKey' => (string) $kept->id])
+        ->assertDispatchedTo(NoteModal::class, 'show', id: $kept->id)
+        ->assertNotDispatched('toast-show')
+        ->assertNoRedirect()
         ->assertSet('mountedActions', []);
 });
 
@@ -455,6 +599,14 @@ test('an options filter drops an empty value', function (string $property, array
 
 test('the browser cannot call the column action of Filament behind the guard', function (): void {
     Livewire::test(PlainNoteDataTable::class)->call('callFilamentTableColumnAction', 'title', [1]);
+})->throws(MethodNotFoundException::class);
+
+test('the browser cannot call mountFilamentAction', function (): void {
+    Livewire::test(PlainNoteDataTable::class)->call('mountFilamentAction', 'delete', [], ['table' => true, 'recordKey' => '1']);
+})->throws(MethodNotFoundException::class);
+
+test('the browser cannot call callMountedFilamentAction', function (): void {
+    Livewire::test(PlainNoteDataTable::class)->call('callMountedFilamentAction');
 })->throws(MethodNotFoundException::class);
 
 test('the browser cannot call the filter update of Filament behind the cleaning', function (): void {

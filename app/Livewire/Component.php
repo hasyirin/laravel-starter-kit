@@ -64,7 +64,10 @@ abstract class Component extends \Livewire\Component
         Flux::toast(variant: 'success', text: __($key, ['record' => $record]));
     }
 
-    private function reloadChangedRecord(): void
+    /**
+     * @return void
+     */
+    protected function reloadChangedRecord()
     {
         Flux::toast(variant: 'warning', text: __('common/workflows.changed'));
 

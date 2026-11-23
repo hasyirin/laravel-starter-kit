@@ -30,14 +30,18 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Arr;
 
 abstract class DataTable extends Component implements HasActions, HasSchemas, HasTable
 {
     use InteractsWithActions {
+        callMountedAction as protected callMountedFilamentAction;
+        mountAction as protected mountFilamentAction;
         resolveTableAction as resolveFilamentTableAction;
     }
     use InteractsWithSchemas;
     use InteractsWithTable {
+        bootedInteractsWithTable as protected bootedFilamentInteractsWithTable;
         callTableColumnAction as protected callFilamentTableColumnAction;
         paginateTableQuery as protected paginateFilamentTableQuery;
         resetLivewirePage as protected;
@@ -55,6 +59,11 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
     private const array TERNARY_VALUES = [true, false, 0, 1, '0', '1', ''];
 
     private const int MAX_PAGE = 2147483647;
+
+    /**
+     * @var array<mixed>|null
+     */
+    private ?array $sentMountedActions = null;
 
     /**
      * @return array<int, Column>
@@ -97,6 +106,49 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
         }
 
         return $this->callFilamentTableColumnAction($name, $recordKey);
+    }
+
+    /**
+     * @param  array<string, mixed>  $arguments
+     * @param  array<string, mixed>  $context
+     */
+    #[Exposed]
+    public function mountAction(string $name, array $arguments = [], array $context = []): mixed
+    {
+        if ($this->mountedActions === [] && $this->rowActionGone($name, $context)) {
+            $this->reloadChangedRecord();
+
+            return null;
+        }
+
+        return $this->mountFilamentAction($name, $arguments, $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $arguments
+     */
+    #[Exposed]
+    public function callMountedAction(array $arguments = []): mixed
+    {
+        if ($this->confirmedRowActionGone()) {
+            $this->unmountAction(cancelParentActions: true);
+            $this->reloadChangedRecord();
+
+            return null;
+        }
+
+        return $this->callMountedFilamentAction($arguments);
+    }
+
+    /**
+     * Filament empties mountedActions here when the row of a mounted action is gone.
+     */
+    #[Unexposed]
+    public function bootedInteractsWithTable(): void
+    {
+        $this->sentMountedActions ??= $this->mountedActions ?? [];
+
+        $this->bootedFilamentInteractsWithTable();
     }
 
     #[Unexposed]
@@ -251,6 +303,68 @@ abstract class DataTable extends Component implements HasActions, HasSchemas, Ha
         throw_if(filled($key) && ! is_int($key) && ! is_string($key), ActionNotResolvableException::class, 'The record key is not text.');
 
         return $this->resolveFilamentTableAction($action, $parentActions);
+    }
+
+    /**
+     * @param  array<mixed>  $context
+     */
+    private function rowActionGone(string $name, array $context): bool
+    {
+        if (blank($context['table'] ?? null) || filled($context['schemaComponent'] ?? null)) {
+            return false;
+        }
+
+        $key = $context['recordKey'] ?? null;
+
+        if (is_int($key)) {
+            $key = (string) $key;
+        }
+
+        if (isset($context['bulk']) || ! is_string($key) || $key === '') {
+            return false;
+        }
+
+        $table = $this->getTable();
+
+        if ($table->hasQuery() && ! ModelKey::valid($this->recordModel(), $key)) {
+            return false;
+        }
+
+        $action = $table->getAction($name);
+
+        if (! $action instanceof Action) {
+            return false;
+        }
+
+        $record = $this->getTableRecord($key);
+
+        if ($record === null) {
+            return true;
+        }
+
+        return $action->getClone()->group(null)->record($record)->isDisabled();
+    }
+
+    private function confirmedRowActionGone(): bool
+    {
+        if ($this->mountActionNestingLevel > 0 || count($this->mountedActions ?? []) > 1) {
+            return false;
+        }
+
+        $root = $this->mountedActions[0] ?? null;
+
+        if ($root === null && count($this->sentMountedActions ?? []) === 1) {
+            $root = Arr::first($this->sentMountedActions);
+        }
+
+        $name = data_get($root, 'name');
+        $context = data_get($root, 'context');
+
+        if (! is_string($name) || ! is_array($context)) {
+            return false;
+        }
+
+        return $this->rowActionGone($name, $context);
     }
 
     private function cursorPaginated(): bool

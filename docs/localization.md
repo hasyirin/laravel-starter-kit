@@ -17,6 +17,8 @@ The app never uses a language that `system.languages` does not list. When the de
 
 A user without a language gets one on their first signed-in request, from step 2 or step 3. The app saves it without an audit entry. During impersonation, the app does not fill it, so the browser of the impersonator never sets the preferences of another user. The language switch also does not show during impersonation. A user who registers gets the language of the registration page.
 
+`resources/js/app.js` sends the time zone and the languages of the browser in the `timezone` and `locale` cookies. It sets them after the first page loads, so that page does not have them. A signed-in user can lack a time zone, a locale, or a language. If the browser has not sent the cookies that fill them, the page gets the `browser-preferences` meta tag. Then `resources/js/app.js` sets the cookies and loads the page again once. So all parts of the page use the same values. A key in the session storage of the browser stops a second load when the browser blocks cookies. Guest pages do not load again.
+
 ## Where a User Changes the Language
 
 - **The language switch**: `App\Livewire\Components\LanguageSwitch`. The auth pages show it under the form, with each language in its own name. The headers of the app, internal, and system areas show the short form before the notifications icon, for example EN and BM. `system.language_abbreviations` sets the short names, and a language without one shows its code in capitals.

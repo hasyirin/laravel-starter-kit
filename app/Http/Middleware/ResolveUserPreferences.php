@@ -39,11 +39,25 @@ class ResolveUserPreferences
         context()->addHidden([
             'timezone' => ($user instanceof User ? $user->timezone : null) ?? $timezone ?? config()->string('system.timezone'),
             'locale' => ($user instanceof User ? $user->locale : null) ?? $locale ?? config()->string('system.locale'),
+            'browser_preferences_missing' => $user instanceof User && $this->browserPreferencesMissing($request, $user, $language),
         ]);
 
         app()->setLocale(Languages::firstListed([$user?->language, $language]) ?? Languages::default());
 
         return $next($request);
+    }
+
+    private function browserPreferencesMissing(Request $request, User $user, ?string $language): bool
+    {
+        if ($user->timezone === null && ! $request->hasCookie('timezone')) {
+            return true;
+        }
+
+        if ($request->hasCookie('locale')) {
+            return false;
+        }
+
+        return $user->locale === null || ($user->language === null && $language === null);
     }
 
     /**

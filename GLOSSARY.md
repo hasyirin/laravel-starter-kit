@@ -142,6 +142,16 @@ _Malay_: Penyamar
 The user whom an impersonator uses the app as.
 _Malay_: Pengguna yang disamar
 
+**Session**:
+One browser or device where a user is signed in, from the sign-in until it signs out, is ended, or expires. During impersonation, the session belongs to the impersonator.
+_Avoid_: Device, login
+_Malay_: Sesi
+
+**End a session**:
+Sign a session out from another place, as the user or by management. A user who leaves from the session itself signs out.
+_Avoid_: Log out of a session, kill, revoke
+_Malay_: Tamatkan sesi
+
 **Management**:
 Work that a user does on records of other users, by permission. Examples: create a user, verify a user's email, approve an application. The opposite is work on your own records, such as a change to your preferences.
 _Avoid_: Administration, admin; also internal or system for this, because those are areas, not kinds of work

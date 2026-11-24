@@ -43,9 +43,9 @@ class SaveLetter
 
         $this->checkSigner($letter, $type, $key, $details->signer);
 
-        $extraRules = Field::rules($type->extraFields(), [$letter]);
+        $fields = $type->extraFields();
 
-        $validated = validator($extra, $extraRules)->validate();
+        $validated = validator($extra, Field::rules($fields, [$letter]), attributes: Field::attributes($fields))->validate();
 
         validator(['sequence_number' => $details->sequenceNumber], ['sequence_number' => ['nullable', 'integer', 'min:1']])->validate();
 

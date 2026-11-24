@@ -202,3 +202,104 @@ it('refuses a wrong number, date or yes-no value', function (): void {
         ->and(Validator::make([...$valid, 'on' => 'not a date'], $rules)->fails())->toBeTrue()
         ->and(Validator::make([...$valid, 'urgent' => 'maybe'], $rules)->fails())->toBeTrue();
 });
+
+it('names each rule key by the label of its field, or by its name', function (): void {
+    $fields = [
+        Field::text('recipient_name'),
+        Field::text('ref')->label('Reference No'),
+        Field::list('works'),
+    ];
+
+    expect(Field::attributes($fields))->toBe([
+        'recipient_name' => 'recipient name',
+        'ref' => 'reference No',
+        'works' => 'works',
+        'works.*' => 'works',
+    ])->and(Field::text('unitPrice')->displayLabel())->toBe('Unit Price')
+        ->and(Field::text('ref')->label('Reference No')->displayLabel())->toBe('Reference No');
+});
+
+it('gives a name to every key that has a rule', function (): void {
+    $fields = [
+        Field::text('title'),
+        Field::lines('body'),
+        Field::date('on'),
+        Field::number('amount'),
+        Field::yesNo('urgent'),
+        Field::choice('size', ['s' => 'Small']),
+        Field::list('notes'),
+        Field::image('logo'),
+        Field::table('items', [
+            Field::text('description'),
+            Field::group('proof', 'Proof', [Field::text('reference'), Field::list('pages')]),
+        ]),
+        Field::group('works', 'Works', [
+            Field::list('tasks'),
+            Field::table('costs', [Field::number('amount')]),
+            Field::group('site', 'Site', [Field::text('address')]),
+        ]),
+    ];
+
+    expect(collect(Field::attributes($fields))->keys()->all())->toEqualCanonicalizing(collect(Field::rules($fields))->keys()->all());
+});
+
+it('names a table column and a group member by their own label, not by a path', function (): void {
+    $fields = [
+        Field::table('items', [Field::text('description'), Field::number('unit_price')]),
+        Field::group('minorWorks', 'Minor works', [
+            Field::text('contractor')->label('Contractor name'),
+            Field::text('site'),
+        ]),
+    ];
+    $values = [
+        'items' => [['description' => 'Paint', 'unit_price' => 'many']],
+        'minorWorks' => ['site' => 'Hall'],
+    ];
+
+    $errors = Validator::make($values, Field::rules($fields), [], Field::attributes($fields))->errors();
+
+    expect($errors->first('items.0.unit_price'))->toBe('The unit price field must be a number.')
+        ->and($errors->first('minorWorks.contractor'))->toBe('The contractor name field is required when site is present.');
+});
+
+it('keeps acronyms and names in a field name', function (Field $field, string $name): void {
+    expect(Field::attributes([$field]))->toBe([$field->name => $name]);
+})->with([
+    'a plain label' => [Field::text('recipient')->label('Recipient name'), 'recipient name'],
+    'a name' => [Field::text('mykad')->label('MyKad number'), 'MyKad number'],
+    'an acronym' => [Field::text('code')->label('SMS code'), 'SMS code'],
+    'a short first word' => [Field::text('ic')->label('No. MyKad (IC)'), 'no. MyKad (IC)'],
+    'no label' => [Field::number('unit_price'), 'unit price'],
+]);
+
+it('keeps a name in the first word of a message', function (): void {
+    $fields = [Field::text('mykad')->label('MyKad number')];
+
+    $errors = Validator::make([], Field::rules($fields), [], Field::attributes($fields))->errors();
+
+    expect($errors->first('mykad'))->toBe('The MyKad number field is required.');
+});
+
+test('a label written with a translation follows the page language', function (): void {
+    app()->setLocale('ms');
+    $fields = [Field::text('signer')->label(__('letters/letters.signer'))];
+
+    $errors = Validator::make([], Field::rules($fields), [], Field::attributes($fields))->errors();
+
+    expect($errors->first('signer'))->toBe('Medan penandatangan diperlukan.');
+});
+
+it('names an image field by its label in its messages', function (): void {
+    $owner = Crest::query()->create(['name' => 'Owner']);
+    Storage::fake('local');
+    $image = UploadedFile::fake()->image('logo.png');
+    file_put_contents($image->getRealPath(), str_repeat("\0", 10 * 1024 * 1024), FILE_APPEND);
+    $image->storeAs('livewire-tmp', 'logo.png', 'local');
+    $fields = [Field::image('logo')->label('Crest logo')];
+
+    $refused = Validator::make(['logo' => 'not-a-uuid'], Field::rules($fields, [$owner]), [], Field::attributes($fields));
+    $tooLarge = Validator::make(['logo' => new TemporaryUploadedFile('logo.png', 'local')], Field::rules($fields), [], Field::attributes($fields));
+
+    expect($refused->errors()->first('logo'))->toBe('The crest logo field must be an image.')
+        ->and($tooLarge->errors()->first('logo'))->toBe('The crest logo field must not be greater than 10240 kilobytes.');
+});

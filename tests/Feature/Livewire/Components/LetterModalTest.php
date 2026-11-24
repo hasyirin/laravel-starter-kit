@@ -225,7 +225,7 @@ test('a group switched on with no field filled is an error on the group', functi
         ->set('form.type', 'extra')
         ->set('form.extra', ['remark' => 'Urgent', '_groups' => ['guarantor' => true], 'guarantor' => ['name' => '', 'phone' => '']])
         ->call('save')
-        ->assertHasErrors(['form.extra.guarantor']);
+        ->assertHasErrors(['form.extra.guarantor' => 'The guarantor field is required.']);
 
     expect($this->permit->letters()->count())->toBe(0);
 });

@@ -77,6 +77,8 @@ class PermitApprovalLetter extends LetterType
 
 The field types are text, lines, date, number, yes or no, choice, list, table, image, and group. Make a field optional with `optional()`. Set its label with `label()`. A group holds child fields. A group that has no filled child counts as absent. A yes or no child set to no does not count as filled.
 
+The form shows a label as written. For a label in the page language, write `->label(__('key'))`. A message names a field as inside a sentence. It writes the first word in lower case, unless a later letter of that word is a capital, as in "MyKad". The other words keep their case. A field without a label gets its name in lower case in a message. To keep an acronym, give the field a label. A letter never prints a label.
+
 The mapping makes every decision. It compares dates with `$date`, never with today, so a reprint makes the same choices. Fixed text belongs to the view. A change to fixed text is a change to the letter type.
 
 #### Strict Mapping
@@ -597,6 +599,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - a letter of another source or type is refused
 - an image of the letter is copied onto the audit entry and stays when the letter image is replaced
 - a failed audit entry leaves no copy of a letter image
+- a missing required value is named by its label in the message
+- a wrong table column value is named by the label of the column, without a row index
 
 ### RenderPdf
 
@@ -660,6 +664,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - two saves by one action that an outer transaction rolls back leave no stored image and the saved letter as it was
 - an override number below 1 is refused
 - clearing a typed reference number clears the sequence key
+- a missing extra field is named by its label in the message
 
 ### SaveLetterhead
 
@@ -740,6 +745,13 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it refuses an svg as an image
 - it refuses an invalid table row
 - it refuses a wrong number, date or yes-no value
+- it names each rule key by the label of its field, or by its name
+- it gives a name to every key that has a rule
+- it names a table column and a group member by their own label, not by a path
+- it keeps acronyms and names in a field name
+- it keeps a name in the first word of a message
+- a label written with a translation follows the page language
+- it names an image field by its label in its messages
 
 ### LetterData
 
@@ -772,6 +784,7 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it has safe defaults
 - the label is the headline of the config key by default
 - a letter type can override its label
+- it names a group member by its label when a value fails its rule
 
 ### LetterTypes
 

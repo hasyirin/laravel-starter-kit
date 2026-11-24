@@ -108,7 +108,7 @@ class PrintManualLetter
     private function validated(string $part, array $values, array $fields, array $owners): array
     {
         try {
-            $validated = validator($values, Field::rules($fields, $owners))->validate();
+            $validated = validator($values, Field::rules($fields, $owners), attributes: Field::attributes($fields))->validate();
         } catch (ValidationException $validationException) {
             throw $this->prefixErrors($validationException, $part);
         }

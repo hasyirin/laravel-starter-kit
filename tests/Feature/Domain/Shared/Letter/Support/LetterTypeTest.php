@@ -7,6 +7,7 @@ use App\Domain\Shared\Letter\Support\LetterData;
 use App\Domain\Shared\Organization\Models\Organization;
 use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
+use Tests\Fixtures\Support\LabelledFieldsNoticeLetter;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\PermitLabelledLetter;
 use Tests\Fixtures\Support\RemarkNoticeLetter;
@@ -81,4 +82,27 @@ test('a letter type can override its label', function (): void {
     config()->set('system.letters.types', ['labelled' => PermitLabelledLetter::class]);
 
     expect(new PermitLabelledLetter()->label())->toBe('Permit Approval');
+});
+
+function labelledLetterDataErrors(Organization $organization, CarbonImmutable $date): array
+{
+    try {
+        (new LabelledFieldsNoticeLetter)->letterData($organization, $date);
+    } catch (ValidationException $validationException) {
+        return $validationException->errors();
+    }
+
+    throw new RuntimeException('The data was not refused.');
+}
+
+it('names a group member by its label when a value fails its rule', function (): void {
+    config()->set('system.letters.types', ['labelled' => LabelledFieldsNoticeLetter::class]);
+    $organization = Organization::factory()->create();
+    $organization->name = str_repeat('a', 256);
+
+    expect(labelledLetterDataErrors($organization, $this->date)['works.contractor'])->toBe(['The contractor name field must not be greater than 255 characters.']);
+
+    app()->setLocale('ms');
+
+    expect(labelledLetterDataErrors($organization, $this->date)['works.contractor'])->toBe(['Medan contractor name tidak boleh melebihi 255 aksara.']);
 });

@@ -31,7 +31,9 @@ Each field becomes the kit input of its type, bound to prefix.name:
 | Table      | The columns of the field, repeated for each row             |
 | Group      | A switch that shows the fields of the group                 |
 
-The label is the label of the field. If the field has no label, the label is its name as a heading. A field that is not optional shows the required mark, also inside a group or a table row. The kit inputs also add the `required` attribute. A field inside a group is required only when another field of the group is filled, and the browser cannot check that. So add `novalidate` to the form and let the server rules decide. The letter form and the manual letter page do this.
+The label is the label of the field, used as written. If the field has no label, the label is its name as a heading. For a label in the page language, a letter type writes `->label(__('key'))`. A letter never prints a label. A field that is not optional shows the required mark, also inside a group or a table row. The kit inputs also add the `required` attribute. A field inside a group is required only when another field of the group is filled, and the browser cannot check that. So add `novalidate` to the form and let the server rules decide. The letter form and the manual letter page do this.
+
+A validation message names a field as inside a sentence. It writes the first word in lower case, unless a later letter of that word is a capital, as in "MyKad". A field without a label gets its name in lower case, so give it a label to keep an acronym.
 
 ## Values
 

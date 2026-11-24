@@ -131,7 +131,7 @@ trait HandlesLetterFields
         $filled = collect($children)->contains(fn (mixed $child): bool => ! in_array($child, [null, [], false], true));
 
         if (! $filled) {
-            throw ValidationException::withMessages([$path => __('validation.required', ['attribute' => $field->label ?? $field->name])]);
+            throw ValidationException::withMessages([$path => __('validation.required', ['attribute' => $field->attributeName()])]);
         }
 
         return $children;

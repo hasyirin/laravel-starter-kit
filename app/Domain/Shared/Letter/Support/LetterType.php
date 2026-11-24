@@ -148,19 +148,20 @@ abstract class LetterType
     {
         $values = $this->data($source, $date);
         $key = LetterTypes::keyOf($this);
-        $declared = collect($this->fields())->map(fn (Field $field): string => $field->name);
+        $fields = $this->fields();
+        $declared = collect($fields)->map(fn (Field $field): string => $field->name);
 
         $undeclared = collect($values)->keys()->diff($declared)->first();
         throw_if($undeclared !== null, LogicException::class, "{$key}: undeclared letter data [{$undeclared}]");
 
-        $required = collect($this->fields())
+        $required = collect($fields)
             ->reject(fn (Field $field): bool => $field->isOptional)
             ->map(fn (Field $field): string => $field->name);
         $missing = $required->diff(collect($values)->keys())->first();
         throw_if($missing !== null, LogicException::class, "{$key}: missing letter data [{$missing}]");
 
-        validator($values, Field::rules($this->fields(), [$source]))->validate();
+        validator($values, Field::rules($fields, [$source]), attributes: Field::attributes($fields))->validate();
 
-        return LetterData::from($this->fields(), $values, [$source]);
+        return LetterData::from($fields, $values, [$source]);
     }
 }

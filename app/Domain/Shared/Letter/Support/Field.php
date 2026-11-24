@@ -126,6 +126,59 @@ final readonly class Field
         );
     }
 
+    public function displayLabel(): string
+    {
+        return $this->label ?? str($this->name)->headline()->value();
+    }
+
+    /**
+     * @param  list<Field>  $fields
+     * @return array<string, string>
+     */
+    public static function attributes(array $fields): array
+    {
+        return collect($fields)
+            ->flatMap(fn (Field $field): array => $field->attributeSet($field->name))
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function attributeSet(string $key): array
+    {
+        $name = $this->attributeName();
+
+        return match ($this->type) {
+            FieldType::Text, FieldType::Lines, FieldType::Date, FieldType::Number, FieldType::YesNo, FieldType::Choice, FieldType::Image => [$key => $name],
+            FieldType::List => [$key => $name, $key.'.*' => $name],
+            FieldType::Table => collect($this->children)
+                ->flatMap(fn (Field $column): array => $column->attributeSet($key.'.*.'.$column->name))
+                ->prepend($name, $key.'.*')
+                ->prepend($name, $key)
+                ->all(),
+            FieldType::Group => collect($this->children)
+                ->flatMap(fn (Field $child): array => $child->attributeSet($key.'.'.$child->name))
+                ->prepend($name, $key)
+                ->all(),
+        };
+    }
+
+    public function attributeName(): string
+    {
+        if ($this->label === null) {
+            return str($this->name)->headline()->lower()->value();
+        }
+
+        $restOfFirstWord = str($this->label)->before(' ')->substr(1);
+
+        if ($restOfFirstWord->isMatch('/\p{Lu}/u')) {
+            return $this->label;
+        }
+
+        return str($this->label)->lcfirst()->value();
+    }
+
     /**
      * @param  list<Field>  $fields
      * @param  list<Model>  $mediaOwners
@@ -230,13 +283,13 @@ final readonly class Field
                 : is_string($value) && self::ownedImage($value, $mediaOwners) instanceof Media;
 
             if (! $valid) {
-                $fail(__('validation.image', ['attribute' => $attribute]));
+                $fail(__('validation.image'));
 
                 return;
             }
 
             if ($value instanceof TemporaryUploadedFile && $value->getSize() > self::MAX_IMAGE_KILOBYTES * 1024) {
-                $fail(__('validation.max.file', ['attribute' => $attribute, 'max' => self::MAX_IMAGE_KILOBYTES]));
+                $fail(__('validation.max.file', ['max' => self::MAX_IMAGE_KILOBYTES]));
             }
         };
     }

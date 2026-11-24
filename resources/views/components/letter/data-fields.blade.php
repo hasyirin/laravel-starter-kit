@@ -12,7 +12,7 @@
     @foreach($fields as $field)
         @php
             $key = $prefix.'.'.$field->name;
-            $label = $field->label ?? str($field->name)->headline()->value();
+            $label = $field->displayLabel();
             $fieldDisabled = $disabled || in_array($field->name, $locked, true);
             $required = ! $field->isOptional;
             $current = data_get($values, $field->name);

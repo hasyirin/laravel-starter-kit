@@ -33,6 +33,7 @@ use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\Fixtures\Models\Crest;
 use Tests\Fixtures\Support\CrestLetter;
+use Tests\Fixtures\Support\LabelledFieldsNoticeLetter;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\NumberedPrintedLetter;
 use Tests\Fixtures\Support\PrintedNoticeLetter;
@@ -53,6 +54,7 @@ beforeEach(function (): void {
         'printed' => PrintedNoticeLetter::class,
         'numbered' => NumberedPrintedLetter::class,
         'crest' => CrestLetter::class,
+        'labelled' => LabelledFieldsNoticeLetter::class,
     ]]);
     $this->organization = Organization::factory()->create(['name' => 'Acme Sdn Bhd']);
     $this->actor = User::factory()->create();
@@ -304,4 +306,35 @@ test('a failed audit entry leaves no copy of a letter image', function (): void 
 
     expect(fn (): PdfFile => printManual('printed', noticeData(), $letter->extra, source: $this->organization, letter: $letter))->toThrow(RuntimeException::class, 'The audit entry failed.');
     expect(Storage::disk('media')->allFiles())->toBe($files);
+});
+
+function manualErrors(array $data, array $extra): array
+{
+    try {
+        printManual('labelled', $data, $extra);
+    } catch (ValidationException $validationException) {
+        return $validationException->errors();
+    }
+
+    throw new RuntimeException('The print was not refused.');
+}
+
+test('a missing required value is named by its label in the message', function (): void {
+    $extra = ['remark' => 'x', 'lines' => [['amount' => 5]]];
+
+    expect(manualErrors(noticeData(['organizationName' => '']), $extra)['data.organizationName'])->toBe(['The organisation name field is required.']);
+
+    app()->setLocale('ms');
+
+    expect(manualErrors(noticeData(['organizationName' => '']), $extra)['data.organizationName'])->toBe(['Medan organisation name diperlukan.']);
+});
+
+test('a wrong table column value is named by the label of the column, without a row index', function (): void {
+    $errors = manualErrors(noticeData(), ['remark' => 'x', 'lines' => [['amount' => 5], ['amount' => 'abc']]]);
+
+    expect($errors['extra.lines.1.amount'])->toBe(['The unit price field must be a number.']);
+
+    app()->setLocale('ms');
+
+    expect(manualErrors(noticeData(), ['remark' => 'x', 'lines' => [['amount' => 'abc']]])['extra.lines.0.amount'])->toBe(['Medan unit price mesti nombor.']);
 });

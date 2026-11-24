@@ -28,6 +28,7 @@ use Livewire\Livewire;
 use Spatie\MediaLibrary\MediaCollections\Filesystem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\Fixtures\Support\ExtraNoticeLetter;
+use Tests\Fixtures\Support\LabelledFieldsNoticeLetter;
 use Tests\Fixtures\Support\NoticeLetter;
 use Tests\Fixtures\Support\NumberedNoticeLetter;
 use Tests\Fixtures\Support\OverrideNoticeLetter;
@@ -45,6 +46,7 @@ beforeEach(function (): void {
         'extra' => ExtraNoticeLetter::class,
         'numbered' => NumberedNoticeLetter::class,
         'override' => OverrideNoticeLetter::class,
+        'labelled' => LabelledFieldsNoticeLetter::class,
     ]]);
     $this->organization = Organization::factory()->create();
     $this->printer = User::factory()->create();
@@ -469,4 +471,23 @@ test('clearing a typed reference number clears the sequence key', function (): v
 
     expect($letter->fresh()?->reference_number)->toBeNull()
         ->and($letter->fresh()?->sequence_key)->toBeNull();
+});
+
+function labelledSaveErrors(): array
+{
+    try {
+        saveLetter('labelled', details(), ['lines' => [['amount' => 5]]]);
+    } catch (ValidationException $validationException) {
+        return $validationException->errors();
+    }
+
+    throw new RuntimeException('The save was not refused.');
+}
+
+test('a missing extra field is named by its label in the message', function (): void {
+    expect(labelledSaveErrors()['remark'])->toBe(['The remark for the office field is required.']);
+
+    app()->setLocale('ms');
+
+    expect(labelledSaveErrors()['remark'])->toBe(['Medan remark for the office diperlukan.']);
 });

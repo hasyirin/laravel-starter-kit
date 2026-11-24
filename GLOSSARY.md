@@ -147,6 +147,16 @@ One browser or device where a user is signed in, from the sign-in until it signs
 _Avoid_: Device, login
 _Malay_: Sesi
 
+**Deactivate a user**:
+Stop a user from signing in until staff activate them again. Their records stay.
+_Avoid_: Suspend, block, disable, lock
+_Malay_: Nyahaktifkan pengguna
+
+**Deactivated user**:
+A user whom staff deactivated.
+_Avoid_: Inactive user, suspended user, blocked user
+_Malay_: Pengguna dinyahaktifkan
+
 **End a session**:
 Sign a session out from another place, as the user or by management. A user who leaves from the session itself signs out.
 _Avoid_: Log out of a session, kill, revoke
@@ -202,6 +212,16 @@ _Malay_: Log audit
 One change in the audit log: the record, the event, the user who made it, and the old and new values.
 _Avoid_: Activity, log entry
 _Malay_: Entri audit
+
+**Sign-in log**:
+The record of each sign-in, failed sign-in, sign-out, ended session, and impersonation, with where each one came from.
+_Avoid_: Login log, access log, authentication log
+_Malay_: Log log masuk
+
+**Sign-in entry**:
+One event in the sign-in log: the user if known, the event, the result, the time, and where it came from.
+_Avoid_: Login entry, log entry
+_Malay_: Entri log masuk
 
 ### Letters
 

@@ -6,6 +6,7 @@ use App\Domain\Shared\Letter\Actions\RenderPdf;
 use App\Domain\User\Support\Preferences;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\File;
+use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
 
@@ -44,6 +45,46 @@ it('prints html in letter data as text', function (): void {
     RenderPdf::make()->execute('tests::letters.plain', ['title' => '<b>bold</b>'], Preferences::current())->save('escaped.pdf');
 
     Pdf::assertSaved(fn (PdfBuilder $pdf): bool => str_contains($pdf->html, '&lt;b&gt;') && ! str_contains($pdf->html, '<b>bold</b>'));
+});
+
+/**
+ * @return array<string, string>
+ */
+function renderPdfNodeEnv(string $basePath): array
+{
+    $callback = RenderPdf::make()->execute('tests::letters.plain', ['title' => 'Hello'], Preferences::current())->getCustomizeBrowsershotCallback();
+    app()->setBasePath($basePath);
+
+    $browsershot = new class extends Browsershot
+    {
+        /**
+         * @return array<string, string>
+         */
+        public function nodeEnv(): array
+        {
+            return $this->nodeEnvVars;
+        }
+    };
+
+    expect($callback)->not->toBeNull();
+    $callback($browsershot);
+
+    return $browsershot->nodeEnv();
+}
+
+it('uses the Chrome in the app folder when the folder exists', function (): void {
+    $root = storage_path('framework/testing/'.str()->uuid7());
+    File::ensureDirectoryExists("{$root}/.cache/puppeteer");
+
+    try {
+        expect(renderPdfNodeEnv($root))->toBe(['PUPPETEER_CACHE_DIR' => "{$root}/.cache/puppeteer"]);
+    } finally {
+        File::deleteDirectory($root);
+    }
+});
+
+it('uses the default Chrome folder when the app folder has none', function (): void {
+    expect(renderPdfNodeEnv(storage_path('framework/testing/'.str()->uuid7())))->toBeEmpty();
 });
 
 it('loads no local file', function (): void {

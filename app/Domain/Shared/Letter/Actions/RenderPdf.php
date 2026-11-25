@@ -33,9 +33,22 @@ final class RenderPdf
 
         return Pdf::html($html)
             ->format(Format::A4)
-            ->withBrowsershot(fn (Browsershot $browsershot): Browsershot => $browsershot
-                ->blockUrls(['http://', 'https://'])
-                ->disableJavascript()
-                ->addChromiumArguments(['font-render-hinting' => 'none']));
+            ->withBrowsershot(fn (Browsershot $browsershot): Browsershot => $this->configure($browsershot));
+    }
+
+    private function configure(Browsershot $browsershot): Browsershot
+    {
+        $browsershot
+            ->blockUrls(['http://', 'https://'])
+            ->disableJavascript()
+            ->addChromiumArguments(['font-render-hinting' => 'none']);
+
+        $cache = base_path('.cache/puppeteer');
+
+        if (! is_dir($cache)) {
+            return $browsershot;
+        }
+
+        return $browsershot->setNodeEnv(['PUPPETEER_CACHE_DIR' => $cache]);
     }
 }

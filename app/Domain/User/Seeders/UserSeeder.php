@@ -18,7 +18,12 @@ class UserSeeder extends Seeder
             return;
         }
 
-        $user = User::factory()->create(['name' => $data['name'], 'email' => $data['email']]);
+        $user = User::query()->forceCreate([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'email_verified_at' => now(),
+            'password' => 'password',
+        ]);
 
         $user->profiles()->make()
             ->assignRole(...($data['roles'] ?? []))

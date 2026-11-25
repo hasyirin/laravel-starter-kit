@@ -6,6 +6,8 @@ use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\Shared\Permission\Seeders\RoleSeeder;
 use App\Domain\User\Models\User;
 use App\Domain\User\Seeders\UserSeeder;
+use Faker\Generator;
+use Illuminate\Support\Facades\Hash;
 use Tests\Fixtures\Seeders\AuditorUserSeeder;
 
 beforeEach(function (): void {
@@ -18,6 +20,26 @@ test('seeding creates the default users', function (): void {
     $this->assertDatabaseCount('users', 2);
     $this->assertDatabaseHas('users', ['name' => 'Super Admin', 'email' => 'admin@example.com']);
     $this->assertDatabaseHas('users', ['name' => 'Admin', 'email' => 'it@example.com']);
+});
+
+test('seeding gives each default user a verified email, no phone, and the password password', function (): void {
+    $this->seed(UserSeeder::class);
+
+    User::query()->get()->each(function (User $user): void {
+        expect($user->email_verified_at)->not->toBeNull()
+            ->and($user->phone)->toBeNull()
+            ->and(Hash::check('password', $user->password))->toBeTrue();
+    });
+});
+
+test('seeding works without Faker', function (): void {
+    $missing = fn (): never => throw new RuntimeException('Faker is not installed.');
+    app()->bind(Generator::class, $missing);
+    app()->bind(Generator::class.':'.config('app.faker_locale'), $missing);
+
+    $this->seed(UserSeeder::class);
+
+    $this->assertDatabaseCount('users', 2);
 });
 
 test('seeding skips a default user whose email already exists', function (): void {

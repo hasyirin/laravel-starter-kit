@@ -5,7 +5,7 @@ The app checks access with permissions, and roles group permissions. A user gets
 ## Add a Permission
 
 1. Add the permission to `permissions` in `config/system.php`. Give it a key path that matches its name, for example `internal.controls.roles.view`.
-2. Run `php artisan db:seed --class="App\Domain\Shared\Permission\Seeders\PermissionSeeder"`. It creates the new permission and deletes the permissions that are no longer in the config. Do not run all the seeders in production, because `UserSeeder` creates the default users.
+2. Run `php artisan db:seed --class="App\Domain\Shared\Permission\Seeders\PermissionSeeder"`. It creates the new permission and deletes the permissions that are no longer in the config. Do not run all the seeders after the first install, because `UserSeeder` creates the default users.
 3. Check the permission in a policy that extends `Policy`. `Policy::path()` builds the config key of a permission from the root, the policy prefix, the plural model name, and the ability. For example, `RolePolicy` checks `internal.controls.roles.view` for the `view` ability.
 
 ## Add a Role

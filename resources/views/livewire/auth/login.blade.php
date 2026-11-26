@@ -7,10 +7,6 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        @if(Feature::Passkeys->enabled())
-            <x-passkey-verify />
-        @endif
-
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
 
@@ -49,6 +45,10 @@
                 <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">{{ __('auth/login.submit') }}</flux:button>
             </div>
         </form>
+
+        @if(Feature::Passkeys->enabled())
+            <x-passkey-verify compact />
+        @endif
 
         @if(Route::has('register'))
             <div class="space-x-1 text-center text-sm text-zinc-600 rtl:space-x-reverse dark:text-zinc-400">

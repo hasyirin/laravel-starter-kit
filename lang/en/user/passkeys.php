@@ -28,7 +28,7 @@ return [
     'verify' => [
         'button' => 'Sign in with a passkey',
         'loading' => 'Authenticating...',
-        'separator' => 'Or continue with email',
+        'separator' => 'Or continue with',
     ],
 
     'confirm' => [

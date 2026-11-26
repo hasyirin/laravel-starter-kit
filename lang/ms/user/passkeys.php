@@ -24,7 +24,7 @@ return [
     'verify' => [
         'button' => 'Log masuk dengan passkey',
         'loading' => 'Mengesahkan...',
-        'separator' => 'Atau teruskan dengan e-mel',
+        'separator' => 'Atau teruskan dengan',
     ],
     'confirm' => [
         'button' => 'Sahkan dengan passkey',

@@ -15,3 +15,5 @@ The kit keeps one table of sessions for every session driver. Each row is one se
 - A daily job deletes the rows of expired sessions.
 - A session that started before this table existed gets its row at its next request. An old remember cookie is swapped for one with the token of its session, so no old cookie stays out of the list.
 - Laravel's `sessions` table stays only as the storage of the database driver.
+
+[Kit ADR-0027](0027-sessions-are-long-lived-and-the-kit-has-no-remember-me.md) replaces the remember token of each session with one long-lived session. The table of sessions stays.

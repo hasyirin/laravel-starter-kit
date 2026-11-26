@@ -10,9 +10,9 @@ The sign-in page has no "remember me" checkbox, and the kit sets no remember coo
 
 ## Consequences
 
-- `SESSION_LIFETIME` is the idle limit, in minutes, with a default of 43200 (30 days). `SESSION_MAX_DAYS` is the maximum from the sign-in, with a default of 90. An empty value means no maximum.
+- `SESSION_LIFETIME` is the idle limit, in minutes, with a default of 43200 (30 days). A new value, SESSION_MAX_DAYS, is the maximum from the sign-in, with a default of 90. An empty value means no maximum.
 - `SESSION_EXPIRE_ON_CLOSE` stays `false`, so closing the browser does not end the session.
-- The kit drops the `users.remember_token` column, and Laravel never reads or writes a remember token.
+- The kit drops the remember token column of users, and Laravel never reads or writes a remember token.
 - A remember cookie from before this decision signs nobody in. A user whose old session expired signs in once more.
 - The sign-in log has no "remember cookie refused" result. This replaces that point in [kit ADR-0026](0026-one-sign-in-log-records-who-used-which-account.md).
 - A sign-in on a shared computer stays signed in until the user signs out, or until the session is ended or expires. An app that needs short sessions sets `SESSION_LIFETIME` lower.

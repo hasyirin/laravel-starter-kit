@@ -66,6 +66,8 @@
         @if(Feature::Passkeys->enabled())
             <livewire:data-tables.settings.passkey-data-table />
         @endif
+
+        <livewire:data-tables.settings.sign-in-log-data-table />
     </div>
 
     @if(Feature::TwoFactorAuthentication->enabled())

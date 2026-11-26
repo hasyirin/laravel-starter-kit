@@ -110,6 +110,19 @@ test('the system sidebar shows the API log link only to users who can view the A
     Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.api'), 'data-flux-sidebar-spacer'], false);
 });
 
+test('the system sidebar shows the sign-in log link only to users who can view the sign-in log', function (): void {
+    $this->seed(PermissionSeeder::class);
+    $user = User::factory()->create();
+    grantPermissions($user, 'system.access');
+    $this->actingAs($user);
+
+    Livewire::test(Navigation::class)->assertDontSee(route('system.logs.sign-ins'));
+
+    grantPermissions($user, 'system.logs.sign-ins.view');
+
+    Livewire::test(Navigation::class)->assertSeeInOrder([route('system.dashboard'), route('system.logs.sign-ins'), 'data-flux-sidebar-spacer'], false);
+});
+
 test('the API clients link stays current on the create page and on the page and tabs of an API client', function (Closure $url): void {
     $this->seed(PermissionSeeder::class);
     $user = User::factory()->create();

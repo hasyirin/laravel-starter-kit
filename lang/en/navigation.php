@@ -23,6 +23,7 @@ return [
     'manual_letter' => 'Manual letter',
     'message_log' => 'Message log',
     'api_log' => 'API log',
+    'sign_in_log' => 'Sign-in log',
     'notifications' => 'Notifications',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',

@@ -145,6 +145,28 @@ test('viewing the audit log of a user needs view-audit-log', function (): void {
         ->and($this->user->can('view', [$this->user, 'audit-log']))->toBeTrue();
 });
 
+test('viewing the sign-in log of a user needs view-sign-in-log', function (): void {
+    grantPermissions($this->user, 'internal.controls.users.view');
+
+    expect($this->user->can('view', [$this->other, 'sign-in-log']))->toBeFalse()
+        ->and($this->user->can('view', [$this->user, 'sign-in-log']))->toBeFalse();
+
+    grantPermissions($this->user, 'internal.controls.users.view-sign-in-log');
+
+    expect($this->user->can('view', [$this->other, 'sign-in-log']))->toBeTrue()
+        ->and($this->user->can('view', [$this->user, 'sign-in-log']))->toBeTrue();
+});
+
+test('viewing the sign-in log of another user needs view as well as view-sign-in-log', function (): void {
+    grantPermissions($this->user, 'internal.controls.users.view-sign-in-log');
+
+    expect($this->user->can('view', [$this->other, 'sign-in-log']))->toBeFalse();
+
+    grantPermissions($this->user, 'internal.controls.users.view');
+
+    expect($this->user->can('view', [$this->other, 'sign-in-log']))->toBeTrue();
+});
+
 test('a typed ability needs the base ability and the typed permission', function (): void {
     grantPermissions($this->user, 'internal.controls.users.view-audit-log');
 

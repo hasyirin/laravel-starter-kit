@@ -10,7 +10,7 @@ The kit keeps one log, the sign-in log, for each sign-in, failed sign-in, sign-o
 
 ## Consequences
 
-- Impersonation starts and stops are entries of the impersonator, and each names the impersonated user. This does not go against [kit ADR-0008](0008-impersonation-keeps-the-impersonated-user-as-the-actor.md). That ADR keeps start and stop entries out of the audit log, because they cannot show which changes an impersonator made. The audit log still finds those changes through the impersonator's id on each audit entry.
+- Impersonation starts and stops get entries. Each entry names the impersonated user as its user and the impersonator as its impersonator, the same as each other entry during an impersonation. This does not go against [kit ADR-0008](0008-impersonation-keeps-the-impersonated-user-as-the-actor.md). That ADR keeps start and stop entries out of the audit log, because they cannot show which changes an impersonator made. The audit log still finds those changes through the impersonator's id on each audit entry.
 - A failed sign-in with no matching user stores no email address. It stores the IP address, the user agent, and the result.
 - A "remember me" renewal is not a sign-in, because the session continues. A remember cookie that the kit refuses is a failed sign-in.
 - The sign-in log has its own permission and its own retention period.

@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Domain\Shared\Common\Enums\Feature;
+use App\Domain\User\Models\SignInEntry;
 use App\Domain\User\Models\User;
+use App\Livewire\DataTables\Settings\SignInLogDataTable;
 use App\Livewire\Settings\Security;
 use App\Livewire\Settings\TwoFactor\RecoveryCodes;
 use Illuminate\Support\Facades\Hash;
@@ -95,6 +97,19 @@ test('the security page lists the passkeys of the user', function (): void {
         ->assertOk()
         ->assertSee('Work laptop')
         ->assertDontSee('No passkeys yet');
+});
+
+test('the security page lists the recent sign-ins of the user', function (): void {
+    $user = User::factory()->create();
+    SignInEntry::factory()->forUser($user)->create(['ip_address' => '192.0.2.44']);
+
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('settings', ['tab' => 'security']))
+        ->assertOk()
+        ->assertSeeLivewire(SignInLogDataTable::class)
+        ->assertSee(__('user/settings.sign_in_log.heading'))
+        ->assertSee('192.0.2.44');
 });
 
 test('two factor authentication disabled when confirmation abandoned between requests', function (): void {

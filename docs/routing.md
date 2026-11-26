@@ -61,7 +61,7 @@ Put page tests in `tests/Feature/Pages/`. The internal and system areas have the
 - A user gets their permissions from their active profile, and from roles and permissions given to the user directly. See **Profiles** in the README.
 - The two areas are separate. `system.access` does not open the internal area, so give both permissions to a user who needs both areas.
 - The `system-admin` role has the `bypass-authorization` permission. Its users pass every check, so they can open both areas.
-- Other permissions control the parts of each area. The roles, users, organizations, and geography pages use `internal.controls.roles.*`, `internal.controls.users.*`, `internal.controls.organizations.*`, and `internal.controls.geography.*`. Horizon uses `system.horizon.view`. The API client pages use `system.api-clients.*`, and the API log uses `system.logs.api.view`.
+- Other permissions control the parts of each area. The roles, users, organizations, and geography pages use `internal.controls.roles.*`, `internal.controls.users.*`, `internal.controls.organizations.*`, and `internal.controls.geography.*`. Horizon uses `system.horizon.view`. The API client pages use `system.api-clients.*`. The API log uses `system.logs.api.view`, and the sign-in log uses `system.logs.sign-ins.view`.
 
 ## After Login
 

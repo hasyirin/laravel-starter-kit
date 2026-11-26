@@ -72,7 +72,7 @@ Make the parameter of `to()` nullable only when a create action shares the metho
 - Any other filter with a state of the wrong shape counts as empty.
 - The table ignores a search that is not text.
 - The table opens page 1 for a page number that is not a whole number from 1 to 2147483647.
-- The date filters of the audit log and API log tables ignore a date that is not in the Y-m-d form.
+- The date filters of the audit log, API log, and sign-in log tables ignore a date that is not in the Y-m-d form.
 - An empty table shows `common/records.none`.
 - While a table with `#[Defer]` loads, the page shows a skeleton.
 - Dark mode follows Flux, and `resources/css/app.css` gives the cells the padding of Flux.

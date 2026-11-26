@@ -50,6 +50,7 @@ test('seeding leaves out permissions that match an except pattern', function ():
         'internal.controls.users.view',
         'internal.controls.users.view-any',
         'internal.controls.users.view-audit-log',
+        'internal.controls.users.view-sign-in-log',
     ]);
 });
 

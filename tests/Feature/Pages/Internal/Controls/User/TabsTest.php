@@ -6,6 +6,7 @@ use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Internal\User\PasskeyDataTable;
+use App\Livewire\DataTables\Internal\User\SignInLogDataTable;
 use App\Livewire\Pages\Internal\Controls\User\Audit;
 use App\Livewire\Pages\Internal\Controls\User\Tabs;
 use Livewire\Livewire;
@@ -64,4 +65,20 @@ test('the audit tab shows with view-audit-log', function (): void {
 test('the audit tab is hidden without view-audit-log', function (): void {
     Livewire::test(Tabs::class, ['user' => $this->subject])
         ->assertDontSee(__('user/users.tabs.audit'));
+});
+
+test('the sign-in log tab shows with view-sign-in-log', function (): void {
+    grantPermissions($this->actor, 'internal.controls.users.view-sign-in-log');
+
+    Livewire::withQueryParams(['tab' => 'sign-in-log'])
+        ->test(Tabs::class, ['user' => $this->subject])
+        ->assertSee(__('user/users.tabs.sign_in_log'))
+        ->assertSeeLivewire(SignInLogDataTable::class);
+});
+
+test('the sign-in log tab is hidden without view-sign-in-log', function (): void {
+    Livewire::withQueryParams(['tab' => 'sign-in-log'])
+        ->test(Tabs::class, ['user' => $this->subject])
+        ->assertDontSee(__('user/users.tabs.sign_in_log'))
+        ->assertDontSeeLivewire(SignInLogDataTable::class);
 });

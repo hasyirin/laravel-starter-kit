@@ -89,6 +89,22 @@ test('a long user agent is cut to 512 characters', function (): void {
     expect(latestAuditEntry()->getProperty('user_agent'))->toBe(str_repeat('a', 512));
 });
 
+test('a user agent with a nul byte is stored without it', function (): void {
+    auditedRoute(fn () => $this->user->update(['name' => 'Renamed']));
+
+    $this->withHeader('User-Agent', "Bad\0Agent")->post('audited')->assertNoContent();
+
+    expect(latestAuditEntry()->getProperty('user_agent'))->toBe('BadAgent');
+});
+
+test('a user agent is cut to 512 characters after its nul bytes are removed', function (): void {
+    auditedRoute(fn () => $this->user->update(['name' => 'Renamed']));
+
+    $this->withHeader('User-Agent', "\0".str_repeat('a', 600))->post('audited');
+
+    expect(latestAuditEntry()->getProperty('user_agent'))->toBe(str_repeat('a', 512));
+});
+
 test('the ip address behind a trusted proxy is the address of the person', function (): void {
     TrustProxies::at('10.0.0.1');
     auditedRoute(fn () => $this->user->update(['name' => 'Renamed']));

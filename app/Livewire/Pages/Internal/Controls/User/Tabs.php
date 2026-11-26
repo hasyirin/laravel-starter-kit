@@ -10,6 +10,7 @@ use App\Livewire\Component;
 use App\Livewire\Components\Tab;
 use App\Livewire\Concerns\InteractsWithTabs;
 use App\Livewire\DataTables\Internal\User\PasskeyDataTable;
+use App\Livewire\DataTables\Internal\User\SignInLogDataTable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 
@@ -36,6 +37,11 @@ class Tabs extends Component
                 ->content(Audit::class)
                 ->params(['user' => $this->user])
                 ->visible(fn (): bool => $this->can('view', [$this->user, 'audit-log'])),
+            Tab::make('sign-in-log')
+                ->label((string) __('user/users.tabs.sign_in_log'))
+                ->content(SignInLogDataTable::class)
+                ->params(['user' => $this->user])
+                ->visible(fn (): bool => $this->can('view', [$this->user, 'sign-in-log'])),
         ];
     }
 

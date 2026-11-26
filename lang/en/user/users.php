@@ -21,6 +21,7 @@ return [
     'tabs' => [
         'passkeys' => 'Passkeys',
         'audit' => 'Audit',
+        'sign_in_log' => 'Sign-in log',
     ],
     'passkeys_tab' => [
         'name' => 'Name',

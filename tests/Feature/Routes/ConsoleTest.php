@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Shared\Api\Jobs\ApplyApiLogRetention;
 use App\Domain\Shared\Common\Jobs\ApplyAuditLogRetention;
 use App\Domain\Shared\Message\Jobs\ApplyMessageLogRetention;
+use App\Domain\User\Jobs\ApplySignInLogRetention;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 
@@ -18,6 +19,7 @@ test('the scheduler runs the cleanup tasks daily', function (string $description
     'the audit log retention' => [ApplyAuditLogRetention::class],
     'the message log retention' => [ApplyMessageLogRetention::class],
     'the API log retention' => [ApplyApiLogRetention::class],
+    'the sign-in log retention' => [ApplySignInLogRetention::class],
     'the failed jobs older than 7 days' => ['queue:prune-failed --hours=168'],
     'the expired password reset tokens' => ['auth:clear-resets'],
 ]);

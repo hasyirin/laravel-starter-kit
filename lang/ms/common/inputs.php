@@ -39,6 +39,7 @@ return [
     'location' => 'Lokasi',
     'latitude' => 'Latitud',
     'longitude' => 'Longitud',
+    'no_location' => 'Tiada lokasi',
     'postcode_outside_local_area' => 'Poskod ini di luar kawasan tempatan.',
     'city_outside_local_area' => 'Bandar ini di luar kawasan tempatan.',
 ];

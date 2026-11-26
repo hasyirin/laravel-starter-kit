@@ -12,6 +12,8 @@ class Impersonation
 
     private const string START_URL_KEY = 'impersonation.start_url';
 
+    private const string BECOMING_KEY = 'impersonation.becoming';
+
     public static function active(): bool
     {
         return session()->has(self::IMPERSONATOR_KEY);
@@ -58,6 +60,22 @@ class Impersonation
             self::IMPERSONATOR_KEY => $impersonator->id,
             self::START_URL_KEY => $startUrl,
         ]);
+    }
+
+    public static function become(User $user): void
+    {
+        request()->attributes->set(self::BECOMING_KEY, true);
+
+        try {
+            auth()->guard('web')->login($user);
+        } finally {
+            request()->attributes->remove(self::BECOMING_KEY);
+        }
+    }
+
+    public static function becoming(): bool
+    {
+        return request()->attributes->get(self::BECOMING_KEY) === true;
     }
 
     public static function end(): void

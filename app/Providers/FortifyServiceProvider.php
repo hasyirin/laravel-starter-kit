@@ -8,6 +8,8 @@ use App\Domain\User\Actions\Registration\RegisterUser;
 use App\Domain\User\Actions\Security\ResetForgottenPassword;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
+use App\Domain\User\Support\SignInThrottle;
+use App\Domain\User\Support\VerifyPasskey;
 use App\Http\Responses\LoginResponse;
 use App\Http\Responses\PasskeyLoginResponse;
 use App\Http\Responses\TwoFactorLoginResponse;
@@ -22,6 +24,7 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Fortify;
+use Laravel\Passkeys\Actions\VerifyPasskey as BaseVerifyPasskey;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse as PasskeyLoginResponseContract;
 use SensitiveParameter;
 
@@ -48,6 +51,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
         $this->app->singleton(TwoFactorLoginResponseContract::class, TwoFactorLoginResponse::class);
         $this->app->singleton(PasskeyLoginResponseContract::class, PasskeyLoginResponse::class);
+        $this->app->bind(BaseVerifyPasskey::class, VerifyPasskey::class);
     }
 
     /**
@@ -115,7 +119,9 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureRateLimiting(): void
     {
-        RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by($request->session()->get('login.id')));
+        RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)
+            ->by($request->session()->get('login.id'))
+            ->response(fn (Request $request, array $headers): never => SignInThrottle::twoFactor($headers)));
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = $request->string(Fortify::username())
@@ -124,15 +130,18 @@ class FortifyServiceProvider extends ServiceProvider
                 ->transliterate()
                 ->value();
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinute(5)
+                ->by($throttleKey)
+                ->response(fn (Request $request, array $headers): never => SignInThrottle::login($throttleKey, $headers));
         });
 
         RateLimiter::for('passkeys', function (Request $request) {
             $credentialId = $request->string('credential.id')->value();
+            $throttleKey = ($credentialId ?: $request->session()->getId()).'|'.$request->ip();
 
-            return Limit::perMinute(10)->by(
-                ($credentialId ?: $request->session()->getId()).'|'.$request->ip(),
-            );
+            return Limit::perMinute(10)
+                ->by($throttleKey)
+                ->response(fn (Request $request, array $headers): never => SignInThrottle::passkeys($throttleKey, $headers));
         });
 
         RateLimiter::for('guest-forms', function (Request $request): Limit {

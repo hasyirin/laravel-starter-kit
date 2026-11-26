@@ -23,6 +23,7 @@ return [
     'manual_letter' => 'Surat manual',
     'message_log' => 'Log mesej',
     'api_log' => 'Log API',
+    'sign_in_log' => 'Log log masuk',
     'notifications' => 'Notifikasi',
     'breadcrumbs' => [
         'label' => 'Breadcrumb',

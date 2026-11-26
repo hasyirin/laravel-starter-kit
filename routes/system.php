@@ -10,6 +10,7 @@ use App\Livewire\Pages\System\AuditLog;
 use App\Livewire\Pages\System\Dashboard;
 use App\Livewire\Pages\System\Letters\Compose;
 use App\Livewire\Pages\System\MessageLog;
+use App\Livewire\Pages\System\SignInLog;
 use Illuminate\Support\Facades\Route;
 
 Route::livewire('/', Dashboard::class)->name('dashboard');
@@ -17,6 +18,7 @@ Route::prefix('logs')->name('logs.')->group(function (): void {
     Route::livewire('audits', AuditLog::class)->name('audits');
     Route::livewire('messages', MessageLog::class)->name('messages');
     Route::livewire('api', ApiLog::class)->name('api');
+    Route::livewire('sign-ins', SignInLog::class)->name('sign-ins');
 });
 Route::livewire('letters/compose', Compose::class)->name('letters.compose');
 Route::livewire('api-clients', ApiClientIndex::class)->name('api-clients.index');

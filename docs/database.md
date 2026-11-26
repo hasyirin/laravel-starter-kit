@@ -377,6 +377,21 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
+    sign_in_entries {
+        integer id PK
+        string event
+        string result
+        string method
+        boolean two_factor
+        integer user_id FK
+        integer impersonator_id FK
+        string ip_address
+        text user_agent
+        string trace_id
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
     states {
         integer id PK
         integer country_id FK
@@ -449,6 +464,8 @@ erDiagram
     subdistricts |o--o{ addresses : "subdistrict_id"
     users ||--o{ passkeys : "user_id"
     users ||--o{ profiles : "user_id"
+    users |o--o{ sign_in_entries : "impersonator_id"
+    users |o--o{ sign_in_entries : "user_id"
 ```
 
 These polymorphic column pairs can point to any table, so the diagram draws no line for them:

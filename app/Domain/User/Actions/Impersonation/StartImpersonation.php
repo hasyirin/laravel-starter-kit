@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\User\Actions\Impersonation;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
+use App\Domain\User\Actions\SignInLog\RecordSignInEntry;
+use App\Domain\User\Enums\SignInEvent;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -23,7 +25,9 @@ class StartImpersonation
         // The sign-in can send a message. An intercept must then already know the impersonator.
         context()->add('impersonator_id', $impersonator->id);
 
-        auth()->guard('web')->login($user);
+        RecordSignInEntry::make()->execute(SignInEvent::ImpersonationStarted, user: $user);
+
+        Impersonation::become($user);
 
         session()->regenerate();
         session()->forget(['auth.password_confirmed_at', 'url.intended']);

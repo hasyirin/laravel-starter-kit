@@ -53,6 +53,10 @@ return [
             ],
         ],
     ],
+    'sign_in_log' => [
+        'heading' => 'Log masuk terkini',
+        'description' => 'Log masuk dan log masuk gagal ke akaun anda dalam :days hari yang lalu.',
+    ],
     'recovery_codes' => [
         'heading' => 'Kod pemulihan 2FA',
         'description' => 'Kod pemulihan membolehkan anda masuk semula ke akaun anda jika anda kehilangan peranti 2FA anda. Simpan kod ini dalam pengurus kata laluan yang selamat.',

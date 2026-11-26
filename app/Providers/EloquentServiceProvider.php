@@ -26,6 +26,7 @@ use App\Domain\Shared\Organization\Models\Organization;
 use App\Domain\Shared\Organization\Models\Position;
 use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\Profile;
+use App\Domain\User\Models\SignInEntry;
 use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -58,6 +59,7 @@ class EloquentServiceProvider extends ServiceProvider
             'postcode' => Postcode::class,
             'profile' => Profile::class,
             'role' => Role::class,
+            'sign_in_entry' => SignInEntry::class,
             'state' => State::class,
             'subdistrict' => Subdistrict::class,
             'user' => User::class,

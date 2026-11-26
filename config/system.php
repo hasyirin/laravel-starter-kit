@@ -98,6 +98,12 @@ return [
         'masked_keys' => ['password', 'token', 'secret', 'authorization', 'apikey', 'privatekey'],
     ],
 
+    'sign_in_log' => [
+        'retention_days' => env('SIGN_IN_LOG_RETENTION_DAYS', 365),
+        'archive_disk' => env('SIGN_IN_LOG_ARCHIVE_DISK', 'local'),
+        'queue_connection' => env('SIGN_IN_LOG_QUEUE_CONNECTION', env('AUDIT_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'sync'))),
+    ],
+
     'roles' => [
         'system-admin' => 'system-admin',
     ],
@@ -126,6 +132,7 @@ return [
                     'delete' => 'internal.controls.users.delete',
                     'impersonate' => 'internal.controls.users.impersonate',
                     'view-audit-log' => 'internal.controls.users.view-audit-log',
+                    'view-sign-in-log' => 'internal.controls.users.view-sign-in-log',
                 ],
                 'organizations' => [
                     'view-any' => 'internal.controls.organizations.view-any',
@@ -175,6 +182,9 @@ return [
                 ],
                 'api' => [
                     'view' => 'system.logs.api.view',
+                ],
+                'sign-ins' => [
+                    'view' => 'system.logs.sign-ins.view',
                 ],
             ],
             'letters' => [

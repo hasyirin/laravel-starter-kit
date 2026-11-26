@@ -59,6 +59,11 @@ return [
         ],
     ],
 
+    'sign_in_log' => [
+        'heading' => 'Recent sign-ins',
+        'description' => 'Sign-ins and failed sign-ins to your account in the last :days days.',
+    ],
+
     'recovery_codes' => [
         'heading' => '2FA recovery codes',
         'description' => 'Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.',

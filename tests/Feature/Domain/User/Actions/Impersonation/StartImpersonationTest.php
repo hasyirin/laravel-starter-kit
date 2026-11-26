@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Domain\Shared\Message\Support\Intercept;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Actions\Impersonation\StartImpersonation;
+use App\Domain\User\Enums\SignInEvent;
+use App\Domain\User\Models\SignInEntry;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -27,6 +29,26 @@ test('starting signs in as the impersonated user', function (): void {
     expect(auth()->id())->toBe($this->user->id)
         ->and(Impersonation::impersonatorId())->toBe($this->impersonator->id)
         ->and(Impersonation::startUrl())->toBe('https://example.test/start');
+});
+
+test('starting records one impersonation start entry of the impersonated user with the impersonator, and no sign-in entry', function (): void {
+    StartImpersonation::make()->execute($this->impersonator, $this->user, 'https://example.test/start');
+
+    expect(SignInEntry::query()->sole()->only('event', 'result', 'method', 'user_id', 'impersonator_id'))->toBe([
+        'event' => SignInEvent::ImpersonationStarted,
+        'result' => null,
+        'method' => null,
+        'user_id' => $this->user->id,
+        'impersonator_id' => $this->impersonator->id,
+    ]);
+});
+
+test('a refused start records no entry', function (): void {
+    revokePermissions($this->impersonator, 'internal.controls.users.impersonate');
+
+    expect(fn () => StartImpersonation::make()->execute($this->impersonator, $this->user, 'https://example.test/start'))
+        ->toThrow(AuthorizationException::class);
+    expect(SignInEntry::query()->count())->toBe(0);
 });
 
 test('an intercept finds the impersonator from the sign-in of the impersonation on, in the same request', function (): void {

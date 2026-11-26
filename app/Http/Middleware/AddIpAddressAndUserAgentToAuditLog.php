@@ -33,6 +33,6 @@ class AddIpAddressAndUserAgentToAuditLog
             return null;
         }
 
-        return str(mb_scrub($userAgent, 'UTF-8'))->substr(0, self::USER_AGENT_LIMIT)->value();
+        return str(mb_scrub($userAgent, 'UTF-8'))->remove("\0")->substr(0, self::USER_AGENT_LIMIT)->value();
     }
 }

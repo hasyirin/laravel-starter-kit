@@ -8,8 +8,13 @@ use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Actions\Management\UpdateUser;
 use App\Domain\User\Actions\Security\ConfirmPhone;
+use App\Domain\User\Actions\Session\EndAllSessions;
+use App\Domain\User\Enums\SignInEvent;
 use App\Domain\User\Models\Profile;
+use App\Domain\User\Models\SignInEntry;
 use App\Domain\User\Models\User;
+use App\Domain\User\Models\UserSession;
+use App\Domain\User\Support\Impersonation;
 use App\Domain\User\Support\Placement;
 use App\Domain\User\Support\SmsCode;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -242,4 +247,131 @@ test('a staff number change saved after a confirm leaves the new number unverifi
     );
 
     expect($user->fresh()->hasVerifiedPhone())->toBeFalse();
+});
+
+test('staff who change the password of another user end all sessions of that user, and keep the session where someone impersonates that user', function (): void {
+    UserSession::factory()->count(2)->forUser($this->user)->create();
+    UserSession::factory()->impersonatedBy($this->user)->create();
+    $impersonatorSession = UserSession::factory()->forUser($this->user)->impersonatedBy(User::factory()->create())->create();
+    $actorSession = UserSession::factory()->forUser($this->actor)->create();
+    $this->actingAs($this->actor);
+    session()->put(UserSession::SESSION_KEY, $actorSession->id);
+
+    UpdateUser::make()->execute(
+        actor: $this->actor,
+        user: $this->user,
+        name: $this->user->name,
+        email: $this->user->email,
+        phone: $this->user->phone,
+        password: 'new-password',
+        placement: $this->placement,
+    );
+
+    expect(UserSession::query()->orderBy('id')->pluck('id')->all())->toBe([$impersonatorSession->id, $actorSession->id])
+        ->and(SignInEntry::query()->where('event', SignInEvent::SessionEnded)->pluck('ended_by_id')->all())->toBe([$this->actor->id, $this->actor->id, $this->actor->id]);
+});
+
+test('staff who change their own password end their other sessions and keep the current one', function (): void {
+    $current = UserSession::factory()->forUser($this->actor)->create();
+    UserSession::factory()->count(2)->forUser($this->actor)->create();
+    $this->actingAs($this->actor);
+    session()->put(UserSession::SESSION_KEY, $current->id);
+
+    UpdateUser::make()->execute(
+        actor: $this->actor,
+        user: $this->actor,
+        name: $this->actor->name,
+        email: $this->actor->email,
+        phone: $this->actor->phone,
+        password: 'new-password',
+        placement: $this->placement,
+    );
+
+    expect(UserSession::query()->pluck('id')->all())->toBe([$current->id])
+        ->and(SignInEntry::query()->where('event', SignInEvent::SessionEnded)->pluck('ended_by_id')->all())->toBe([$this->actor->id, $this->actor->id]);
+});
+
+test('staff who change a user without a new password keep the sessions of that user', function (): void {
+    UserSession::factory()->forUser($this->user)->create();
+    $this->actingAs($this->actor);
+
+    UpdateUser::make()->execute(
+        actor: $this->actor,
+        user: $this->user,
+        name: 'New Name',
+        email: $this->user->email,
+        phone: $this->user->phone,
+        password: null,
+        placement: $this->placement,
+    );
+
+    expect(UserSession::query()->count())->toBe(1)
+        ->and(SignInEntry::query()->count())->toBe(0);
+});
+
+test('the impersonator is who ended the sessions when they change the password of the impersonated user', function (): void {
+    $impersonator = User::factory()->create();
+    UserSession::factory()->count(2)->forUser($this->user)->create();
+    $current = UserSession::factory()->forUser($this->user)->impersonatedBy($impersonator)->create();
+    $this->actingAs($this->user);
+    Impersonation::begin($impersonator, 'https://example.test/start');
+    session()->put(UserSession::SESSION_KEY, $current->id);
+
+    UpdateUser::make()->execute(
+        actor: $this->user,
+        user: $this->user,
+        name: $this->user->name,
+        email: $this->user->email,
+        phone: $this->user->phone,
+        password: 'new-password',
+        placement: $this->placement,
+    );
+
+    expect(UserSession::query()->pluck('id')->all())->toBe([$current->id])
+        ->and(SignInEntry::query()->where('event', SignInEvent::SessionEnded)->pluck('ended_by_id')->all())->toBe([$impersonator->id, $impersonator->id]);
+});
+
+test('an impersonator who changes their own password on the users page keeps their current session', function (): void {
+    $impersonator = User::factory()->create();
+    $ownSession = UserSession::factory()->forUser($impersonator)->create();
+    $current = UserSession::factory()->forUser($this->user)->impersonatedBy($impersonator)->create();
+    $this->actingAs($this->user);
+    Impersonation::begin($impersonator, 'https://example.test/start');
+    session()->put(UserSession::SESSION_KEY, $current->id);
+
+    UpdateUser::make()->execute(
+        actor: $this->user,
+        user: $impersonator,
+        name: $impersonator->name,
+        email: $impersonator->email,
+        phone: $impersonator->phone,
+        password: 'new-password',
+        placement: $this->placement,
+    );
+
+    expect(UserSession::query()->pluck('id')->all())->toBe([$current->id])
+        ->and(SignInEntry::query()->where('event', SignInEvent::SessionEnded)->sole()->only('user_id', 'ended_by_id'))->toBe([
+            'user_id' => $ownSession->user_id,
+            'ended_by_id' => $impersonator->id,
+        ]);
+});
+
+test('a failure to end the sessions keeps the old password and the other values', function (): void {
+    $oldHash = $this->user->password;
+    $oldName = $this->user->name;
+    $this->mock(EndAllSessions::class)->shouldReceive('execute')->andThrow(new RuntimeException('Ending failed.'));
+
+    expect(fn () => UpdateUser::make()->execute(
+        actor: $this->actor,
+        user: $this->user,
+        name: 'New Name',
+        email: $this->user->email,
+        phone: $this->user->phone,
+        password: 'new-password',
+        placement: $this->placement,
+    ))->toThrow(RuntimeException::class, 'Ending failed.');
+
+    $fresh = $this->user->fresh();
+    expect($fresh->password)->toBe($oldHash)
+        ->and($fresh->name)->toBe($oldName);
 });

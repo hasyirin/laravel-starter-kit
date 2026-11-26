@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\User\Actions\Security;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
+use App\Domain\User\Actions\Session\EndAllSessions;
 use App\Domain\User\Concerns\PasswordValidationRules;
 use App\Domain\User\Models\User;
 use Illuminate\Support\Facades\Validator;
@@ -27,8 +28,12 @@ class ResetForgottenPassword implements ResetsUserPasswords
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $user->forceFill([
-            'password' => $input['password'],
-        ])->save();
+        $user->getConnection()->transaction(function () use ($user, $input): void {
+            $user->forceFill([
+                'password' => $input['password'],
+            ])->save();
+
+            EndAllSessions::make()->execute($user, endedBy: $user);
+        });
     }
 }

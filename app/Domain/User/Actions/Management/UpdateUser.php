@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\User\Actions\Management;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
+use App\Domain\User\Actions\Session\EndAllSessions;
 use App\Domain\User\Models\User;
+use App\Domain\User\Models\UserSession;
+use App\Domain\User\Support\Impersonation;
 use App\Domain\User\Support\Placement;
 use Illuminate\Auth\Access\AuthorizationException;
 use SensitiveParameter;
@@ -58,6 +61,10 @@ class UpdateUser
                 roles: $roles,
                 permissions: $permissions,
             );
+
+            if ($password !== null) {
+                EndAllSessions::make()->execute($user, endedBy: Impersonation::personAtBrowser(), except: UserSession::current());
+            }
         });
 
         // The actor can be the signed-in user. After the response, AuthenticateSession stores the password hash of that instance.

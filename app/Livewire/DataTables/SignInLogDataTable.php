@@ -19,7 +19,7 @@ abstract class SignInLogDataTable extends DataTable
     protected function query(): Builder
     {
         return SignInEntry::query()
-            ->with(['user', 'impersonator'])
+            ->with(['user', 'impersonator', 'endedBy'])
             ->latest('id');
     }
 
@@ -38,6 +38,9 @@ abstract class SignInLogDataTable extends DataTable
             TextColumn::make('method')->label((string) __('user/sign-in-log.method')),
             IconColumn::make('two_factor')->label((string) __('user/sign-in-log.two_factor'))->boolean(),
             TextColumn::make('impersonator.name')->label((string) __('user/sign-in-log.impersonator')),
+            TextColumn::make('endedBy.name')
+                ->label((string) __('user/sign-in-log.ended_by'))
+                ->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('ip_address')->label((string) __('user/sign-in-log.ip_address')),
             TextColumn::make('user_agent')
                 ->label((string) __('user/sign-in-log.user_agent'))

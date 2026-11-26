@@ -17,7 +17,8 @@ The quoted words are the result, or the event for an entry with no result.
 | A user signs in with a passkey. | "Signed in", method Passkey. |
 | The check of a passkey fails. | "Passkey failed". The response is still a server error. Issue #68 tracks this. |
 | The rate limit of the login, the two-factor code, or the passkeys at sign-in locks a user out. | One "locked out" entry for each lockout window. |
-| A "remember me" cookie renews a session. | No entry, because the session continues. The kit does not record a refused cookie yet. Issue #2 adds it. |
+| A person or an Action class ends a session. | "Session ended". The entry names who ended it, if anyone was signed in. |
+| A session reaches the idle limit or the maximum. | "Session expired". |
 | A user signs out. | "Sign-out". |
 | An impersonator starts or stops an impersonation. | One entry for each. |
 | A user resets a password. | No entry, because the reset does not sign the user in. |
@@ -28,16 +29,17 @@ An entry of an impersonation start or stop names the impersonated user as its us
 
 `sign_in_entries` holds one row for each entry:
 
-- `event`: sign-in, failed sign-in, sign-out, impersonation started, or impersonation stopped.
-- `result`: signed in, wrong password, no matching user, wrong two-factor code, passkey failed, or locked out. A sign-out and an impersonation entry have no result.
+- `event`: sign-in, failed sign-in, sign-out, impersonation started, impersonation stopped, session ended, or session expired.
+- `result`: signed in, wrong password, no matching user, wrong two-factor code, passkey failed, or locked out. A sign-out, an impersonation entry, and a session entry have no result.
 - `method`: Password or Passkey. An entry can have no method.
 - `two_factor`: on when the entry is for a two-factor step.
 - `user_id` and `impersonator_id`. A row keeps its user after the user is deleted.
+- `ended_by_id`: who ended the session, for a "session ended" entry. It can be empty when nobody was signed in, for example when a job or a console command ends the session. A reset of a forgotten password names the user. An expired session has none. The tables show it in the optional column "Ended by".
 - `ip_address`, `user_agent`, and `trace_id` of the request. Behind a proxy that `TRUSTED_PROXIES` does not name, the log stores the IP address of the proxy. See [Trusted Proxies](api.md#trusted-proxies).
 
 The sign-in log never stores the email address of a failed sign-in. An email address can identify a person who has no account. It can also hold a password that a user typed into the wrong field. The IP address already shows an attack from one place.
 
-The rows do not go to the audit log.
+The rows do not go to the audit log. See [Sessions](sessions.md) for the end of a session.
 
 ## Read the Sign-in Log
 

@@ -47,6 +47,17 @@ class Impersonation
         return User::query()->find($id);
     }
 
+    public static function personAtBrowser(): ?User
+    {
+        if (self::active()) {
+            return self::impersonator();
+        }
+
+        $user = auth()->guard('web')->user();
+
+        return $user instanceof User ? $user : null;
+    }
+
     public static function startUrl(): ?string
     {
         $url = session(self::START_URL_KEY);

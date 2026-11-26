@@ -22,6 +22,7 @@ return [
         'passkeys' => 'Passkey',
         'audit' => 'Audit',
         'sign_in_log' => 'Log log masuk',
+        'sessions' => 'Sesi',
     ],
     'passkeys_tab' => [
         'name' => 'Nama',

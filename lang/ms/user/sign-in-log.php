@@ -15,6 +15,7 @@ return [
     'result' => 'Keputusan',
     'two_factor' => '2FA',
     'impersonator' => 'Penyamar',
+    'ended_by' => 'Ditamatkan oleh',
     'ip_address' => 'Alamat IP',
     'user_agent' => 'User agent',
     'trace_id' => 'Trace ID',
@@ -24,6 +25,8 @@ return [
         'sign_out' => 'Log keluar',
         'impersonation_started' => 'Penyamaran bermula',
         'impersonation_stopped' => 'Penyamaran tamat',
+        'session_ended' => 'Sesi ditamatkan',
+        'session_expired' => 'Sesi tamat tempoh',
     ],
     'results' => [
         'signed_in' => 'Berjaya',

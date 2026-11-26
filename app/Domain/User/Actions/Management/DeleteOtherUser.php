@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\User\Actions\Management;
 
 use App\Domain\Shared\Common\Concerns\Actions\Actionable;
+use App\Domain\User\Actions\Session\EndAllSessions;
 use App\Domain\User\Models\User;
+use App\Domain\User\Support\Impersonation;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class DeleteOtherUser
@@ -25,6 +27,10 @@ class DeleteOtherUser
 
         throw_if($user->checkPermissionTo($bypassPermission) && ! $actor->checkPermissionTo($bypassPermission), AuthorizationException::class);
 
-        $user->delete();
+        $user->getConnection()->transaction(function () use ($user): void {
+            $user->delete();
+
+            EndAllSessions::make()->execute($user, endedBy: Impersonation::personAtBrowser(), includeImpersonated: true);
+        });
     }
 }

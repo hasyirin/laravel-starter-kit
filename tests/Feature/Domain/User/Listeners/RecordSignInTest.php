@@ -74,15 +74,16 @@ test('a passed two-factor challenge records one sign-in entry with the password 
     ]);
 });
 
-test('a "remember me" renewal records no sign-in entry', function (): void {
-    $user = User::factory()->create(['remember_token' => 'remember-token']);
+test('a remember cookie from before the kit dropped remember me signs nobody in and records nothing', function (): void {
+    $user = User::factory()->create();
     $recaller = auth()->guard('web')->getRecallerName();
+    $passwordHash = auth()->guard('web')->hashPasswordForCookie($user->password);
 
-    $this->withCookie($recaller, "{$user->id}|remember-token|{$user->password}")->get(route('settings'));
+    $this->withCookie($recaller, "{$user->id}|remember-token|{$passwordHash}")->get(route('settings'))
+        ->assertRedirect(route('login'));
 
-    $this->assertAuthenticatedAs($user);
-    expect(auth()->guard('web')->viaRemember())->toBeTrue()
-        ->and(SignInEntry::query()->count())->toBe(0);
+    $this->assertGuest();
+    expect(SignInEntry::query()->count())->toBe(0);
 });
 
 test('a sign-in on a route with no sign-in method records an entry without a method', function (): void {

@@ -8,10 +8,12 @@ use App\Domain\User\Enums\SignInMethod;
 use App\Domain\User\Enums\SignInResult;
 use App\Domain\User\Models\SignInEntry;
 use App\Domain\User\Models\User;
+use App\Domain\User\Models\UserSession;
 use Laravel\Passkeys\Passkey;
 use Laravel\Passkeys\Passkeys;
 use Laravel\Passkeys\Support\WebAuthn;
 use ParagonIE\ConstantTime\Base64UrlSafe;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\Uid\Uuid;
 use Webauthn\CredentialRecord;
 use Webauthn\TrustPath\EmptyTrustPath;
@@ -103,6 +105,34 @@ test('a right passkey signs in and records one passkey sign-in entry', function 
         'two_factor' => false,
         'user_id' => $user->id,
     ]);
+});
+
+test('a passkey sign-in makes one session row for the user', function (): void {
+    $user = User::factory()->create();
+    $key = passkeySigningKey();
+    storeSigningPasskey($user, $key, 'credential-1');
+    $challenge = passkeyChallenge('passkey.login-options');
+
+    $this->postJson(route('passkey.login'), passkeyAssertion('credential-1', $key, $challenge))->assertOk();
+
+    expect(UserSession::query()->sole()->only('user_id', 'session_id'))->toBe(['user_id' => $user->id, 'session_id' => session()->getId()]);
+});
+
+test('a passkey sign-in that asks to be remembered sets no remember cookie and deletes an old one', function (): void {
+    $user = User::factory()->create();
+    $key = passkeySigningKey();
+    storeSigningPasskey($user, $key, 'credential-1');
+    $challenge = passkeyChallenge('passkey.login-options');
+
+    $response = $this->postJson(route('passkey.login'), [...passkeyAssertion('credential-1', $key, $challenge), 'remember' => true])->assertOk();
+
+    $this->assertAuthenticatedAs($user);
+    $rememberCookies = collect($response->headers->getCookies())
+        ->filter(fn (Cookie $cookie): bool => str($cookie->getName())->startsWith('remember_'))
+        ->values();
+
+    expect($rememberCookies)->toHaveCount(1)
+        ->sequence(fn ($cookie) => $cookie->isCleared()->toBeTrue());
 });
 
 test('a passkey assertion that fails the check records one failed passkey entry of the passkey user after the rollback', function (int $storedCounter, bool $signedRight): void {

@@ -12,6 +12,10 @@ test('login screen can be rendered', function (): void {
     $response->assertOk();
 });
 
+test('the login screen has no remember me checkbox', function (): void {
+    $this->get(route('login'))->assertOk()->assertDontSee('name="remember"', false);
+});
+
 test('the login screen shows the passkey button when passkeys are on', function (): void {
     $this->skipUnlessFeature(Feature::Passkeys);
 

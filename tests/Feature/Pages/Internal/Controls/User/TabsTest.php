@@ -6,6 +6,7 @@ use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\Shared\Permission\Seeders\PermissionSeeder;
 use App\Domain\User\Models\User;
 use App\Livewire\DataTables\Internal\User\PasskeyDataTable;
+use App\Livewire\DataTables\Internal\User\SessionDataTable;
 use App\Livewire\DataTables\Internal\User\SignInLogDataTable;
 use App\Livewire\Pages\Internal\Controls\User\Audit;
 use App\Livewire\Pages\Internal\Controls\User\Tabs;
@@ -81,4 +82,32 @@ test('the sign-in log tab is hidden without view-sign-in-log', function (): void
         ->test(Tabs::class, ['user' => $this->subject])
         ->assertDontSee(__('user/users.tabs.sign_in_log'))
         ->assertDontSeeLivewire(SignInLogDataTable::class);
+});
+
+test('the sessions tab shows with update and update-sessions', function (): void {
+    grantPermissions($this->actor, 'internal.controls.users.update', 'internal.controls.users.update-sessions');
+
+    Livewire::withQueryParams(['tab' => 'sessions'])
+        ->test(Tabs::class, ['user' => $this->subject])
+        ->assertSee(__('user/users.tabs.sessions'))
+        ->assertSeeLivewire(SessionDataTable::class);
+});
+
+test('the sessions tab is hidden without update-sessions', function (): void {
+    grantPermissions($this->actor, 'internal.controls.users.update');
+
+    Livewire::withQueryParams(['tab' => 'sessions'])
+        ->test(Tabs::class, ['user' => $this->subject])
+        ->assertDontSee(__('user/users.tabs.sessions'))
+        ->assertDontSeeLivewire(SessionDataTable::class);
+});
+
+test('the sessions tab is hidden on the page of a user with bypass-authorization', function (): void {
+    grantPermissions($this->actor, 'internal.controls.users.update', 'internal.controls.users.update-sessions');
+    grantPermissions($this->subject, 'bypass-authorization');
+
+    Livewire::withQueryParams(['tab' => 'sessions'])
+        ->test(Tabs::class, ['user' => $this->subject])
+        ->assertDontSee(__('user/users.tabs.sessions'))
+        ->assertDontSeeLivewire(SessionDataTable::class);
 });

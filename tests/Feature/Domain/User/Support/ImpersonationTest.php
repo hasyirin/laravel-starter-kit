@@ -38,6 +38,21 @@ test('a deleted impersonator is not found', function (): void {
     expect(Impersonation::impersonator())->toBeNull();
 });
 
+test('the person at the browser is the impersonator during an impersonation, and the signed-in user otherwise', function (): void {
+    $impersonator = User::factory()->create();
+    $user = User::factory()->create();
+
+    expect(Impersonation::personAtBrowser())->toBeNull();
+
+    $this->actingAs($user);
+
+    expect(Impersonation::personAtBrowser()?->is($user))->toBeTrue();
+
+    Impersonation::begin($impersonator, 'https://example.test/start');
+
+    expect(Impersonation::personAtBrowser()?->is($impersonator))->toBeTrue();
+});
+
 test('impersonation is allowed only by the policy and never to yourself, a deleted user, or while impersonating, also with bypass', function (): void {
     $this->seed(PermissionSeeder::class);
     $impersonator = User::factory()->create();

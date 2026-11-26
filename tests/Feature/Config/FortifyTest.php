@@ -14,3 +14,7 @@ test('passkeys allow only the https origin with the host and port of the app url
     'an http url with a path' => ['http://kit.test/sub/', 'https://kit.test'],
     'an https url' => ['https://kit.test', 'https://kit.test'],
 ]);
+
+test('passkeys sign in on the Fortify guard', function (): void {
+    expect(config('passkeys.guard'))->toBe(config('fortify.guard'));
+});

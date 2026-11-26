@@ -48,7 +48,6 @@ use Spatie\Activitylog\Models\Concerns\CausesActivity;
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property CarbonImmutable|null $two_factor_confirmed_at
- * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -84,7 +83,6 @@ class User extends Authenticatable implements HasActorName, HasLocalePreference,
         'password',
         'two_factor_secret',
         'two_factor_recovery_codes',
-        'remember_token',
     ];
 
     protected $attributes = [
@@ -167,5 +165,10 @@ class User extends Authenticatable implements HasActorName, HasLocalePreference,
         }
 
         $this->notify(new VerifyEmail);
+    }
+
+    public function getRememberTokenName(): string
+    {
+        return '';
     }
 }

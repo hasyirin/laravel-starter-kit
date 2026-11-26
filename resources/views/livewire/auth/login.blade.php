@@ -38,9 +38,6 @@
                 @endif
             </x-input.password>
 
-            <!-- Remember Me -->
-            <x-checkbox name="remember" :label="__('auth/login.remember')" :checked="old('remember')" />
-
             <div class="flex items-center justify-end">
                 <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">{{ __('auth/login.submit') }}</flux:button>
             </div>

@@ -98,6 +98,10 @@ return [
         'masked_keys' => ['password', 'token', 'secret', 'authorization', 'apikey', 'privatekey'],
     ],
 
+    'sessions' => [
+        'max_days' => env('SESSION_MAX_DAYS', 90),
+    ],
+
     'sign_in_log' => [
         'retention_days' => env('SIGN_IN_LOG_RETENTION_DAYS', 365),
         'archive_disk' => env('SIGN_IN_LOG_ARCHIVE_DISK', 'local'),
@@ -129,6 +133,7 @@ return [
                     'update' => 'internal.controls.users.update',
                     'update-permissions' => 'internal.controls.users.update-permissions',
                     'update-roles' => 'internal.controls.users.update-roles',
+                    'update-sessions' => 'internal.controls.users.update-sessions',
                     'delete' => 'internal.controls.users.delete',
                     'impersonate' => 'internal.controls.users.impersonate',
                     'view-audit-log' => 'internal.controls.users.view-audit-log',

@@ -11,6 +11,7 @@ use App\Domain\User\Enums\SignInMethod;
 use App\Domain\User\Enums\SignInResult;
 use App\Domain\User\Models\SignInEntry;
 use App\Domain\User\Models\User;
+use App\Domain\User\Models\UserSession;
 
 class RecordSignInEntry
 {
@@ -22,18 +23,24 @@ class RecordSignInEntry
         ?User $user = null,
         ?SignInMethod $method = null,
         bool $twoFactor = false,
+        ?UserSession $session = null,
+        ?User $endedBy = null,
     ): SignInEntry {
         $context = AuditLog::context();
+        $origin = $session instanceof UserSession
+            ? collect($session->only(['impersonator_id', 'ip_address', 'user_agent']))
+            : $context;
 
         return SignInEntry::query()->create([
             'event' => $event,
             'result' => $result,
             'method' => $method,
             'two_factor' => $twoFactor,
-            'user_id' => $user?->id,
-            'impersonator_id' => $context->get('impersonator_id'),
-            'ip_address' => $context->get('ip_address'),
-            'user_agent' => $context->get('user_agent'),
+            'user_id' => $session->user_id ?? $user?->id,
+            'impersonator_id' => $origin->get('impersonator_id'),
+            'ended_by_id' => $endedBy?->id,
+            'ip_address' => $origin->get('ip_address'),
+            'user_agent' => $origin->get('user_agent'),
             'trace_id' => $context->get('trace_id'),
         ]);
     }

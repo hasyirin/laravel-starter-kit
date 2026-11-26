@@ -17,6 +17,8 @@ enum SignInEvent: string implements HasLabel
     case SignOut = 'sign_out';
     case ImpersonationStarted = 'impersonation_started';
     case ImpersonationStopped = 'impersonation_stopped';
+    case SessionEnded = 'session_ended';
+    case SessionExpired = 'session_expired';
 
     public function label(): string
     {

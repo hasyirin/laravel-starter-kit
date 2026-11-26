@@ -11,7 +11,6 @@ use App\Domain\User\Enums\SignInResult;
 use App\Domain\User\Models\User;
 use App\Domain\User\Support\Impersonation;
 use Illuminate\Auth\Events\Login;
-use Illuminate\Contracts\Auth\StatefulGuard;
 
 class RecordSignIn
 {
@@ -21,9 +20,7 @@ class RecordSignIn
             return;
         }
 
-        $guard = auth()->guard($event->guard);
-
-        if (($guard instanceof StatefulGuard && $guard->viaRemember()) || Impersonation::becoming()) {
+        if (Impersonation::becoming()) {
             return;
         }
 

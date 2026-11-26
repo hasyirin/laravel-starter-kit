@@ -20,11 +20,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $two_factor
  * @property int|null $user_id
  * @property int|null $impersonator_id
+ * @property int|null $ended_by_id
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property string|null $trace_id
  * @property-read User|null $user
  * @property-read User|null $impersonator
+ * @property-read User|null $endedBy
  */
 class SignInEntry extends Model
 {
@@ -38,6 +40,7 @@ class SignInEntry extends Model
         'two_factor',
         'user_id',
         'impersonator_id',
+        'ended_by_id',
         'ip_address',
         'user_agent',
         'trace_id',
@@ -72,6 +75,14 @@ class SignInEntry extends Model
     public function impersonator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'impersonator_id')->withTrashed();
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function endedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'ended_by_id')->withTrashed();
     }
 
     protected function shouldLogEvent(string $eventName): bool

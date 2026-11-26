@@ -16,11 +16,16 @@ trait ConfirmsPassword
             return true;
         }
 
-        session()->put('url.intended', route(Area::current()->route('settings'), ['tab' => 'security']));
+        session()->put('url.intended', $this->passwordReturnUrl());
 
         $this->redirectRoute('password.confirm');
 
         return false;
+    }
+
+    protected function passwordReturnUrl(): string
+    {
+        return route(Area::current()->route('settings'), ['tab' => 'security']);
     }
 
     protected function ensurePasswordConfirmed(): void

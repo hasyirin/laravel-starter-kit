@@ -83,7 +83,7 @@ test('starting forgets the password confirmation and the intended url', function
 test('starting does not remember the impersonated user', function (): void {
     StartImpersonation::make()->execute($this->impersonator, $this->user, 'https://example.test/start');
 
-    $rememberCookies = collect(cookie()->getQueuedCookies())->filter(fn ($cookie): bool => str($cookie->getName())->startsWith('remember_'));
+    $rememberCookies = collect(cookie()->getQueuedCookies())->filter(fn ($cookie): bool => str($cookie->getName())->startsWith('remember_') && ! $cookie->isCleared());
 
     expect(auth()->viaRemember())->toBeFalse()
         ->and($rememberCookies)->toBeEmpty();

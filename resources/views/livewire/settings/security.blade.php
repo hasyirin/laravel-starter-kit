@@ -67,6 +67,8 @@
             <livewire:data-tables.settings.passkey-data-table />
         @endif
 
+        <livewire:data-tables.settings.session-data-table />
+
         <livewire:data-tables.settings.sign-in-log-data-table />
     </div>
 

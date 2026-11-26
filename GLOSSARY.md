@@ -214,7 +214,7 @@ _Avoid_: Activity, log entry
 _Malay_: Entri audit
 
 **Sign-in log**:
-The record of each sign-in, failed sign-in, sign-out, ended session, and impersonation, with where each one came from.
+The record of each sign-in, failed sign-in, sign-out, ended session, expired session, and impersonation, with where each one came from.
 _Avoid_: Login log, access log, authentication log
 _Malay_: Log log masuk
 

@@ -44,6 +44,8 @@ public function save(): void
 
 If a transaction around the save rolls back, the new files leave the disk, and the removed files stay. `SyncMedia` deletes each upload only after the commit, so the user can save again without a new upload.
 
+`SyncMedia` deletes each stored file that is not in the items. If another user adds or replaces a file after the form loads, the next save of that form deletes that file, with no warning and no entry in the audit log. Keep this in mind for a collection that several users edit at the same time.
+
 ## Rules and Limits
 
 `rules` checks each file when it arrives. It takes an array, or a string with the rules between pipes. A file that fails stays out of the list, and the field says why. Without `multiple`, the field takes one file. With `multiple`, `max` sets the largest number of files. When the field is full, the dropzone disappears until the user removes a file.

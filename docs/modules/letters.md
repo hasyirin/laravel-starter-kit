@@ -480,7 +480,7 @@ The mono files use `--layout-features+=case,zero,ordn,sups,subs,sinf` in place o
 
 Each server needs Node, Puppeteer, and Chrome 131 or later. Chrome 131 supports the CSS page margin boxes that the letters use.
 
-- `composer setup` runs `bunx puppeteer browsers install chrome-headless-shell`. Run it on each server.
+- For local work, `composer setup` runs `bunx puppeteer browsers install chrome-headless-shell`. On a server, `deploy/install.sh` and `deploy/update.sh` install Chrome. They put it in the .cache/puppeteer folder of the app. `RenderPdf` uses that folder when it exists, so the web server user and the deploy user use the same Chrome. Without the folder, Puppeteer looks in its default folder, ~/.cache/puppeteer.
 - Set the package variables in `.env` when the defaults do not fit: `LARAVEL_PDF_NODE_BINARY`, `LARAVEL_PDF_NPM_BINARY`, `LARAVEL_PDF_CHROME_PATH`, `LARAVEL_PDF_NODE_MODULES_PATH`, `LARAVEL_PDF_BIN_PATH`, and `LARAVEL_PDF_TEMP_PATH`.
 - Set `LARAVEL_PDF_NO_SANDBOX` to true when Chrome runs as root or in a container.
 - Install a font package on each server, for example `apt install fonts-liberation`. Chrome uses it for a character that the bundled letter fonts do not have. Without it, Chrome prints empty boxes for those characters. `fonts-liberation` holds Latin, Greek, and Cyrillic. For symbols or another script, install a package that holds them.
@@ -608,6 +608,8 @@ The names of the tests of the module. A failing test fails the build, so each ru
 - it marks a draft
 - it formats dates in the letter locale and time zone
 - it prints html in letter data as text
+- it uses the Chrome in the app folder when the folder exists
+- it uses the default Chrome folder when the app folder has none
 - it loads no local file
 
 ### ResolveLetterhead

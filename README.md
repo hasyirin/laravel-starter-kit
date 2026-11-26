@@ -166,11 +166,25 @@ Pull requests from forks do not get these secrets, so their CI fails when Compos
 
 Set an SMS gateway before the app goes live. See [SMS](docs/sms.md).
 
+The scripts in `deploy/` assume that the web server user is `www-data` and that the deploy user has `sudo`.
+
+To install on a new server, clone the repository and run `deploy/install.sh`. If `.env` is missing, the script copies `.env.example` to `.env` and stops. Fill in `.env`, add the Flux Pro credentials (Setup, step 1), and run the script again. It refuses to run if the database already has run migrations, because the full seed would undo the edits made in the Geography control. It creates `admin@example.com` and `it@example.com` with the password `password`. Change both passwords after the install.
+
 Keep these processes running on the server:
 
-- `php artisan horizon`, under a process monitor. For Supervisor, copy `deploy/supervisor/horizon.conf` to `/etc/supervisor/conf.d/`, replace its app path and user, and run `sudo supervisorctl reread`, `sudo supervisorctl update`, and `sudo supervisorctl start horizon`. On Laravel Cloud or Forge, add it as a background process instead. Keep the stop timeout (`stopwaitsecs`) above the longest job timeout, which is 600 seconds for media conversions.
-- The scheduler, every minute: `* * * * * php artisan schedule:run`. You can run it on more than one server. Each task in `routes/console.php` sits in the `onOneServer()` group, so only one server runs it, through a lock in the Redis cache. Put a new task in that group, unless each server must run it, such as a cleanup of local files. It takes the Horizon metric snapshots. Each day, it also starts the audit log retention job and the API log retention job. It also deletes the failed jobs older than 7 days (`queue:prune-failed`), and deletes the expired password reset tokens (`auth:clear-resets`).
+- `php artisan horizon`, under a process monitor. For Supervisor, run `sudo deploy/supervisor/install.sh` once for each app. It adds the program APP_NAME-horizon to the Supervisor service of the server, next to the programs of other apps. See [Run Horizon with Supervisor](docs/supervisor.md). On Laravel Cloud or Forge, add it as a background process instead. Keep the stop timeout (`stopwaitsecs`, 3600 seconds) above the longest job timeout, which is 600 seconds for media conversions.
+- The scheduler, every minute. Run it as `www-data` from the app folder, because `www-data` cannot write to a log file that another user created. Run `sudo crontab -u www-data -e`, and add a line such as `* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1`. You can run it on more than one server. Each task in `routes/console.php` sits in the `onOneServer()` group, so only one server runs it, through a lock in the Redis cache. Put a new task in that group, unless each server must run it, such as a cleanup of local files. It takes the Horizon metric snapshots. Each day, it also starts the audit log retention job and the API log retention job. It also deletes the failed jobs older than 7 days (`queue:prune-failed`), and deletes the expired password reset tokens (`auth:clear-resets`).
 - Vector, to send the daily-json logs to OpenObserve. Run `sudo deploy/vector/install.sh` once for each app. It adds the app to the Vector service of the server, next to the config of other apps, and the app gets its own stream. See [Ship logs with Vector](docs/vector.md).
+
+To update, run `deploy/update.sh`. It puts the app in maintenance mode, pulls the code, and installs dependencies. Then it builds assets, installs the Chrome that the letter PDFs need, migrates, and seeds the permissions and roles.
+
+Before the pull, `deploy/update.sh` runs `git reset --hard`. This discards edits to tracked files on the server.
+
+Both scripts put Chrome in `.cache/puppeteer` in the app folder. `RenderPdf` uses that folder when it exists, so the web server user finds the same Chrome.
+
+To seed project data on each update, add the class to `SEEDERS` in `deploy/update.sh`. Do not add `GeographySeeder`. See [Database](docs/database.md). The script runs the `SEEDERS` list of the code before the pull. So a seeder that you add in the same release runs on the next update.
+
+`deploy/update.sh` also runs the two steps below, so run them by hand only when you deploy another way.
 
 After each deploy:
 

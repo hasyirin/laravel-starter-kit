@@ -14,7 +14,13 @@
     <body class="min-h-screen bg-white antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
         <div class="relative grid min-h-dvh items-center justify-center px-8 sm:px-0 lg:grid-cols-2">
             <div class="relative hidden h-full flex-col bg-neutral-900 p-10 text-white lg:flex dark:border-e dark:border-neutral-800">
-                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('images/auth/split/bg.webp') }}');"></div>
+                <img
+                    src="{{ asset('images/auth/split/bg.webp') }}"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    class="absolute inset-0 size-full object-cover object-center"
+                />
                 <x-auth-overlay class="absolute inset-0 size-full" />
                 <a href="{{ route('home') }}" class="relative z-20 flex items-center text-lg font-medium" wire:navigate>
                     <span class="flex h-10 w-10 items-center justify-center rounded-md">

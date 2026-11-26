@@ -15,7 +15,8 @@ test('login screen can be rendered', function (): void {
 test('the login screen shows the passkey button when passkeys are on', function (): void {
     $this->skipUnlessFeature(Feature::Passkeys);
 
-    $this->get(route('login'))->assertOk()->assertSee(__('user/passkeys.verify.button'));
+    $this->get(route('login'))->assertOk()
+        ->assertSee('aria-label="'.__('user/passkeys.verify.button').'"', false);
 });
 
 test('the login screen opens without the passkey button when passkeys are off', function (): void {

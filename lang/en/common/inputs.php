@@ -39,6 +39,7 @@ return [
     'location' => 'Location',
     'latitude' => 'Latitude',
     'longitude' => 'Longitude',
+    'no_location' => 'No location',
     'postcode_outside_local_area' => 'This postcode is outside the local area.',
     'city_outside_local_area' => 'This city is outside the local area.',
 ];

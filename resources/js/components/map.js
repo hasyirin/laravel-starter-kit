@@ -90,6 +90,16 @@ export default function map() {
             return [latitude, longitude];
         },
 
+        get location() {
+            const point = this.point();
+
+            if (!point) {
+                return null;
+            }
+
+            return point.map((value) => String(round(value))).join(', ');
+        },
+
         // Moves the marker to the bound values, and shows it when it is out of view.
         show() {
             const point = this.point();

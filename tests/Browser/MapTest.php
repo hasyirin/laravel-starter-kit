@@ -5,9 +5,11 @@ declare(strict_types=1);
 function mapScript(string $body): string
 {
     $helpers = <<<'SCRIPT'
-        const mapOf = (model) => fieldElement(model).closest('[x-data="map"]');
+        const mapOf = (model) => document.querySelector(`[x-data="map"][data-map*='"${model}"']`);
         const ready = (model) => mapOf(model).querySelector('.leaflet-container') !== null;
         const markerOf = (model) => mapOf(model).querySelector('.leaflet-marker-icon');
+        const locationOf = (model) => mapOf(model).querySelector('[data-map-location]').innerText.trim();
+        const valueOf = (model) => wire(mapOf(model)).$get(model);
         SCRIPT;
 
     return browserScript("{$helpers}\n{$body}");
@@ -97,4 +99,49 @@ test('a map that becomes disabled after an update ignores clicks and drags', fun
 
         return [property('form.latitude'), property('form.longitude'), markerOf('form.latitude').classList.contains('leaflet-marker-draggable')];
         SCRIPT)))->toBe([4.2, 109, false]);
+});
+
+test('a map without inputs shows no location until a click on the map sets one', function (): void {
+    $page = visit('/docs/components/map');
+
+    expect($page->script(mapScript(<<<'SCRIPT'
+        await until(() => ready('form.office_latitude'));
+
+        return locationOf('form.office_latitude');
+        SCRIPT)))->toBe(__('common/inputs.no_location'));
+
+    $page->click("[data-map*='form.office_latitude'] [data-map-canvas]");
+
+    [$line, $values] = $page->script(mapScript(<<<'SCRIPT'
+        await until(() => markerOf('form.office_latitude') !== null);
+
+        const expected = () => [valueOf('form.office_latitude'), valueOf('form.office_longitude')].map(String).join(', ');
+        await until(() => locationOf('form.office_latitude') === expected());
+
+        return [locationOf('form.office_latitude'), expected()];
+        SCRIPT));
+
+    expect($line)->toBe($values)->not->toBe(__('common/inputs.no_location'));
+
+    $page->assertNoJavaScriptErrors();
+});
+
+test('the location line follows values set from outside and keeps them after a Livewire update', function (): void {
+    $page = visit('/docs/components/map');
+
+    expect($page->script(mapScript(<<<'SCRIPT'
+        await until(() => ready('form.office_latitude'));
+
+        const component = wire(mapOf('form.office_latitude'));
+        await component.$set('form.office_latitude', 1.4927);
+        await component.$set('form.office_longitude', 103.7414);
+        await until(() => locationOf('form.office_latitude') === '1.4927, 103.7414');
+
+        await component.$refresh();
+        await tick();
+
+        return locationOf('form.office_latitude');
+        SCRIPT)))->toBe('1.4927, 103.7414');
+
+    $page->assertNoJavaScriptErrors();
 });

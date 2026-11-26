@@ -118,8 +118,27 @@ test('the address passes its location attributes to the map', function (): void 
         ->and($document->querySelector('[location\:clickable]'))->toBeNull();
 });
 
-test('a required location of a required address marks the latitude and the longitude', function (): void {
+test('a required location of a required address marks the map label', function (): void {
     $document = HTMLDocument::createFromString(Livewire::test(AddressFormHost::class, ['required' => true, 'location' => 'required'])->html(), LIBXML_NOERROR);
 
-    expect($document->querySelectorAll('[x-data="map"] [data-input-label] [aria-hidden="true"]'))->toHaveCount(2);
+    expect($document->querySelectorAll('[x-data="map"] [data-input-label] [aria-hidden="true"]'))->toHaveCount(1);
+});
+
+test('a map of an address without inputs shows the saved location before the page script runs', function (): void {
+    $host = new class extends AddressFormHost
+    {
+        public function render(): string
+        {
+            return '<div><x-address :form="$address" :location:editable-inputs="false" /></div>';
+        }
+    };
+
+    $venue = Venue::query()->create(['name' => 'Dewan Besar']);
+    $venue->address()->create(['line_1' => '1 Jalan Satu', 'postcode' => '84000', 'post_office_id' => $this->muar->id, 'latitude' => '1.492700', 'longitude' => '103.741400']);
+
+    $line = HTMLDocument::createFromString(Livewire::test($host, ['venue' => $venue, 'location' => 'optional'])->html(), LIBXML_NOERROR)
+        ->querySelector('[data-map-location]');
+
+    expect(trim($line->querySelector('[x-text="location"]')->textContent))->toBe('1.4927, 103.7414')
+        ->and($line->querySelector('[x-show]')->getAttribute('style'))->toContain('display: none');
 });

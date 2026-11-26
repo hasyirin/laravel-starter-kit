@@ -27,6 +27,14 @@ test('an entry keeps its user and its impersonator after they are deleted', func
         ->and($fresh?->impersonator?->is($impersonator))->toBeTrue();
 });
 
+test('an entry keeps who ended the session after that user is deleted', function (): void {
+    $entry = SignInEntry::factory()->sessionEnded()->create();
+    $endedBy = $entry->endedBy;
+    $endedBy?->delete();
+
+    expect($entry->fresh()?->endedBy?->is($endedBy))->toBeTrue();
+});
+
 test('the sign-in log keeps only its known columns, so it has no column for an email address', function (): void {
     expect(Schema::getColumnListing(new SignInEntry()->getTable()))->toEqualCanonicalizing([
         'id',
@@ -36,6 +44,7 @@ test('the sign-in log keeps only its known columns, so it has no column for an e
         'two_factor',
         'user_id',
         'impersonator_id',
+        'ended_by_id',
         'ip_address',
         'user_agent',
         'trace_id',

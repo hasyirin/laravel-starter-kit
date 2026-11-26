@@ -15,9 +15,11 @@ Fortify registers the routes for login, registration, password reset, email veri
 
 The Fortify routes that set up, show, and remove two-factor authentication and passkeys need a verified email address and phone number, like the Security tab. `FortifyServiceProvider::requireVerificationForOwnSignInMethods()` adds the `verified` and `phone.verified` middleware to them. If a route has `password.confirm`, the two middleware go before it. Otherwise, they go at the end.
 
-`bootstrap/app.php` adds the `auth.session` middleware to the `web` group with Laravel's `authenticateSessions()`. At sign-in, the session gets a hash of the user's password. On each request, the middleware compares that hash with the user's current password. If the two differ, the middleware signs the session out and sends the user to the login page. So when a user's password changes or is reset, the user's other sessions end at their next request.
+Sessions end at once when a password changes or is reset, and when a user is deleted. The Action classes `UpdatePassword`, `ResetForgottenPassword`, `UpdateUser`, `DeleteUser`, and `DeleteOtherUser` call `EndAllSessions`. See [Sessions](sessions.md). `TrackSession` is in the `web` group too. It keeps the row of each session in `user_sessions`, and it signs out a session whose row is gone or past its maximum.
 
-The session that changed the password stays signed in, because the middleware stores the hash of `auth()->user()` again after each response. So code that changes the password of the signed-in user must change `auth()->user()` itself, or refresh it after the commit. `UpdateUser` refreshes `$actor` after the commit when a staff member changes their own record.
+`bootstrap/app.php` also adds the `auth.session` middleware to the `web` group with Laravel's `authenticateSessions()`. It is a backstop. At sign-in, the session gets a hash of the user's password. On each request, the middleware compares that hash with the user's current password. If the two differ, the middleware signs the session out and sends the user to the login page. So a password change that bypasses the Action classes still ends the other sessions at their next request.
+
+The session that changed the password stays signed in, because `EndAllSessions` leaves it out. The `auth.session` middleware also keeps it, because the middleware stores the hash of `auth()->user()` again after each response. So code that changes the password of the signed-in user must change `auth()->user()` itself, or refresh it after the commit. `UpdateUser` refreshes `$actor` after the commit when a staff member changes their own record.
 
 ### Registration
 
@@ -137,11 +139,13 @@ The Account tab has no rule, so a user with an unverified email address can also
 - A component with the trait must not declare `$verified`, `ensureVerified()`, or `skipHydrate()`. The trait uses these names.
 - The `boot()` method of the component runs before the check. So do not put work that needs a verified user in `boot()`.
 - A lazy or deferred component still renders its placeholder for an unverified user. The check runs on the first request of the component.
-- Each component that renders inside a protected tab needs the trait itself. `Security`, `App\Livewire\Settings\TwoFactor\RecoveryCodes`, `App\Livewire\DataTables\Settings\PasskeyDataTable`, and `App\Livewire\Settings\PasskeyModal` use it.
+- Each component that renders inside a protected tab needs the trait itself. `Security`, `App\Livewire\Settings\TwoFactor\RecoveryCodes`, `App\Livewire\DataTables\Settings\PasskeyDataTable`, `App\Livewire\DataTables\Settings\SessionDataTable`, and `App\Livewire\Settings\PasskeyModal` use it.
 
 `ConfirmsPassword::ensurePasswordConfirmed()` throws a redirect to the confirm-password page of Fortify, the `password.confirm` route. After the password, the user returns to the Security tab of the same area. A redirect with `$this->redirect()` does not work here. Livewire does not run it for a component that mounts inside an update, such as the content after a tab click. A thrown redirect response works there, and it also stops the render. The password step runs only in `mount()`. A lazy or deferred placeholder gives the browser a snapshot before `mount()` runs. A request with that snapshot can render the tab without the password step. So never make the Security tab lazy or deferred. A test in `tests/Feature/Pages/SettingsTest.php` checks this. The step can time out while the page stays open, so each sensitive action still calls `ConfirmsPassword::passwordConfirmed()` first.
 
 When the passkeys feature is on, the Security tab also lists the passkeys of the user. `App\Livewire\DataTables\Settings\PasskeyDataTable` shows them. Its header has the Passkey button, and each row has the Remove passkey action. `App\Livewire\Settings\PasskeyModal` asks for the name of a new passkey, with the Alpine component `passkeyModal` in `resources/js/components/passkey-modal.js`. The internal user page has its own passkey table. Both tables extend `App\Livewire\DataTables\PasskeyDataTable`.
+
+The Security tab also lists the sessions of the user. `App\Livewire\DataTables\Settings\SessionDataTable` shows them, and each end action asks for the password. See [Sessions](sessions.md).
 
 ### Add a Tab
 

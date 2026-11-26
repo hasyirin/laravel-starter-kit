@@ -7,6 +7,7 @@ use App\Domain\User\Models\User;
 use App\Domain\User\Notifications\PasswordWasReset;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Schema;
 
 test('deleting a user soft deletes it', function (): void {
     $user = User::factory()->create();
@@ -111,3 +112,8 @@ test('a message to a user without a listed language uses the language of the app
     'no language' => [null],
     'an unlisted language' => ['ms'],
 ]);
+
+test('a user has no remember token column', function (): void {
+    expect(Schema::hasColumn(new User()->getTable(), 'remember_token'))->toBeFalse()
+        ->and(new User()->getRememberTokenName())->toBeEmpty();
+});

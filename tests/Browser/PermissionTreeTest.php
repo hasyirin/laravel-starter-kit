@@ -72,7 +72,7 @@ test('search shows only matching actions', function (): void {
         search.value = 'upd';
         search.dispatchEvent(new Event('input', { bubbles: true }));
 
-        await until(() => shownChips().length === 9);
+        await until(() => shownChips().length === 10);
 
         return shownChips().map((element) => [element.dataset.permission, element.querySelector('mark')?.textContent]);
         SCRIPT)))->toBe([
@@ -81,6 +81,7 @@ test('search shows only matching actions', function (): void {
         ['internal.controls.users.update', 'Upd'],
         ['internal.controls.users.update-permissions', 'Upd'],
         ['internal.controls.users.update-roles', 'Upd'],
+        ['internal.controls.users.update-sessions', null],
         ['internal.controls.organizations.update', 'Upd'],
         ['internal.controls.geography.update', 'Upd'],
         ['internal.controls.letterheads.update', 'Upd'],

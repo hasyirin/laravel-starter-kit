@@ -55,6 +55,15 @@ test('the user agent and trace ID columns are hidden at first and can be shown w
         ->assertTableColumnStateSet('trace_id', 'trace-1', $entry);
 });
 
+test('the ended by column is hidden at first and names who ended the session', function (): void {
+    $entry = SignInEntry::factory()->sessionEnded()->create();
+
+    Livewire::test(SignInLogDataTable::class)
+        ->assertCanNotRenderTableColumn('endedBy.name')
+        ->toggleAllTableColumns()
+        ->assertTableColumnStateSet('endedBy.name', $entry->endedBy?->name, $entry);
+});
+
 test('the user filter finds the entries of the user and the entries the user made as an impersonator', function (): void {
     $user = User::factory()->create();
     $own = SignInEntry::factory()->forUser($user)->create();

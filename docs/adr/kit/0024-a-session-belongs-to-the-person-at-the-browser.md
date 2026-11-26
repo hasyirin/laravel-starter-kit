@@ -14,3 +14,4 @@ This does not change [kit ADR-0008](0008-impersonation-keeps-the-impersonated-us
 - The impersonator sees the session in their own list, marked with the impersonated user's name.
 - The impersonated user does not see the session. When staff end all of the impersonated user's sessions, the impersonation continues.
 - When the impersonator ends their other sessions, or their sessions are ended by management, the impersonation ends.
+- When a user is deleted, each session where someone impersonates that user ends too, because the impersonation cannot continue without the user.

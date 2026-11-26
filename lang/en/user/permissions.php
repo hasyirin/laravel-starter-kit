@@ -25,6 +25,7 @@ return [
         'update' => 'Update',
         'update-roles' => 'Update roles',
         'update-permissions' => 'Update permissions',
+        'update-sessions' => 'End sessions',
         'delete' => 'Delete',
         'impersonate' => 'Impersonate',
         'view-audit-log' => 'View audit log',

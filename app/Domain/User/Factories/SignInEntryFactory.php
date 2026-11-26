@@ -70,6 +70,25 @@ class SignInEntryFactory extends Factory
         return $this->impersonation(SignInEvent::ImpersonationStopped);
     }
 
+    public function sessionEnded(): static
+    {
+        return $this->state([
+            'event' => SignInEvent::SessionEnded,
+            'result' => null,
+            'method' => null,
+            'ended_by_id' => User::factory(),
+        ]);
+    }
+
+    public function sessionExpired(): static
+    {
+        return $this->state([
+            'event' => SignInEvent::SessionExpired,
+            'result' => null,
+            'method' => null,
+        ]);
+    }
+
     private function impersonation(SignInEvent $event): static
     {
         return $this->state([

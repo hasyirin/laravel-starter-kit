@@ -115,7 +115,7 @@ test('only a user with bypass-authorization can delete a user who has it', funct
 });
 
 test('only a user with bypass-authorization can update a user who has it', function (?string $type): void {
-    grantPermissions($this->user, 'internal.controls.users.update', 'internal.controls.users.update-roles', 'internal.controls.users.update-permissions');
+    grantPermissions($this->user, 'internal.controls.users.update', 'internal.controls.users.update-roles', 'internal.controls.users.update-permissions', 'internal.controls.users.update-sessions');
     grantPermissions($this->other, 'bypass-authorization');
 
     expect($this->user->can('update', [$this->other, $type]))->toBeFalse();
@@ -123,7 +123,7 @@ test('only a user with bypass-authorization can update a user who has it', funct
     grantPermissions($this->user, 'bypass-authorization');
 
     expect($this->user->can('update', [$this->other, $type]))->toBeTrue();
-})->with(['details' => [null], 'roles' => ['roles'], 'permissions' => ['permissions']]);
+})->with(['details' => [null], 'roles' => ['roles'], 'permissions' => ['permissions'], 'sessions' => ['sessions']]);
 
 test('a role that carries bypass-authorization puts its holder out of reach of an update', function (): void {
     $this->seed(RoleSeeder::class);
@@ -131,6 +131,22 @@ test('a role that carries bypass-authorization puts its holder out of reach of a
     Profile::factory()->for($this->other)->withRoles('system-admin')->create();
 
     expect($this->user->can('update', $this->other->fresh()))->toBeFalse();
+});
+
+test('ending the sessions of a user needs update and update-sessions', function (): void {
+    grantPermissions($this->user, 'internal.controls.users.update-sessions');
+
+    expect($this->user->can('update', [$this->other, 'sessions']))->toBeFalse();
+
+    revokePermissions($this->user, 'internal.controls.users.update-sessions');
+    grantPermissions($this->user, 'internal.controls.users.update');
+
+    expect($this->user->can('update', [$this->other, 'sessions']))->toBeFalse();
+
+    grantPermissions($this->user, 'internal.controls.users.update-sessions');
+
+    expect($this->user->can('update', [$this->other, 'sessions']))->toBeTrue()
+        ->and($this->user->can('update', [$this->user, 'sessions']))->toBeTrue();
 });
 
 test('viewing the audit log of a user needs view-audit-log', function (): void {

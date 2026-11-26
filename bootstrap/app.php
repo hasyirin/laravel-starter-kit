@@ -12,6 +12,7 @@ use App\Http\Middleware\EnsureTokenHasScope;
 use App\Http\Middleware\LogApiCallBodies;
 use App\Http\Middleware\RecordInboundApiCall;
 use App\Http\Middleware\ResolveUserPreferences;
+use App\Http\Middleware\TrackSession;
 use App\Http\Responses\ProblemDetails;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Foundation\Application;
@@ -62,7 +63,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->api(prepend: [AuthenticateApiClient::class, 'throttle:api-client']);
         $middleware->prependToPriorityList(SubstituteBindings::class, EnsureTokenHasScope::class);
-        $middleware->web(append: [ResolveUserPreferences::class]);
+        $middleware->web(append: [ResolveUserPreferences::class, TrackSession::class]);
         $middleware->authenticateSessions();
         // app.js writes these from the browser, so the app does not encrypt them.
         $middleware->encryptCookies(except: ['timezone', 'locale']);

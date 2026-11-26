@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Domain\Shared\Common\Enums\Feature;
 use App\Domain\User\Models\SignInEntry;
 use App\Domain\User\Models\User;
+use App\Domain\User\Models\UserSession;
+use App\Livewire\DataTables\Settings\SessionDataTable;
 use App\Livewire\DataTables\Settings\SignInLogDataTable;
 use App\Livewire\Settings\Security;
 use App\Livewire\Settings\TwoFactor\RecoveryCodes;
@@ -110,6 +112,19 @@ test('the security page lists the recent sign-ins of the user', function (): voi
         ->assertSeeLivewire(SignInLogDataTable::class)
         ->assertSee(__('user/settings.sign_in_log.heading'))
         ->assertSee('192.0.2.44');
+});
+
+test('the security page lists the sessions of the user', function (): void {
+    $user = User::factory()->create();
+    UserSession::factory()->forUser($user)->create(['ip_address' => '192.0.2.45']);
+
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('settings', ['tab' => 'security']))
+        ->assertOk()
+        ->assertSeeLivewire(SessionDataTable::class)
+        ->assertSee(__('user/sessions.heading'))
+        ->assertSee('192.0.2.45');
 });
 
 test('two factor authentication disabled when confirmation abandoned between requests', function (): void {

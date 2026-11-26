@@ -28,6 +28,7 @@ use App\Domain\Shared\Permission\Models\Role;
 use App\Domain\User\Models\Profile;
 use App\Domain\User\Models\SignInEntry;
 use App\Domain\User\Models\User;
+use App\Domain\User\Models\UserSession;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
@@ -63,6 +64,7 @@ class EloquentServiceProvider extends ServiceProvider
             'state' => State::class,
             'subdistrict' => Subdistrict::class,
             'user' => User::class,
+            'user_session' => UserSession::class,
         ]);
     }
 }

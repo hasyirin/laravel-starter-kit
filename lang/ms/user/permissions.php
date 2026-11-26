@@ -25,6 +25,7 @@ return [
         'update' => 'Kemas kini',
         'update-roles' => 'Kemas kini peranan',
         'update-permissions' => 'Kemas kini akses',
+        'update-sessions' => 'Tamatkan sesi',
         'delete' => 'Padam',
         'impersonate' => 'Menyamar',
         'view-audit-log' => 'Lihat log audit',

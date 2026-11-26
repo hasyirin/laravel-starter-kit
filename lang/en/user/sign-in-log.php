@@ -15,6 +15,7 @@ return [
     'result' => 'Result',
     'two_factor' => '2FA',
     'impersonator' => 'Impersonator',
+    'ended_by' => 'Ended by',
     'ip_address' => 'IP address',
     'user_agent' => 'User agent',
     'trace_id' => 'Trace ID',
@@ -24,6 +25,8 @@ return [
         'sign_out' => 'Sign-out',
         'impersonation_started' => 'Impersonation started',
         'impersonation_stopped' => 'Impersonation stopped',
+        'session_ended' => 'Session ended',
+        'session_expired' => 'Session expired',
     ],
     'results' => [
         'signed_in' => 'Signed in',
